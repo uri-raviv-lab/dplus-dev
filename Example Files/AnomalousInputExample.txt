@@ -1,0 +1,17 @@
+# Comments are denoted by starting a line with '#'.
+# Input can be of multiple formats. The amount of whitespace doesn't matter.
+
+# Format example 1:
+# f'             f''        Ion name
+-3.703777       3.800822    Cu1+
+-0.3308405      2.621958    Fe3+
+
+# Format example 2:
+# f'             f''        Index of the atom(s) in PDB file
+-2.474768      0.5430533    3
+
+# Format example 3:
+# f'             f''        Name of a group that's defined below
+-3e4           +2.01        $(someRandomGroupName)
+# Name of a group           List of atom indices
+$(someRandomGroupName)      252 472 7344 313

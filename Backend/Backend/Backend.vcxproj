@@ -1,0 +1,445 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{F7448326-C3A1-44BC-99EE-8CC6E1B4B5EB}</ProjectGuid>
+    <RootNamespace>Backend</RootNamespace>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 10.0.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\PropertySheets\Headers.props" />
+    <Import Project="..\..\PropertySheets\Libraries32.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\PropertySheets\Headers.props" />
+    <Import Project="..\..\PropertySheets\Libraries32.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\PropertySheets\Headers.props" />
+    <Import Project="..\..\PropertySheets\Libraries64.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\PropertySheets\Headers.props" />
+    <Import Project="..\..\PropertySheets\Libraries64.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>11.0.50727.1</_ProjectFileVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+    <IncludePath>$(IncludePath)</IncludePath>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
+    <TargetName>xplusbackend</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+    <IncludePath>$(UniversalCRT_IncludePath);$(IncludePath);$(VC_IncludePath)</IncludePath>
+    <LibraryPath>$(UniversalCRT_LibraryPath_x64);$(LibraryPath);$(VC_LibraryPath_x64)</LibraryPath>
+    <TargetName>xplusbackend</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+    <IncludePath>$(IncludePath)</IncludePath>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
+    <TargetName>xplusbackend</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+    <IncludePath>$(UniversalCRT_IncludePath);$(IncludePath);$(VC_IncludePath)</IncludePath>
+    <LibraryPath>$(UniversalCRT_LibraryPath_x64);$(LibraryPath);$(VC_LibraryPath_x64)</LibraryPath>
+    <TargetName>xplusbackend</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>$(SolutionDir)Common\ceres-solver-1.9.0-windows\include;$(SolutionDir)Common;$(SolutionDir)BackendCommunication\LocalCommunication;$(SolutionDir)PDBReaderLib;$(SolutionDir)Conversions;$(SolutionDir)Common\lua-5.1.4\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_WIN32;_DEBUG;_CONSOLE;BOOST_LIB_DIAGNOSTIC;CALCULATION;BACKEND;_CRTDBG_MAPALLOC;_CRT_SECURE_NO_WARNINGS;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <OutputFile>$(OutDir)xplusbackend.dll</OutputFile>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <TargetMachine>MachineX86</TargetMachine>
+      <AdditionalDependencies>$(OutDir)\lua51-backend.lib;$(OutDir)\PDBReaderLib.lib;cudart.lib</AdditionalDependencies>
+      <GenerateMapFile>true</GenerateMapFile>
+    </Link>
+    <CudaCompile>
+      <CodeGeneration>compute_35,sm_35</CodeGeneration>
+      <Defines>WIN32</Defines>
+    </CudaCompile>
+    <PostBuildEvent>
+      <Command>copy "$(CudaToolkitBinDir)\cudart$(PlatformArchitecture)_*.dll" "$(TargetDir)"
+copy "$(CudaToolkitBinDir)\curand64_*.dll" "$(TargetDir)"</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Midl>
+      <TargetEnvironment>X64</TargetEnvironment>
+    </Midl>
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>$(SolutionDir)Backend\GPU;$(SolutionDir)Backend\Backend;$(SolutionDir)Common\ceres-solver-1.9.0-windows\include;$(SolutionDir)Common;$(SolutionDir)BackendCommunication\LocalCommunication;$(SolutionDir)PDBReaderLib;$(SolutionDir)Conversions;$(SolutionDir)Common\lua-5.1.4\src;$(SolutionDir)Common\ZipLib\Source</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_WIN32;RAPIDJSON_PARSE_DEFAULT_FLAGS=kParseNanAndInfFlag;RAPIDJSON_WRITE_DEFAULT_FLAGS=kWriteNanAndInfFlag;_DEBUG;_CONSOLE;BOOST_LIB_DIAGNOSTIC;CALCULATION;BACKEND;_CRTDBG_MAPALLOC;_CRT_SECURE_NO_WARNINGS;NOMINMAX;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <OmitFramePointers>false</OmitFramePointers>
+      <ShowIncludes>true</ShowIncludes>
+      <DisableSpecificWarnings>4305</DisableSpecificWarnings>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <TargetMachine>MachineX64</TargetMachine>
+      <AdditionalDependencies>$(OutDir)\lua51-backend.lib;$(OutDir)\PDBReaderLib.lib;$(OutDir)\zlib.lib;$(OutDir)\ZipLib.lib;cudart.lib;curand.lib</AdditionalDependencies>
+      <GenerateMapFile>true</GenerateMapFile>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+    <CudaCompile>
+      <CodeGeneration>compute_30,sm_30;compute_32,sm_32;compute_35,sm_35;compute_50,sm_50;compute_52,sm_52;compute_53,sm_53</CodeGeneration>
+      <Defines>WIN32</Defines>
+      <TargetMachinePlatform>64</TargetMachinePlatform>
+      <Runtime>MDd</Runtime>
+      <FastMath>false</FastMath>
+    </CudaCompile>
+    <PostBuildEvent>
+      <Command>copy "$(CudaToolkitBinDir)\cudart$(PlatformArchitecture)_*.dll" "$(TargetDir)"
+copy "$(CudaToolkitBinDir)\curand64_*.dll" "$(TargetDir)"</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <AdditionalIncludeDirectories>$(SolutionDir)Common\ceres-solver-1.9.0-windows\include;$(SolutionDir)Common;$(SolutionDir)BackendCommunication\LocalCommunication;$(SolutionDir)PDBReaderLib;$(SolutionDir)Conversions;$(SolutionDir)Common\lua-5.1.4\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_WIN32;NDEBUG;_CONSOLE;CALCULATION;BACKEND;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <OpenMPSupport>true</OpenMPSupport>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <OutputFile>$(OutDir)xplusbackend.dll</OutputFile>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <TargetMachine>MachineX86</TargetMachine>
+      <AdditionalDependencies>$(OutDir)\lua51-backend.lib;$(OutDir)\PDBReaderLib.lib;cudart.lib</AdditionalDependencies>
+      <Profile>true</Profile>
+    </Link>
+    <CudaCompile>
+      <CodeGeneration>compute_35,sm_35</CodeGeneration>
+      <Defines>WIN32</Defines>
+    </CudaCompile>
+    <PostBuildEvent>
+      <Command>copy "$(CudaToolkitBinDir)\cudart$(PlatformArchitecture)_*.dll" "$(TargetDir)"
+copy "$(CudaToolkitBinDir)\curand64_*.dll" "$(TargetDir)"</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Midl>
+      <TargetEnvironment>X64</TargetEnvironment>
+    </Midl>
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <AdditionalIncludeDirectories>$(SolutionDir)Backend\GPU;$(SolutionDir)Backend\Backend;$(SolutionDir)Common\ceres-solver-1.9.0-windows\include;$(SolutionDir)Common;$(SolutionDir)BackendCommunication\LocalCommunication;$(SolutionDir)PDBReaderLib;$(SolutionDir)Conversions;$(SolutionDir)Common\lua-5.1.4\src;$(SolutionDir)Common\ZipLib\Source</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_WIN32;RAPIDJSON_PARSE_DEFAULT_FLAGS=kParseNanAndInfFlag;RAPIDJSON_WRITE_DEFAULT_FLAGS=kWriteNanAndInfFlag;NDEBUG;_CONSOLE;CALCULATION;BACKEND;_CRT_SECURE_NO_WARNINGS;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <OpenMPSupport>true</OpenMPSupport>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <DisableSpecificWarnings>4305</DisableSpecificWarnings>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <TargetMachine>MachineX64</TargetMachine>
+      <AdditionalDependencies>$(OutDir)\lua51-backend.lib;$(OutDir)\PDBReaderLib.lib;$(OutDir)\zlib.lib;$(OutDir)\ZipLib.lib;cudart.lib;curand.lib</AdditionalDependencies>
+      <Profile>true</Profile>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+    <CudaCompile>
+      <CodeGeneration>compute_30,sm_30;compute_32,sm_32;compute_35,sm_35;compute_50,sm_50;compute_52,sm_52;compute_53,sm_53</CodeGeneration>
+      <Defines>WIN32</Defines>
+      <TargetMachinePlatform>64</TargetMachinePlatform>
+      <FastMath>false</FastMath>
+    </CudaCompile>
+    <PostBuildEvent>
+      <Command>copy "$(CudaToolkitBinDir)\cudart$(PlatformArchitecture)_*.dll" "$(TargetDir)"
+copy "$(CudaToolkitBinDir)\curand64_*.dll" "$(TargetDir)"</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\GPU\Atomic Form Factor.cpp" />
+    <ClCompile Include="..\DefaultModels\CylindricalModels.cpp" />
+    <ClCompile Include="..\DefaultModels\DefaultModels.cpp" />
+    <ClCompile Include="..\DefaultModels\HelicalModels.cpp" />
+    <ClCompile Include="..\DefaultModels\SlabModels.cpp" />
+    <ClCompile Include="..\DefaultModels\SphericalModels.cpp" />
+    <ClCompile Include="..\DefaultModels\Symmetries.cpp" />
+    <ClCompile Include="..\DefaultModels\TRAModel.cpp" />
+    <ClCompile Include="..\GPU\GPUHeader.cpp" />
+    <ClCompile Include="AmplitudeCache.cpp" />
+    <ClCompile Include="BackendWrapper.cpp" />
+    <ClCompile Include="backend_exception.cpp" />
+    <ClCompile Include="CeresOpt.cpp" />
+    <ClCompile Include="CommandLineBackendWrapper.cpp" />
+    <ClCompile Include="CompositeModel.cpp" />
+    <ClCompile Include="declarations.cpp" />
+    <ClCompile Include="DllBasedBackendWrapper.cpp" />
+    <ClCompile Include="Grid.cpp" />
+    <ClCompile Include="BackendInterface.cpp" />
+    <ClCompile Include="kronrod.cpp" />
+    <ClCompile Include="LBFGSFitting.cpp" />
+    <ClCompile Include="liblbfgs\lbfgs.c" />
+    <ClCompile Include="LocalBackend.cpp" />
+    <ClCompile Include="Amplitude.cpp" />
+    <ClCompile Include="EDProfile.cpp" />
+    <ClCompile Include="Geometry.cpp" />
+    <ClCompile Include="LocalBackendParameterTree.cpp" />
+    <ClCompile Include="md5.cpp" />
+    <ClCompile Include="MemoryManager.cpp" />
+    <ClCompile Include="MetadataSerializer.cpp" />
+    <ClCompile Include="modelfitting.cpp" />
+    <ClCompile Include="Gauss.cpp" />
+    <ClCompile Include="MonteCarlo.cpp" />
+    <ClCompile Include="PDBAmplitude.cpp" />
+    <ClCompile Include="Quadrature.cpp" />
+    <ClCompile Include="SimpsonRule.cpp" />
+    <ClCompile Include="Externals\alglib.cpp" />
+    <ClCompile Include="Externals\DESolver.cpp" />
+    <ClCompile Include="Externals\gpgpu.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="DEFitting.cpp" />
+    <ClCompile Include="fitting.cpp" />
+    <ClCompile Include="MCFitting.cpp" />
+    <ClCompile Include="..\..\Common\mathfuncs.cpp" />
+    <ClCompile Include="..\..\Common\Statistics.cpp" />
+    <ClCompile Include="Job.cpp" />
+    <ClCompile Include="JobManager.cpp" />
+    <ClCompile Include="Symmetry.cpp" />
+    <ClCompile Include="UseGPU.cpp" />
+    <ClCompile Include="VoxelizedSolvent.cpp">
+      <FloatingPointModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Fast</FloatingPointModel>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\DefaultModels\CylindricalModels.h" />
+    <ClInclude Include="..\DefaultModels\HelicalModels.h" />
+    <ClInclude Include="..\DefaultModels\SlabModels.h" />
+    <ClInclude Include="..\DefaultModels\SphericalModels.h" />
+    <ClInclude Include="..\DefaultModels\Symmetries.h" />
+    <ClInclude Include="..\DefaultModels\TRAModel.h" />
+    <ClInclude Include="backend_exception.h" />
+    <ClInclude Include="UseGPU.h" />
+    <None Include="..\GPU\CalculateJacobianSplines.cuh" />
+    <None Include="..\GPU\CommonCUDA.cuh" />
+    <None Include="..\GPU\CommonPDB.cuh" />
+    <None Include="..\GPU\GPUDirectCalc.cuh" />
+    <None Include="..\GPU\DebyeCalculator.cuh" />
+    <None Include="..\GPU\JacobianDomain.cuh" />
+    <None Include="..\GPU\GPUHybridCalc.cuh" />
+    <ClInclude Include="..\GPU\GPUHeader.h" />
+    <ClInclude Include="..\GPU\GPUInterface.h" />
+    <ClInclude Include="..\GPU\InternalGPUHeaders.h" />
+    <ClInclude Include="AmplitudeCache.h" />
+    <ClInclude Include="BackendWrapper.h" />
+    <ClInclude Include="CeresOpt.h" />
+    <ClInclude Include="CommandLineBackendWrapper.h" />
+    <ClInclude Include="declarations.h" />
+    <ClInclude Include="DllBasedBackendWrapper.h" />
+    <ClInclude Include="dynamic_adaptive_numeric_diff_cost_function.h" />
+    <ClInclude Include="Grid.h" />
+    <ClInclude Include="BackendInterface.h" />
+    <ClInclude Include="..\..\BackendCommunication\LocalCommunication\LocalComm.h" />
+    <ClInclude Include="Amplitude.h" />
+    <ClInclude Include="EDProfile.h" />
+    <ClInclude Include="Geometry.h" />
+    <ClInclude Include="kronrod.hpp" />
+    <ClInclude Include="LBFGSFitting.h" />
+    <ClInclude Include="liblbfgs\arithmetic_ansi.h" />
+    <ClInclude Include="liblbfgs\arithmetic_sse_double.h" />
+    <ClInclude Include="liblbfgs\arithmetic_sse_float.h" />
+    <ClInclude Include="liblbfgs\lbfgs.h" />
+    <ClInclude Include="LocalBackend.h" />
+    <ClInclude Include="LocalBackendParameterTree.h" />
+    <ClInclude Include="md5.h" />
+    <ClInclude Include="MemoryManager.h" />
+    <ClInclude Include="MetadataSerializer.h" />
+    <ClInclude Include="Model.h" />
+    <ClInclude Include="Optimizer.h" />
+    <ClInclude Include="Quadrature.h" />
+    <ClInclude Include="bgfitting.h" />
+    <ClInclude Include="DEFitting.h" />
+    <ClInclude Include="fitting.h" />
+    <ClInclude Include="fittingfactory.h" />
+    <ClInclude Include="MCFitting.h" />
+    <ClInclude Include="modelfitting.h" />
+    <ClInclude Include="simulated_annealing.hpp" />
+    <ClInclude Include="structurefitting.h" />
+    <ClInclude Include="Externals\alglib.h" />
+    <ClInclude Include="Externals\DESolver.h" />
+    <ClInclude Include="Symmetry.h" />
+    <CustomBuild Include="Externals\gpgpu.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </CustomBuild>
+    <ClInclude Include="..\..\Common\mathfuncs.h" />
+    <ClInclude Include="Job.h" />
+    <ClInclude Include="JobManager.h" />
+    <None Include="ClassDiagram1.cd" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\Common\Eigen\Array" />
+    <None Include="..\..\Common\Eigen\Cholesky" />
+    <None Include="..\..\Common\Eigen\Core" />
+    <None Include="..\..\Common\Eigen\Dense" />
+    <None Include="..\..\Common\Eigen\Eigen" />
+    <None Include="..\..\Common\Eigen\Eigen2Support" />
+    <None Include="..\..\Common\Eigen\Eigenvalues" />
+    <None Include="..\..\Common\Eigen\Geometry" />
+    <None Include="..\..\Common\Eigen\Householder" />
+    <None Include="..\..\Common\Eigen\Jacobi" />
+    <None Include="..\..\Common\Eigen\LeastSquares" />
+    <None Include="..\..\Common\Eigen\LU" />
+    <None Include="..\..\Common\Eigen\QR" />
+    <None Include="..\..\Common\Eigen\QtAlignedMalloc" />
+    <None Include="..\..\Common\Eigen\Sparse" />
+    <None Include="..\..\Common\Eigen\StdDeque" />
+    <None Include="..\..\Common\Eigen\StdList" />
+    <None Include="..\..\Common\Eigen\StdVector" />
+    <None Include="..\..\Common\Eigen\SVD" />
+    <None Include="..\BackendModel.cd" />
+    <CudaCompile Include="..\GPU\CalculateJacobianSplines.cu" />
+    <None Include="..\GPU\CommonJacobGPUMethods.cu" />
+    <CudaCompile Include="..\GPU\DebyeCalculator.cu" />
+    <CudaCompile Include="..\GPU\DirectPDB.cu" />
+    <CudaCompile Include="..\GPU\DirectSphere.cu" />
+    <CudaCompile Include="..\GPU\GPUDirectCalc.cu" />
+    <CudaCompile Include="..\GPU\GPUHybridCalc.cu" />
+    <CudaCompile Include="..\GPU\HybridAmpGrid.cu" />
+    <CudaCompile Include="..\GPU\HybridOA.cu" />
+    <CudaCompile Include="..\GPU\HybridPDB.cu" />
+    <CudaCompile Include="..\GPU\HybridSymmetries.cu">
+      <FastMath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</FastMath>
+      <FastMath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</FastMath>
+    </CudaCompile>
+    <CudaCompile Include="..\GPU\HybridUSphere.cu" />
+    <CudaCompile Include="..\GPU\JacobianDomain.cu" />
+    <CudaCompile Include="..\GPU\ManSymGenJacob.cu" />
+    <CudaCompile Include="..\GPU\OAJacob.cu" />
+    <CudaCompile Include="..\GPU\SumGridsJacobian.cu" />
+    <CudaCompile Include="..\GPU\SymmetryGenJacob.cu" />
+    <CudaCompile Include="PDBAmplitudeCUDA.cu">
+      <FileType>Document</FileType>
+      <TargetMachinePlatform Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">64</TargetMachinePlatform>
+    </CudaCompile>
+    <ClInclude Include="PDBAmplitudeCUDA.h">
+      <FileType>Document</FileType>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\..\Common\Eigen\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Backend.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Common\ceres-solver-1.9.0-windows\ceres.vcxproj">
+      <Project>{fd1ea691-965a-49a9-83c7-530a9fe82b44}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Common\lua-5.1.4\src\lua51-backend.vcxproj">
+      <Project>{a0ace53d-3215-4907-926e-98a7a80ca63c}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Common\ZipLib\Source\extlibs\zlib\zlib.vcxproj">
+      <Project>{baeb16b3-db4c-432f-9e6a-2acadea0691d}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Common\ZipLib\Source\ZipLib.vcxproj">
+      <Project>{5c9fd859-ddf9-4510-8397-b329b0ae8c48}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Conversions\Conversions.vcxproj">
+      <Project>{ac553120-3284-4ccb-8a56-f88719daf6f9}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\PDBManipulator\PDBManipulator.vcxproj">
+      <Project>{e410b34b-b5e5-4c0d-86e9-08367eed64a0}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 10.0.targets" />
+  </ImportGroup>
+</Project>

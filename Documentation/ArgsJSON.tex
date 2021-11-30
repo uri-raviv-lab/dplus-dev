@@ -1,0 +1,382 @@
+\documentclass[12pt]{article}
+
+\usepackage{listings}
+\lstset{language=c++}
+\lstMakeShortInline[language=C++,basicstyle=\ttfamily]~
+
+\usepackage{float}
+\floatstyle{boxed}
+\restylefloat{figure}
+
+\usepackage{hyperref}
+
+\usepackage{todonotes}
+
+\usepackage{amssymb}
+
+\usepackage{longtable}
+
+\newcommand{\avinote} [2][]{\todo[#1, color=blue!30]{\textbf{Avi}: #2}}
+\newcommand{\urinote} [2][]{\todo[#1, color=yellow!30]{\textbf{Uri}: #2}}
+\newcommand{\itaynote}[2][]{\todo[#1, color=green!30]{\textbf{Itay}: #2}}
+\newcommand{\talnote} [2][]{\todo[#1, color=red!30]{\textbf{Tal}: #2}}
+\newcommand{\devnote} [2][]{\todo[#1, color=purple!30]{\textbf{Dev}: #2}}
+
+%opening
+\title{The Args File}
+\author{Devora Witty}
+
+\begin{document}
+	
+\maketitle
+
+\begin{abstract}
+
+The Dplus frontend passes the Dplus calculations to the Dplus backend by way of a json dictionary. This document describes the structure of the JSON dictionary, the ways these arguments are created and passed in the local, python, and the Dplus frontend APIs, and the way they are unpacked in the backend (both commandline and dll based)
+
+\end{abstract}
+
+\section{Intoduction to Args JSON dictionary}
+
+
+The args JSON consists of:
+1. the "state"
+2. the x values
+3. in fit: the y values
+
+the "state" is the same state that can be saved from and loaded into the DPlus UI. The x and y values are built on the basis of variables found within the state-- the DPlus UI and the Python UI both have functions that build the x and if necessary y vectors of values. 
+
+
+\subsection{The state}
+The state has 4 main fields:
+1. Domain Preferences
+2. Fitting Preferences
+3. Viewport
+4. Domain
+
+Each of the first three fields is fairly simple and straightforward. The Domain field is more complicated and will be treated in its own section.
+
+\begin{center}
+\begin{table}[]
+	\centering
+	\caption{DomainPreferences}
+	\begin{tabular}{ll}
+		\textbf{Property}     & \textbf{Description} \\
+		Convergence           & ???                  \\
+		DrawDistance          & ???                  \\
+		Fitting\_UpdateDomain & ???                  \\
+		Fitting\_UpdateGraph  & ???                  \\
+		LevelOfDetail         & ???                  \\
+		OrientationIterations & ???                 \\
+		OrientationMethod    & ??? \\
+		SignalFile & ??? \\
+		UpdateInterval & ???\\
+		UseGrids & ???\\
+		qMax & ???
+	\end{tabular}
+\end{table}
+\end{center}                             
+
+
+\begin{center}
+	\begin{table}[]
+		\centering
+		\caption{FittingPreferences}
+		\begin{tabular}{ll}
+			\textbf{Property}     & \textbf{Description} \\
+			Convergence           & ???                  \\
+			DerEps          & ???                  \\
+			FittingIterations & ???                  \\
+			LossFuncPar1  & ???                  \\
+			LossFuncPar2         & ???                  \\
+			LossFunction & ???                 \\
+			StepSize    & ??? \\
+			XRayResidualsType & ??? \\
+			DoglegType & ???\\
+			LineSearchDirectionType & ???\\
+			LineSearchType    & ??? \\
+			MinimizerType & ??? \\
+			NonlinearConjugateGradientType & ???\\
+			TrustRegionStrategyType & ???
+		\end{tabular}
+	\end{table}
+\end{center}   
+
+\begin{center}
+	\begin{table}[]
+		\centering
+		\caption{Viewport}
+		\begin{tabular}{ll}
+			\textbf{Property}     & \textbf{Description} \\
+			Axes\_at\_origin           & ???                  \\
+			Axes\_in\_corner          & ???                  \\
+			Pitch & ???                  \\
+			Roll  & ???                  \\
+			Yaw         & ???                  \\
+			Zoom & ???                 \\
+			cPitch    & ??? \\
+			cRoll & ??? \\
+			cpx & ???\\
+			cpy & ???\\
+			cpz    & ??? \\
+			ctx & ??? \\
+			cty & ???\\
+			ctz & ???
+		\end{tabular}
+	\end{table}
+\end{center}   
+
+
+
+\subsection{The x and y vectors}
+If a signal has been loaded (for fitting) then the x and y vectors will be taken from there.
+
+Otherwise, an x vector will be constructed based on qmax and resSteps.
+
+\subsection{The Domain section of the State field}
+
+The Domain section of the state field is the json representation that will be used to build the parameter tree in the backend.
+
+It always begins from a root of type Domains.
+
+ModelPtr, Populations, Geometry, ScaleMut, Scale.
+
+Populations is an array that contains populations. 
+
+Each population contains a PopulationSizeMut, ModelPtr, PopulationSize, and Models.
+
+Models is an array that contains models. The format that takes will vary depending on the type of model. Models will have fields for their parameters, extra parameters, and location parameters- specifically, for the values, the sigmas, the mutability, and the constraints. DPlus GUI will take care of creating these fields, and the Python API also will handle the proper creation of these parrays properly, so that the user can instead use the more intuitive Parameter class.
+
+Some models have child models, so this section can grow quite large recursively.
+
+Some models also have a file associated with them.
+
+
+
+
+
+\section{The Backend JSON Protocol}
+Initially, the Frontend and the Backend were intimately linked. However, we have broken them up. This enables us to put the Backend on a different server or replace the UI entirely (for example, with Python function calls). Now that Frontend and Backend have been separated, they use ZeroMQ to communicate between the two. We use JSON as a wrapper for most messages. Messages are received by the ~BackendWrapper~ and passed along to their respective Backend functions.
+
+\subsection{Types of functions in the backend API}
+The backend API has four different kinds of functions.
+	\begin{enumerate}
+		\item Functions that receive no parameters and return just one JSON result. GetAllModelMetadata is such a function.
+		\item Functions that return results quickly, without causing any calculations on the server. GetJobStatus, GetAmplitude and GetPDB are such functions.
+		\item Functions that start a lengthy calculation: GenerateJSON, FitJSON.
+		\item Functions that return results of lengthy calculations: GetGenerateResultsJSON, GetFitResultsJSON
+	\end{enumerate}
+
+\subsection{The JSON function call wrapper}
+All function calls have the same general JSON layout:
+
+	\begin{tabular}{l l}
+	
+		\{ \\
+		~client-id:~ & ID of client \\
+		~client-data:~ &  client-specific data\\ 
+		~function:~ & name of function to call\\ 
+		~args:~ & function arguments\\
+		\} 
+	\end{tabular} 
+	
+~client-id~ is the client's ID, which will be translated into a JobPtr
+~client-data~ will be passed back untouched to the client in the response. The Backend doesn't do anything with it. Clients can use it to keep some context between calls and responses. 
+~function~ is the function name, such as ~Fit~ or ~GetJobResults~
+~args~ is a JSON object with the arguments to the function. It can be empty, as in GetJobResults, or can be something very elaborate as in Fit.
+
+The result returned from the Backend always has the following two layout:
+\\
+
+	\begin{tabular}{l l l}
+		\{ \\
+		~client-data:~ &  client-specific data & \\ 
+		~result:~ & name of function to call & \\ 
+		~error:~ & name of function to call &\\ 
+		&	\{\\
+		& ~code~: & Number code specific to type of error\\
+		& ~message~: & Message describing the error.\\
+		&	\} \\
+		\}
+	\end{tabular} 
+\\
+\\
+	
+~client-data~ is, as described above, exactly what the client chose to pass there-- it is not used by the Backend, but is intended to help the client keep some context.
+
+In event of a successful call, ~result~ contains the results of the call.
+
+~error~ contains the fields ~code~ and ~message~ to describe the nature of the error. If there was no error, it returns a code 0 and message "OK"
+
+\subsubsection{the JSON 'args'}
+
+The functions ~GetPDB~, ~GetAmplitude~, ~StartGenerate~, and ~StartFit~,  all receive arguments from the JSON field Args.
+
+\paragraph{GetPDB, GetAmplitude}
+
+These functions both receive a simple, identical JSON in their args:
+\\
+
+\begin{tabular}{l l}
+	\{ \\
+	~filepath:~ &  path to save file temporarily on Backend\\ 
+	~model:~ & pointer to model\\ 
+	\} 
+\end{tabular} 
+
+\paragraph{StartGenerate, StartFit}
+
+These have significantly more complicated input arguments. This is a sketch of the general structure of the arguments JSON (indentation indicates nesting, [] indicates an array):
+\\
+
+	\begin{tabular}{l l l l}
+		
+		 state & & &\\ 
+		 DomainPreferences & & &\\
+		 &FittingPreferences & &\\
+		 &Viewport & &\\
+		 & Domain & & \\
+		 & & Geometry&\\
+		 & & ModelPtr & \\
+		 & & Populations[] & \\
+		 & & & ModelPtr \\
+		 & & & Models[] \\
+		 & & & PopulationSize\\
+		 & & & PopulationSizeMut\\
+		 & & Scale & \\
+		 & & ScaleMut & \\
+		 x[] & & & \\
+		
+	\end{tabular} 
+\\
+\\	
+\noindent Many of these parameters contain within them additional fields, which are better discussed in a section dedicated to the parameters themselves. e.g. the Models contain all the fields necessary to describe a Model, as will be explained in the section on Models.
+
+
+\subsubsection{the JSON 'result'}
+
+Some functions do not return any result at all. Those functions are: ~EndJob~, ~StartGenerate~, ~StartFit~. In addition, the functions ~GetPDB~ and ~GetAmplitude~ do not return JSON responses but rather files, via a standard HTTP response.
+
+The structure of the results section of those functions that do return results is summarized below: 
+
+	\begin{tabular}{|l|l l l l|}
+		\hline
+		\textbf{function} & \textbf{JSON result} & & &\\\hline
+		metadata & containerName & & & \\
+		& models [] & & &\\
+		& & index & & \\
+		& & name & & \\
+		& & category& &\\
+		& & gpuCompatible & &\\
+		& & slow & &\\
+		& & ffImplemented & &\\
+		& & isLayerBased & &\\
+		& & layers & &\\
+		& & & min & \\
+		& & & max & \\
+		& & & layerInfo & \\
+		& & & params &\\
+		& & extraParams & &\\
+		& modelCategories[] & & &\\ \hline
+		GetJob & isRunning & & &\\
+		& progress & & &\\
+		& code & & &\\ \hline
+		GetGenerateResults& Headers[]& & & \\
+		& Graph[] & & & \\ \hline
+		GetFitResults & & & &\\ \hline
+		
+		
+	\end{tabular} 
+
+
+
+	
+\section{Communication between the server and the Backend}
+The final state of separation was achieved with the insertion of a web server. As of now, the Frontend sends http requests to the web server, which sits on the same disk as the Backend and translates the requests to the appropriate calls, which are then sent through ZeroMQ. The web server also translates the results received from the Backend (including the translation described above separating between successful and unsuccessful calls).
+
+	
+\subsection{JSON messages to server}
+
+Above the JSON received by the Backend was described. This JSON is almost entirely built by the server. The server itself receives explicitly from the Frontend only one field, ~args~, and this only for the functions StartGenerate and StartFit. For other functions that require arguments, the server builds the ~args~ field.
+
+All the remaining fields (~client-id~, ~client-url~, and ~function~) are supplied by the webserver.
+
+\subsection{JSON messages from server}
+
+The JSON returned by the Backend was described above in the Backend JSON protocol.
+
+However, this is not what is ultimately returned to the Frontend. Instead, depending on whether the call was successful or not, the results are returned in one of the two following formats:
+\\
+
+
+\noindent \textbf{Results from successful call:}
+\\
+
+\begin{tabular}{l l}
+	\{ \\
+	~client-data:~ &  client-specific data\\ 
+	~result:~ & name of function to call\\ 
+	\} 
+\end{tabular} 
+\\
+\\
+
+\noindent \textbf{Results from failed call:}
+\\
+
+\begin{tabular}{l l l}
+	\{ \\
+	~client-data:~ &  client-specific data & \\ 
+	~error:~ & name of function to call &\\ 
+	&	\{\\
+	& ~code~: & Number code specific to type of error\\
+	& ~message~: & Message describing the error\\
+	&	\} \\
+	\}
+\end{tabular} 
+\\
+\\
+
+In addition the server returns the HTTP response code appropriate to the request status- 200 in the event of success, and 400, 404, and 500 responses in other cases.
+
+\subsection{Webserver URLS}
+Webserver URLS are in the following format: ~Server-address/api/version number/name~.
+Including the version number in the URL allows updates to be made to new versions without destroying backwards compatibility.
+Below are the available URL calls:
+\\
+\\
+
+\begin{tabular}{|l|p{1.7cm}|p{5.5cm}|l}
+	\hline
+	\textbf{Url name} & \textbf{HTTP method} & \textbf{Description}& \textbf{Backend Function} \\ \hline
+	metadata & GET & Returns all the model metadata & GetAllModelMetadata\\ \hline
+	generate & PUT & Starts a new generate process & StartGenerate \\\hline
+	generate & GET & Gets the generate result associated with this session & GetGenerateResults\\ \hline 
+	fit & PUT & Starts a new fitting job &StartFit \\ \hline
+	fit & GET & Gets the fit results associated with this session &GetFitResults\\ \hline 
+	job & GET & Returns the current job's status &GetJobStatus \\ \hline
+	job & DELETE & Stops current job &StopJob\\ \hline
+	files& POST & Checks if files need to be uploaded to the server & N/a\\ \hline
+	files/id & POST & Uploads a file to the server & N/a\\\hline
+	pdb/ptr & GET & Returns the PDB file of the supplied model pointer &GetPDB\\ \hline
+	amplitude/ptr & GET & Returns the amplitude file of the supplied model pointer &GetAmplitude \\ \hline
+\end{tabular}
+
+\subsection{File Management}
+
+Once upon a time, the frontend and the backend were hosted on the same computer and shared the same file system. At the time, it was sufficient for the frontend to pass the address of a file to the backend for the backend to perform calculations on it, and likewise for the backend to simply provide an address for files containing results.
+
+However, now that the frontend and backend can be located completely separately, it is the server's responsibility to coordinate between the file systems on one and the other. 
+
+This functionality is provided by the server on the part of url ~files~ and the functions ~check_files~ and ~upload_file~. 
+
+File addresses from the Frontend are associated via a one-to-one hashing function based on both file address and content to file addresses on the Backend server. When a function-containing call originates from the Frontend, the web server can check if the hash for that file's location on the Backend is already present. If not, the file can be uploaded to the server. 
+
+Because hashing is tied to file locations, changing the file location will cause the file to be re-uploaded. Changes to the file will also cause the file to be re-uploaded.
+
+The Frontend can continue to describe the files by their location on the Frontend's side. The web server translates these addresses to Backend-addresses every time a file-containing call is called.
+
+In the functions ~GetAmplitude~ and ~GetPDB~, the Backend creates files for the Frontend to access. Now that the Frontend and Backend are separated, the Backend creates temporary versions of the files, which the webserver then downloads to the Frontend.
+
+
+\end{document}

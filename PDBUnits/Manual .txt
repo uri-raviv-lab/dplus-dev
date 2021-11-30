@@ -1,0 +1,34 @@
+------------------------
+DOL FILES CREATOR MANUAL
+------------------------
+(1) Input
+	(1.1) Run the PDBUnits.exe file. No external libraries or installation is required, but the "Resources" folder has to be in range of the PDBUnits.exe file. 
+	(1.2) Enter the pdb file path of the complete structure that you want to investigate under "Enter the complete structure pdb file path". Notice that this file has to have a ".pdb" ending.
+	(1.3) Enter the pdb file path of the subunit that you want to pick up from the structure that was exported in (1.2) under "Enter the sub unit pdb file path". Once again the file has to be of "pdb" type.
+	(1.4) Enter the max RMSD (tolerance) value in Angstroms under "Enter Max-RMSD". Note that this value will be used for both translation and rotation fitting. 
+	(1.5) Enter the path of the text output file to be created under "Enter dol file output path".
+
+(2) The program will start the process. It will print information about any case that is being checked:
+	(2.1) For every identical atomic sequence of the sub unit that is found in the complete structure, the program will print: "SUB UNIT FOUND AT ATOM ID: " and the index of the first atom of the identical sequence. 
+	(2.2) The program will continue to check the rotation fit of the case that was found in (2.1).
+		(2.2.1) If the rotation that was found does not exceed the max RMSD value that was given in (1.4), the program will print "Rotation fit!" and present the two possible sets of rotation radians that can be extracted from the appropriate rotation matrix.
+		(2.2.2) If the rotation that was found exceeds the max RMSD value that was given in (1.4), the program will print "Rotation RMSD exceeded". It will not write the current case into the output file and will not continue to preform further examinations.  
+	(2.3) The program will continue to check the translation fit of the case that was found in (2.1).
+		(2.3.1) If the translation that was found does not exceed the max RMSD value that was given in (1.4), the program will print "Translation fit!" and present the translation vector that was found in Angstroms. 
+		(2.3.2) If the rotation that was found exceeds the max RMSD value that was given in (1.4), the program will print "Translation RMSD exceeded". It will not write the current case into the output file.
+	
+(3) When the process is done, the program will print "File was created". You can find the text output file in the path that was supplied in (1.5). The file will contain every fit that was found (2). You can repeat this process for any number of subunits that you want to investigate.
+
+-------------
+Test Examples
+-------------
+
+The pdb files of the test examples that were presented in the paper are attached. You can find them under the folder "Test Examples". There are three folders, each for any example. Each folder contains a file that is called "completestructure.pdb". Enter this file path into (1.2). 
+Each folder also contain a file that is called "subunit.pdb". Enter this file path into (1.3). Choose a max RMSD value (0.1 is recommended) and the output file path.
+The premade dol files and the signals that were made with and without the dol are included in each folder. The signals can be viewed as text files using text editors or visually by using X+'s Signal Series.
+
+-----------
+Source Code
+-----------
+
+The source code  is also included under the folder "Source code". Run the .sln file to view.

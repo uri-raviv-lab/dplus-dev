@@ -1,0 +1,1 @@
+msbuild DPlus2013.sln /p:Configuration=Release /m:3 /p:Platform=x64

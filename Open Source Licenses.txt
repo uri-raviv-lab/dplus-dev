@@ -1,0 +1,20 @@
+Open Source Licenses:
+---------------------
+Lua 5.1: MIT License
+TinyThread++: zlib License
+(M) ALGLIB (2007): BSD License
+libLBFGS: MIT License
+(M) GLView (Ozgur Ozcitak 2009): Apache License 2.0
+TreeViewAdv: BSD License
+(M) LuaInterface: MIT License
+Scintilla, ScintillaNET: MIT License
+WinFormsUI: MIT License
+Ceres-Solver (potential): New BSD License
+boost: Boost License
+Eigen: Mozilla Public License 2.0
+utf8 (unused, Nemanja Trifunovic): Boost License
+SimpleINI: MIT License
+
+Runtime libraries:
+------------------
+CUDA

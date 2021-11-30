@@ -1,0 +1,430 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="Geometry" Collapsed="true">
+    <Position X="26.75" Y="8.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gA0BMCEAEkERgAEgABCACAMAJKCAkAAACBAAUQCQhAg=</HashCode>
+      <FileName>Geometry.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="FunctionModel" Collapsed="true">
+    <Position X="26.25" Y="7" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAEAAAAAAAAAAAAAAAAAAAAACCAAAAAAAAAAQAIAAA=</HashCode>
+      <FileName>Geometry.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="LuaModel" Collapsed="true">
+    <Position X="26" Y="10.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAkIACCAAAAABAAQAQAAAAA=</HashCode>
+      <FileName>Geometry.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="FFModel" Collapsed="true">
+    <Position X="35" Y="10.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAIAAgAEAAAAAAABAACAAAAACAAAAAAAAAAAgIAAAA=</HashCode>
+      <FileName>Geometry.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SFModel" Collapsed="true">
+    <Position X="29.5" Y="8.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAE=</HashCode>
+      <FileName>Geometry.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="BGModel" Collapsed="true">
+    <Position X="24.25" Y="10.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAABAAAAAAAAACAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Geometry.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="IModel" Collapsed="true">
+    <Position X="23.5" Y="16.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gAQAAAAAEAAAAAAAAAAAAAAAICCAEgAAABEAAAGAAAA=</HashCode>
+      <FileName>Model.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ISymmetry" Collapsed="true">
+    <Position X="24.25" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CAAAAAQAEACABAAAAAAAAAAABABAACAAACABQAAgAQQ=</HashCode>
+      <FileName>Model.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="PolydisperseModel" Collapsed="true">
+    <Position X="21.75" Y="18.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gAQIICABEAAACIAAAAAAAAAAICCAEAAAANEAAACIAAE=</HashCode>
+      <FileName>Model.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ICeresModel" Collapsed="true">
+    <Position X="20.25" Y="11.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAIACAAQAAADAAAAAIAAAAAAAAAAAAAABBAAAAAAAA=</HashCode>
+      <FileName>Model.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CompositeModel" Collapsed="true">
+    <Position X="20.75" Y="13.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>qAQAogAAUAAACAEAgEEgAAACIiCgNAAIABtIAAKIEAA=</HashCode>
+      <FileName>Model.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Grid" Collapsed="true">
+    <Position X="2.25" Y="21.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AgIAggACAACgAAiAlAIACEAAAAQACBAAQgGxACBQAQA=</HashCode>
+      <FileName>Grid.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="JacobianSphereGrid" Collapsed="true">
+    <Position X="2.25" Y="23" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AgIAAgABEBLgoBgAgQICKEAAEgQACBBAAIG1AABQAAA=</HashCode>
+      <FileName>Grid.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Symmetry" Collapsed="true">
+    <Position X="26.75" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CAABCAYAEAMDBAABAAAACAMAJADAECAAACADEEACBQA=</HashCode>
+      <FileName>Symmetry.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="LuaSymmetry" Collapsed="true">
+    <Position X="27.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CCQDAEBQCAIAAIAAAEAIQAACAACACAAQAAAAAFApBAQ=</HashCode>
+      <FileName>Symmetry.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="EDPFunction" Collapsed="true">
+    <Position X="24" Y="23" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ABAAEEQAAAAAAAAAAAAgAgACAAAAAAEAAIAgAAIAgBA=</HashCode>
+      <FileName>EDProfile.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="StepED" Collapsed="true">
+    <Position X="24" Y="24.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAgABAAAAAAAAAAQAAAAAAAA=</HashCode>
+      <FileName>EDProfile.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="GaussianED" Collapsed="true">
+    <Position X="21.75" Y="24.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAEAAAAAAAAAAAAAAAgAAAAAAAAAAAAAgBACAgAA=</HashCode>
+      <FileName>EDProfile.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="TanhED" Collapsed="true">
+    <Position X="26.25" Y="24.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAEQAAAAAAAAAAAAAAgAABAAAAAAAAAAgAAAAgAA=</HashCode>
+      <FileName>EDProfile.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Amplitude" Collapsed="true">
+    <Position X="23" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>hASJiCCIIgMABAIVC0YAEAYmIASAGDAGADAgAEAABQA=</HashCode>
+      <FileName>Amplitude.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="PDBAmplitude" Collapsed="true">
+    <Position X="22.75" Y="3" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CAgNksAADDYAggE6AkFBToJgIBigECYEBAFDAFKQDUQ=</HashCode>
+      <FileName>Amplitude.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="AmpGridAmplitude" Collapsed="true">
+    <Position X="25" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAADBCAACAIAAAACAEABQCEAIASQAAEAAAAAAFAABAA=</HashCode>
+      <FileName>Amplitude.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="GeometricAmplitude" Collapsed="true">
+    <Position X="20.25" Y="1.5" Width="1.5" />
+    <InheritanceLine Type="Amplitude" ManuallyRouted="true">
+      <Path>
+        <Point X="23" Y="2.225" />
+        <Point X="21.75" Y="2.225" />
+      </Path>
+    </InheritanceLine>
+    <TypeIdentifier>
+      <HashCode>AAABAAAgjAICAAAIAEAAQAAAIACAAAQAAAAABBAIDAA=</HashCode>
+      <FileName>Amplitude.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DebyeCalTester" Collapsed="true">
+    <Position X="24" Y="12" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gAQAAAAAEAABAABIAEEAQAAEoCGAEAAAARUAAALAABQ=</HashCode>
+      <FileName>Amplitude.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="AnomDebyeCalTester" Collapsed="true">
+    <Position X="24.5" Y="13.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IAAAAAAAAAAABAAAAAAAAAAAACCAAAAAAAAAAAAAABA=</HashCode>
+      <FileName>Amplitude.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DomainModel" Collapsed="true">
+    <Position X="21.5" Y="6.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>iQwACBYAUAIiDgEAUEUAAAAAJCDBEDEMAjdBggDhAQQ=</HashCode>
+      <FileName>Amplitude.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CylindricalModel" Collapsed="true">
+    <Position X="33" Y="19" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AEAAAAAAAUEAAAACAAAAAAAAICAAEAAAAAQAAGAAAAA=</HashCode>
+      <FileName>C:\Users\devora.CHELEM\Sources\dplus_master_branch\Backend\DefaultModels\CylindricalModels.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UniformHCModel" Collapsed="true">
+    <Position X="31.75" Y="20.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAACAAAAICCAAAAAAAAAAgAAAEA=</HashCode>
+      <FileName>C:\Users\devora.CHELEM\Sources\dplus_master_branch\Backend\DefaultModels\CylindricalModels.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="GaussianHCModel" Collapsed="true">
+    <Position X="34" Y="20.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AEAAAAAAAQABAAAAAAACAAAAICCAEAAACAAREAACAAA=</HashCode>
+      <FileName>C:\Users\devora.CHELEM\Sources\dplus_master_branch\Backend\DefaultModels\CylindricalModels.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Cylindroid" Collapsed="true">
+    <Position X="38" Y="19" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gAAGAAQAAQEAAAAKAAADAAAEICCAAAABSQIhgCACAAE=</HashCode>
+      <FileName>C:\Users\devora.CHELEM\Sources\dplus_master_branch\Backend\DefaultModels\CylindricalModels.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CylindroidVaryingEcc" Collapsed="true">
+    <Position X="38" Y="20.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAQAAAAAACAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>C:\Users\devora.CHELEM\Sources\dplus_master_branch\Backend\DefaultModels\CylindricalModels.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="GHCwSFModel" Collapsed="true">
+    <Position X="34" Y="21.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AEAIAAACACEAAQAAAAACAAAAICGAGAAgABAEIECAAAg=</HashCode>
+      <FileName>C:\Users\devora.CHELEM\Sources\dplus_master_branch\Backend\DefaultModels\CylindricalModels.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="HCwSFModel" Collapsed="true">
+    <Position X="31.75" Y="21.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AEAIAAACACEAAQAAAIACAAAAICGAGAAgABAAIECAAAg=</HashCode>
+      <FileName>C:\Users\devora.CHELEM\Sources\dplus_master_branch\Backend\DefaultModels\CylindricalModels.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="HelicalModel" Collapsed="true">
+    <Position X="40.75" Y="12.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAAAAAAAEBAAACAAgCCAEAIAAIAAAAAJAAEEBAAAA=</HashCode>
+      <FileName>C:\Users\devora.CHELEM\Sources\dplus_master_branch\Backend\DefaultModels\HelicalModels.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="HelixModel" Collapsed="true">
+    <Position X="42" Y="14.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gAAEAAAAEQAgAASLAAECAQAAICCAAAgBCAgIIgAACAA=</HashCode>
+      <FileName>C:\Users\devora.CHELEM\Sources\dplus_master_branch\Backend\DefaultModels\HelicalModels.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="HelixModelwHSF" Collapsed="true">
+    <Position X="42" Y="15.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AEAIAAACACEAAQAAAAAAAAAAICGAEAAgABAAAECAAAg=</HashCode>
+      <FileName>C:\Users\devora.CHELEM\Sources\dplus_master_branch\Backend\DefaultModels\HelicalModels.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DelixModel" Collapsed="true">
+    <Position X="39.75" Y="14.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAESEAAIACAEAiAAAAICCAAAAACIhAAkBAAAA=</HashCode>
+      <FileName>C:\Users\devora.CHELEM\Sources\dplus_master_branch\Backend\DefaultModels\HelicalModels.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="GaussianDelixModel" Collapsed="true">
+    <Position X="39.75" Y="15.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>QAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>C:\Users\devora.CHELEM\Sources\dplus_master_branch\Backend\DefaultModels\HelicalModels.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MicroemulsionModel" Collapsed="true">
+    <Position X="32.75" Y="12.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>EAAAAABAAAEAAAAAAAACgAIAICCAAAAAABAAAAAQBAA=</HashCode>
+      <FileName>C:\Users\devora.CHELEM\Sources\dplus_master_branch\Backend\DefaultModels\OtherModels.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SlabModel" Collapsed="true">
+    <Position X="46.25" Y="12.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAIAAEBAAAORAACCAEAIAAEAAAACAAAEAIAAAA=</HashCode>
+      <FileName>C:\Users\devora.CHELEM\Sources\dplus_master_branch\Backend\DefaultModels\SlabModels.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UniformSlabModel" Collapsed="true">
+    <Position X="45" Y="14" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AEAAAAAAAAAAAAAAAAACAAAAICCAAAAAAAAAAgAAAAA=</HashCode>
+      <FileName>C:\Users\devora.CHELEM\Sources\dplus_master_branch\Backend\DefaultModels\SlabModels.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="GaussianSlabModel" Collapsed="true">
+    <Position X="47.25" Y="14" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAABAAAIAAACCAAAICCAEAAAAAAAEwAAAAA=</HashCode>
+      <FileName>C:\Users\devora.CHELEM\Sources\dplus_master_branch\Backend\DefaultModels\SlabModels.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MembraneModel" Collapsed="true">
+    <Position X="47.25" Y="15.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAABAAAAAAAAAAAMAAAAAAAAAAAAAAAAABAA=</HashCode>
+      <FileName>C:\Users\devora.CHELEM\Sources\dplus_master_branch\Backend\DefaultModels\SlabModels.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CuboidModel" Collapsed="true">
+    <Position X="33.5" Y="15" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAQAFAAQgAAACCEkBICCAAAAESAgAECAAAAA=</HashCode>
+      <FileName>C:\Users\devora.CHELEM\Sources\dplus_master_branch\Backend\DefaultModels\SlabModels.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CailleModel" Collapsed="true">
+    <Position X="25" Y="8.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAEAgBQAAAAACAAAICCAABAAAAgBBgCgAgA=</HashCode>
+      <FileName>C:\Users\devora.CHELEM\Sources\dplus_master_branch\Backend\DefaultModels\SlabModels.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SphericalModel" Collapsed="true">
+    <Position X="44" Y="17.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAABAAAKAAACAAAAICAAAAAAAAABEAAAAAA=</HashCode>
+      <FileName>C:\Users\devora.CHELEM\Sources\dplus_master_branch\Backend\DefaultModels\SphericalModels.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UniformSphereModel" Collapsed="true">
+    <Position X="44" Y="18.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAADAAAABAAAAACQAAAICCAAAQAAAAAAhAACAA=</HashCode>
+      <FileName>C:\Users\devora.CHELEM\Sources\dplus_master_branch\Backend\DefaultModels\SphericalModels.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="GaussianSphereModel" Collapsed="true">
+    <Position X="41.75" Y="18.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AEAAAAAAAQABAAAAAAACCAIAICCAEQAAAAAAEAAAAAA=</HashCode>
+      <FileName>C:\Users\devora.CHELEM\Sources\dplus_master_branch\Backend\DefaultModels\SphericalModels.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmoothSphereModel" Collapsed="true">
+    <Position X="46.25" Y="18.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AEAAAAAAAQEBAYAAQAACCAAAJCCAEAAAAAAAUAAAAAA=</HashCode>
+      <FileName>C:\Users\devora.CHELEM\Sources\dplus_master_branch\Backend\DefaultModels\SphericalModels.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="TRAModel" Collapsed="true">
+    <Position X="30.25" Y="10.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACACQAAAAAAAAAAAUBCgECQCGKAAAAAAAQEACIAAA=</HashCode>
+      <FileName>C:\Users\devora.CHELEM\Sources\dplus_master_branch\Backend\DefaultModels\TRAModel.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="PredefinedModel" Collapsed="true">
+    <Position X="39.75" Y="10.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAACAAAAACGIAAAAAAAAACAgABA=</HashCode>
+      <FileName>C:\Users\devora.CHELEM\Sources\dplus_master_branch\Backend\DefaultModels\TRAModel.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="GridSymmetry" Collapsed="true">
+    <Position X="28.5" Y="3" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CEEhAAIAAIMRAAAAAEAADAMAIADAAAAAAAAQEEAghCw=</HashCode>
+      <FileName>C:\Users\devora.CHELEM\Sources\dplus_master_branch\Backend\DefaultModels\Symmetries.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ManualSymmetry" Collapsed="true">
+    <Position X="30" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CCQBAAAACAMAAIAAAEgASAECAACAAAAAAAACEFAgBAQ=</HashCode>
+      <FileName>C:\Users\devora.CHELEM\Sources\dplus_master_branch\Backend\DefaultModels\Symmetries.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="PeakBasedSF" Collapsed="true">
+    <Position X="40.25" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAACAAAAEBABAASAAACAEAICCAACAAAAAAEAAAAAA=</HashCode>
+      <FileName>C:\Users\devora.CHELEM\Sources\dplus_master_branch\Backend\DefaultModels\StructureFactors.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MixedPeakBasedSF" Collapsed="true">
+    <Position X="34.5" Y="8.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAACCAAAAkAABAAQAAgAAAAICAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>C:\Users\devora.CHELEM\Sources\dplus_master_branch\Backend\DefaultModels\StructureFactors.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CailleSF" Collapsed="true">
+    <Position X="33.5" Y="6.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAECgBQAAAAACAAAICCAABAAAAgBFACwAgA=</HashCode>
+      <FileName>C:\Users\devora.CHELEM\Sources\dplus_master_branch\Backend\DefaultModels\StructureFactors.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="GaussianSigmaPeakSFModel" Collapsed="true">
+    <Position X="38" Y="6" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAEAAAAAAAAAAAAAAAAAAAACAAIAAAAAAAAAAAAAA=</HashCode>
+      <FileName>C:\Users\devora.CHELEM\Sources\dplus_master_branch\Backend\DefaultModels\StructureFactors.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="LorentzianPeakSFModel" Collapsed="true">
+    <Position X="40.25" Y="6" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAACAAAAACAAAAAAAAABAAAAAAA=</HashCode>
+      <FileName>C:\Users\devora.CHELEM\Sources\dplus_master_branch\Backend\DefaultModels\StructureFactors.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="LorentzianSquaredPeakSFModel" Collapsed="true">
+    <Position X="42.5" Y="6" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAIAAA=</HashCode>
+      <FileName>C:\Users\devora.CHELEM\Sources\dplus_master_branch\Backend\DefaultModels\StructureFactors.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Typedef Name="CurGrid" Collapsed="true">
+    <Position X="2.25" Y="25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Grid.h</FileName>
+    </TypeIdentifier>
+  </Typedef>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

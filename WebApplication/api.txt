@@ -1,0 +1,69 @@
+DPlus Backend REST API:
+
+(following the recommendations here: https://pages.apigee.com/rs/351-WXY-166/images/ebook-2013-03-wad.pdf?mkt_tok=3RkMMJWWfF9wsRonuKTNde%2FhmjTEU5z17uQrXaaxgYkz2EFye%2BLIHETpodcMRctiNK%2BTFAwTG5toziV8R7PALc13wswQWhfk)
+
+All access will be with the following URL prefix: /api/v1
+
+Authentication will be done with OAuth 2.
+
+Errors will be returned with JSON, as well as with the proper HTTP response code.
+
+Internally the Django web application will take these API calls and convert them 
+into the JSON format ued by the current backend.
+
+
+API function calls:
+
+/api/v1/metadata  (GetAllModelMetadata)
+	Returns all the model metadata
+	HTTP method: GET
+	Returns the model metadata.
+	
+/api/v1/files
+	HTTP method: POST
+	Checks if files need to be uploaded to the server
+	Body: JSON with files the client wants to sync to the server
+	Returns: JSON containing list of files that needs to be synced and their IDs
+	
+/api/v1/files/<id>
+	HTTP method: POST
+	Uploads a file to the server
+	Body: The file's content
+	I know if should be PUT, but Django likes files to be uploaded with POST
+	
+/api/v1/generate     (GetGenerateResult)
+	HTTP method: GET
+	Gets the generate result associated with this session
+	Body: The generate results (the 'results' section of the JSON returned by the backend)
+	
+/api/v1/generate     (StartGenerate)
+	HTTP method: PUT
+	Starts a new generate process.
+	Args: the generation arguments (the 'args' section of the JSON passed to the backend)
+		
+
+/api/v1/fit			(GetFitResults)
+	HTTP method: GET
+	Gets the fit results associated with this session
+	Body: The fit results (the 'results' section of the JSON returned by the backend)
+	
+/api/v1/fit			(StartFit)
+	HTTP method: PUT
+	Starts a new fitting job
+	Body: the fitting arguments (the 'args' section of the JSON passed to the backend)
+	
+
+/api/v1/job				(GetJobStatus)
+	HTTP method: GET
+	Returns the current job's status
+	
+/api/v1/pdb/<modelptr>		(GetPDB)
+	HTTP method: GET
+	Returns the PDB of the supplied model pointer
+	content-type is chemical/x-pdb
+	
+/api/v1/amplitude/<modelptr>		(GetAmplitudte)
+	HTTP method: GET
+	Returns the Amplitude of the supplied model pointer
+	
+	

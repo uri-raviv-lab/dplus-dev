@@ -1,0 +1,124 @@
+
+
+
+
+
+
+\documentclass[12pt]{article}
+
+\usepackage{listings}
+\lstset{language=c++}
+\lstMakeShortInline[language=C++,basicstyle=\ttfamily]~
+
+\usepackage{float}
+\floatstyle{boxed}
+\restylefloat{figure}
+
+\usepackage{hyperref}
+
+\usepackage{todonotes}
+
+\usepackage{amssymb}
+
+\usepackage{longtable}
+
+\newcommand{\avinote} [2][]{\todo[#1, color=blue!30]{\textbf{Avi}: #2}}
+\newcommand{\urinote} [2][]{\todo[#1, color=yellow!30]{\textbf{Uri}: #2}}
+\newcommand{\itaynote}[2][]{\todo[#1, color=green!30]{\textbf{Itay}: #2}}
+\newcommand{\talnote} [2][]{\todo[#1, color=red!30]{\textbf{Tal}: #2}}
+\newcommand{\devnote} [2][]{\todo[#1, color=purple!30]{\textbf{Dev}: #2}}
+
+%opening
+\title{The Python API}
+\author{Devora Witty}
+
+\begin{document}
+	
+	\maketitle
+	
+	\begin{abstract}
+		
+		In place of the DPlus graphical interface, it is possible to interact with the DPlus backend/engine by way of a python interface (intended for scripting etc). This document describes the Python interface.
+		
+	\end{abstract}
+	
+	\section{Intoduction to the Python Interface}
+	The DPlus Python Wrapper works as follows:
+	1. An API object is created (using arguments specific to the type of API)
+	2. The data for the calculation is used to build a CalculationData object
+	3. The API function 'generate' is called, passing the CalculationData object as an argument
+	3. the API returns a CalculationResult object, upon which further manipulations
+	are then possible
+	
+	
+	
+	
+	\section{Installation}
+	Blablalbla
+	
+	\section{Classes}
+	\subsection{CalculationData}
+\subsubsection{creating a CalculationData object}
+CalculationData has two static methods (currently) for
+creating a CalculationData object from a file.
+
+1. ~load_from_state~ receives the address of a state file. It is possible to create
+state files in Dplus's graphical UI simply by selecting 'export all parameters'
+in the file menu.
+2. ~load_from_pdb~ receives the address of a pdb file. For now, it then plugs this pdb file
+into an existing, default state tree.
+
+CalculationData builds an x vector on the basis of the state arguments it is provided.
+It then passes along a dictionary bundling the state and the x vector when its property 'args' is called.
+
+\subsubsection{using CalculationData object}
+
+the created CalculationData object should be passed as-is to the API object in the call to generate
+	
+	\subsection{API}
+\subsubsection{Creating an API object}
+
+There are currently two kinds of APIs available:
+
+1. LocalAPI- this can be run from a computer which has the generate executable. Its constructor requires as
+its first argument the full path of the directory in which the generate executable is located. A second, optional
+argument is the full path of where results from the calculation will be stored-- by default, they will be stored
+in the computer's temporary folder
+
+2. WebAPI- this can be run from any computer with an internet connection.
+Its constructor takes two required arguments: The address of the server, and an authorization key
+for accessing the server
+
+\subsubsection{using API object}
+once the API object has been created, it can be used by calling 'generate' with a CalculationData object
+	
+	\subsection{CalculationResult}
+\subsubsection{Creating a CalculationResult object}
+The user is not responsible for creating CalculationResult, it is created by the API
+\subsubsection{Using CalculationResult object}
+Currently, it is only possible to use the CalculationResult object to view/print its graph
+and headers properties. More functionality will be added in the future.
+	
+	\section{Usage Examples}
+\subsection{sample code: local API with state file}
+~from dplus.CalculationData import CalculationData~\\
+~from dplus.API import LocalCalculationAPI~\\
+~data=CalculationData.load_from_state(r'statefile.state')~\\
+~API=LocalCalculationAPI(r"address/of/executable")~\\
+~result = API.generate(data)~\\
+~print(result.graph)~\\
+
+\subsection{sample code: web API with pdb file}
+
+
+~from dplus.CalculationData import CalculationData~\\
+~from dplus.API import LocalCalculationAPI~\\
+~data=CalculationData.load_from_pdb(r'pdbfile.pdb')~\\
+~API=WebCalculationAPI(r"http://some.web.address", "T0K3N")~\\
+~result = API.generate(data)~\\
+~print(result.graph)~\\
+	
+	
+\end{document}
+
+

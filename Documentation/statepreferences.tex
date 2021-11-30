@@ -1,0 +1,99 @@
+\documentclass[12pt,a4paper,openany,oneside,oldfontcommands]{memoir}
+\setulmarginsandblock{2cm}{1.2cm}{*}
+\setlrmarginsandblock{1cm}{1.2cm}{*}
+\checkandfixthelayout
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{ltablex}
+%\usepackage{tabularx}
+\usepackage{listings}
+\usepackage{color}
+
+\lstset{
+	language=Python,
+	basicstyle=\tiny,
+	commentstyle=\color{green},
+%	frame=single,
+	keepspaces=true,
+	keywordstyle=\color{blue},
+	showspaces=false,
+	}
+
+
+\begin{document}
+\section{DomainPreferences}	
+\begin{tabularx}{\textwidth}{p{8cm} X}
+	\toprule
+	\textbf{Parameter}                              & \textbf{Purpose} \\
+	\midrule
+	\endhead
+\begin{lstlisting}^^Jself.DomainPreferences = \{\end{lstlisting}    & \\
+\begin{lstlisting}^^J        "Convergence": 0.001,\end{lstlisting}    & The parameter used to determine when numerical integration has converged. \\
+\begin{lstlisting}^^J        "DrawDistance": 50,\end{lstlisting}    & Parameter for the opengl library. (bottom scroll bar of the preferences plane)\\
+\begin{lstlisting}^^J        "Fitting_UpdateDomain": False,\end{lstlisting}    & Dunno. \\
+\begin{lstlisting}^^J        "Fitting_UpdateGraph": True,\end{lstlisting}    & (Menu) Settings > Update Fitting Results. Not sure what it's supposed to do. I think it was meant to draw the graph currently calculated in each stage of the fit.  \\
+\begin{lstlisting}^^J        "GridSize": 200,\end{lstlisting}    & Size of the reciprocal space grid (lookup tables) \\
+\begin{lstlisting}^^J        "LevelOfDetail": 3,\end{lstlisting}    & opengl setting \\
+\begin{lstlisting}^^J        "OrientationIterations": 100,\end{lstlisting}    & How many iterations in numerical integration (OA). See manual. \\
+\begin{lstlisting}^^J        "OrientationMethod": "Monte Carlo (Mersenne Twister)",\end{lstlisting}    & OA method. \\
+\begin{lstlisting}^^J        "SignalFile": "D:\\UserData\\devora\\...\\file.out",\end{lstlisting}    & The path of the data file \\
+\begin{lstlisting}^^J        "UpdateInterval": 100,\end{lstlisting}    & ms. Polling frequency. \\
+\begin{lstlisting}^^J        "UseGrid": False,\end{lstlisting}    & Global flag turning off the use of grids. \\
+\begin{lstlisting}^^J        "qMax": 7.5\end{lstlisting}    & The maximal $q$ to be calculated. \\
+\begin{lstlisting}^^J        \},\end{lstlisting}    & \\
+	\bottomrule
+\end{tabularx}
+
+
+\section{FittingPreferences}	
+\begin{tabularx}{\textwidth}{p{8cm} X}
+	\toprule
+	\textbf{Parameter}                              & \textbf{Purpose} \\
+	\midrule
+	\endhead
+\begin{lstlisting}^^Jself.FittingPreferences = \{\end{lstlisting}    & \\
+\begin{lstlisting}^^J        "Convergence": 0.1,  #\end{lstlisting}    & Parameter passed to ceres. Used to determine when the fitting has converged. \\
+\begin{lstlisting}^^J        "DerEps": 0.1,  #\end{lstlisting}    & Parameter passed to ceres. Derivative step size\\
+\begin{lstlisting}^^J        "FittingIterations": 20,  #\end{lstlisting}    & Parameter passed to ceres. Max number of fitting iterations (length of loop). \\
+\begin{lstlisting}^^J        "LossFuncPar1": 0.5,  #\end{lstlisting}    & If the loss function has at least one parameter, this is the first.\\
+\begin{lstlisting}^^J        "LossFuncPar2": 0.5,  #\end{lstlisting}    & If the loss function has two parameters, this is the second.\\
+\begin{lstlisting}^^J        "LossFunction": "Trivial Loss",  #\end{lstlisting}    & The name of the loss function to be used (ceres) \\
+\begin{lstlisting}^^J        "StepSize": 0.01,  #\end{lstlisting}    & Parameter step size (ceres) \\
+\begin{lstlisting}^^J        "XRayResidualsType": "Normal Residuals",  #\end{lstlisting}    & How to construct the residuals for fitting. (ceres) \\
+\begin{lstlisting}^^J        "DoglegType": "Traditional Dogleg",\end{lstlisting}    & If dogleg method is used, which one. (ceres)\\
+\begin{lstlisting}^^J        "LineSearchDirectionType": "Steepest Descent",\end{lstlisting}    & If line search, which direction type. (ceres)\\
+\begin{lstlisting}^^J        "LineSearchType": "Armijo",\end{lstlisting}    & If line search, which one. (ceres)\\
+\begin{lstlisting}^^J        "MinimizerType": "Trust Region",\end{lstlisting}    & ceres\\
+\begin{lstlisting}^^J        "NonlinearConjugateGradientType": "",\end{lstlisting}    & ceres \\
+\begin{lstlisting}^^J        "TrustRegionStrategyType": "Dogleg",\end{lstlisting}    & ceres\\
+\begin{lstlisting}^^J        \},\end{lstlisting}    & \\
+	\bottomrule
+\end{tabularx}
+
+\section{Viewport}	
+\begin{tabularx}{\textwidth}{p{8cm} X}
+	\toprule
+	\textbf{Parameter}                              & \textbf{Purpose} \\
+	\midrule
+	\endhead
+\begin{lstlisting}^^Jself.Viewport = \{\end{lstlisting}    & \\
+\begin{lstlisting}^^J        "Axes_at_origin": True,\end{lstlisting}    & Flag whether to draw a set of axes at the origin. Corresponds to the checkbox in the Controls window. \\
+\begin{lstlisting}^^J        "Axes_in_corner": True,\end{lstlisting}    & Flag whether to draw a set of axes at the origin. Corresponds to the checkbox in the Controls window.\\
+\begin{lstlisting}^^J        "Pitch": 35.264389038086,\end{lstlisting}    & Pitch of the camera.\\
+\begin{lstlisting}^^J        "Roll": 0,\end{lstlisting}    & Roll of the camera.\\
+\begin{lstlisting}^^J        "Yaw": 225.00001525879,\end{lstlisting}    & Yaw of the camera.\\
+\begin{lstlisting}^^J        "Zoom": 8.6602535247803,\end{lstlisting}    & Distance of the camera from the origin.\\
+\begin{lstlisting}^^J        "cPitch": 35.264389038086,\end{lstlisting}    & See Pitch. (Not sure why we have two)\\
+\begin{lstlisting}^^J        "cRoll": 0,\end{lstlisting}    & See Roll. (Not sure why we have two)\\
+\begin{lstlisting}^^J        "cpx": -4.9999990463257,\end{lstlisting}    & Dunno. \\
+\begin{lstlisting}^^J        "cpy": -5.0000004768372,\end{lstlisting}    & Dunno. \\
+\begin{lstlisting}^^J        "cpz": 4.9999995231628,\end{lstlisting}    & Dunno. \\
+\begin{lstlisting}^^J        "ctx": 0,\end{lstlisting}    & Dunno. \\
+\begin{lstlisting}^^J        "cty": 0,\end{lstlisting}    & Dunno. \\
+\begin{lstlisting}^^J        "ctz": 0\end{lstlisting}    & Dunno. \\
+\begin{lstlisting}^^J        \},\end{lstlisting}    & \\
+	\bottomrule
+\end{tabularx}
+
+\end{document}

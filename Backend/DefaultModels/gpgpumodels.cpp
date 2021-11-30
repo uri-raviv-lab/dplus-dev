@@ -1,0 +1,42 @@
+#include "gpgpumodels.h"
+
+// Remember: Use as less global accesses (i.e. params[0]) as possible! Read
+// them to private variables first
+
+const char *PROGRAM = 
+"kernel void DoNothing(const global float *x, const global float *params, \n"
+"                      int ma, int nd, int exparams, global float *y) {   \n"
+"    int id = get_global_id(0);                                           \n"
+"    const float q = x[id];                                               \n"
+"    float result = 0.0f;                                                 \n"
+"    // Here comes the function itself                                    \n"
+"    result = sin(q);                                                     \n"
+"    // Final part                                                        \n"
+"    y[id] = params[ma - exparams + 0] * result +                         \n"
+"            params[ma - exparams + 1];                                   \n"
+"}                                                                        \n"
+"                                                                         \n"
+"                                                                         \n"
+"kernel void HollowCyl(const global float *x, const global float *params, \n"
+"                      int ma, int nd, int exparams, global float *y) {   \n"
+"    int id = get_global_id(0);                                           \n"
+"    // Initialization of basic parameters, keep it.                      \n"
+"    const float q = x[id];                                               \n"
+"    float intensity = 0.0f;                                              \n"
+"    // Here comes the function itself                                    \n"
+"    float *r = params;                                                   \n"
+"    float *ed = params + nd;                                             \n"
+"    for(int i = 0; i < nd - 1; i++)                                      \n"
+"    		intensity += (ed[i] - ed[i + 1]) *                            \n"
+"        				( (sin(q * r[i])) - (q * r[i] * cos(q * r[i])));  \n"
+"                                                                         \n"
+"    intensity += (ed[nd - 1] - ed[SOLVENT]) *                            \n"
+"  			( (sin(q * r[nd - 1]) )- (q * r[nd - 1] * cos(q * r[nd - 1])));\n"
+"                                                                         \n"
+"	intensity = sq(4.0 * PI * intensity / (q * sq(q)));                   \n"
+"    // Final part                                                        \n"
+"    y[id] = params[ma - exparams + 0] * intensity +                      \n"
+"            params[ma - exparams + 1];                                   \n"
+"}                                                                        \n"
+;
+

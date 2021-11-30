@@ -1,0 +1,114 @@
+Milestone V - Finalization
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+BUGS:
+	* Crashes in OpeningWindow when there is a selected External model and a different radio button is clicked:
+		An unhandled exception of type 'System.AccessViolationException' occurred in X+.exe
+		Additional information: Attempted to read or write protected memory. This is often an indication that other memory is corrupt.
+		
+		Occurs in OpeningWindow::radioButton_CheckedChanged at:
+			// Deleting previous model, if exists
+			if(_currentModel)
+				delete _currentModel; // Crashes here!!
+	  - Update: Put problematic statement in try/catch. CAUSES MEMORY LEAK!!!
+
+	* Adaptive arbitrary ED doesn't seem to work anymore
+
+	* Arbitrary ED for symmetric slabs does not converge to discrete model as slope increases
+
+	* When the a1nm1 is selected and a form factor has been loaded from a file,
+		if there is no compatible region and a call to UpdateGraph is made before 
+		changing this, then _ff->y will be empty and the program will crash.
+
+	* Complete the models:
+		- Cuboid
+			+ The current model (Avi's implementation) does not coincide with the previous model.
+	
+    * finite GHC should say it's slow - it checks if H is infinite. this is not a good check as it only changes in PreCalculate.
+	
+	* Loading a discrete model with arbitrary ED profiles will result in an empty initial drawing of the ED profile.
+	  Modifying a parameter seems to fix this.
+	  
+-----------------------
+
+General:
+
+	* Move solvent ED from first layer to extra parameters
+
+	! MAJOR code cleanup (MA leftovers, documentation[doxygen])
+	
+	* Program manual
+	
+------------
+
+Backend:
+
+	? LM that uses Function, Gradient and Hessian 
+		  (see http://www.alglib.net/optimization/levenbergmarquardt.php
+		   and http://www.alglib.net/optimization/lbfgs.php)
+
+	? Consolidate all the 'EXPORTED' .h files and calculation_external.h
+
+	? Finish Differential Evolution: 
+		* Immutable parameters
+		* Real evolution goes out of the parameter range
+	
+------------
+
+Frontend:
+	* Ranges for structure factor parameters
+
+	* Tab indexing arrangement
+
+================================================================================
+
+NIS ctr:
+T->A: 11
+T->P: 4
+A->P: 0
+T->R: 1
+A->R: 0
+P->R: 0
+
+Milestone VI - Beyond X+
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Non-X+:
+	+ Modeling Thermal Fluctuations
+	
+	+ Multiple Populations (be it models or phases)
+	
+	? 2D Sample Analysis for samples with partial alignment (using magnetic field or substrates or shear)
+	
+Docking Program:
+	+ Multiple Models and interference
+	+ Docking of lipids and/or protein structures using structure factor formalism
+	
+Time resolved analysis (TRA):
+	+ GUI Idea: the user selects this mode
+			does a regular fit
+			when finished, a new window opens
+			in this window, the user can add and rearrange files,
+			select which tabs will undergo fitting, select mutable parameters and ranges
+			when all this is complete, the user presses a button and fitting starts
+			each file starts with the results of the previous file.
+			all the parameters are saved to individual ini files with a slightly different name (filename-seriesParams.ini?)
+		* Possible issue: initial background subtraction
+	+ The previous idea does not take a "global fit" approach (i.e. find the best FF when the SF changes throughout the series)
+		For that, we can probably use the same GUI, but will need to rethink the backend.
+	+ Another aspect of this is when a given signal is composed of N different contributions. Each
+		contribution is scaled by A_i giving the relative populations in the sample.
+
+
+================================================================================
+
+Index:
+
+ * Task
+ + Optional Task
+ ! Urgent Task
+ ? Unsure
+ T Assigned: Tal
+ P Assigned: Pablo
+ A Assigned: Avi
+ U Assigned: Uri
+ R Assigned: Roy/Roi

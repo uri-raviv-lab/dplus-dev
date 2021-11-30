@@ -1,0 +1,49 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Controls">
+      <UniqueIdentifier>{03b6c7a5-4c1c-4b17-a549-ea744b0301a0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Miscellaneous">
+      <UniqueIdentifier>{b12a3cdd-540b-4f90-b25f-69ccc3985afa}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Graph1D.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="Graph2D.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="Graph3D.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="AssemblyInfo.cpp">
+      <Filter>Miscellaneous</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Graph1D.h">
+      <Filter>Controls</Filter>
+    </ClInclude>
+    <ClInclude Include="Graph2D.h">
+      <Filter>Controls</Filter>
+    </ClInclude>
+    <ClInclude Include="..\clrfunctionality.h">
+      <Filter>Miscellaneous</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="TaskList.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="Graph3D.h">
+      <Filter>Controls</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Graph1D.resx" />
+    <EmbeddedResource Include="Graph2D.resx" />
+    <EmbeddedResource Include="Graph3D.resx" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,65 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[latin1]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{outlines}
+
+\usepackage[left=2.00cm, right=2.00cm, top=2.00cm, bottom=2.00cm]{geometry}
+
+\begin{document}
+	
+	\begin{outline}
+	\1 Ensure Installations
+	\2 C++ runtime
+	\2 CUDA or DLLs. Explain that CUDA X needs to be install if there is a Nvidia GPU installed.
+	
+	\1 Main Folder (in Program Files (64 bit, not x86))
+		\2 ``Accessory tool'' (PDBUnits)
+		\2 *.exe
+			\3 DebyeCalculator.exe
+			\3 DPlus.exe
+			\3 Fit.exe (Runs as the server/python API)
+			\3 Generate.exe (Runs as the server/python API)
+			\3 GetAllMetadata.exe (Runs as the server/python API)	
+		
+		\2 *.dll
+			\3 Aga.Controls.dll
+			\3 ceres.dll
+			\3 cudart64\_*.dll
+			\3 curand64\_*.dll
+			\3 GLView.dll
+			\3 GraphToolkit.dll
+			\3 lua51-backend.dll
+			\3 lua51.dll
+			\3 LuaInterface.dll
+			\3 Microsoft.WindowsAPICodePack.dll
+			\3 Microsoft.WindowsAPICodePack.Shell.dll
+			\3 mscorlib.dll
+			\3 Newtonsoft.Json.dll
+			\3 PDBReaderLib.dll
+			\3 SciLexer.dll
+			\3 SciLexer64.dll
+			\3 ScintillaNET.dll
+			\3 WeifenLuo.WinFormsUI.Docking.dll
+			\3 xplusbackend.dll
+			\3 xplusfrontend.dll
+			\3 xplusmodels.xrn (it's really a dll...)
+	
+	\1 Desktop folder
+		\2 Links to executables
+		\2 Suggest parameters (grid size, integration parameters)
+		\2 Anomalous example
+		\2 Links to folders in Documents folder
+	
+	\1 Documents folder  (\%appdata\%?)
+		\2 Short tutorials (movies)
+		\2 LuaScripts
+	
+	\end{outline}
+	
+	TODO: Make sure that these are still correct when compiling other branches...
+	
+	
+\end{document}

@@ -1,0 +1,5 @@
+*.vcxproj     filter=semicolonbreak
+*.amp filter=lfs diff=lfs merge=lfs -text
+*.ampj filter=lfs diff=lfs merge=lfs -text
+*.zip filter=lfs diff=lfs merge=lfs -text
+*.whl filter=lfs diff=lfs merge=lfs -text

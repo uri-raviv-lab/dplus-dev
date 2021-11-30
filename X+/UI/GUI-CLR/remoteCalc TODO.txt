@@ -1,0 +1,74 @@
+-Change usage of:		originally defined in
+	* graphTable		structurefitting.h and calculation_external.h
+	* bgStruct			bgfitting.h and calculation_external.h
+	* cailleParamStruct	structurefitting.h and calculation_external.h
+
+-Define/implement EDPFunction
+
+* Create FrontendCom
+* JobPtr (set as new job for now, as opposed to loading an existing one)
+
+BUGS:
+* When not in LiveRefresh, generated graph isn't retrieved.
+* Fitting with a mask crashes the program.
+* When changing peak types, all peaks are erased. Presumably, this will
+	happen when changing models as well.
+* Related models in the Options menu has irrelevant models
+
+TODO List
+* Change models (handleModelChange)
+	- Change model for FF
+	- Decide what to do about existing parameters when changing models
+* Ini managment
+	- Move to XML?
+* Background
+	- Resolve issue of FunctionName <--> Enumeration
+	- Implement
+	- Implement constraints
+	- Crop and baseline
+* Structure Factor
+	- Implement constraints
+* Phases
+	- New type of job?
+	- Generate
+	- Fit
+* Options
+	- Change time to refresh from backend (different for local vs remote)
+* Polydispersity
+	- Fails in CombinedModel::Precalculate --> OrganizeParameters(p, nLayers)
+
+
+
+enum TODO {
+	Baseline
+	handles
+	EDP
+	implementAll
+	BG
+	Phases
+	SF
+	NewFitter
+	PD
+	NewFitting
+	INI
+	angstrom
+	ResChanged
+	ChangeModel
+	DisplayParams
+	externalModels
+	PS (?)
+	timer
+	dox
+	Fitters
+	Threads
+	mask
+	GPU--
+	Optimizations--
+	C#---
+	3D
+	LogLog
+	Caille
+	updateInterval
+	KILLLLLL
+	DUMMY
+};

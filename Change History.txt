@@ -1,0 +1,283 @@
+4.3.1.0:
+--BugFix: fixed bug with log(q) in 2D graph in UI
+--Feature: change code to work with python wrapper
+4.3.0.0:
+--Feature: added Ampj files 
+--Bugfix: fixed bug with log(q) in 2D graph in UI
+4.2.1.0:
+-- Changing the version number because it cause a bug 
+4.2.0.1:
+--Bugfix: add Visual C++ 2017 Redistributable to installer
+--Bugfix: fix error "job is still running" when running vegas with cpu
+4.2.0.0:
+--Bugfix: fix fit in lua
+--Feature: check validity of constraints in UI
+--Feature: delete temporary amp files when starting a new session of d+
+--Feature: add a label "minimizer type" on top of the fitting preferences selection box 
+--Feature: upgrade files to cuda 10
+--Feature: upgrade files to vs2017
+--Bugfix: dplus crashes when invalid use-grid order selected, eg parent false child true
+4.0.7.0:
+--Bugfix: fitting set garbage values in inf
+4.0.6.0:
+Yael:
+--Bugfix: When loading a state while a signal is open, min q, max q and number of generated point are grayed out and can not be edited
+4.0.5.0:
+Yael:
+--Bugfix: enable changing the electron density of a solvent in helix
+--Bugfix: program didn't present the correct error message from server
+--Bugfix: Signal remains when loading state.
+--Feature: disallow install on non-x64 computers
+--Feature: add restart option when dplus is crush in remote mode
+Devora:
+--Feature:  remove gaussian hollow cylinder
+--Feature:  limit helix to 2 layers max
+4.0.4.0:
+Devora+Yael:
+Bugfix: dpi problem (asana -numbers in preferences menu sometimes are cut)
+Bugfix: not allowing install d+ if there is already another version of d+ (prev or next)
+Bugfix: add a pseudo lock on the ticking status checks + stop using a single class_level "call" that can get overwritten and erased for everything
+4.0.3.0
+Yael:
+BugFix: key already exists when using remote server.
+BugFix: raise readable error message when the server is up but d+ web Application is down
+Feature: disable generate/fit buttons mid-job
+4.0.2.0
+Yael+Devora: 
+BugFix: various bugs in remote d+ 
+4.0.1.1
+Yael:
+--Feature: replace the manual in installer with link to url website manual
+--Feature: add help option in the toolbar menu (about d+ , manual and link to d+ home page)
+4.0.1.0
+Devora:
+--BugFix: there were major problems when metadata is missing when starting remote d+.
+
+4.0.0.0
+Yael:
+--BugFix: when pressing close windows in ManagedHTTPCallerForm D+ was opened and collapsed.
+--BugFix:  change the message for failure of saving amplitude file
+
+3.9.2.0
+Yael:
+--BugFix:  raising an error if the saving of a file was failed
+--installer: add checkbox for desktop shortcuts
+--installer: add creation of desktop shortcut in D+ installer
+--BugFix:  "Anomalous" checkbox works only the first time after loading PDB
+Devora:
+--BugFix: anomalous checkbox not unchecking
+
+3.3.5.0
+Yael:
+--new lua scripts and examples 
+--BugFix: layer 0 isn't listed as "solvent"
+--Feature: launch pdbunits from dplus
+--BugFix: Default parameters for 3D parameters does not update 3D view
+--BugFix: Change default parameters for detail and draw distance
+--BugFix: if change qmax when loading amp file, D+ crashes
+
+3.3.4.0
+--Devora + Yael:
+--Default parameters button (for everything but the domain tree itself)
+--Don't load signal file after closing and reopening 
+--Rename res steps to generated points
+--Sometimes on windows 10 the labels don't move and resize as needed. Resize combo boxes. 
+--Pdbunits and manual in installer
+--Validate parameters for fitting and generate
+
+3.3.3.0
+Devora + Itay:
+--Bugfix: Adding missing calls for synchronize in gpu,  fix the problem with pdbs reading and the teeth problem
+3.3.2.0
+Yael:
+--Feature: Add q min stage 1 (orientation average) 
+--Bugfix: Graph scales view updates after changing qmax/qmin values
+--Bugfix: I add throw backend_exception in case the file wasn't found.
+--Bugfix: Wrong layer numbering in GUI
+
+3.3.1.1
+Yael:
+--Bugfix: check GPU just if UseGPU flag is on
+
+3.3.1.0
+Yael:
+--Bugfix: Adding support to useGPU flag in Generate.exe and Fit.exe.
+--Bugfix: Add set function to useGPU flag
+--Bugfix: Adding validation to use_gpu setter in python interface.
+
+3.3.0.0
+-Avi left
+Devora:
+C++:
+-Bugfix: Replaced call to clear-erase that was crashing on new version of gcc
+-Bugfix: Generate.exe was producing an invalid json string, fixed
+
+Yael:
+--Bugfix: check TDR level just if the computer has GPU
+--Bugfix: deleting the default script in the tab script editor 
+--Feature: if the computer doesn't have GPU, gpu flag set to false and the UI flag is disabled
+
+3.2.54.0
+- Fixed a bug that caused D+ to try and run GPU code on computers without GPUs.
+
+3.2.53.0
+- Removed the "correct" convergence
+- Bugfixes re: interpolation of points between the origin and the first layer
+- Bugfix: very large (>180,000 atoms) PDB files in Debye sometimes had QNANs as results
+
+3.2.52.0
+- Reduced the minimal number of integrations before checking for convergence
+- Begining of qMin (still calculates the inner sphere)
+- Corrected interpolation of points between the origin and the first layer
+
+3.2.51.0
+- Added checks for the Space-filling Symmetry that ensure the angles are valid.
+- Corrected the convergence criteria
+- Change the default for the PDB models to subtract dummy atoms with an ED of 334
+- Odd grid sizes are rounded up
+- Suggest Parameters: updates as input is typed
+- Bugfix: The extra paramter names of geometric models are correctly displayed in the headers
+
+
+3.2.50.0
+- Bugfix: PDB models that were calculated on the GPU with a large grid in Hybrid on a GPU were calcualted incorrectly
+- Bugfix: PDB models that were calculated on the GPU with a negative solvent ED or negative solvation ED were calcualted incorrectly
+- AVX check: Installer checks to make sure that the CPU is AVX capable
+- On Windows computers with CUDA enabled GPUs, there is now a check that makes sure that the watchdog timer is not enabled so that kernels don't return an "Unspecified Launch Failure (4)". The check is done in the frontend.
+
+3.2.49.0
+- CRITICAL bug fix: AmpGridAmplitude was leaking a lot of memory due to a recent commit
+
+3.2.48.0
+- Render uniform cylinders better (make layers that have zero excess electron density be clear with cylinders drawn on their borders.
+- Bugfix: when reducing the grid size on a CPU, D+ would crash after reading the larger cached amplitude file
+- Bugfix: when exporting a PDB file from a symmetry with a nested symmetry with a PDB child wouldn't export the correct atom locations.
+- Bugfix: Fixed GUI in the Domain View pane so that when full, it gets a scroll bar.
+- Re-enabled the option to name models in the GUI.
+- Added a header to exported PDB files
+- A few changes that help implicit in DNA pass initial tests
+
+3.2.47.0
+- Centered the assymetric slabs in the Z direction. This prevents numerical issues when using large slabs.
+
+
+3.2.46.0
+- Bugfix: After loading a state with a manual symmetry without layers, D+ would crash when pressing Add Layer
+- Bugfix: Scripted/Manual Symmetries sometimes resulted in a QNAN in certain places.
+- Bugfix: Fixed a bug where calculating from an amplitude file on the CPU resulted in a crash due to an uninitialized memory access
+
+
+3.2.45.0
+- When looking at alternate locations in a PDB all things that are not ' ' or 'A' should be discarded and not just those that are 'B' (apparently there are some files with three or more options).
+- Added implicit hydrogen atoms to nucleic acids (not yet tested)
+- Change certain floats to doubles in hybrid OA on the GPU. This solves some small errors in OA.
+- Fixed the AmpGridAmplitude model so that it creates a copy of the amplitude that it can scale.
+- On the CPU, PDBAmplitudes now multiply by the scale
+- Fixed a mistake in the Ring.lua script
+- Changed the sign of the solvent subtraction on PDB models on the CPU so that it's self-consistent.
+- Added multiplying by scale and adding background to all geometric models that were missing it.
+- Fixed a bug in the voxelized solvent that mixed between the y and z axes.
+- Changed interpolation to use double precision instead of single precision when calculating the derivatives
+
+3.2.44.0
+- Corrected the parameters in the header of geometric models
+- Fixed a bug where clicking a checkbox in the DataGridViews and then saving the state without leaving the checkbox cell would result in the change not being saved in the state file.
+- Fixed a bug where changing the selected item of a ComboBox in the DataGridViews and then saving the state without leaving the ComboBox cell would result in the change not being saved in the state file.
+- Fixed a bug where a PDB in a symmetry wouldn't trigger a calculation after being swapped for a different PDB.
+- Changed the layout a bit so that the critical buttons (Add, Generate, etc.) are visible on startup using the default layout. Also, starts maximized.
+
+3.2.43.0
+- Allow for a larger number of voxels for solvent subtraction
+- Bugfix: Generating via Lua when a signal was loaded sometimes caused D+ to hang. Fixed.
+- Added an option to display the axes at the origin at a constant size (invariant to the zoom)
+- Draw 'X' 'Y' and 'Z' next to the axes in the lower right corner
+- Report back to the user the optional message that the exception is initialized with
+
+3.2.42.0
+- Fixed a performance regression introduced in 3.2.38.0 (commit a398db516).
+- Fixed a bug where trying to export the 1D model graph after closing a signal file resulted in nothing happening
+
+3.2.41.0
+- Fixed bug which caused the combination of a manual symmetry (not hybrid) with VEGAS to have a slightly larger grid size, causing slightly wrong results
+- Fixed the progress bar when symmetries are used so that it doesn't move back to 0% from 30%
+
+3.2.40.0
+- Fixed bug in the symmetric layered slabs calculation
+
+3.2.39.0
+- Fixed critical bug introduced in 3.2.38.0 that caused a crash on Generate/Fit
+
+3.2.38.0
+- Enabled using the dummy atom radii for voxelized solvent.
+- Bugfix: Changed the convergence criteria for Monte Carlo on the CPU so that if an "infinite" number of iterations is used, it won't try to allocate an infinite amount of memory.
+- Corrected and simplified the asymmetric slabs calculation.
+
+3.2.37.0
+- Unicode DOL files are now read correctly
+- Changed the dummy atom form factor to match Crysol
+- Fixed bug when trying to allocate a large grid when there isn't enough memory
+- Slabs are rendered correctly
+
+3.2.36.0
+- Bug fixes to the voxelized solvent layer
+- The helix model now uses voxels (slow) and only calculates whole pitches
+
+
+3.2.35.0
+- Helices are now rendered so that it correlates with the parameters (ignores handedness, for now).
+- Remote fixed (was totally broken)
+
+3.2.1.34
+
+- Prints to the console are now buffered. This sometimes reduces fitting times.
+- Scrollbars now appear when GUI elements are too small.
+- Added suggested fitting parameters to the Suggest Parameters application.
+- Added version information in a menu item in the GUI
+- Added a menu item to launch Suggest Parameters from the GUI
+- Fixed a bug that caused QNANs to appear when using a Scripted/Manual Symmetry and hybrid on a GPU
+
+3.2.1.33
+
+- Fixed bug where symmetries with a scale not equal to one or zero would result in incorrect intensities on a CPU with Monte Carlo integration.
+- Changed fitting so that all processors are used (under Windows; does not affect linux/cmake builds).
+- Fixed caching of models to and from files.
+
+3.2.1.32
+
+- Implicit hydrogens are taken into account when reading a PDB file. This is based on the amino acid name (columns 18-20, e.g. TRP) and the atom names (columns 13-16, e.g. CZ3). If in a given amino acid, not all atoms correspond to atoms in that amino acid, or there is at least one hydrogen atom, the hydrogen atoms will not be accounted for implicitly, rather only explicit hydrogen atoms will be taken into account.
+
+- Non negative constraints on all populations' scale
+
+- Bugfix: Fitting a model to data that's separated by many orders of magnitude no longer converges half way, but is now relative to the mean of the data
+
+- Bugfix: Trying to write to a file in a directory without proper permissions shouldn't crash anymore. An error is written to the console.
+
+- Constraints are harder. If during the fitting process an evaluation with at least one parameter out of bounds results in a lower cost, those parameters are not returned to D+.
+
+3.2.1.31 (not released)
+
+- Bugfix: Fixed the C1 parameter in PDB models on hybrid with GPU
+
+- Bugfix: Voxelized solvent/solvation was broken on the CPU (broken in 3.2.1.26). Fixed.
+
+- Added the C1 parameter in PDB models in the DebyeCalculator
+
+3.2.1.30 (shouldn't have been released)
+
+- Bugfix: Fixed an off-by-one issue in the voxelized solvent that caused D+ to crash with certain PDB files (ones with atoms in the corners, as far as I could tell)
+
+- Added two new parameters to the PDB models: C1 (modulation of the subtracted solvent); and a solvation thickness parameter that's separate from the probe size.
+
+3.2.1.27
+
+3.2.1.25
+
+- Faster voxelized solvent/solvation preparation (~x2)
+
+3.2.1.23
+
+3.2.1.22
+
+3.2.1.21
+
+3.2.1.20

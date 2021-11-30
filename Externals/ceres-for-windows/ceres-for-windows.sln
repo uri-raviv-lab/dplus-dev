@@ -1,0 +1,66 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ceres", "ceres-solver-1.9.0\ceres.vcxproj", "{FD1EA691-965A-49A9-83C7-530A9FE82B44}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "helloworld", "ceres-solver-1.9.0\examples\helloworld.vcxproj", "{98209D52-4053-4027-9ECA-2DBEC6A2B76B}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "curve_fitting", "ceres-solver-1.9.0\examples\curve_fitting.vcxproj", "{9CD53173-B773-417E-AE42-E9FCC0893AD1}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "robust_curve_fitting", "ceres-solver-1.9.0\examples\robust_curve_fitting.vcxproj", "{BC7D9849-B054-4A48-AEB8-4F72A16FBDBC}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gaussmembrane", "ceres-solver-1.9.0\realworld\gaussmembrane.vcxproj", "{171400FF-A64E-48AE-8F98-ADA5BC5D5672}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Debug|x64 = Debug|x64
+		Release|Win32 = Release|Win32
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FD1EA691-965A-49A9-83C7-530A9FE82B44}.Debug|Win32.ActiveCfg = Debug|Win32
+		{FD1EA691-965A-49A9-83C7-530A9FE82B44}.Debug|Win32.Build.0 = Debug|Win32
+		{FD1EA691-965A-49A9-83C7-530A9FE82B44}.Debug|x64.ActiveCfg = Debug|x64
+		{FD1EA691-965A-49A9-83C7-530A9FE82B44}.Debug|x64.Build.0 = Debug|x64
+		{FD1EA691-965A-49A9-83C7-530A9FE82B44}.Release|Win32.ActiveCfg = Release|Win32
+		{FD1EA691-965A-49A9-83C7-530A9FE82B44}.Release|Win32.Build.0 = Release|Win32
+		{FD1EA691-965A-49A9-83C7-530A9FE82B44}.Release|x64.ActiveCfg = Release|x64
+		{FD1EA691-965A-49A9-83C7-530A9FE82B44}.Release|x64.Build.0 = Release|x64
+		{98209D52-4053-4027-9ECA-2DBEC6A2B76B}.Debug|Win32.ActiveCfg = Debug|Win32
+		{98209D52-4053-4027-9ECA-2DBEC6A2B76B}.Debug|Win32.Build.0 = Debug|Win32
+		{98209D52-4053-4027-9ECA-2DBEC6A2B76B}.Debug|x64.ActiveCfg = Debug|x64
+		{98209D52-4053-4027-9ECA-2DBEC6A2B76B}.Debug|x64.Build.0 = Debug|x64
+		{98209D52-4053-4027-9ECA-2DBEC6A2B76B}.Release|Win32.ActiveCfg = Release|Win32
+		{98209D52-4053-4027-9ECA-2DBEC6A2B76B}.Release|Win32.Build.0 = Release|Win32
+		{98209D52-4053-4027-9ECA-2DBEC6A2B76B}.Release|x64.ActiveCfg = Release|x64
+		{98209D52-4053-4027-9ECA-2DBEC6A2B76B}.Release|x64.Build.0 = Release|x64
+		{9CD53173-B773-417E-AE42-E9FCC0893AD1}.Debug|Win32.ActiveCfg = Debug|Win32
+		{9CD53173-B773-417E-AE42-E9FCC0893AD1}.Debug|Win32.Build.0 = Debug|Win32
+		{9CD53173-B773-417E-AE42-E9FCC0893AD1}.Debug|x64.ActiveCfg = Debug|x64
+		{9CD53173-B773-417E-AE42-E9FCC0893AD1}.Debug|x64.Build.0 = Debug|x64
+		{9CD53173-B773-417E-AE42-E9FCC0893AD1}.Release|Win32.ActiveCfg = Release|Win32
+		{9CD53173-B773-417E-AE42-E9FCC0893AD1}.Release|Win32.Build.0 = Release|Win32
+		{9CD53173-B773-417E-AE42-E9FCC0893AD1}.Release|x64.ActiveCfg = Release|x64
+		{9CD53173-B773-417E-AE42-E9FCC0893AD1}.Release|x64.Build.0 = Release|x64
+		{BC7D9849-B054-4A48-AEB8-4F72A16FBDBC}.Debug|Win32.ActiveCfg = Debug|Win32
+		{BC7D9849-B054-4A48-AEB8-4F72A16FBDBC}.Debug|Win32.Build.0 = Debug|Win32
+		{BC7D9849-B054-4A48-AEB8-4F72A16FBDBC}.Debug|x64.ActiveCfg = Debug|x64
+		{BC7D9849-B054-4A48-AEB8-4F72A16FBDBC}.Debug|x64.Build.0 = Debug|x64
+		{BC7D9849-B054-4A48-AEB8-4F72A16FBDBC}.Release|Win32.ActiveCfg = Release|Win32
+		{BC7D9849-B054-4A48-AEB8-4F72A16FBDBC}.Release|Win32.Build.0 = Release|Win32
+		{BC7D9849-B054-4A48-AEB8-4F72A16FBDBC}.Release|x64.ActiveCfg = Release|x64
+		{BC7D9849-B054-4A48-AEB8-4F72A16FBDBC}.Release|x64.Build.0 = Release|x64
+		{171400FF-A64E-48AE-8F98-ADA5BC5D5672}.Debug|Win32.ActiveCfg = Debug|Win32
+		{171400FF-A64E-48AE-8F98-ADA5BC5D5672}.Debug|Win32.Build.0 = Debug|Win32
+		{171400FF-A64E-48AE-8F98-ADA5BC5D5672}.Debug|x64.ActiveCfg = Debug|x64
+		{171400FF-A64E-48AE-8F98-ADA5BC5D5672}.Debug|x64.Build.0 = Debug|x64
+		{171400FF-A64E-48AE-8F98-ADA5BC5D5672}.Release|Win32.ActiveCfg = Release|Win32
+		{171400FF-A64E-48AE-8F98-ADA5BC5D5672}.Release|Win32.Build.0 = Release|Win32
+		{171400FF-A64E-48AE-8F98-ADA5BC5D5672}.Release|x64.ActiveCfg = Release|x64
+		{171400FF-A64E-48AE-8F98-ADA5BC5D5672}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

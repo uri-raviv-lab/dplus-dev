@@ -1,0 +1,239 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
+    </Filter>
+    <Filter Include="Forms">
+      <UniqueIdentifier>{aee79a5f-9a6e-41c1-bbb8-eeaca30c599a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Forms\Main Window">
+      <UniqueIdentifier>{bf7dce35-f5e6-4f22-b372-f0df320e087f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Forms\Main Window\Docking Panes">
+      <UniqueIdentifier>{fd4c945b-3838-4afd-8272-5e443374e04f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Miscellaneous">
+      <UniqueIdentifier>{6f026c24-fc01-41ca-86b9-a18b954040b9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{6c73aa24-0f6e-4fb5-99b1-22e42b6a2d23}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="PDB Reader">
+      <UniqueIdentifier>{581c824b-eb87-4968-90de-d07d5762fba7}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="app.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="MainWindow.cpp">
+      <Filter>Forms\Main Window</Filter>
+    </ClCompile>
+    <ClCompile Include="Controls3D.cpp">
+      <Filter>Forms\Main Window\Docking Panes</Filter>
+    </ClCompile>
+    <ClCompile Include="GraphPane2D.cpp">
+      <Filter>Forms\Main Window\Docking Panes</Filter>
+    </ClCompile>
+    <ClCompile Include="GraphPane3D.cpp">
+      <Filter>Forms\Main Window\Docking Panes</Filter>
+    </ClCompile>
+    <ClCompile Include="ParameterEditor.cpp">
+      <Filter>Forms\Main Window\Docking Panes</Filter>
+    </ClCompile>
+    <ClCompile Include="PreferencesPane.cpp">
+      <Filter>Forms\Main Window\Docking Panes</Filter>
+    </ClCompile>
+    <ClCompile Include="SymmetryEditor.cpp">
+      <Filter>Forms\Main Window\Docking Panes</Filter>
+    </ClCompile>
+    <ClCompile Include="SymmetryView.cpp">
+      <Filter>Forms\Main Window\Docking Panes</Filter>
+    </ClCompile>
+    <ClCompile Include="AssemblyInfo.cpp">
+      <Filter>Miscellaneous</Filter>
+    </ClCompile>
+    <ClCompile Include="Entity.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="LuaBinding.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ScriptPane.cpp">
+      <Filter>Forms\Main Window\Docking Panes</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandWindow.cpp">
+      <Filter>Forms\Main Window\Docking Panes</Filter>
+    </ClCompile>
+    <ClCompile Include="ConstraintsWindow.cpp">
+      <Filter>Forms</Filter>
+    </ClCompile>
+    <ClCompile Include="FittingPrefsPane.cpp">
+      <Filter>Forms\Main Window\Docking Panes</Filter>
+    </ClCompile>
+    <ClCompile Include="ManagedHTTPCallerForm.cpp">
+      <Filter>Forms\Main Window</Filter>
+    </ClCompile>
+    <ClCompile Include="ServerConfigForm.cpp">
+      <Filter>Forms\Main Window</Filter>
+    </ClCompile>
+    <ClCompile Include="AboutDPlus.cpp">
+      <Filter>Forms</Filter>
+    </ClCompile>
+    <ClCompile Include="TdrLevelInfo.cpp">
+      <Filter>Forms</Filter>
+    </ClCompile>
+    <ClCompile Include="MainWindowLua.cpp">
+      <Filter>Forms\Main Window</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="MainWindow.h">
+      <Filter>Forms\Main Window</Filter>
+    </ClInclude>
+    <ClInclude Include="Controls3D.h">
+      <Filter>Forms\Main Window\Docking Panes</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphPane2D.h">
+      <Filter>Forms\Main Window\Docking Panes</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphPane3D.h">
+      <Filter>Forms\Main Window\Docking Panes</Filter>
+    </ClInclude>
+    <ClInclude Include="ParameterEditor.h">
+      <Filter>Forms\Main Window\Docking Panes</Filter>
+    </ClInclude>
+    <ClInclude Include="PreferencesPane.h">
+      <Filter>Forms\Main Window\Docking Panes</Filter>
+    </ClInclude>
+    <ClInclude Include="SymmetryEditor.h">
+      <Filter>Forms\Main Window\Docking Panes</Filter>
+    </ClInclude>
+    <ClInclude Include="SymmetryView.h">
+      <Filter>Forms\Main Window\Docking Panes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\clrfunctionality.h">
+      <Filter>Miscellaneous</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Miscellaneous</Filter>
+    </ClInclude>
+    <ClInclude Include="Entity.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LuaBinding.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptPane.h">
+      <Filter>Forms\Main Window\Docking Panes</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandWindow.h">
+      <Filter>Forms\Main Window\Docking Panes</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphFigure.h">
+      <Filter>Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="ConstraintsWindow.h">
+      <Filter>Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="FittingPrefsPane.h">
+      <Filter>Forms\Main Window\Docking Panes</Filter>
+    </ClInclude>
+    <ClInclude Include="fittingEntity.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MainWindowAux.h">
+      <Filter>Forms\Main Window</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Frontend\ModelUI.h" />
+    <ClInclude Include="ManagedHTTPCallerForm.h">
+      <Filter>Forms\Main Window</Filter>
+    </ClInclude>
+    <ClInclude Include="ServerConfigForm.h">
+      <Filter>Forms\Main Window</Filter>
+    </ClInclude>
+    <ClInclude Include="AboutDPlus.h">
+      <Filter>Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="TdrLevelInfo.h">
+      <Filter>Forms</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="TaskList.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="MainWindow.resX">
+      <Filter>Resource Files</Filter>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Controls3D.resx">
+      <Filter>Resource Files</Filter>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GraphPane2D.resx">
+      <Filter>Resource Files</Filter>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GraphPane3D.resx">
+      <Filter>Resource Files</Filter>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ParameterEditor.resx">
+      <Filter>Resource Files</Filter>
+    </EmbeddedResource>
+    <EmbeddedResource Include="PreferencesPane.resx">
+      <Filter>Resource Files</Filter>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SymmetryEditor.resx">
+      <Filter>Resource Files</Filter>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SymmetryView.resx">
+      <Filter>Resource Files</Filter>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ScriptPane.resx">
+      <Filter>Resource Files</Filter>
+    </EmbeddedResource>
+    <EmbeddedResource Include="CommandWindow.resx">
+      <Filter>Resource Files</Filter>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GraphFigure.resx">
+      <Filter>Resource Files</Filter>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ConstraintsWindow.resx">
+      <Filter>Resource Files</Filter>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FittingPrefsPane.resx">
+      <Filter>Resource Files</Filter>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ManagedHTTPCallerForm.resx">
+      <Filter>Resource Files</Filter>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ServerConfigForm.resx">
+      <Filter>Resource Files</Filter>
+    </EmbeddedResource>
+    <EmbeddedResource Include="AboutDPlus.resx">
+      <Filter>Resource Files</Filter>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TdrLevelInfo.resx">
+      <Filter>Resource Files</Filter>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Icons\app.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="JSON.lua">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="restartdplus.bat">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="Manifest.xml" />
+  </ItemGroup>
+</Project>

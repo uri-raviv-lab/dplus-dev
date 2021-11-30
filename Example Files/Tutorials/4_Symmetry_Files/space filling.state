@@ -1,0 +1,376 @@
+{
+	"DomainPreferences": {
+		"Convergence": 0.001,
+		"DrawDistance": 200,
+		"Fitting_UpdateDomain": false,
+		"Fitting_UpdateGraph": false,
+		"GridSize": 100,
+		"LevelOfDetail": 5,
+		"OrientationIterations": 1000000,
+		"OrientationMethod": "Adaptive Gauss Kronrod",
+		"UpdateInterval": 30,
+		"UseGrid": true,
+		"qMax": 10,
+		"qMin": 0,
+		"resSteps": 800
+	},
+	"FittingPreferences": {
+		"Convergence": 2.3099433744452e-315,
+		"DerEps": 2.2566491851576e-316,
+		"DoglegType": "Traditional Dogleg",
+		"FittingIterations": 64,
+		"LineSearchDirectionType": "BFGS",
+		"LineSearchType": "Wolfe",
+		"LossFuncPar1": 0.001,
+		"LossFuncPar2": 0.5,
+		"LossFunction": "Trivial Loss",
+		"MinimizerType": "Line Search",
+		"NonlinearConjugateGradientType": "Fletcher Reeves",
+		"StepSize": 2.3099433744452e-315,
+		"TrustRegionStrategyType": "Levenberg-Marquardt",
+		"XRayResidualsType": "Ratio Residuals"
+	},
+	"Viewport": {
+		"Axes_at_origin": true,
+		"Axes_in_corner": true,
+		"Pitch": 85,
+		"Roll": 0,
+		"Yaw": 0,
+		"Zoom": 15.000002861023,
+		"cPitch": 85,
+		"cRoll": 0,
+		"cpx": 0.86378836631775,
+		"cpy": -1.9000002145767,
+		"cpz": 15.156622886658,
+		"ctx": -0.4435470700264,
+		"cty": -1.9000002145767,
+		"ctz": 0.2136997282505
+	},
+	"Domain": {
+		"Constant": 0,
+		"ConstantMut": false,
+		"Geometry": "Domains",
+		"ModelPtr": 1,
+		"Populations": [{
+			"ModelPtr": 2,
+			"Models": [{
+				"Children": [{
+					"Constraints": [[{
+						"Link": -1,
+						"MaxIndex": -1,
+						"MaxValue": "inf",
+						"MinIndex": -1,
+						"MinValue": "-inf"
+					},
+					{
+						"Link": -1,
+						"MaxIndex": -1,
+						"MaxValue": "inf",
+						"MinIndex": -1,
+						"MinValue": "-inf"
+					}],
+					[{
+						"Link": -1,
+						"MaxIndex": -1,
+						"MaxValue": "inf",
+						"MinIndex": -1,
+						"MinValue": "-inf"
+					},
+					{
+						"Link": -1,
+						"MaxIndex": -1,
+						"MaxValue": "inf",
+						"MinIndex": -1,
+						"MinValue": "-inf"
+					}]],
+					"ExtraConstraints": [{
+						"Link": -1,
+						"MaxIndex": -1,
+						"MaxValue": "inf",
+						"MinIndex": -1,
+						"MinValue": "-inf"
+					},
+					{
+						"Link": -1,
+						"MaxIndex": -1,
+						"MaxValue": "inf",
+						"MinIndex": -1,
+						"MinValue": "-inf"
+					}],
+					"ExtraMutables": [false,
+					false],
+					"ExtraParameters": [1,
+					0],
+					"ExtraSigma": [0,
+					0],
+					"Location": {
+						"alpha": 0,
+						"beta": 0,
+						"gamma": 0,
+						"x": 0,
+						"y": 0,
+						"z": 0
+					},
+					"LocationConstraints": {
+						"alpha": {
+							"Link": -1,
+							"MaxIndex": -1,
+							"MaxValue": "inf",
+							"MinIndex": -1,
+							"MinValue": "-inf"
+						},
+						"beta": {
+							"Link": -1,
+							"MaxIndex": -1,
+							"MaxValue": "inf",
+							"MinIndex": -1,
+							"MinValue": "-inf"
+						},
+						"gamma": {
+							"Link": -1,
+							"MaxIndex": -1,
+							"MaxValue": "inf",
+							"MinIndex": -1,
+							"MinValue": "-inf"
+						},
+						"x": {
+							"Link": -1,
+							"MaxIndex": -1,
+							"MaxValue": "inf",
+							"MinIndex": -1,
+							"MinValue": "-inf"
+						},
+						"y": {
+							"Link": -1,
+							"MaxIndex": -1,
+							"MaxValue": "inf",
+							"MinIndex": -1,
+							"MinValue": "-inf"
+						},
+						"z": {
+							"Link": -1,
+							"MaxIndex": -1,
+							"MaxValue": "inf",
+							"MinIndex": -1,
+							"MinValue": "-inf"
+						}
+					},
+					"LocationMutables": {
+						"alpha": false,
+						"beta": false,
+						"gamma": false,
+						"x": false,
+						"y": false,
+						"z": false
+					},
+					"LocationSigma": {
+						"alpha": 0,
+						"beta": 0,
+						"gamma": 0,
+						"x": 0,
+						"y": 0,
+						"z": 0
+					},
+					"ModelPtr": 9,
+					"Mutables": [[false,
+					false],
+					[false,
+					false]],
+					"Name": "",
+					"Parameters": [[0,
+					333],
+					[0.4,
+					400]],
+					"Sigma": [[0,
+					0],
+					[0,
+					0]],
+					"Type": ",2",
+					"Use_Grid": true,
+					"nExtraParams": 2,
+					"nLayers": 2,
+					"nlp": 2
+				}],
+				"Constraints": [[{
+					"Link": -1,
+					"MaxIndex": -1,
+					"MaxValue": "inf",
+					"MinIndex": -1,
+					"MinValue": "-inf"
+				},
+				{
+					"Link": -1,
+					"MaxIndex": -1,
+					"MaxValue": "inf",
+					"MinIndex": -1,
+					"MinValue": "-inf"
+				},
+				{
+					"Link": -1,
+					"MaxIndex": -1,
+					"MaxValue": "inf",
+					"MinIndex": -1,
+					"MinValue": "-inf"
+				}],
+				[{
+					"Link": -1,
+					"MaxIndex": -1,
+					"MaxValue": "inf",
+					"MinIndex": -1,
+					"MinValue": "-inf"
+				},
+				{
+					"Link": -1,
+					"MaxIndex": -1,
+					"MaxValue": "inf",
+					"MinIndex": -1,
+					"MinValue": "-inf"
+				},
+				{
+					"Link": -1,
+					"MaxIndex": -1,
+					"MaxValue": "inf",
+					"MinIndex": -1,
+					"MinValue": "-inf"
+				}],
+				[{
+					"Link": -1,
+					"MaxIndex": -1,
+					"MaxValue": "inf",
+					"MinIndex": -1,
+					"MinValue": "-inf"
+				},
+				{
+					"Link": -1,
+					"MaxIndex": -1,
+					"MaxValue": "inf",
+					"MinIndex": -1,
+					"MinValue": "-inf"
+				},
+				{
+					"Link": -1,
+					"MaxIndex": -1,
+					"MaxValue": "inf",
+					"MinIndex": -1,
+					"MinValue": "-inf"
+				}]],
+				"ExtraConstraints": [{
+					"Link": -1,
+					"MaxIndex": -1,
+					"MaxValue": "inf",
+					"MinIndex": -1,
+					"MinValue": "-inf"
+				}],
+				"ExtraMutables": [false],
+				"ExtraParameters": [1],
+				"ExtraSigma": [0],
+				"Location": {
+					"alpha": 0,
+					"beta": 0,
+					"gamma": 2.0943951606751,
+					"x": 4,
+					"y": 0,
+					"z": 0
+				},
+				"LocationConstraints": {
+					"alpha": {
+						"Link": -1,
+						"MaxIndex": -1,
+						"MaxValue": "inf",
+						"MinIndex": -1,
+						"MinValue": "-inf"
+					},
+					"beta": {
+						"Link": -1,
+						"MaxIndex": -1,
+						"MaxValue": "inf",
+						"MinIndex": -1,
+						"MinValue": "-inf"
+					},
+					"gamma": {
+						"Link": -1,
+						"MaxIndex": -1,
+						"MaxValue": "inf",
+						"MinIndex": -1,
+						"MinValue": "-inf"
+					},
+					"x": {
+						"Link": -1,
+						"MaxIndex": -1,
+						"MaxValue": "inf",
+						"MinIndex": -1,
+						"MinValue": "-inf"
+					},
+					"y": {
+						"Link": -1,
+						"MaxIndex": -1,
+						"MaxValue": "inf",
+						"MinIndex": -1,
+						"MinValue": "-inf"
+					},
+					"z": {
+						"Link": -1,
+						"MaxIndex": -1,
+						"MaxValue": "inf",
+						"MinIndex": -1,
+						"MinValue": "-inf"
+					}
+				},
+				"LocationMutables": {
+					"alpha": false,
+					"beta": false,
+					"gamma": false,
+					"x": false,
+					"y": false,
+					"z": false
+				},
+				"LocationSigma": {
+					"alpha": 0,
+					"beta": 0,
+					"gamma": 0,
+					"x": 0,
+					"y": 0,
+					"z": 0
+				},
+				"ModelPtr": 10,
+				"Mutables": [[false,
+				false,
+				false],
+				[false,
+				false,
+				false],
+				[false,
+				false,
+				false]],
+				"Name": "",
+				"Parameters": [[1,
+				90,
+				9],
+				[1,
+				90,
+				9],
+				[2.5,
+				120,
+				1]],
+				"Sigma": [[0,
+				0,
+				0],
+				[0,
+				0,
+				0],
+				[0,
+				0,
+				0]],
+				"Type": ",25",
+				"Use_Grid": true,
+				"nExtraParams": 1,
+				"nLayers": 3,
+				"nlp": 3
+			}],
+			"PopulationSize": 1,
+			"PopulationSizeMut": false
+		}],
+		"Scale": 1,
+		"ScaleMut": false
+	}
+}

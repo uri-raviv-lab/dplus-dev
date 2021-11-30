@@ -1,0 +1,121 @@
+===========================================================================================================	
+===========================================================================================================
+TODO Categories:
+	OneStepAhead: Things we shouldn't be thinking about right now...
+	Lua, Scripting: Scripting issues
+	Fitting: Optimize and fix fitting for D+
+
+================================================
+Student Projects:
+
+	* WSSR/R^2 replacement (2D/bilateral method)  (4-6 pt.)
+	* Better 3D display (PDBs and geometries)     (2   pt.)
+	* D+ as a MATLAB toolbox                      (2-4 pt.)
+	* D+ as a Python module [maybe Tal]           (2   pt.)
+	* Various GPU kernels instead of CPU          (4   pt.)
+
+================================================
+ Short TODO list
+	* Change the Jacobian grid to (3i+1)*6i instead of (4i+1)*8i
+	* Find source of "sawtooth" in geometries
+	* Implement orientation kernel
+	* Implement JacobianGrid specific orientation method (CPU)
+		* Orientation averaging with Jacobian grid and splines can re-use splines between planes
+================================================
+
+	THE BUG PARADE:
+		
+		* When adding a model when a job is running, the model gets added to uidToModel but 
+			doesn't exist once a new generate is called.
+		* The header saved in files through Lua is incorrect.
+
+ORDERED BY VERSION:
+
+	Alpha: 
+		* Computation
+			- Grid
+			- Direct
+		* Stuff to optimize:
+			* Use Workspace for all kernels, not just direct
+			* MORE
+		* Geometric Models - Implement Amplitudes
+			* Ellipsoid
+			* Squished Cylinder
+			* Later: Gaussian (and very maybe) Tanh models
+
+		* GPU support                           5
+			V PDB						10
+				-- enable_if for dummy atom displaced solvent
+			V PDB solvent				9
+			* PDB Outer solvent			9 -- Done, needs to be compared to CPU version
+			- Orienational averaging	2
+			V Manual symmetry			8
+			V Grid construction		
+
+		--- Programming tasks ---
+		* Add a function to load a PDB from lua
+		* Add align and center pdb options to the frontend as buttons that modify xyzabg
+			* Add to PDBReaderOb COM translation and original and principal axes for rotation
+		* Add PDB information to the amplitude file so that the backend can tell the frontend how to
+			display the relevant pdb
+		* Correct generation grid/no grid bugs
+		* Unicode
+		* Interfaces
+			- Python
+			- Lua
+			- .net
+			- Matlab
+		* Context menu for export from TreeView Thingy
+			* Save amp
+			* Group
+			* Remove
+			* Represent amplitude file with pdb (attach PDB)
+		
+		
+	Beta:	
+		R Fitter is bad, consider correcting/replacing			
+		R Remote calculation
+		R Electron density profile support for geometries (Gaussian, Discrete, Smooth)
+		* DOL optimization: If norm(alpha/beta/gamma) = 0, and the value at Q has been calculated, do not recalculate
+		* Fix (implement) relative constraint indices			
+		* Scripting Workflow: Some mechanism should exist that refreshes a modified script inside D+, as well as
+		  validating it
+		* Get intermediate results when stopping fit (ask the user)
+		* Finish Lua bindings for Generate and Fit (fittingparams, generateparams)
+		* Persist window size, location and maximized state
+		* Lua: dplus.createtree() (creates an empty param tree)
+		* Finish adding all the models from X+ as Geometries (Gaussian, TanH, etc.)
+
+	Gamma:
+		* (LOW PRIORITY) Use LuaJIT in the backend instead of plain Lua
+		* Finish implementing frontend ScriptedModelUI support (extra and display params)
+		* Implement LuaModel and LuaAmplitude (should be easy)			
+		* Malformed DOL files will probably crash D+ (doesn't crash {usually} - garbage in garbage out)
+		* Lua Editor:
+			* "New" toolbar button should have templates ("Empty file/Command Script/Scripted Model/Scripted Geometry/Scripted Symmetry")
+			* A "Validate"/"Compile" button should appear alongside the "Run" button
+			* Shortcut keys should work
+			* Last file should be kept in persistence
+			* File browser?
+
+	1.0:
+		* Cache models in frontend, avoid duplicate models
+		  and delete unused models in the backend
+		* Finish the OpenGL models (slab, helix)		
+		* Save/cache amplitude files						
+		  [Implement using a new backend function:          
+		  QueryStorageCache(name/{md5, sha1}), which opens  
+		  and returns a ModelPtr]                           
+
+	Misc (Full, at least beta):
+		* Toolbar for 3d controls (move rotate etc)
+		* Zoom out to fit to all objects
+		* Copy/paste entities
+		* AT_ZERO for regular geometries (calculate, not calculateFF)		
+		* Implement OpenGL support for LuaModel/LuaAmplitude (Don't know how, LuaGL?)
+		* The shortcuts (Ctrl+S) for the buttons are wrong...	 
+
+	2.0:
+		* Enable grids to be from q_1 to q_2 (thick shells that don't include the center)
+		* Replace grid with a uniform sphere grid based on MathWorld Sphere Point Picking <http://mathworld.wolfram.com/SpherePointPicking.html>
+		* Lua: Add option to multiply Amplitudes (Structure Factor)

@@ -1,0 +1,387 @@
+\documentclass[12pt]{article}
+
+\usepackage{listings}
+\lstset{language=c++}
+\lstMakeShortInline[language=C++,basicstyle=\ttfamily]~
+
+\usepackage{float}
+\floatstyle{boxed}
+\restylefloat{figure}
+
+\usepackage{hyperref}
+
+\usepackage{todonotes}
+
+\usepackage{amssymb}
+
+\usepackage{longtable}
+
+\newcommand{\avinote} [2][]{\todo[#1, color=blue!30]{\textbf{Avi}: #2}}
+\newcommand{\urinote} [2][]{\todo[#1, color=yellow!30]{\textbf{Uri}: #2}}
+\newcommand{\itaynote}[2][]{\todo[#1, color=green!30]{\textbf{Itay}: #2}}
+\newcommand{\talnote} [2][]{\todo[#1, color=red!30]{\textbf{Tal}: #2}}
+\newcommand{\devnote} [2][]{\todo[#1, color=purple!30]{\textbf{Dev}: #2}}
+
+%opening
+\title{The DPlus User Interface and Frontend API}
+\author{Devora Witty}
+
+\begin{document}
+	
+\maketitle
+
+\begin{abstract}
+DPlus consists of three main modules - the user interface (UI) module responsible for most of the UI, the Frontend module responsible for rendering, file access and communications with the Backend, and the BackEnd module. The BackEnd module does the heavy lifting and performs the calculations. A web server connects between the Frontend module and the Backend module. This document describes the User Interface and Frontend.
+\end{abstract}
+
+\section{Intoduction to the Frontend}
+Blablablabla 
+ 
+\subsection{Sessions and Jobs}
+The Backend is \emph{stateful} (keeps track of the state of certain results or variables), it keeps an open session (a dialog) with the Frontend. When a Frontend is created (which happens when a DPlus application starts), it opens a session with the Backend. The session remains open for the duration of the Frontend's life.
+
+The Backend calls these sessions \emph{Jobs} (tasks). Jobs are managed by the ~JobManager~ class defined in the ~Backend~ project. The Job Manager keeps an internal list of jobs, as well as threads (sequences of independent programmed instructions that are parts of a process) associated with these jobs. Each job has an index (called ~JobPtr~, an ~unsigned int~) that is supplied by the Frontend on every Backend access.
+
+Each job also keeps tracks of Models (spheres, symmetries, etc...) created by the UI. 
+
+A Job is created with the ~HandleCreateJob~ application program interface (API) function, which returns the `JobPtr`. The Job is destroyed by the ~HandleDestroyJob~ API function. Jobs that have long running calculations can also be stopped with ~HandleStopJob~, or waiting on with ~HandleWaitForFinish~.
+
+So far the Backend has only been used with one Job, no Frontend implementation has created two jobs at the same time, and no two Frontends have used the same Backend concurrently (simultaneously).
+
+\subsection{Model Management}
+Models are not really managed in the UI and Frontend, instead they are managed in the Backend and reflected in the UI. Whenever the user creates or loads a new model, it is created in the Backend. Each model has its own index (called ~ModelPtr~, which is also an ~unsigned int~) that is used to identify it. When a Model is created, the Backend returns its index. The Frontend then uses this index for all subsequent manipulations of the model.
+
+Models are created by a group of functions, all named ~HandleCreate*~. ~HandleCreateModel~ creates a primitive geometric model (such as a Sphere), ~HandleCreateSymmetry~ creates a symmetry model and so on. All Model creation functions return a ~ModelPtr~ that is later used to reference the model.
+
+Models in the Backend are not connected to each-other. The Model tree is built only during calculations. When a calculation is required, the Frontend passes a ~ParameterTree~ which contains all the parameter values of the model tree. The tree is then validated by the Backend and used to connect the models together to one model tree. This tree remains in effect for the duration of the calculation, and is then discarded.
+
+The reason for this is that the user frequently changes how models are connected, and it wasn't really necessary to keep track of the model tree while it was being modified by the user.
+
+The Backend also caches the intermediate model calculation results, and uses them in subsequent calculations. A model's intermediate result is reused if none of the model paramaters or children has changed since the last calculation (that is, if the user doesn't change anything in the tree starting with that model).
+
+\subsection{Files}
+The current Backend interface accepts filenames in various API functions. ~StartGenerate~ and ~StartFit~ can both perform calculations on PDB molecules whose structure is stored in files. The two ~HandleCreateFileAmplitude~ variants accept filenames and load their data from those files. 
+
+In order to decouple the Backend from the Frontend with regard to these functions, files mentioned by the Frontend need to be uploaded to the Backend. All future references to already-uploaded file locations are translated on the web server to their corresponding file locations on the Backend via a hashing algorithm.
+
+The Backend also handles saving files to disk in the ~HandleSavePDB~ and ~HandleExportAmplitude~ API functions. For saving files to send back to the Frontend, the Backend creates temporary local copies of the files, and sends these back to the Frontend to be saved.
+
+\subsection{Notifications}
+The Backend tracks when operations complete, or the progress of long-running calculations. These status trackings are updated in the internal ~NotifyCompletion~ and ~NotifyProgress~ methods (the "notify" naming is a relic of when Backend actively notified the Frontend of progress).
+
+The Frontend accesses this information by regularly polling the Backend on job status with the ~GetJobStatus~ function.
+
+\subsection{Model Information}
+The Backend also exports the list of available model category and model types. This information is consumed by the Frontend. The ~HandleQuery*~ set of API functions is used for these purposes.
+
+The Backend does not have the models hard-coded inside, but rather loads another dynamic-link library  (DLL), the ~DefaultModels~ project, which provides the list of models and their functionality. This architecture allows adding more models without recompiling everything. This functionality has not been tested with other model DLLs.
+
+\section{API Description}
+The API consists of four different groups of functions.
+
+\subsection{Model Information Querying}
+This group of API functions return information about the available model and model categories. All these functions accept a \emph{container} argument (parameter), which contains the name of the DLL containing the models. The default (when NULL is passed) is to use the ~DefaultModels~ project.
+
+\begin{center}
+	\begin{tabular}{|l|p{7.5cm}|}
+		\hline
+		\textbf{Function} & \textbf{Description} \\ \hline
+		~HandleQueryCategoryCount~ & Returns the number of model categories \\ \hline
+		~HandleQueryModelCount~ & Returns the number of available models \\ \hline
+		~HandleQueryCategory~ & Takes a category ID and returns the appropriate ~ModelCategory~ \\ \hline
+		~HandleQueryModel~ & Takes a model index and returns the apppropriate ~ModelInformation~ \\ \hline 
+	\end{tabular}
+\end{center}
+
+There is another group of functions that query information about a specific model type. They all accept a \emph{container} as well as a model index inside that \emph{container}.
+
+\begin{center}
+	\begin{tabular}{|l|p{7.5cm}|}
+		\hline
+		\textbf{Function} & \textbf{Description} \\ \hline
+		~HandleGetLayerParamNames~ & Returns the names of the layer parameters \\ \hline
+		~HandleGetExtraParamInfo~ & Returns information about the model's extra paramters \\ \hline
+		~HandleGetLayerInfo~ & Returns information about a specific layer in the model - its name, its parameter values, it's applicability (whether the layer is to be displayed as N/A to the user) etc...  \\ \hline
+		~HandleGetDomainHeader~ & Returns a textual description of the model. \\ \hline
+		~HandleGetDisplayParamInfo~ & Returns the display parameter names of the model. This is leftover from XPlus \\ \hline
+		~HandleGetDisplayParams~ & Gets the values of the display paramaters. Leftover from XPlus. \\ \hline
+	\end{tabular}
+\end{center}
+
+\subsection{Model Building}
+The following API functions build models on the Backend. All functions accept a ~JobPtr~ with the identity of the appropriate Backend session. The functions return a ~ModelPtr~, which is the index of the newly created model.
+
+\begin{center}
+% I changed this to a longtable instead of tabular because the todonotes
+% were making it longer that a single page
+	\begin{longtable}{|l|p{7cm}|}
+		\hline
+		\textbf{Function} & \textbf{Description} \\ \hline
+		~HandleCreateModel~ & Creates a geometric model. The ~EDProfile~ argument is not used in DPlus. \\ \hline
+		~HandleCreateCompositeModel~ & Creates a composite model. The Composite Model (describing a mixture with several structures) is the top node in the tree, and the \emph{Domain} Model is actually the population node (the molar fraction of the structure in the mixture). \\ \hline 
+		~HandleCreateDomainModel~ & Creates the top-level \emph{Domain} model \\ \hline
+		~HandleCreateScriptedModel~ & Creates a model from a LUA script. The script is passed as an argument. \\ \hline
+		~HandleCreateFileAmplitude~ & Creates a model from an amplitude (AMP) or a protein data bank (PDB) file. The filename is passed to the backend, and should be accessible. There are two variants for this function, one that gets a filename and loads the file, and another that gets the content and uses that. \\ \hline 
+		~HandleCreateGeometricAmplitude~ & This function gets called when the user adds a geometric model to the \emph{Domain}. \textit{e.g.} if the user presses the Add button with a Sphere selected in the combobox. \\ \hline 
+		~HandleCreateSymmetry~ & Creates one of the predefined symmetries \\ \hline
+		~HandleCreateScriptedSymmetry~ & Creates a symmetry from a LUA script. The script is passed as an argument. \\ \hline
+		~HandleDestroyModel~ & Destroys a model, and potentially all its children. In practice, children are only destroyed in certain cases generated by Lua scripts: LuaGenerateTable and LuaFit.\\ \hline
+	\end{longtable}
+\end{center}
+
+\subsection{Calculations}
+The Backend's reason of existence is to perform the calculations. There are several functions for that:
+\begin{center}
+	\begin{tabular}{|l|p{7cm}|}
+		\hline
+		\textbf{Function} & \textbf{Description} \\ \hline
+		~HandleGenerate~ & Starts the function generation process. Receives a ~ParameterTree~ describing the model tree, as well as the X values of the function and a ~FittingProperties~ structure containing various fitting options. \\ \hline
+		~HandleFitting~ & Starts the parameter fitting process. Receives the ~ParameterTree~ and fitting options, as well as X and Y values of the function, and additional information about the paraemters \\ \hline
+		~HandleGetGraph~ & Returns the Y coordinates after the Generate process \\ \hline
+		~HandleGetGraphSize~ & Returns the size of the graph (number of Y coordinates) \\ \hline
+		~HandleGetResults~ & Returns a ParameterTree with all the parameter values, which consists of the fitting results. \\ \hline
+		~HandleGetFittingErros~ & Returns the fitting errors. \\ \hline
+		~HandleExportAmplitude~ & Saves a model's resulting amplitude to a file. \\ \hline
+		~HandleSavePDB~ & Saves a PDB to a file. If there is a PDB within a symmetry, or multiple PDBs or a combination of the two, this exports all the atoms combined (up to the point selected in the tree). \\ \hline
+	\end{tabular}
+\end{center}
+
+\section{Jobs}
+When a calculation is initiated, it is run as a \emph{Job}. This Job wraps the calculation and executes it in a worker thread. This frees up the Backend's main thread to other things. While a calculation is in progress the Backend issues notifications. It is also possible to query jobs and stop them, using the following functions:
+
+	\begin{tabular}{|l|p{7cm}|}
+		\hline
+		\textbf{Function} & \textbf{Description} \\ \hline
+		~HandleStop~ & Stops an ongoing job \\ \hline
+		~HandleWaitForFinish~ & Waits until the job is done \\ \hline
+		~HandleGetLastErrorMessage~ & Returns the error message of the last job \\ \hline
+		~HandleGetJobType~ & Returns the currently executing job type - Fit or Generate \\ \hline
+		~NotifyProgress~ & Called by the Backend to notify of ongoing job progress \\ \hline
+		~NotifyCompletion~ & Called when a job is complete. \\ \hline
+	\end{tabular}
+
+\section{The Backend JSON Protocol}
+Initially, the Frontend and the Backend were intimately linked. However, we have broken them up. This enables us to put the Backend on a different server or replace the UI entirely (for example, with Python function calls). Now that Frontend and Backend have been separated, they use ZeroMQ to communicate between the two. We use JSON as a wrapper for most messages. Messages are received by the ~BackendWrapper~ and passed along to their respective Backend functions.
+
+\subsection{Types of functions in the backend API}
+The backend API has four different kinds of functions.
+	\begin{enumerate}
+		\item Functions that receive no parameters and return just one JSON result. GetAllModelMetadata is such a function.
+		\item Functions that return results quickly, without causing any calculations on the server. GetJobStatus, GetAmplitude and GetPDB are such functions.
+		\item Functions that start a lengthy calculation: GenerateJSON, FitJSON.
+		\item Functions that return results of lengthy calculations: GetGenerateResultsJSON, GetFitResultsJSON
+	\end{enumerate}
+
+\subsection{The JSON function call wrapper}
+All function calls have the same general JSON layout:
+
+	\begin{tabular}{l l}
+	
+		\{ \\
+		~client-id:~ & ID of client \\
+		~client-data:~ &  client-specific data\\ 
+		~function:~ & name of function to call\\ 
+		~args:~ & function arguments\\
+		\} 
+	\end{tabular} 
+	
+~client-id~ is the client's ID, which will be translated into a JobPtr
+~client-data~ will be passed back untouched to the client in the response. The Backend doesn't do anything with it. Clients can use it to keep some context between calls and responses. 
+~function~ is the function name, such as ~Fit~ or ~GetJobResults~
+~args~ is a JSON object with the arguments to the function. It can be empty, as in GetJobResults, or can be something very elaborate as in Fit.
+
+The result returned from the Backend always has the following two layout:
+\\
+
+	\begin{tabular}{l l l}
+		\{ \\
+		~client-data:~ &  client-specific data & \\ 
+		~result:~ & name of function to call & \\ 
+		~error:~ & name of function to call &\\ 
+		&	\{\\
+		& ~code~: & Number code specific to type of error\\
+		& ~message~: & Message describing the error.\\
+		&	\} \\
+		\}
+	\end{tabular} 
+\\
+\\
+	
+~client-data~ is, as described above, exactly what the client chose to pass there-- it is not used by the Backend, but is intended to help the client keep some context.
+
+In event of a successful call, ~result~ contains the results of the call.
+
+~error~ contains the fields ~code~ and ~message~ to describe the nature of the error. If there was no error, it returns a code 0 and message "OK"
+
+\subsubsection{the JSON 'args'}
+
+The functions ~GetPDB~, ~GetAmplitude~, ~StartGenerate~, and ~StartFit~,  all receive arguments from the JSON field Args.
+
+\paragraph{GetPDB, GetAmplitude}
+
+These functions both receive a simple, identical JSON in their args:
+\\
+
+\begin{tabular}{l l}
+	\{ \\
+	~filepath:~ &  path to save file temporarily on Backend\\ 
+	~model:~ & pointer to model\\ 
+	\} 
+\end{tabular} 
+
+\paragraph{StartGenerate, StartFit}
+
+These have significantly more complicated input arguments. This is a sketch of the general structure of the arguments JSON (indentation indicates nesting, [] indicates an array):
+\\
+
+	\begin{tabular}{l l l l}
+		
+		 state & & &\\ 
+		 DomainPreferences & & &\\
+		 &FittingPreferences & &\\
+		 &Viewport & &\\
+		 & Domain & & \\
+		 & & Geometry&\\
+		 & & ModelPtr & \\
+		 & & Populations[] & \\
+		 & & & ModelPtr \\
+		 & & & Models[] \\
+		 & & & PopulationSize\\
+		 & & & PopulationSizeMut\\
+		 & & Scale & \\
+		 & & ScaleMut & \\
+		 x[] & & & \\
+		
+	\end{tabular} 
+\\
+\\	
+\noindent Many of these parameters contain within them additional fields, which are better discussed in a section dedicated to the parameters themselves. e.g. the Models contain all the fields necessary to describe a Model, as will be explained in the section on Models.
+
+
+\subsubsection{the JSON 'result'}
+
+Some functions do not return any result at all. Those functions are: ~EndJob~, ~StartGenerate~, ~StartFit~. In addition, the functions ~GetPDB~ and ~GetAmplitude~ do not return JSON responses but rather files, via a standard HTTP response.
+
+The structure of the results section of those functions that do return results is summarized below: 
+
+	\begin{tabular}{|l|l l l l|}
+		\hline
+		\textbf{function} & \textbf{JSON result} & & &\\\hline
+		metadata & containerName & & & \\
+		& models [] & & &\\
+		& & index & & \\
+		& & name & & \\
+		& & category& &\\
+		& & gpuCompatible & &\\
+		& & slow & &\\
+		& & ffImplemented & &\\
+		& & isLayerBased & &\\
+		& & layers & &\\
+		& & & min & \\
+		& & & max & \\
+		& & & layerInfo & \\
+		& & & params &\\
+		& & extraParams & &\\
+		& modelCategories[] & & &\\ \hline
+		GetJob & isRunning & & &\\
+		& progress & & &\\
+		& code & & &\\ \hline
+		GetGenerateResults& Headers[]& & & \\
+		& Graph[] & & & \\ \hline
+		GetFitResults & & & &\\ \hline
+		
+		
+	\end{tabular} 
+
+
+
+	
+\section{Communication between the server and the Backend}
+The final state of separation was achieved with the insertion of a web server. As of now, the Frontend sends http requests to the web server, which sits on the same disk as the Backend and translates the requests to the appropriate calls, which are then sent through ZeroMQ. The web server also translates the results received from the Backend (including the translation described above separating between successful and unsuccessful calls).
+
+	
+\subsection{JSON messages to server}
+
+Above the JSON received by the Backend was described. This JSON is almost entirely built by the server. The server itself receives explicitly from the Frontend only one field, ~args~, and this only for the functions StartGenerate and StartFit. For other functions that require arguments, the server builds the ~args~ field.
+
+All the remaining fields (~client-id~, ~client-url~, and ~function~) are supplied by the webserver.
+
+\subsection{JSON messages from server}
+
+The JSON returned by the Backend was described above in the Backend JSON protocol.
+
+However, this is not what is ultimately returned to the Frontend. Instead, depending on whether the call was successful or not, the results are returned in one of the two following formats:
+\\
+
+
+\noindent \textbf{Results from successful call:}
+\\
+
+\begin{tabular}{l l}
+	\{ \\
+	~client-data:~ &  client-specific data\\ 
+	~result:~ & name of function to call\\ 
+	\} 
+\end{tabular} 
+\\
+\\
+
+\noindent \textbf{Results from failed call:}
+\\
+
+\begin{tabular}{l l l}
+	\{ \\
+	~client-data:~ &  client-specific data & \\ 
+	~error:~ & name of function to call &\\ 
+	&	\{\\
+	& ~code~: & Number code specific to type of error\\
+	& ~message~: & Message describing the error\\
+	&	\} \\
+	\}
+\end{tabular} 
+\\
+\\
+
+In addition the server returns the HTTP response code appropriate to the request status- 200 in the event of success, and 400, 404, and 500 responses in other cases.
+
+\subsection{Webserver URLS}
+Webserver URLS are in the following format: ~Server-address/api/version number/name~.
+Including the version number in the URL allows updates to be made to new versions without destroying backwards compatibility.
+Below are the available URL calls:
+\\
+\\
+
+\begin{tabular}{|l|p{1.7cm}|p{5.5cm}|l}
+	\hline
+	\textbf{Url name} & \textbf{HTTP method} & \textbf{Description}& \textbf{Backend Function} \\ \hline
+	metadata & GET & Returns all the model metadata & GetAllModelMetadata\\ \hline
+	generate & PUT & Starts a new generate process & StartGenerate \\\hline
+	generate & GET & Gets the generate result associated with this session & GetGenerateResults\\ \hline 
+	fit & PUT & Starts a new fitting job &StartFit \\ \hline
+	fit & GET & Gets the fit results associated with this session &GetFitResults\\ \hline 
+	job & GET & Returns the current job's status &GetJobStatus \\ \hline
+	job & DELETE & Stops current job &StopJob\\ \hline
+	files& POST & Checks if files need to be uploaded to the server & N/a\\ \hline
+	files/id & POST & Uploads a file to the server & N/a\\\hline
+	pdb/ptr & GET & Returns the PDB file of the supplied model pointer &GetPDB\\ \hline
+	amplitude/ptr & GET & Returns the amplitude file of the supplied model pointer &GetAmplitude \\ \hline
+\end{tabular}
+
+\subsection{File Management}
+
+Once upon a time, the frontend and the backend were hosted on the same computer and shared the same file system. At the time, it was sufficient for the frontend to pass the address of a file to the backend for the backend to perform calculations on it, and likewise for the backend to simply provide an address for files containing results.
+
+However, now that the frontend and backend can be located completely separately, it is the server's responsibility to coordinate between the file systems on one and the other. 
+
+This functionality is provided by the server on the part of url ~files~ and the functions ~check_files~ and ~upload_file~. 
+
+File addresses from the Frontend are associated via a one-to-one hashing function based on both file address and content to file addresses on the Backend server. When a function-containing call originates from the Frontend, the web server can check if the hash for that file's location on the Backend is already present. If not, the file can be uploaded to the server. 
+
+Because hashing is tied to file locations, changing the file location will cause the file to be re-uploaded. Changes to the file will also cause the file to be re-uploaded.
+
+The Frontend can continue to describe the files by their location on the Frontend's side. The web server translates these addresses to Backend-addresses every time a file-containing call is called.
+
+In the functions ~GetAmplitude~ and ~GetPDB~, the Backend creates files for the Frontend to access. Now that the Frontend and Backend are separated, the Backend creates temporary versions of the files, which the webserver then downloads to the Frontend.
+
+
+\end{document}

@@ -1,0 +1,573 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Source Files\Models">
+      <UniqueIdentifier>{48464239-4afc-401d-9ec6-0bb1b56a1410}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Quadrature">
+      <UniqueIdentifier>{eb92a5e9-7042-45fa-a306-ff19fecd619d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Externals">
+      <UniqueIdentifier>{88826aee-ac05-451f-a925-169a736f2643}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Fitting">
+      <UniqueIdentifier>{c5414d18-ba44-414d-be0b-db4a67b0a086}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Common">
+      <UniqueIdentifier>{116fde86-3a98-4f8e-8295-f9ac8c23f799}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Job Management">
+      <UniqueIdentifier>{44b04508-48c3-479c-9f1f-8c94d89be9e7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Header Files\Eigen">
+      <UniqueIdentifier>{d8ae6f49-e038-4abe-9af0-beda2dd0ace4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Models">
+      <UniqueIdentifier>{717d1c19-a701-42ea-b86c-faf7bab0fe69}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Quadrature">
+      <UniqueIdentifier>{41e09622-be00-4e99-bcf9-d4a5b32c054a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Fitting">
+      <UniqueIdentifier>{3f3e1f0f-2721-4ce9-9da1-74e1abffe857}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Externals">
+      <UniqueIdentifier>{8d0d4688-772a-4e64-9fb3-4c784baf207d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Common">
+      <UniqueIdentifier>{c143b05b-0f8c-4b58-ba67-8c322c9fa34e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Job Management">
+      <UniqueIdentifier>{60fa1a3f-3b97-43f1-afd1-e821f2891f4d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
+    </Filter>
+    <Filter Include="Header Files\Externals\liblbfgs">
+      <UniqueIdentifier>{1ff56025-179e-4ef6-9ef0-bb81d170e0ec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Externals\liblbfgs">
+      <UniqueIdentifier>{d06d824f-938f-4258-bed3-d3556f422dbb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Default Models">
+      <UniqueIdentifier>{68bc2648-71ea-464f-90b1-31716b6a16f8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Default Models\Backgrounds">
+      <UniqueIdentifier>{7e5197c1-ebc8-4a7e-8a77-184fad44e954}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Default Models\Form Factors">
+      <UniqueIdentifier>{5378fb75-0c68-4e26-8243-8b10a9712f30}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Default Models\Structure Factors">
+      <UniqueIdentifier>{248010b3-58a9-43e2-8e63-bb1475c95041}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Default Models\Symmetries">
+      <UniqueIdentifier>{a17bfd1e-edc0-4d51-a67d-4514b00e06f3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Default Models">
+      <UniqueIdentifier>{d984118a-1ca1-4d0c-85f7-59a2193aed24}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Default Models\Backgrounds">
+      <UniqueIdentifier>{6b4a1898-e01e-4411-bd0c-a49b90998503}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Default Models\Form Factors">
+      <UniqueIdentifier>{2f2d2a3c-3f7d-4292-b4b5-f8a784e06747}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Default Models\Structure Factors">
+      <UniqueIdentifier>{2b7eec91-1d91-4cef-a708-603e8f6c724c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Default Models\Symmetries">
+      <UniqueIdentifier>{43af451b-36e7-4109-b848-ae7b48ef838c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GPUBackend">
+      <UniqueIdentifier>{9055cf29-de3a-4ba3-87e1-9901fe68fea8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GPUBackend\Common CUDA">
+      <UniqueIdentifier>{c9bc52ad-6e0e-45d1-b82d-16ad99ae0a73}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GPUBackend\Direct Computation">
+      <UniqueIdentifier>{d4a8bf3c-1008-46d9-9ef3-1c81ffaecfa7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GPUBackend\Debye">
+      <UniqueIdentifier>{24968831-fe60-42a3-a74a-28c014deba16}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GPUBackend\Grid">
+      <UniqueIdentifier>{6b36389e-7d94-49d6-9bb5-f41374625a60}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GPUBackend\Hybrid Computation">
+      <UniqueIdentifier>{4e1d1abf-7c70-4639-9529-a3741fb552f0}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="BackendInterface.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LocalBackend.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Amplitude.cpp">
+      <Filter>Source Files\Models</Filter>
+    </ClCompile>
+    <ClCompile Include="EDProfile.cpp">
+      <Filter>Source Files\Models</Filter>
+    </ClCompile>
+    <ClCompile Include="Geometry.cpp">
+      <Filter>Source Files\Models</Filter>
+    </ClCompile>
+    <ClCompile Include="modelfitting.cpp">
+      <Filter>Source Files\Models</Filter>
+    </ClCompile>
+    <ClCompile Include="Gauss.cpp">
+      <Filter>Source Files\Quadrature</Filter>
+    </ClCompile>
+    <ClCompile Include="MonteCarlo.cpp">
+      <Filter>Source Files\Quadrature</Filter>
+    </ClCompile>
+    <ClCompile Include="Quadrature.cpp">
+      <Filter>Source Files\Quadrature</Filter>
+    </ClCompile>
+    <ClCompile Include="SimpsonRule.cpp">
+      <Filter>Source Files\Quadrature</Filter>
+    </ClCompile>
+    <ClCompile Include="Externals\alglib.cpp">
+      <Filter>Source Files\Externals</Filter>
+    </ClCompile>
+    <ClCompile Include="Externals\DESolver.cpp">
+      <Filter>Source Files\Externals</Filter>
+    </ClCompile>
+    <ClCompile Include="Externals\gpgpu.cpp">
+      <Filter>Source Files\Externals</Filter>
+    </ClCompile>
+    <ClCompile Include="DEFitting.cpp">
+      <Filter>Source Files\Fitting</Filter>
+    </ClCompile>
+    <ClCompile Include="fitting.cpp">
+      <Filter>Source Files\Fitting</Filter>
+    </ClCompile>
+    <ClCompile Include="MCFitting.cpp">
+      <Filter>Source Files\Fitting</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\mathfuncs.cpp">
+      <Filter>Source Files\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\Statistics.cpp">
+      <Filter>Source Files\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="Job.cpp">
+      <Filter>Source Files\Job Management</Filter>
+    </ClCompile>
+    <ClCompile Include="JobManager.cpp">
+      <Filter>Source Files\Job Management</Filter>
+    </ClCompile>
+    <ClCompile Include="Symmetry.cpp">
+      <Filter>Source Files\Models</Filter>
+    </ClCompile>
+    <ClCompile Include="Grid.cpp">
+      <Filter>Source Files\Models</Filter>
+    </ClCompile>
+    <ClCompile Include="MemoryManager.cpp">
+      <Filter>Source Files\Job Management</Filter>
+    </ClCompile>
+    <ClCompile Include="md5.cpp">
+      <Filter>Source Files\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="PDBAmplitude.cpp">
+      <Filter>Source Files\Models</Filter>
+    </ClCompile>
+    <ClCompile Include="LBFGSFitting.cpp">
+      <Filter>Source Files\Fitting</Filter>
+    </ClCompile>
+    <ClCompile Include="liblbfgs\lbfgs.c">
+      <Filter>Source Files\Externals\liblbfgs</Filter>
+    </ClCompile>
+    <ClCompile Include="CeresOpt.cpp">
+      <Filter>Source Files\Fitting</Filter>
+    </ClCompile>
+    <ClCompile Include="CompositeModel.cpp">
+      <Filter>Source Files\Models</Filter>
+    </ClCompile>
+    <ClCompile Include="LocalBackendParameterTree.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BackendWrapper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MetadataSerializer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DllBasedBackendWrapper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="kronrod.cpp">
+      <Filter>Source Files\Quadrature</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandLineBackendWrapper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AmplitudeCache.cpp">
+      <Filter>Source Files\Models</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GPU\Atomic Form Factor.cpp">
+      <Filter>Source Files\Models</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DefaultModels\CylindricalModels.cpp">
+      <Filter>Source Files\Default Models\Form Factors</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DefaultModels\HelicalModels.cpp">
+      <Filter>Source Files\Default Models\Form Factors</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DefaultModels\SlabModels.cpp">
+      <Filter>Source Files\Default Models\Form Factors</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DefaultModels\SphericalModels.cpp">
+      <Filter>Source Files\Default Models\Form Factors</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DefaultModels\TRAModel.cpp">
+      <Filter>Source Files\Default Models\Form Factors</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DefaultModels\Symmetries.cpp">
+      <Filter>Source Files\Default Models\Symmetries</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DefaultModels\DefaultModels.cpp">
+      <Filter>Source Files\Default Models</Filter>
+    </ClCompile>
+    <ClCompile Include="declarations.cpp">
+      <Filter>Source Files\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GPU\GPUHeader.cpp">
+      <Filter>GPUBackend</Filter>
+    </ClCompile>
+    <ClCompile Include="VoxelizedSolvent.cpp">
+      <Filter>Source Files\Models</Filter>
+    </ClCompile>
+    <ClCompile Include="UseGPU.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="backend_exception.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="BackendInterface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\BackendCommunication\LocalCommunication\LocalComm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Amplitude.h">
+      <Filter>Header Files\Models</Filter>
+    </ClInclude>
+    <ClInclude Include="EDProfile.h">
+      <Filter>Header Files\Models</Filter>
+    </ClInclude>
+    <ClInclude Include="Geometry.h">
+      <Filter>Header Files\Models</Filter>
+    </ClInclude>
+    <ClInclude Include="Model.h">
+      <Filter>Header Files\Models</Filter>
+    </ClInclude>
+    <ClInclude Include="Quadrature.h">
+      <Filter>Header Files\Quadrature</Filter>
+    </ClInclude>
+    <ClInclude Include="bgfitting.h">
+      <Filter>Header Files\Fitting</Filter>
+    </ClInclude>
+    <ClInclude Include="DEFitting.h">
+      <Filter>Header Files\Fitting</Filter>
+    </ClInclude>
+    <ClInclude Include="fitting.h">
+      <Filter>Header Files\Fitting</Filter>
+    </ClInclude>
+    <ClInclude Include="fittingfactory.h">
+      <Filter>Header Files\Fitting</Filter>
+    </ClInclude>
+    <ClInclude Include="MCFitting.h">
+      <Filter>Header Files\Fitting</Filter>
+    </ClInclude>
+    <ClInclude Include="modelfitting.h">
+      <Filter>Header Files\Fitting</Filter>
+    </ClInclude>
+    <ClInclude Include="structurefitting.h">
+      <Filter>Header Files\Fitting</Filter>
+    </ClInclude>
+    <ClInclude Include="Externals\alglib.h">
+      <Filter>Header Files\Externals</Filter>
+    </ClInclude>
+    <ClInclude Include="Externals\DESolver.h">
+      <Filter>Header Files\Externals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\mathfuncs.h">
+      <Filter>Header Files\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Job.h">
+      <Filter>Header Files\Job Management</Filter>
+    </ClInclude>
+    <ClInclude Include="JobManager.h">
+      <Filter>Header Files\Job Management</Filter>
+    </ClInclude>
+    <ClInclude Include="Symmetry.h">
+      <Filter>Header Files\Models</Filter>
+    </ClInclude>
+    <ClInclude Include="Grid.h">
+      <Filter>Header Files\Models</Filter>
+    </ClInclude>
+    <ClInclude Include="MemoryManager.h">
+      <Filter>Header Files\Job Management</Filter>
+    </ClInclude>
+    <ClInclude Include="md5.h">
+      <Filter>Header Files\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="LBFGSFitting.h">
+      <Filter>Header Files\Fitting</Filter>
+    </ClInclude>
+    <ClInclude Include="liblbfgs\arithmetic_ansi.h">
+      <Filter>Header Files\Externals\liblbfgs</Filter>
+    </ClInclude>
+    <ClInclude Include="liblbfgs\arithmetic_sse_double.h">
+      <Filter>Header Files\Externals\liblbfgs</Filter>
+    </ClInclude>
+    <ClInclude Include="liblbfgs\arithmetic_sse_float.h">
+      <Filter>Header Files\Externals\liblbfgs</Filter>
+    </ClInclude>
+    <ClInclude Include="liblbfgs\lbfgs.h">
+      <Filter>Header Files\Externals\liblbfgs</Filter>
+    </ClInclude>
+    <ClInclude Include="Optimizer.h">
+      <Filter>Header Files\Fitting</Filter>
+    </ClInclude>
+    <ClInclude Include="CeresOpt.h">
+      <Filter>Header Files\Fitting</Filter>
+    </ClInclude>
+    <ClInclude Include="simulated_annealing.hpp">
+      <Filter>Header Files\Fitting</Filter>
+    </ClInclude>
+    <ClInclude Include="dynamic_adaptive_numeric_diff_cost_function.h">
+      <Filter>Header Files\Models</Filter>
+    </ClInclude>
+    <ClInclude Include="LocalBackendParameterTree.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LocalBackend.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BackendWrapper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MetadataSerializer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DllBasedBackendWrapper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="kronrod.hpp">
+      <Filter>Header Files\Quadrature</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandLineBackendWrapper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AmplitudeCache.h">
+      <Filter>Header Files\Models</Filter>
+    </ClInclude>
+    <ClInclude Include="PDBAmplitudeCUDA.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DefaultModels\CylindricalModels.h">
+      <Filter>Header Files\Default Models\Form Factors</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DefaultModels\HelicalModels.h">
+      <Filter>Header Files\Default Models\Form Factors</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DefaultModels\SlabModels.h">
+      <Filter>Header Files\Default Models\Form Factors</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DefaultModels\SphericalModels.h">
+      <Filter>Header Files\Default Models\Form Factors</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DefaultModels\TRAModel.h">
+      <Filter>Header Files\Default Models\Form Factors</Filter>
+    </ClInclude>
+    <ClInclude Include="..\DefaultModels\Symmetries.h">
+      <Filter>Header Files\Default Models\Symmetries</Filter>
+    </ClInclude>
+    <ClInclude Include="declarations.h">
+      <Filter>Header Files\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GPU\GPUInterface.h">
+      <Filter>GPUBackend</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GPU\GPUHeader.h">
+      <Filter>GPUBackend</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GPU\InternalGPUHeaders.h">
+      <Filter>GPUBackend</Filter>
+    </ClInclude>
+    <ClInclude Include="UseGPU.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="backend_exception.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\Common\Eigen\Array">
+      <Filter>Header Files\Eigen</Filter>
+    </None>
+    <None Include="..\..\Common\Eigen\Cholesky">
+      <Filter>Header Files\Eigen</Filter>
+    </None>
+    <None Include="..\..\Common\Eigen\Core">
+      <Filter>Header Files\Eigen</Filter>
+    </None>
+    <None Include="..\..\Common\Eigen\Dense">
+      <Filter>Header Files\Eigen</Filter>
+    </None>
+    <None Include="..\..\Common\Eigen\Eigen">
+      <Filter>Header Files\Eigen</Filter>
+    </None>
+    <None Include="..\..\Common\Eigen\Eigen2Support">
+      <Filter>Header Files\Eigen</Filter>
+    </None>
+    <None Include="..\..\Common\Eigen\Eigenvalues">
+      <Filter>Header Files\Eigen</Filter>
+    </None>
+    <None Include="..\..\Common\Eigen\Geometry">
+      <Filter>Header Files\Eigen</Filter>
+    </None>
+    <None Include="..\..\Common\Eigen\Householder">
+      <Filter>Header Files\Eigen</Filter>
+    </None>
+    <None Include="..\..\Common\Eigen\Jacobi">
+      <Filter>Header Files\Eigen</Filter>
+    </None>
+    <None Include="..\..\Common\Eigen\LeastSquares">
+      <Filter>Header Files\Eigen</Filter>
+    </None>
+    <None Include="..\..\Common\Eigen\LU">
+      <Filter>Header Files\Eigen</Filter>
+    </None>
+    <None Include="..\..\Common\Eigen\QR">
+      <Filter>Header Files\Eigen</Filter>
+    </None>
+    <None Include="..\..\Common\Eigen\QtAlignedMalloc">
+      <Filter>Header Files\Eigen</Filter>
+    </None>
+    <None Include="..\..\Common\Eigen\Sparse">
+      <Filter>Header Files\Eigen</Filter>
+    </None>
+    <None Include="..\..\Common\Eigen\StdDeque">
+      <Filter>Header Files\Eigen</Filter>
+    </None>
+    <None Include="..\..\Common\Eigen\StdList">
+      <Filter>Header Files\Eigen</Filter>
+    </None>
+    <None Include="..\..\Common\Eigen\StdVector">
+      <Filter>Header Files\Eigen</Filter>
+    </None>
+    <None Include="..\..\Common\Eigen\SVD">
+      <Filter>Header Files\Eigen</Filter>
+    </None>
+    <None Include="..\BackendModel.cd" />
+    <None Include="..\GPU\CalculateJacobianSplines.cuh">
+      <Filter>GPUBackend\Common CUDA</Filter>
+    </None>
+    <None Include="..\GPU\CommonJacobGPUMethods.cu">
+      <Filter>GPUBackend\Common CUDA</Filter>
+    </None>
+    <None Include="..\GPU\CommonCUDA.cuh">
+      <Filter>GPUBackend\Common CUDA</Filter>
+    </None>
+    <None Include="..\GPU\CommonPDB.cuh">
+      <Filter>GPUBackend\Common CUDA</Filter>
+    </None>
+    <None Include="..\GPU\GPUDirectCalc.cuh">
+      <Filter>GPUBackend\Direct Computation</Filter>
+    </None>
+    <None Include="..\GPU\DebyeCalculator.cuh">
+      <Filter>GPUBackend\Debye</Filter>
+    </None>
+    <None Include="..\GPU\JacobianDomain.cuh">
+      <Filter>GPUBackend\Grid</Filter>
+    </None>
+    <None Include="..\GPU\GPUHybridCalc.cuh">
+      <Filter>GPUBackend\Hybrid Computation</Filter>
+    </None>
+    <None Include="ClassDiagram1.cd" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\..\Common\Eigen\CMakeLists.txt">
+      <Filter>Header Files\Eigen</Filter>
+    </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Backend.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="Externals\gpgpu.h">
+      <Filter>Header Files\Externals</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="PDBAmplitudeCUDA.cu">
+      <Filter>Source Files\Models</Filter>
+    </CudaCompile>
+    <CudaCompile Include="..\GPU\CalculateJacobianSplines.cu">
+      <Filter>GPUBackend\Common CUDA</Filter>
+    </CudaCompile>
+    <CudaCompile Include="..\GPU\DirectPDB.cu">
+      <Filter>GPUBackend\Direct Computation</Filter>
+    </CudaCompile>
+    <CudaCompile Include="..\GPU\DirectSphere.cu">
+      <Filter>GPUBackend\Direct Computation</Filter>
+    </CudaCompile>
+    <CudaCompile Include="..\GPU\GPUDirectCalc.cu">
+      <Filter>GPUBackend\Direct Computation</Filter>
+    </CudaCompile>
+    <CudaCompile Include="..\GPU\DebyeCalculator.cu">
+      <Filter>GPUBackend\Debye</Filter>
+    </CudaCompile>
+    <CudaCompile Include="..\GPU\JacobianDomain.cu">
+      <Filter>GPUBackend\Grid</Filter>
+    </CudaCompile>
+    <CudaCompile Include="..\GPU\ManSymGenJacob.cu">
+      <Filter>GPUBackend\Grid</Filter>
+    </CudaCompile>
+    <CudaCompile Include="..\GPU\OAJacob.cu">
+      <Filter>GPUBackend\Grid</Filter>
+    </CudaCompile>
+    <CudaCompile Include="..\GPU\SumGridsJacobian.cu">
+      <Filter>GPUBackend\Grid</Filter>
+    </CudaCompile>
+    <CudaCompile Include="..\GPU\SymmetryGenJacob.cu">
+      <Filter>GPUBackend\Grid</Filter>
+    </CudaCompile>
+    <CudaCompile Include="..\GPU\GPUHybridCalc.cu">
+      <Filter>GPUBackend\Hybrid Computation</Filter>
+    </CudaCompile>
+    <CudaCompile Include="..\GPU\HybridAmpGrid.cu">
+      <Filter>GPUBackend\Hybrid Computation</Filter>
+    </CudaCompile>
+    <CudaCompile Include="..\GPU\HybridOA.cu">
+      <Filter>GPUBackend\Hybrid Computation</Filter>
+    </CudaCompile>
+    <CudaCompile Include="..\GPU\HybridPDB.cu">
+      <Filter>GPUBackend\Hybrid Computation</Filter>
+    </CudaCompile>
+    <CudaCompile Include="..\GPU\HybridSymmetries.cu">
+      <Filter>GPUBackend\Hybrid Computation</Filter>
+    </CudaCompile>
+    <CudaCompile Include="..\GPU\HybridUSphere.cu">
+      <Filter>GPUBackend\Hybrid Computation</Filter>
+    </CudaCompile>
+  </ItemGroup>
+</Project>

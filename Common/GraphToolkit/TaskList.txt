@@ -1,0 +1,7 @@
+Objectives:		
+	* Graph2D: Display intensity images, with the option to overlay one on top of another
+	-------------------Initial Release---------------------------------------------
+	
+Bugs/TODO:
+	Some things in this world are yet to be discovered...
+	
