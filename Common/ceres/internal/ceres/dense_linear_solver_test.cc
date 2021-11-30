@@ -28,9 +28,10 @@
 //
 // Author: sameeragarwal@google.com (Sameer Agarwal)
 
+#include <memory>
+
 #include "ceres/casts.h"
 #include "ceres/context_impl.h"
-#include "ceres/internal/scoped_ptr.h"
 #include "ceres/linear_least_squares_problems.h"
 #include "ceres/linear_solver.h"
 #include "ceres/triplet_sparse_matrix.h"
@@ -45,7 +46,7 @@ typedef ::testing::
     tuple<LinearSolverType, DenseLinearAlgebraLibraryType, bool, int>
         Param;
 
-std::string ParamInfoToString(testing::TestParamInfo<Param> info) {
+static std::string ParamInfoToString(testing::TestParamInfo<Param> info) {
   Param param = info.param;
   std::stringstream ss;
   ss << LinearSolverTypeToString(::testing::get<0>(param)) << "_"
@@ -61,7 +62,7 @@ TEST_P(DenseLinearSolverTest, _) {
   Param param = GetParam();
   const bool regularized = testing::get<2>(param);
 
-  scoped_ptr<LinearLeastSquaresProblem> problem(
+  std::unique_ptr<LinearLeastSquaresProblem> problem(
       CreateLinearLeastSquaresProblemFromId(testing::get<3>(param)));
   DenseSparseMatrix lhs(*down_cast<TripletSparseMatrix*>(problem->A.get()));
 
@@ -76,7 +77,7 @@ TEST_P(DenseLinearSolverTest, _) {
   options.dense_linear_algebra_library_type = ::testing::get<1>(param);
   ContextImpl context;
   options.context = &context;
-  scoped_ptr<LinearSolver> solver(LinearSolver::Create(options));
+  std::unique_ptr<LinearSolver> solver(LinearSolver::Create(options));
 
   LinearSolver::PerSolveOptions per_solve_options;
   if (regularized) {
@@ -107,11 +108,13 @@ TEST_P(DenseLinearSolverTest, _) {
   EXPECT_NEAR(residual, 0.0, 10 * std::numeric_limits<double>::epsilon());
 }
 
+namespace {
+
 // TODO(sameeragarwal): Should we move away from hard coded linear
 // least squares problem to randomly generated ones?
 #ifndef CERES_NO_LAPACK
 
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
     DenseLinearSolver,
     DenseLinearSolverTest,
     ::testing::Combine(::testing::Values(DENSE_QR, DENSE_NORMAL_CHOLESKY),
@@ -122,7 +125,7 @@ INSTANTIATE_TEST_CASE_P(
 
 #else
 
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
     DenseLinearSolver,
     DenseLinearSolverTest,
     ::testing::Combine(::testing::Values(DENSE_QR, DENSE_NORMAL_CHOLESKY),
@@ -132,6 +135,6 @@ INSTANTIATE_TEST_CASE_P(
     ParamInfoToString);
 
 #endif
-
+}  // namespace
 }  // namespace internal
 }  // namespace ceres

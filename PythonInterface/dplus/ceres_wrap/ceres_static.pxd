@@ -2,12 +2,11 @@ from libcpp cimport bool
 from libcpp.vector cimport vector
 from libcpp.string cimport string
 from libcpp.functional cimport function
-from libc.stdint cimport uint8_t, uint16_t, uint32_t, uint64_t
+from libc.stdint cimport uint8_t, uint16_t, int32_t, uint64_t
 
 #TODO: add credit
 cdef extern from r"ceres/types.h" namespace "ceres":
     # ctypedef short int16
-    ctypedef int int32
     ctypedef enum Ownership:
         DO_NOT_TAKE_OWNERSHIP
         TAKE_OWNERSHIP
@@ -297,7 +296,7 @@ cdef extern from r"ceres/iteration_callback.h" namespace "ceres":
         IterationSummary()
 
         # Current iteration number.
-        int32 iteration
+        int32_t iteration
 
         # Step was numerically valid, i.e., all values are finite and the
         # step reduces the value of the linearized model.
@@ -449,7 +448,7 @@ cdef extern from r"ceres/cost_function.h" namespace "ceres":
                       double* residuals,
                       double** jacobians) const
 
-        const vector[int32]& parameter_block_sizes() const
+        const vector[int32_t]& parameter_block_sizes() const
 
         int num_residuals() const
 
@@ -591,10 +590,6 @@ cdef extern from r"ceres/solver.h" namespace "ceres::Solver":
         # whether they are linked into Ceres at build time.
         SparseLinearAlgebraLibraryType sparse_linear_algebra_library
 
-        # Number of threads used by Ceres to solve the Newton
-        # step. Currently only the SPARSE_SCHUR solver is capable of
-        # using this setting.
-        int num_linear_solver_threads
 
         # The order in which variables are eliminated in a linear solver
         # can have a significant of impact on the efficiency and accuracy

@@ -41,10 +41,11 @@
 #ifndef CERES_INTERNAL_CANONICAL_VIEWS_CLUSTERING_H_
 #define CERES_INTERNAL_CANONICAL_VIEWS_CLUSTERING_H_
 
+#include <unordered_map>
 #include <vector>
 
-#include "ceres/collections_port.h"
 #include "ceres/graph.h"
+#include "ceres/internal/port.h"
 
 namespace ceres {
 namespace internal {
@@ -55,8 +56,8 @@ struct CanonicalViewsClusteringOptions;
 // canonical views clustering algorithm.
 //
 // In the following we will use the terms vertices and views
-// interchangably.  Given a weighted Graph G(V,E), the canonical views
-// of G are the the set of vertices that best "summarize" the content
+// interchangeably.  Given a weighted Graph G(V,E), the canonical views
+// of G are the set of vertices that best "summarize" the content
 // of the graph. If w_ij i s the weight connecting the vertex i to
 // vertex j, and C is the set of canonical views. Then the objective
 // of the canonical views algorithm is
@@ -94,34 +95,28 @@ struct CanonicalViewsClusteringOptions;
 // It is possible depending on the configuration of the clustering
 // algorithm that some of the vertices may not be assigned to any
 // cluster. In this case they are assigned to a cluster with id = -1;
-void ComputeCanonicalViewsClustering(
+CERES_EXPORT_INTERNAL void ComputeCanonicalViewsClustering(
     const CanonicalViewsClusteringOptions& options,
     const WeightedGraph<int>& graph,
     std::vector<int>* centers,
-    HashMap<int, int>* membership);
+    std::unordered_map<int, int>* membership);
 
-struct CanonicalViewsClusteringOptions {
-  CanonicalViewsClusteringOptions()
-      : min_views(3),
-        size_penalty_weight(5.75),
-        similarity_penalty_weight(100.0),
-        view_score_weight(0.0) {
-  }
+struct CERES_EXPORT_INTERNAL CanonicalViewsClusteringOptions {
   // The minimum number of canonical views to compute.
-  int min_views;
+  int min_views = 3;
 
   // Penalty weight for the number of canonical views.  A higher
   // number will result in fewer canonical views.
-  double size_penalty_weight;
+  double size_penalty_weight = 5.75;
 
   // Penalty weight for the diversity (orthogonality) of the
   // canonical views.  A higher number will encourage less similar
   // canonical views.
-  double similarity_penalty_weight;
+  double similarity_penalty_weight = 100;
 
   // Weight for per-view scores.  Lower weight places less
   // confidence in the view scores.
-  double view_score_weight;
+  double view_score_weight = 0.0;
 };
 
 }  // namespace internal

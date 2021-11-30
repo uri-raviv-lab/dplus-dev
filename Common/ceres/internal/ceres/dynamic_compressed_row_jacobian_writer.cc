@@ -29,6 +29,7 @@
 // Author: richie.stebbing@gmail.com (Richard Stebbing)
 
 #include "ceres/dynamic_compressed_row_jacobian_writer.h"
+
 #include "ceres/casts.h"
 #include "ceres/compressed_row_jacobian_writer.h"
 #include "ceres/dynamic_compressed_row_sparse_matrix.h"
@@ -67,7 +68,7 @@ void DynamicCompressedRowJacobianWriter::Write(int residual_id,
       program_->residual_blocks()[residual_id];
   const int num_residuals = residual_block->NumResiduals();
 
-  vector<pair<int, int> > evaluated_jacobian_blocks;
+  vector<pair<int, int>> evaluated_jacobian_blocks;
   CompressedRowJacobianWriter::GetOrderedParameterBlocks(
       program_, residual_id, &evaluated_jacobian_blocks);
 
@@ -82,12 +83,13 @@ void DynamicCompressedRowJacobianWriter::Write(int residual_id,
     const int parameter_block_jacobian_index =
         evaluated_jacobian_blocks[i].second;
     const int parameter_block_size = parameter_block->LocalSize();
+    const double* parameter_jacobian =
+        jacobians[parameter_block_jacobian_index];
 
     // For each parameter block only insert its non-zero entries.
     for (int r = 0; r < num_residuals; ++r) {
-      for (int c = 0; c < parameter_block_size; ++c) {
-        const double& v = jacobians[parameter_block_jacobian_index]
-                                   [r * parameter_block_size + c];
+      for (int c = 0; c < parameter_block_size; ++c, ++parameter_jacobian) {
+        const double v = *parameter_jacobian;
         // Only insert non-zero entries.
         if (v != 0.0) {
           jacobian->InsertEntry(

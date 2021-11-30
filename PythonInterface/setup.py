@@ -22,14 +22,16 @@ extra_link_args = []
 if sys.platform == 'win32':
     LIB_DIR = r"../x64/Release/ceres.lib"
     macros = [('GOOGLE_GLOG_DLL_DECL', '_CRT_SECURE_NO_WARNINGS'),
+              ('CERES_USE_CXX_THREADS', None),
               ('_MBCS', None),
               ('CERES_USING_STATIC_LIBRARY', None)]
     extra_compile_args = ['/Ox']
     # extra_link_args = ['/debug']
 elif sys.platform in ['linux', 'linux2']:
-    extra_compile_args = ['-fPIC', '-std=c++11']
+    extra_compile_args = ['-fPIC', '-std=c++14']
     LIB_DIR = r"../Common/ceres/bin/lib/libceres.a"
     macros = [('GOOGLE_GLOG_DLL_DECL', '_CRT_SECURE_NO_WARNINGS'),
+              ('CERES_USE_CXX_THREADS', None),
               ('_MBCS', None),
               ('CERES_USING_STATIC_LIBRARY', None)]
 
@@ -67,7 +69,7 @@ class PrepareCommand(setuptools.Command):
         shutil.copy(r"../Backend/Backend/Grid.cpp", backend_dir)
         shutil.copy(r"../Backend/Backend/Grid.h", backend_dir)
         shutil.copy(r"../Backend/Backend/PeriodicSplineSolver.h", backend_dir)
-        shutil.copy(r"../Backend/Backend/Residual.h", backend_dir)
+        shutil.copy(r"./Residual.h", backend_dir)
 
         os.makedirs(COMMON_DIR)
         print("copying common files")

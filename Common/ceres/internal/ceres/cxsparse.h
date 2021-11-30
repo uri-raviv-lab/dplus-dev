@@ -36,6 +36,7 @@
 
 #ifndef CERES_NO_CXSPARSE
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -51,7 +52,7 @@ class TripletSparseMatrix;
 
 // This object provides access to solving linear systems using Cholesky
 // factorization with a known symbolic factorization. This features does not
-// explicity exist in CXSparse. The methods in the class are nonstatic because
+// explicitly exist in CXSparse. The methods in the class are nonstatic because
 // the class manages internal scratch space.
 class CXSparse {
  public:
@@ -140,16 +141,16 @@ class CXSparse {
 class CXSparseCholesky : public SparseCholesky {
  public:
   // Factory
-  static CXSparseCholesky* Create(const OrderingType ordering_type);
+  static std::unique_ptr<SparseCholesky> Create(OrderingType ordering_type);
 
   // SparseCholesky interface.
   virtual ~CXSparseCholesky();
-  virtual CompressedRowSparseMatrix::StorageType StorageType() const;
-  virtual LinearSolverTerminationType Factorize(CompressedRowSparseMatrix* lhs,
-                                                std::string* message);
-  virtual LinearSolverTerminationType Solve(const double* rhs,
-                                            double* solution,
-                                            std::string* message);
+  CompressedRowSparseMatrix::StorageType StorageType() const final;
+  LinearSolverTerminationType Factorize(CompressedRowSparseMatrix* lhs,
+                                        std::string* message) final;
+  LinearSolverTerminationType Solve(const double* rhs,
+                                    double* solution,
+                                    std::string* message) final;
 
  private:
   CXSparseCholesky(const OrderingType ordering_type);
@@ -165,7 +166,7 @@ class CXSparseCholesky : public SparseCholesky {
 }  // namespace internal
 }  // namespace ceres
 
-#else   // CERES_NO_CXSPARSE
+#else
 
 typedef void cs_dis;
 

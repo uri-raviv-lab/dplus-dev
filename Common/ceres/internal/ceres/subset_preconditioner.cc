@@ -30,10 +30,11 @@
 
 #include "ceres/subset_preconditioner.h"
 
+#include <memory>
 #include <string>
+
 #include "ceres/compressed_row_sparse_matrix.h"
 #include "ceres/inner_product_computer.h"
-#include "ceres/internal/scoped_ptr.h"
 #include "ceres/linear_solver.h"
 #include "ceres/sparse_cholesky.h"
 #include "ceres/types.h"
@@ -44,17 +45,21 @@ namespace internal {
 SubsetPreconditioner::SubsetPreconditioner(
     const Preconditioner::Options& options, const BlockSparseMatrix& A)
     : options_(options), num_cols_(A.num_cols()) {
-  sparse_cholesky_.reset(
-      SparseCholesky::Create(options_.sparse_linear_algebra_library_type,
-                             options_.use_postordering ? AMD : NATURAL));
-  CHECK_GE(options_.subset_preconditioner_start_row_block, 0);
+  CHECK_GE(options_.subset_preconditioner_start_row_block, 0)
+      << "Congratulations, you found a bug in Ceres. Please report it.";
+
+  LinearSolver::Options sparse_cholesky_options;
+  sparse_cholesky_options.sparse_linear_algebra_library_type =
+      options_.sparse_linear_algebra_library_type;
+  sparse_cholesky_options.use_postordering = options_.use_postordering;
+  sparse_cholesky_ = SparseCholesky::Create(sparse_cholesky_options);
 }
 
 SubsetPreconditioner::~SubsetPreconditioner() {}
 
 void SubsetPreconditioner::RightMultiply(const double* x, double* y) const {
-  CHECK_NOTNULL(x);
-  CHECK_NOTNULL(y);
+  CHECK(x != nullptr);
+  CHECK(y != nullptr);
   std::string message;
   sparse_cholesky_->Solve(x, y, &message);
 }
@@ -72,7 +77,7 @@ bool SubsetPreconditioner::UpdateImpl(const BlockSparseMatrix& A,
     // A = [P]
     //     [Q]
     //     [D]
-    scoped_ptr<BlockSparseMatrix> regularizer(
+    std::unique_ptr<BlockSparseMatrix> regularizer(
         BlockSparseMatrix::CreateDiagonalMatrix(D, bs->cols));
     m->AppendRows(*regularizer);
   }

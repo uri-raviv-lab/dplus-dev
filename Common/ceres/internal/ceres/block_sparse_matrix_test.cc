@@ -30,10 +30,11 @@
 
 #include "ceres/block_sparse_matrix.h"
 
+#include <memory>
 #include <string>
+
 #include "ceres/casts.h"
 #include "ceres/internal/eigen.h"
-#include "ceres/internal/scoped_ptr.h"
 #include "ceres/linear_least_squares_problems.h"
 #include "ceres/triplet_sparse_matrix.h"
 #include "glog/logging.h"
@@ -43,15 +44,15 @@ namespace ceres {
 namespace internal {
 
 class BlockSparseMatrixTest : public ::testing::Test {
- protected :
-  virtual void SetUp() {
-    scoped_ptr<LinearLeastSquaresProblem> problem(
+ protected:
+  void SetUp() final {
+    std::unique_ptr<LinearLeastSquaresProblem> problem(
         CreateLinearLeastSquaresProblemFromId(2));
-    CHECK_NOTNULL(problem.get());
+    CHECK(problem != nullptr);
     A_.reset(down_cast<BlockSparseMatrix*>(problem->A.release()));
 
     problem.reset(CreateLinearLeastSquaresProblemFromId(1));
-    CHECK_NOTNULL(problem.get());
+    CHECK(problem != nullptr);
     B_.reset(down_cast<TripletSparseMatrix*>(problem->A.release()));
 
     CHECK_EQ(A_->num_rows(), B_->num_rows());
@@ -59,8 +60,8 @@ class BlockSparseMatrixTest : public ::testing::Test {
     CHECK_EQ(A_->num_nonzeros(), B_->num_nonzeros());
   }
 
-  scoped_ptr<BlockSparseMatrix> A_;
-  scoped_ptr<TripletSparseMatrix> B_;
+  std::unique_ptr<BlockSparseMatrix> A_;
+  std::unique_ptr<TripletSparseMatrix> B_;
 };
 
 TEST_F(BlockSparseMatrixTest, SetZeroTest) {
@@ -109,16 +110,16 @@ TEST_F(BlockSparseMatrixTest, ToDenseMatrixTest) {
 }
 
 TEST_F(BlockSparseMatrixTest, AppendRows) {
-  scoped_ptr<LinearLeastSquaresProblem> problem(
+  std::unique_ptr<LinearLeastSquaresProblem> problem(
       CreateLinearLeastSquaresProblemFromId(2));
-  scoped_ptr<BlockSparseMatrix> m(
+  std::unique_ptr<BlockSparseMatrix> m(
       down_cast<BlockSparseMatrix*>(problem->A.release()));
   A_->AppendRows(*m);
   EXPECT_EQ(A_->num_rows(), 2 * m->num_rows());
   EXPECT_EQ(A_->num_cols(), m->num_cols());
 
   problem.reset(CreateLinearLeastSquaresProblemFromId(1));
-  scoped_ptr<TripletSparseMatrix> m2(
+  std::unique_ptr<TripletSparseMatrix> m2(
       down_cast<TripletSparseMatrix*>(problem->A.release()));
   B_->AppendRows(*m2);
 
@@ -144,7 +145,7 @@ TEST_F(BlockSparseMatrixTest, AppendAndDeleteBlockDiagonalMatrix) {
   for (int i = 0; i < num_cols; ++i) {
     diagonal(i) = 2 * i * i + 1;
   }
-  scoped_ptr<BlockSparseMatrix> appendage(
+  std::unique_ptr<BlockSparseMatrix> appendage(
       BlockSparseMatrix::CreateDiagonalMatrix(diagonal.data(), column_blocks));
 
   A_->AppendRows(*appendage);
@@ -159,12 +160,12 @@ TEST_F(BlockSparseMatrixTest, AppendAndDeleteBlockDiagonalMatrix) {
 
     A_->RightMultiply(x.data(), y_a.data());
     B_->RightMultiply(x.data(), y_b.data());
-    EXPECT_LT((y_a.head(B_->num_rows()) - y_b.head(B_->num_rows())).norm(), 1e-12);
+    EXPECT_LT((y_a.head(B_->num_rows()) - y_b.head(B_->num_rows())).norm(),
+              1e-12);
     Vector expected_tail = Vector::Zero(A_->num_cols());
     expected_tail(i) = diagonal(i);
     EXPECT_LT((y_a.tail(A_->num_cols()) - expected_tail).norm(), 1e-12);
   }
-
 
   A_->DeleteRowBlocks(column_blocks.size());
   EXPECT_EQ(A_->num_rows(), B_->num_rows());
@@ -196,7 +197,7 @@ TEST(BlockSparseMatrix, CreateDiagonalMatrix) {
     diagonal(i) = 2 * i * i + 1;
   }
 
-  scoped_ptr<BlockSparseMatrix> m(
+  std::unique_ptr<BlockSparseMatrix> m(
       BlockSparseMatrix::CreateDiagonalMatrix(diagonal.data(), column_blocks));
   const CompressedRowBlockStructure* bs = m->block_structure();
   EXPECT_EQ(bs->cols.size(), column_blocks.size());
@@ -212,7 +213,6 @@ TEST(BlockSparseMatrix, CreateDiagonalMatrix) {
     EXPECT_NEAR(y[i], diagonal[i], std::numeric_limits<double>::epsilon());
   }
 }
-
 
 }  // namespace internal
 }  // namespace ceres

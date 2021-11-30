@@ -30,7 +30,6 @@ find_package(Boost COMPONENTS system filesystem thread program_options REQUIRED)
 include_directories(${dplus_SOURCE_DIR}/Common ${dplus_SOURCE_DIR}/Common/ZipLib/Source ${dplus_SOURCE_DIR}/PDBReaderLib ${dplus_SOURCE_DIR}/Common/lua-5.1.4/src ${dplus_SOURCE_DIR}/Backend
 					${dplus_SOURCE_DIR}/Backend/Backend
 					${dplus_SOURCE_DIR}/Backend/GPU
-                    ${dplus_SOURCE_DIR}/Externals/ceres-for-windows/ceres-solver-1.12.0/include
                     ${dplus_SOURCE_DIR}/Common/zeromq-4.1.3/include
                     ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 
@@ -38,11 +37,6 @@ include_directories(${dplus_SOURCE_DIR}/Common ${dplus_SOURCE_DIR}/Common/ZipLib
 set(EIGEN_INCLUDE_DIR ${dplus_SOURCE_DIR}/Common)
 
 
-#########################
-## CERES SOLVER v1.12.0
-#add_subdirectory(Externals/ceres-for-windows/eigen)
-add_subdirectory(Externals/ceres-for-windows/ceres-solver-1.12.0)
-#########################
 
 #build ziplib
  add_subdirectory(Common/ZipLib/Source/extlibs/zlib)
@@ -72,10 +66,6 @@ aux_source_directory(Backend/CommandLine/Generate generate_files)
 add_executable(generate ${generate_files})
 target_link_libraries(generate backend ${Boost_LIBRARIES} dl pthread)
 
-# Fit
-aux_source_directory(Backend/CommandLine/Fit fit_files)
-add_executable(fit ${fit_files})
-target_link_libraries(fit backend ${Boost_LIBRARIES} dl pthread)
 
 
 # CheckCapabilities

@@ -32,7 +32,11 @@
 #define CERES_INTERNAL_SPARSE_CHOLESKY_H_
 
 // This include must come before any #ifndef check on Ceres compile options.
+// clang-format off
 #include "ceres/internal/port.h"
+// clang-format on
+
+#include <memory>
 
 #include "ceres/linear_solver.h"
 #include "glog/logging.h"
@@ -52,7 +56,7 @@ namespace internal {
 //
 // Example usage:
 //
-//  scoped_ptr<SparseCholesky>
+//  std::unique_ptr<SparseCholesky>
 //  sparse_cholesky(SparseCholesky::Create(SUITE_SPARSE, AMD));
 //
 //  CompressedRowSparseMatrix lhs = ...;
@@ -63,16 +67,10 @@ namespace internal {
 //  CHECK_EQ(sparse_cholesky->Solve(rhs.data(), solution.data(), &message),
 //           LINEAR_SOLVER_SUCCESS);
 
-class SparseCholesky {
+class CERES_EXPORT_INTERNAL SparseCholesky {
  public:
-  // Factory which returns an instance of SparseCholesky for the given
-  // sparse linear algebra library and fill reducing ordering
-  // strategy.
-  //
-  // Caller owns the result.
-  static SparseCholesky* Create(
-      SparseLinearAlgebraLibraryType sparse_linear_algebra_library_type,
-      OrderingType ordering_type);
+  static std::unique_ptr<SparseCholesky> Create(
+      const LinearSolver::Options& options);
 
   virtual ~SparseCholesky();
 
@@ -93,14 +91,12 @@ class SparseCholesky {
   // Subsequent calls to Factorize will use that symbolic
   // factorization assuming that the sparsity of the matrix has
   // remained constant.
-  virtual LinearSolverTerminationType Factorize(
-      CompressedRowSparseMatrix* lhs, std::string* message) = 0;
+  virtual LinearSolverTerminationType Factorize(CompressedRowSparseMatrix* lhs,
+                                                std::string* message) = 0;
 
   // Computes the solution to the equation
   //
   // lhs * solution = rhs
-  //
-  // rhs and solution can point to the same memory location.
   virtual LinearSolverTerminationType Solve(const double* rhs,
                                             double* solution,
                                             std::string* message) = 0;
@@ -113,7 +109,29 @@ class SparseCholesky {
       const double* rhs,
       double* solution,
       std::string* message);
+};
 
+class IterativeRefiner;
+
+// Computes an initial solution using the given instance of
+// SparseCholesky, and then refines it using the IterativeRefiner.
+class CERES_EXPORT_INTERNAL RefinedSparseCholesky : public SparseCholesky {
+ public:
+  RefinedSparseCholesky(std::unique_ptr<SparseCholesky> sparse_cholesky,
+                        std::unique_ptr<IterativeRefiner> iterative_refiner);
+  virtual ~RefinedSparseCholesky();
+
+  virtual CompressedRowSparseMatrix::StorageType StorageType() const;
+  virtual LinearSolverTerminationType Factorize(CompressedRowSparseMatrix* lhs,
+                                                std::string* message);
+  virtual LinearSolverTerminationType Solve(const double* rhs,
+                                            double* solution,
+                                            std::string* message);
+
+ private:
+  std::unique_ptr<SparseCholesky> sparse_cholesky_;
+  std::unique_ptr<IterativeRefiner> iterative_refiner_;
+  CompressedRowSparseMatrix* lhs_ = nullptr;
 };
 
 }  // namespace internal

@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2019 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -39,20 +39,21 @@
 #ifndef CERES_PUBLIC_PROBLEM_IMPL_H_
 #define CERES_PUBLIC_PROBLEM_IMPL_H_
 
+#include <array>
 #include <map>
+#include <memory>
+#include <unordered_set>
 #include <vector>
 
-#include "ceres/collections_port.h"
 #include "ceres/context_impl.h"
-#include "ceres/internal/macros.h"
 #include "ceres/internal/port.h"
-#include "ceres/internal/scoped_ptr.h"
 #include "ceres/problem.h"
 #include "ceres/types.h"
 
 namespace ceres {
 
 class CostFunction;
+class EvaluationCallback;
 class LossFunction;
 class LocalParameterization;
 struct CRSMatrix;
@@ -62,89 +63,71 @@ namespace internal {
 class Program;
 class ResidualBlock;
 
-class ProblemImpl {
+class CERES_EXPORT_INTERNAL ProblemImpl {
  public:
   typedef std::map<double*, ParameterBlock*> ParameterMap;
-  typedef HashSet<ResidualBlock*> ResidualBlockSet;
+  typedef std::unordered_set<ResidualBlock*> ResidualBlockSet;
   typedef std::map<CostFunction*, int> CostFunctionRefCount;
   typedef std::map<LossFunction*, int> LossFunctionRefCount;
 
   ProblemImpl();
   explicit ProblemImpl(const Problem::Options& options);
+  ProblemImpl(const ProblemImpl&) = delete;
+  void operator=(const ProblemImpl&) = delete;
 
   ~ProblemImpl();
 
   // See the public problem.h file for description of these methods.
-  ResidualBlockId AddResidualBlock(
-      CostFunction* cost_function,
-      LossFunction* loss_function,
-      const std::vector<double*>& parameter_blocks);
   ResidualBlockId AddResidualBlock(CostFunction* cost_function,
                                    LossFunction* loss_function,
-                                   double* x0);
+                                   double* const* const parameter_blocks,
+                                   int num_parameter_blocks);
+
+  template <typename... Ts>
   ResidualBlockId AddResidualBlock(CostFunction* cost_function,
                                    LossFunction* loss_function,
-                                   double* x0, double* x1);
-  ResidualBlockId AddResidualBlock(CostFunction* cost_function,
-                                   LossFunction* loss_function,
-                                   double* x0, double* x1, double* x2);
-  ResidualBlockId AddResidualBlock(CostFunction* cost_function,
-                                   LossFunction* loss_function,
-                                   double* x0, double* x1, double* x2,
-                                   double* x3);
-  ResidualBlockId AddResidualBlock(CostFunction* cost_function,
-                                   LossFunction* loss_function,
-                                   double* x0, double* x1, double* x2,
-                                   double* x3, double* x4);
-  ResidualBlockId AddResidualBlock(CostFunction* cost_function,
-                                   LossFunction* loss_function,
-                                   double* x0, double* x1, double* x2,
-                                   double* x3, double* x4, double* x5);
-  ResidualBlockId AddResidualBlock(CostFunction* cost_function,
-                                   LossFunction* loss_function,
-                                   double* x0, double* x1, double* x2,
-                                   double* x3, double* x4, double* x5,
-                                   double* x6);
-  ResidualBlockId AddResidualBlock(CostFunction* cost_function,
-                                   LossFunction* loss_function,
-                                   double* x0, double* x1, double* x2,
-                                   double* x3, double* x4, double* x5,
-                                   double* x6, double* x7);
-  ResidualBlockId AddResidualBlock(CostFunction* cost_function,
-                                   LossFunction* loss_function,
-                                   double* x0, double* x1, double* x2,
-                                   double* x3, double* x4, double* x5,
-                                   double* x6, double* x7, double* x8);
-  ResidualBlockId AddResidualBlock(CostFunction* cost_function,
-                                   LossFunction* loss_function,
-                                   double* x0, double* x1, double* x2,
-                                   double* x3, double* x4, double* x5,
-                                   double* x6, double* x7, double* x8,
-                                   double* x9);
+                                   double* x0,
+                                   Ts*... xs) {
+    const std::array<double*, sizeof...(Ts) + 1> parameter_blocks{{x0, xs...}};
+    return AddResidualBlock(cost_function,
+                            loss_function,
+                            parameter_blocks.data(),
+                            static_cast<int>(parameter_blocks.size()));
+  }
+
   void AddParameterBlock(double* values, int size);
   void AddParameterBlock(double* values,
                          int size,
                          LocalParameterization* local_parameterization);
 
   void RemoveResidualBlock(ResidualBlock* residual_block);
-  void RemoveParameterBlock(double* values);
+  void RemoveParameterBlock(const double* values);
 
-  void SetParameterBlockConstant(double* values);
+  void SetParameterBlockConstant(const double* values);
   void SetParameterBlockVariable(double* values);
-  bool IsParameterBlockConstant(double* values) const;
+  bool IsParameterBlockConstant(const double* values) const;
 
   void SetParameterization(double* values,
                            LocalParameterization* local_parameterization);
-  const LocalParameterization* GetParameterization(double* values) const;
+  const LocalParameterization* GetParameterization(const double* values) const;
 
   void SetParameterLowerBound(double* values, int index, double lower_bound);
   void SetParameterUpperBound(double* values, int index, double upper_bound);
+  double GetParameterLowerBound(const double* values, int index) const;
+  double GetParameterUpperBound(const double* values, int index) const;
 
   bool Evaluate(const Problem::EvaluateOptions& options,
                 double* cost,
                 std::vector<double>* residuals,
                 std::vector<double>* gradient,
                 CRSMatrix* jacobian);
+
+  bool EvaluateResidualBlock(ResidualBlock* residual_block,
+                             bool apply_loss_function,
+                             bool new_point,
+                             double* cost,
+                             double* residuals,
+                             double** jacobians) const;
 
   int NumParameterBlocks() const;
   int NumParameters() const;
@@ -191,7 +174,7 @@ class ProblemImpl {
   // Delete the arguments in question. These differ from the Remove* functions
   // in that they do not clean up references to the block to delete; they
   // merely delete them.
-  template<typename Block>
+  template <typename Block>
   void DeleteBlockInVector(std::vector<Block*>* mutable_blocks,
                            Block* block_to_remove);
   void DeleteBlock(ResidualBlock* residual_block);
@@ -203,13 +186,13 @@ class ProblemImpl {
   ContextImpl* context_impl_;
 
   // The mapping from user pointers to parameter blocks.
-  std::map<double*, ParameterBlock*> parameter_block_map_;
+  ParameterMap parameter_block_map_;
 
   // Iff enable_fast_removal is enabled, contains the current residual blocks.
   ResidualBlockSet residual_block_set_;
 
   // The actual parameter and residual blocks.
-  internal::scoped_ptr<internal::Program> program_;
+  std::unique_ptr<internal::Program> program_;
 
   // When removing parameter blocks, parameterizations have ambiguous
   // ownership. Instead of scanning the entire problem to see if the
@@ -225,8 +208,6 @@ class ProblemImpl {
   // destroyed.
   CostFunctionRefCount cost_function_ref_count_;
   LossFunctionRefCount loss_function_ref_count_;
-  std::vector<double*> residual_parameters_;
-  CERES_DISALLOW_COPY_AND_ASSIGN(ProblemImpl);
 };
 
 }  // namespace internal

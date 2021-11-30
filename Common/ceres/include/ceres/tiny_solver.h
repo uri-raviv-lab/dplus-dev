@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2017 Google Inc. All rights reserved.
+// Copyright 2019 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -38,7 +38,7 @@
 // during solving. This is especially useful when solving many similar problems;
 // for example, inverse pixel distortion for every pixel on a grid.
 //
-// Note: This code has no depedencies beyond Eigen, including on other parts of
+// Note: This code has no dependencies beyond Eigen, including on other parts of
 // Ceres, so it is possible to take this file alone and put it in another
 // project without the rest of Ceres.
 //
@@ -60,7 +60,7 @@ namespace ceres {
 
 // To use tiny solver, create a class or struct that allows computing the cost
 // function (described below). This is similar to a ceres::CostFunction, but is
-// different to enable statically allocating all memory for the solve
+// different to enable statically allocating all memory for the solver
 // (specifically, enum sizes). Key parts are the Scalar typedef, the enums to
 // describe problem sizes (needed to remove all heap allocations), and the
 // operator() overload to evaluate the cost and (optionally) jacobians.
@@ -75,9 +75,9 @@ namespace ceres {
 //                     double* residuals,
 //                     double* jacobian) const;
 //
-//     int NumResiduals();  -- Needed if NUM_RESIDUALS == Eigen::Dynamic.
-//     int NumParameters(); -- Needed if NUM_PARAMETERS == Eigen::Dynamic.
-//   }
+//     int NumResiduals() const;  -- Needed if NUM_RESIDUALS == Eigen::Dynamic.
+//     int NumParameters() const; -- Needed if NUM_PARAMETERS == Eigen::Dynamic.
+//   };
 //
 // For operator(), the size of the objects is:
 //
@@ -124,13 +124,17 @@ namespace ceres {
 //
 //   int NumParameters() const;
 //
-template<typename Function,
-         typename LinearSolver = Eigen::LDLT<
-           Eigen::Matrix<typename Function::Scalar,
-                         Function::NUM_PARAMETERS,
-                         Function::NUM_PARAMETERS> > >
+template <typename Function,
+          typename LinearSolver =
+              Eigen::LDLT<Eigen::Matrix<typename Function::Scalar,
+                                        Function::NUM_PARAMETERS,
+                                        Function::NUM_PARAMETERS>>>
 class TinySolver {
  public:
+  // This class needs to have an Eigen aligned operator new as it contains
+  // fixed-size Eigen types.
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
   enum {
     NUM_RESIDUALS = Function::NUM_RESIDUALS,
     NUM_PARAMETERS = Function::NUM_PARAMETERS
@@ -148,35 +152,23 @@ class TinySolver {
   };
 
   struct Options {
-    Options()
-        : gradient_tolerance(1e-10),
-          parameter_tolerance(1e-8),
-          cost_threshold(std::numeric_limits<Scalar>::epsilon()),
-          initial_trust_region_radius(1e4),
-          max_num_iterations(50) {}
-    Scalar gradient_tolerance;   // eps > max(J'*f(x))
-    Scalar parameter_tolerance;  // eps > ||dx|| / ||x||
-    Scalar cost_threshold;       // eps > ||f(x)||
-    Scalar initial_trust_region_radius;
-    int max_num_iterations;
+    Scalar gradient_tolerance = 1e-10;  // eps > max(J'*f(x))
+    Scalar parameter_tolerance = 1e-8;  // eps > ||dx|| / ||x||
+    Scalar cost_threshold =             // eps > ||f(x)||
+        std::numeric_limits<Scalar>::epsilon();
+    Scalar initial_trust_region_radius = 1e4;
+    int max_num_iterations = 50;
   };
 
   struct Summary {
-    Summary()
-        : initial_cost(-1),
-          final_cost(-1),
-          gradient_max_norm(-1),
-          iterations(0),
-          status(HIT_MAX_ITERATIONS) {}
-
-    Scalar initial_cost;       // 1/2 ||f(x)||^2
-    Scalar final_cost;         // 1/2 ||f(x)||^2
-    Scalar gradient_max_norm;  // max(J'f(x))
-    int iterations;
-    Status status;
+    Scalar initial_cost = -1;       // 1/2 ||f(x)||^2
+    Scalar final_cost = -1;         // 1/2 ||f(x)||^2
+    Scalar gradient_max_norm = -1;  // max(J'f(x))
+    int iterations = -1;
+    Status status = HIT_MAX_ITERATIONS;
   };
 
-  bool Update(const Function& function, const Parameters &x) {
+  bool Update(const Function& function, const Parameters& x) {
     if (!function(x.data(), error_.data(), jacobian_.data())) {
       return false;
     }
@@ -211,6 +203,7 @@ class TinySolver {
     assert(x_and_min);
     Parameters& x = *x_and_min;
     summary = Summary();
+    summary.iterations = 0;
 
     // TODO(sameeragarwal): Deal with failure here.
     Update(function, x);

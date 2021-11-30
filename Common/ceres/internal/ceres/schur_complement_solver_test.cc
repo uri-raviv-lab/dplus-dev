@@ -31,13 +31,13 @@
 #include "ceres/schur_complement_solver.h"
 
 #include <cstddef>
+#include <memory>
 
 #include "ceres/block_sparse_matrix.h"
 #include "ceres/block_structure.h"
 #include "ceres/casts.h"
 #include "ceres/context_impl.h"
 #include "ceres/detect_structure.h"
-#include "ceres/internal/scoped_ptr.h"
 #include "ceres/linear_least_squares_problems.h"
 #include "ceres/linear_solver.h"
 #include "ceres/triplet_sparse_matrix.h"
@@ -51,10 +51,10 @@ namespace internal {
 class SchurComplementSolverTest : public ::testing::Test {
  protected:
   void SetUpFromProblemId(int problem_id) {
-    scoped_ptr<LinearLeastSquaresProblem> problem(
+    std::unique_ptr<LinearLeastSquaresProblem> problem(
         CreateLinearLeastSquaresProblemFromId(problem_id));
 
-    CHECK_NOTNULL(problem.get());
+    CHECK(problem != nullptr);
     A.reset(down_cast<BlockSparseMatrix*>(problem->A.release()));
     b.reset(problem->b.release());
     D.reset(problem->D.release());
@@ -72,11 +72,10 @@ class SchurComplementSolverTest : public ::testing::Test {
     ContextImpl context;
     options.context = &context;
 
-    scoped_ptr<LinearSolver> qr(LinearSolver::Create(options));
+    std::unique_ptr<LinearSolver> qr(LinearSolver::Create(options));
 
-    TripletSparseMatrix triplet_A(A->num_rows(),
-                                  A->num_cols(),
-                                  A->num_nonzeros());
+    TripletSparseMatrix triplet_A(
+        A->num_rows(), A->num_cols(), A->num_nonzeros());
     A->ToTripletSparseMatrix(&triplet_A);
 
     // Gold standard solutions using dense QR factorization.
@@ -99,8 +98,8 @@ class SchurComplementSolverTest : public ::testing::Test {
     SetUpFromProblemId(problem_id);
     LinearSolver::Options options;
     options.elimination_groups.push_back(num_eliminate_blocks);
-    options.elimination_groups.push_back(
-        A->block_structure()->cols.size() - num_eliminate_blocks);
+    options.elimination_groups.push_back(A->block_structure()->cols.size() -
+                                         num_eliminate_blocks);
     options.type = linear_solver_type;
     options.dense_linear_algebra_library_type =
         dense_linear_algebra_library_type;
@@ -115,7 +114,7 @@ class SchurComplementSolverTest : public ::testing::Test {
                     &options.e_block_size,
                     &options.f_block_size);
 
-    scoped_ptr<LinearSolver> solver(LinearSolver::Create(options));
+    std::unique_ptr<LinearSolver> solver(LinearSolver::Create(options));
 
     LinearSolver::PerSolveOptions per_solve_options;
     LinearSolver::Summary summary;
@@ -127,7 +126,6 @@ class SchurComplementSolverTest : public ::testing::Test {
     EXPECT_EQ(summary.termination_type, LINEAR_SOLVER_SUCCESS);
 
     if (regularization) {
-
       ASSERT_NEAR((sol_d - x).norm() / num_cols, 0, 1e-10)
           << "Regularized Expected solution: " << sol_d.transpose()
           << " Actual solution: " << x.transpose();
@@ -142,9 +140,9 @@ class SchurComplementSolverTest : public ::testing::Test {
   int num_cols;
   int num_eliminate_blocks;
 
-  scoped_ptr<BlockSparseMatrix> A;
-  scoped_array<double> b;
-  scoped_array<double> D;
+  std::unique_ptr<BlockSparseMatrix> A;
+  std::unique_ptr<double[]> b;
+  std::unique_ptr<double[]> D;
   Vector x;
   Vector sol;
   Vector sol_d;
@@ -207,28 +205,40 @@ TEST_F(SchurComplementSolverTest,
 #endif  // CERES_NO_SUITESPARSE
 
 #ifndef CERES_NO_CXSPARSE
-TEST_F(SchurComplementSolverTest,
-       SparseSchurWithCXSparseSmallProblem) {
+TEST_F(SchurComplementSolverTest, SparseSchurWithCXSparseSmallProblem) {
   ComputeAndCompareSolutions(2, false, SPARSE_SCHUR, EIGEN, CX_SPARSE, true);
   ComputeAndCompareSolutions(2, true, SPARSE_SCHUR, EIGEN, CX_SPARSE, true);
 }
 
-TEST_F(SchurComplementSolverTest,
-       SparseSchurWithCXSparseLargeProblem) {
+TEST_F(SchurComplementSolverTest, SparseSchurWithCXSparseLargeProblem) {
   ComputeAndCompareSolutions(3, false, SPARSE_SCHUR, EIGEN, CX_SPARSE, true);
   ComputeAndCompareSolutions(3, true, SPARSE_SCHUR, EIGEN, CX_SPARSE, true);
 }
 #endif  // CERES_NO_CXSPARSE
 
+#ifndef CERES_NO_ACCELERATE_SPARSE
+TEST_F(SchurComplementSolverTest, SparseSchurWithAccelerateSparseSmallProblem) {
+  ComputeAndCompareSolutions(
+      2, false, SPARSE_SCHUR, EIGEN, ACCELERATE_SPARSE, true);
+  ComputeAndCompareSolutions(
+      2, true, SPARSE_SCHUR, EIGEN, ACCELERATE_SPARSE, true);
+}
+
+TEST_F(SchurComplementSolverTest, SparseSchurWithAccelerateSparseLargeProblem) {
+  ComputeAndCompareSolutions(
+      3, false, SPARSE_SCHUR, EIGEN, ACCELERATE_SPARSE, true);
+  ComputeAndCompareSolutions(
+      3, true, SPARSE_SCHUR, EIGEN, ACCELERATE_SPARSE, true);
+}
+#endif  // CERES_NO_ACCELERATE_SPARSE
+
 #ifdef CERES_USE_EIGEN_SPARSE
-TEST_F(SchurComplementSolverTest,
-       SparseSchurWithEigenSparseSmallProblem) {
+TEST_F(SchurComplementSolverTest, SparseSchurWithEigenSparseSmallProblem) {
   ComputeAndCompareSolutions(2, false, SPARSE_SCHUR, EIGEN, EIGEN_SPARSE, true);
   ComputeAndCompareSolutions(2, true, SPARSE_SCHUR, EIGEN, EIGEN_SPARSE, true);
 }
 
-TEST_F(SchurComplementSolverTest,
-       SparseSchurWithEigenSparseLargeProblem) {
+TEST_F(SchurComplementSolverTest, SparseSchurWithEigenSparseLargeProblem) {
   ComputeAndCompareSolutions(3, false, SPARSE_SCHUR, EIGEN, EIGEN_SPARSE, true);
   ComputeAndCompareSolutions(3, true, SPARSE_SCHUR, EIGEN, EIGEN_SPARSE, true);
 }

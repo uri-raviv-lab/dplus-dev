@@ -28,18 +28,18 @@
 //
 // Author: sameeragarwal@google.com (Sameer Agarwal)
 
+#include <memory>
+
+#include "Eigen/Cholesky"
 #include "ceres/block_sparse_matrix.h"
 #include "ceres/casts.h"
 #include "ceres/context_impl.h"
-#include "ceres/internal/scoped_ptr.h"
 #include "ceres/linear_least_squares_problems.h"
 #include "ceres/linear_solver.h"
 #include "ceres/triplet_sparse_matrix.h"
 #include "ceres/types.h"
 #include "glog/logging.h"
 #include "gtest/gtest.h"
-
-#include "Eigen/Cholesky"
 
 namespace ceres {
 namespace internal {
@@ -53,11 +53,11 @@ namespace internal {
 // classes.
 class SparseNormalCholeskySolverTest : public ::testing::Test {
  protected:
-  virtual void SetUp() {
-    scoped_ptr<LinearLeastSquaresProblem> problem(
+  void SetUp() final {
+    std::unique_ptr<LinearLeastSquaresProblem> problem(
         CreateLinearLeastSquaresProblemFromId(2));
 
-    CHECK_NOTNULL(problem.get());
+    CHECK(problem != nullptr);
     A_.reset(down_cast<BlockSparseMatrix*>(problem->A.release()));
     b_.reset(problem->b.release());
     D_.reset(problem->D.release());
@@ -79,7 +79,7 @@ class SparseNormalCholeskySolverTest : public ::testing::Test {
     A_->LeftMultiply(b_.get(), rhs.data());
     Vector expected_solution = lhs.llt().solve(rhs);
 
-    scoped_ptr<LinearSolver> solver(LinearSolver::Create(options));
+    std::unique_ptr<LinearSolver> solver(LinearSolver::Create(options));
     LinearSolver::PerSolveOptions per_solve_options;
     per_solve_options.D = D;
     Vector actual_solution(A_->num_cols());
@@ -101,9 +101,9 @@ class SparseNormalCholeskySolverTest : public ::testing::Test {
     TestSolver(options, D_.get());
   }
 
-  scoped_ptr<BlockSparseMatrix> A_;
-  scoped_array<double> b_;
-  scoped_array<double> D_;
+  std::unique_ptr<BlockSparseMatrix> A_;
+  std::unique_ptr<double[]> b_;
+  std::unique_ptr<double[]> D_;
 };
 
 #ifndef CERES_NO_SUITESPARSE
@@ -146,6 +146,30 @@ TEST_F(SparseNormalCholeskySolverTest,
        SparseNormalCholeskyUsingCXSparsePostOrdering) {
   LinearSolver::Options options;
   options.sparse_linear_algebra_library_type = CX_SPARSE;
+  options.type = SPARSE_NORMAL_CHOLESKY;
+  options.use_postordering = true;
+  ContextImpl context;
+  options.context = &context;
+  TestSolver(options);
+}
+#endif
+
+#ifndef CERES_NO_ACCELERATE_SPARSE
+TEST_F(SparseNormalCholeskySolverTest,
+       SparseNormalCholeskyUsingAccelerateSparsePreOrdering) {
+  LinearSolver::Options options;
+  options.sparse_linear_algebra_library_type = ACCELERATE_SPARSE;
+  options.type = SPARSE_NORMAL_CHOLESKY;
+  options.use_postordering = false;
+  ContextImpl context;
+  options.context = &context;
+  TestSolver(options);
+}
+
+TEST_F(SparseNormalCholeskySolverTest,
+       SparseNormalCholeskyUsingAcceleratePostOrdering) {
+  LinearSolver::Options options;
+  options.sparse_linear_algebra_library_type = ACCELERATE_SPARSE;
   options.type = SPARSE_NORMAL_CHOLESKY;
   options.use_postordering = true;
   ContextImpl context;

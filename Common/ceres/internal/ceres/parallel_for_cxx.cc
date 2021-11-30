@@ -31,9 +31,7 @@
 // This include must come before any #ifndef check on Ceres compile options.
 #include "ceres/internal/port.h"
 
-#ifdef CERES_USE_CXX11_THREADS
-
-#include "ceres/parallel_for.h"
+#ifdef CERES_USE_CXX_THREADS
 
 #include <cmath>
 #include <condition_variable>
@@ -41,6 +39,7 @@
 #include <mutex>
 
 #include "ceres/concurrent_queue.h"
+#include "ceres/parallel_for.h"
 #include "ceres/scoped_thread_token.h"
 #include "ceres/thread_token_provider.h"
 #include "glog/logging.h"
@@ -60,7 +59,7 @@ class BlockUntilFinished {
   // Increment the number of jobs that have finished and signal the blocking
   // thread if all jobs have finished.
   void Finished() {
-    std::unique_lock<std::mutex> lock(mutex_);
+    std::lock_guard<std::mutex> lock(mutex_);
     ++num_finished_;
     CHECK_LE(num_finished_, num_total_);
     if (num_finished_ == num_total_) {
@@ -117,6 +116,8 @@ struct SharedState {
 
 }  // namespace
 
+int MaxNumThreadsAvailable() { return ThreadPool::MaxNumThreadsAvailable(); }
+
 // See ParallelFor (below) for more details.
 void ParallelFor(ContextImpl* context,
                  int start,
@@ -137,8 +138,10 @@ void ParallelFor(ContextImpl* context,
     return;
   }
 
-  ParallelFor(context, start, end, num_threads,
-              [&function](int /*thread_id*/, int i) { function(i); });
+  ParallelFor(
+      context, start, end, num_threads, [&function](int /*thread_id*/, int i) {
+        function(i);
+      });
 }
 
 // This implementation uses a fixed size max worker pool with a shared task
@@ -182,11 +185,11 @@ void ParallelFor(ContextImpl* context,
     return;
   }
 
-  // We use a shared_ptr because the main thread can finish all the work before
-  // the tasks have been popped off the queue.  So the shared state needs to
-  // exist for the duration of all the tasks.
+  // We use a std::shared_ptr because the main thread can finish all
+  // the work before the tasks have been popped off the queue.  So the
+  // shared state needs to exist for the duration of all the tasks.
   const int num_work_items = std::min((end - start), num_threads);
-  shared_ptr<SharedState> shared_state(
+  std::shared_ptr<SharedState> shared_state(
       new SharedState(start, end, num_work_items));
 
   // A function which tries to perform a chunk of work. This returns false if
@@ -196,7 +199,7 @@ void ParallelFor(ContextImpl* context,
     {
       // Get the next available chunk of work to be performed. If there is no
       // work, return false.
-      std::unique_lock<std::mutex> lock(shared_state->mutex_i);
+      std::lock_guard<std::mutex> lock(shared_state->mutex_i);
       if (shared_state->i >= shared_state->num_work_items) {
         return false;
       }
@@ -209,8 +212,7 @@ void ParallelFor(ContextImpl* context,
     const int thread_id = scoped_thread_token.token();
 
     // Perform each task.
-    for (int j = shared_state->start + i;
-         j < shared_state->end;
+    for (int j = shared_state->start + i; j < shared_state->end;
          j += shared_state->num_work_items) {
       function(thread_id, j);
     }
@@ -240,4 +242,4 @@ void ParallelFor(ContextImpl* context,
 }  // namespace internal
 }  // namespace ceres
 
-#endif // CERES_USE_CXX11_THREADS
+#endif  // CERES_USE_CXX_THREADS

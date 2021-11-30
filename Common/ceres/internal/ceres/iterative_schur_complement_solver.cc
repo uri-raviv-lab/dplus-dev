@@ -41,7 +41,6 @@
 #include "ceres/detect_structure.h"
 #include "ceres/implicit_schur_complement.h"
 #include "ceres/internal/eigen.h"
-#include "ceres/internal/scoped_ptr.h"
 #include "ceres/linear_solver.h"
 #include "ceres/preconditioner.h"
 #include "ceres/schur_jacobi_preconditioner.h"
@@ -56,8 +55,7 @@ namespace internal {
 
 IterativeSchurComplementSolver::IterativeSchurComplementSolver(
     const LinearSolver::Options& options)
-    : options_(options) {
-}
+    : options_(options) {}
 
 IterativeSchurComplementSolver::~IterativeSchurComplementSolver() {}
 
@@ -68,7 +66,7 @@ LinearSolver::Summary IterativeSchurComplementSolver::SolveImpl(
     double* x) {
   EventLogger event_logger("IterativeSchurComplementSolver::Solve");
 
-  CHECK_NOTNULL(A->block_structure());
+  CHECK(A->block_structure() != nullptr);
   const int num_eliminate_blocks = options_.elimination_groups[0];
   // Initialize a ImplicitSchurComplement object.
   if (schur_complement_ == NULL) {

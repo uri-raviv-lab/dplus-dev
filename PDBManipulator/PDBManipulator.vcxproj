@@ -14,7 +14,7 @@
     <ProjectGuid>{E410B34B-B5E5-4C0D-86E9-08367EED64A0}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>PDBManipulator</RootNamespace>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">

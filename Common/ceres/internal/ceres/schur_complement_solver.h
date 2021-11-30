@@ -31,6 +31,7 @@
 #ifndef CERES_INTERNAL_SCHUR_COMPLEMENT_SOLVER_H_
 #define CERES_INTERNAL_SCHUR_COMPLEMENT_SOLVER_H_
 
+#include <memory>
 #include <set>
 #include <utility>
 #include <vector>
@@ -40,14 +41,13 @@
 #include "ceres/block_sparse_matrix.h"
 #include "ceres/block_structure.h"
 #include "ceres/internal/port.h"
-#include "ceres/internal/scoped_ptr.h"
 #include "ceres/linear_solver.h"
 #include "ceres/schur_eliminator.h"
 #include "ceres/types.h"
 
 #ifdef CERES_USE_EIGEN_SPARSE
-#include "Eigen/SparseCholesky"
 #include "Eigen/OrderingMethods"
+#include "Eigen/SparseCholesky"
 #endif
 
 namespace ceres {
@@ -107,7 +107,8 @@ class SparseCholesky;
 // set to DENSE_SCHUR and SPARSE_SCHUR
 // respectively. LinearSolver::Options::elimination_groups[0] should
 // be at least 1.
-class SchurComplementSolver : public BlockSparseMatrixSolver {
+class CERES_EXPORT_INTERNAL SchurComplementSolver
+    : public BlockSparseMatrixSolver {
  public:
   explicit SchurComplementSolver(const LinearSolver::Options& options)
       : options_(options) {
@@ -115,14 +116,16 @@ class SchurComplementSolver : public BlockSparseMatrixSolver {
     CHECK_GT(options.elimination_groups[0], 0);
     CHECK(options.context != NULL);
   }
+  SchurComplementSolver(const SchurComplementSolver&) = delete;
+  void operator=(const SchurComplementSolver&) = delete;
 
   // LinearSolver methods
   virtual ~SchurComplementSolver() {}
-  virtual LinearSolver::Summary SolveImpl(
+  LinearSolver::Summary SolveImpl(
       BlockSparseMatrix* A,
       const double* b,
       const LinearSolver::PerSolveOptions& per_solve_options,
-      double* x);
+      double* x) override;
 
  protected:
   const LinearSolver::Options& options() const { return options_; }
@@ -140,11 +143,9 @@ class SchurComplementSolver : public BlockSparseMatrixSolver {
 
   LinearSolver::Options options_;
 
-  scoped_ptr<SchurEliminatorBase> eliminator_;
-  scoped_ptr<BlockRandomAccessMatrix> lhs_;
-  scoped_array<double> rhs_;
-
-  CERES_DISALLOW_COPY_AND_ASSIGN(SchurComplementSolver);
+  std::unique_ptr<SchurEliminatorBase> eliminator_;
+  std::unique_ptr<BlockRandomAccessMatrix> lhs_;
+  std::unique_ptr<double[]> rhs_;
 };
 
 // Dense Cholesky factorization based solver.
@@ -152,37 +153,39 @@ class DenseSchurComplementSolver : public SchurComplementSolver {
  public:
   explicit DenseSchurComplementSolver(const LinearSolver::Options& options)
       : SchurComplementSolver(options) {}
+  DenseSchurComplementSolver(const DenseSchurComplementSolver&) = delete;
+  void operator=(const DenseSchurComplementSolver&) = delete;
+
   virtual ~DenseSchurComplementSolver() {}
 
  private:
-  virtual void InitStorage(const CompressedRowBlockStructure* bs);
-  virtual LinearSolver::Summary SolveReducedLinearSystem(
+  void InitStorage(const CompressedRowBlockStructure* bs) final;
+  LinearSolver::Summary SolveReducedLinearSystem(
       const LinearSolver::PerSolveOptions& per_solve_options,
-      double* solution);
-
-  CERES_DISALLOW_COPY_AND_ASSIGN(DenseSchurComplementSolver);
+      double* solution) final;
 };
 
 // Sparse Cholesky factorization based solver.
 class SparseSchurComplementSolver : public SchurComplementSolver {
  public:
   explicit SparseSchurComplementSolver(const LinearSolver::Options& options);
+  SparseSchurComplementSolver(const SparseSchurComplementSolver&) = delete;
+  void operator=(const SparseSchurComplementSolver&) = delete;
+
   virtual ~SparseSchurComplementSolver();
 
  private:
-  virtual void InitStorage(const CompressedRowBlockStructure* bs);
-  virtual LinearSolver::Summary SolveReducedLinearSystem(
+  void InitStorage(const CompressedRowBlockStructure* bs) final;
+  LinearSolver::Summary SolveReducedLinearSystem(
       const LinearSolver::PerSolveOptions& per_solve_options,
-      double* solution);
+      double* solution) final;
   LinearSolver::Summary SolveReducedLinearSystemUsingConjugateGradients(
-      const LinearSolver::PerSolveOptions& per_solve_options,
-      double* solution);
+      const LinearSolver::PerSolveOptions& per_solve_options, double* solution);
 
   // Size of the blocks in the Schur complement.
   std::vector<int> blocks_;
-  scoped_ptr<SparseCholesky> sparse_cholesky_;
-  scoped_ptr<BlockRandomAccessDiagonalMatrix> preconditioner_;
-  CERES_DISALLOW_COPY_AND_ASSIGN(SparseSchurComplementSolver);
+  std::unique_ptr<SparseCholesky> sparse_cholesky_;
+  std::unique_ptr<BlockRandomAccessDiagonalMatrix> preconditioner_;
 };
 
 }  // namespace internal

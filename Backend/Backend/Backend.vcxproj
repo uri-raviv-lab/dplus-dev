@@ -21,7 +21,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{F7448326-C3A1-44BC-99EE-8CC6E1B4B5EB}</ProjectGuid>
     <RootNamespace>Backend</RootNamespace>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -48,7 +48,7 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
-    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 11.3.props" />
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 11.5.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -250,7 +250,6 @@ copy "$(CudaToolkitBinDir)\curand64_*.dll" "$(TargetDir)"</Command>
     <ClCompile Include="AmplitudeCache.cpp" />
     <ClCompile Include="BackendWrapper.cpp" />
     <ClCompile Include="backend_exception.cpp" />
-    <ClCompile Include="CeresOpt.cpp" />
     <ClCompile Include="CommandLineBackendWrapper.cpp" />
     <ClCompile Include="CompositeModel.cpp" />
     <ClCompile Include="declarations.cpp" />
@@ -303,7 +302,6 @@ copy "$(CudaToolkitBinDir)\curand64_*.dll" "$(TargetDir)"</Command>
     <ClInclude Include="..\DefaultModels\Symmetries.h" />
     <ClInclude Include="..\DefaultModels\TRAModel.h" />
     <ClInclude Include="backend_exception.h" />
-    <ClInclude Include="Residual.h" />
     <ClInclude Include="UseGPU.h" />
     <None Include="..\GPU\CalculateJacobianSplines.cuh" />
     <None Include="..\GPU\CommonCUDA.cuh" />
@@ -317,11 +315,9 @@ copy "$(CudaToolkitBinDir)\curand64_*.dll" "$(TargetDir)"</Command>
     <ClInclude Include="..\GPU\InternalGPUHeaders.h" />
     <ClInclude Include="AmplitudeCache.h" />
     <ClInclude Include="BackendWrapper.h" />
-    <ClInclude Include="CeresOpt.h" />
     <ClInclude Include="CommandLineBackendWrapper.h" />
     <ClInclude Include="declarations.h" />
     <ClInclude Include="DllBasedBackendWrapper.h" />
-    <ClInclude Include="dynamic_adaptive_numeric_diff_cost_function.h" />
     <ClInclude Include="Grid.h" />
     <ClInclude Include="BackendInterface.h" />
     <ClInclude Include="..\..\BackendCommunication\LocalCommunication\LocalComm.h" />
@@ -420,9 +416,6 @@ copy "$(CudaToolkitBinDir)\curand64_*.dll" "$(TargetDir)"</Command>
     <ResourceCompile Include="Backend.rc" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Common\ceres\ceres.vcxproj">
-      <Project>{647e8018-9c83-3be9-8c81-e6c831e9e4a2}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\..\Common\lua-5.1.4\src\lua51-backend.vcxproj">
       <Project>{a0ace53d-3215-4907-926e-98a7a80ca63c}</Project>
     </ProjectReference>
@@ -441,6 +434,6 @@ copy "$(CudaToolkitBinDir)\curand64_*.dll" "$(TargetDir)"</Command>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
-    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 11.3.targets" />
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 11.5.targets" />
   </ImportGroup>
 </Project>

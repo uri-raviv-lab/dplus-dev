@@ -38,7 +38,9 @@
 
 #ifdef CERES_USE_EIGEN_SPARSE
 
+#include <memory>
 #include <string>
+
 #include "Eigen/SparseCore"
 #include "ceres/linear_solver.h"
 #include "ceres/sparse_cholesky.h"
@@ -49,13 +51,32 @@ namespace internal {
 class EigenSparseCholesky : public SparseCholesky {
  public:
   // Factory
-  static EigenSparseCholesky* Create(const OrderingType ordering_type);
+  static std::unique_ptr<SparseCholesky> Create(
+      const OrderingType ordering_type);
 
   // SparseCholesky interface.
   virtual ~EigenSparseCholesky();
+  virtual LinearSolverTerminationType Factorize(CompressedRowSparseMatrix* lhs,
+                                                std::string* message) = 0;
   virtual CompressedRowSparseMatrix::StorageType StorageType() const = 0;
-  virtual LinearSolverTerminationType Factorize(
-      const Eigen::SparseMatrix<double>& lhs, std::string* message) = 0;
+  virtual LinearSolverTerminationType Solve(const double* rhs,
+                                            double* solution,
+                                            std::string* message) = 0;
+};
+
+// Even though the input is double precision linear system, this class
+// solves it by computing a single precision Cholesky factorization.
+class FloatEigenSparseCholesky : public SparseCholesky {
+ public:
+  // Factory
+  static std::unique_ptr<SparseCholesky> Create(
+      const OrderingType ordering_type);
+
+  // SparseCholesky interface.
+  virtual ~FloatEigenSparseCholesky();
+  virtual LinearSolverTerminationType Factorize(CompressedRowSparseMatrix* lhs,
+                                                std::string* message) = 0;
+  virtual CompressedRowSparseMatrix::StorageType StorageType() const = 0;
   virtual LinearSolverTerminationType Solve(const double* rhs,
                                             double* solution,
                                             std::string* message) = 0;

@@ -43,7 +43,7 @@ class TestFitRun(DplusProps):
         else:
             api=LocalRunner(exe_directory, session_folder)
         
-        test_python_ceres = False
+        test_python_ceres = True
         if test_python_ceres:
             python_fit = PyCeresOptimizer(input, api)
             python_fit.solve()
@@ -79,14 +79,11 @@ class TestFitCorrect(DplusProps):
                 r_val=result_param.value
 
                 passed=True
-                # if np.fabs((1.0 - np.double(e_val / r_val))) > 1.0e-8:
-                #     print(np.fabs((1.0 - np.double(e_val / r_val))))
-                # passed = False
-                e_str = str(e_val)
-                r_str= str(r_val)
-                for i in range(len(e_str)-1):
-                    if r_str[i] != e_str[i]:
-                        passed = False
+                estr_whole, e_str_dec = str(e_val.split("."))
+                prec = 1 * pow(10, -len(e_str_dec))
+                diff = abs (e_val - r_val)
+                if diff > prec:
+                    passed = False
                 if not passed:
                     print("Failed param check, expected:", e_val, "got:", r_val)
                 total_passed=total_passed and passed

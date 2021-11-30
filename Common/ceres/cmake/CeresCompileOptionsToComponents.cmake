@@ -63,7 +63,7 @@ macro(add_to_output_if_not_found INPUT_LIST_VAR OUTPUT_LIST_VAR ITEM_TO_FIND VAR
 endmacro()
 
 # Convert the Ceres compile options specified by: CURRENT_CERES_COMPILE_OPTIONS
-# into the correponding list of Ceres components (names), which may be used in:
+# into the corresponding list of Ceres components (names), which may be used in:
 # find_package(Ceres COMPONENTS <XXX>).
 function(ceres_compile_options_to_components CURRENT_CERES_COMPILE_OPTIONS CERES_COMPONENTS_VAR)
   # To enable users to specify that they want *a* sparse linear algebra backend
@@ -79,13 +79,13 @@ function(ceres_compile_options_to_components CURRENT_CERES_COMPILE_OPTIONS CERES
   add_to_output_if_not_found(CURRENT_CERES_COMPILE_OPTIONS ${CERES_COMPONENTS_VAR}
     CERES_NO_CXSPARSE "CXSparse;SparseLinearAlgebraLibrary")
   add_to_output_if_not_found(CURRENT_CERES_COMPILE_OPTIONS ${CERES_COMPONENTS_VAR}
+    CERES_NO_ACCELERATE_SPARSE "AccelerateSparse;SparseLinearAlgebraLibrary")
+  add_to_output_if_not_found(CURRENT_CERES_COMPILE_OPTIONS ${CERES_COMPONENTS_VAR}
     CERES_RESTRICT_SCHUR_SPECIALIZATION "SchurSpecializations")
-  add_to_output_if_found(CURRENT_CERES_COMPILE_OPTIONS ${CERES_COMPONENTS_VAR}
-    CERES_USE_CXX11 "C++11")
   add_to_output_if_found(CURRENT_CERES_COMPILE_OPTIONS ${CERES_COMPONENTS_VAR}
     CERES_USE_OPENMP "OpenMP;Multithreading")
   add_to_output_if_found(CURRENT_CERES_COMPILE_OPTIONS ${CERES_COMPONENTS_VAR}
-    CERES_USE_TBB "TBB;Multithreading")
+    CERES_USE_CXX_THREADS "Multithreading")
   # Remove duplicates of SparseLinearAlgebraLibrary if multiple sparse backends
   # are present.
   list(REMOVE_DUPLICATES ${CERES_COMPONENTS_VAR})

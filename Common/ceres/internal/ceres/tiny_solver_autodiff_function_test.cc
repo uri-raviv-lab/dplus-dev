@@ -35,23 +35,22 @@
 #include <cmath>
 #include <limits>
 
+#include "ceres/tiny_solver.h"
+#include "ceres/tiny_solver_test_util.h"
 #include "gtest/gtest.h"
 
 namespace ceres {
 
-typedef Eigen::Matrix<double, 2, 1> Vec2;
-typedef Eigen::Matrix<double, 3, 1> Vec3;
-
 struct AutoDiffTestFunctor {
-  template<typename T>
+  template <typename T>
   bool operator()(const T* const parameters, T* residuals) const {
     // Shift the parameters so the solution is not at the origin, to prevent
     // accidentally showing "PASS".
     const T& a = parameters[0] - T(1.0);
     const T& b = parameters[1] - T(2.0);
     const T& c = parameters[2] - T(3.0);
-    residuals[0] = 2.*a + 0.*b + 1.*c;
-    residuals[1] = 0.*a + 4.*b + 6.*c;
+    residuals[0] = 2. * a + 0. * b + 1. * c;
+    residuals[1] = 0. * a + 4. * b + 6. * c;
     return true;
   }
 };
@@ -66,12 +65,12 @@ TEST(TinySolverAutoDiffFunction, SimpleFunction) {
   AutoDiffTestFunctor autodiff_test_functor;
   AutoDiffTestFunction f(autodiff_test_functor);
 
-  Vec3 x(2.0, 1.0, 4.0);
-  Vec2 residuals;
+  Eigen::Vector3d x(2.0, 1.0, 4.0);
+  Eigen::Vector2d residuals;
 
   // Check the case with cost-only evaluation.
   residuals.setConstant(555);  // Arbitrary.
-  EXPECT_TRUE(f(&x(0), &residuals(0), NULL));
+  EXPECT_TRUE(f(&x(0), &residuals(0), nullptr));
   EXPECT_NEAR(3.0, residuals(0), kTolerance);
   EXPECT_NEAR(2.0, residuals(1), kTolerance);
 
@@ -94,6 +93,55 @@ TEST(TinySolverAutoDiffFunction, SimpleFunction) {
   EXPECT_NEAR(0.0, jacobian(1, 0), kTolerance);
   EXPECT_NEAR(4.0, jacobian(1, 1), kTolerance);
   EXPECT_NEAR(6.0, jacobian(1, 2), kTolerance);
+}
+
+class DynamicResidualsFunctor {
+ public:
+  typedef double Scalar;
+  enum {
+    NUM_RESIDUALS = Eigen::Dynamic,
+    NUM_PARAMETERS = 3,
+  };
+
+  int NumResiduals() const { return 2; }
+
+  template <typename T>
+  bool operator()(const T* parameters, T* residuals) const {
+    // Jacobian is not evaluated by cost function, but by autodiff.
+    T* jacobian = nullptr;
+    return EvaluateResidualsAndJacobians(parameters, residuals, jacobian);
+  }
+};
+
+template <typename Function, typename Vector>
+void TestHelper(const Function& f, const Vector& x0) {
+  Vector x = x0;
+  Eigen::Vector2d residuals;
+  f(x.data(), residuals.data(), nullptr);
+  EXPECT_GT(residuals.squaredNorm() / 2.0, 1e-10);
+
+  TinySolver<Function> solver;
+  solver.Solve(f, &x);
+  EXPECT_NEAR(0.0, solver.summary.final_cost, 1e-10);
+}
+
+// A test case for when the number of residuals is
+// dynamically sized and we use autodiff
+TEST(TinySolverAutoDiffFunction, ResidualsDynamicAutoDiff) {
+  Eigen::Vector3d x0(0.76026643, -30.01799744, 0.55192142);
+
+  DynamicResidualsFunctor f;
+  using AutoDiffCostFunctor = ceres::
+      TinySolverAutoDiffFunction<DynamicResidualsFunctor, Eigen::Dynamic, 3>;
+  AutoDiffCostFunctor f_autodiff(f);
+
+  Eigen::Vector2d residuals;
+  f_autodiff(x0.data(), residuals.data(), nullptr);
+  EXPECT_GT(residuals.squaredNorm() / 2.0, 1e-10);
+
+  TinySolver<AutoDiffCostFunctor> solver;
+  solver.Solve(f, &x0);
+  EXPECT_NEAR(0.0, solver.summary.final_cost, 1e-10);
 }
 
 }  // namespace ceres

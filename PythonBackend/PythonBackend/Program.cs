@@ -13,7 +13,7 @@ namespace PythonBackend
     //    static void Main(string[] args)
     //    {
 
-    //        var pythonPath = @"C:\Users\yael\Sources\dplus\Python35";
+    //        var pythonPath = @"C:\Users\yael\Sources\dplus\Python38";
 
     //        Environment.SetEnvironmentVariable("PATH", $@"{pythonPath};" + Environment.GetEnvironmentVariable("PATH"));
 

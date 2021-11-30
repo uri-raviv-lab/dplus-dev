@@ -33,13 +33,13 @@
 #include <algorithm>
 #include <cstring>
 #include <ctime>
+#include <memory>
 #include <sstream>
 
 #include "Eigen/SparseCore"
 #include "ceres/compressed_row_sparse_matrix.h"
 #include "ceres/cxsparse.h"
 #include "ceres/internal/eigen.h"
-#include "ceres/internal/scoped_ptr.h"
 #include "ceres/linear_solver.h"
 #include "ceres/suitesparse.h"
 #include "ceres/triplet_sparse_matrix.h"
@@ -66,10 +66,10 @@ LinearSolver::Summary DynamicSparseNormalCholeskySolver::SolveImpl(
   VectorRef(x, num_cols).setZero();
   A->LeftMultiply(b, x);
 
-  if (per_solve_options.D != NULL) {
+  if (per_solve_options.D != nullptr) {
     // Temporarily append a diagonal block to the A matrix, but undo
     // it before returning the matrix to the user.
-    scoped_ptr<CompressedRowSparseMatrix> regularizer;
+    std::unique_ptr<CompressedRowSparseMatrix> regularizer;
     if (!A->col_blocks().empty()) {
       regularizer.reset(CompressedRowSparseMatrix::CreateBlockDiagonalMatrix(
           per_solve_options.D, A->col_blocks()));
@@ -92,11 +92,13 @@ LinearSolver::Summary DynamicSparseNormalCholeskySolver::SolveImpl(
       summary = SolveImplUsingEigen(A, x);
       break;
     default:
-      LOG(FATAL) << "Unknown sparse linear algebra library : "
-                 << options_.sparse_linear_algebra_library_type;
+      LOG(FATAL) << "Unsupported sparse linear algebra library for "
+                 << "dynamic sparsity: "
+                 << SparseLinearAlgebraLibraryTypeToString(
+                        options_.sparse_linear_algebra_library_type);
   }
 
-  if (per_solve_options.D != NULL) {
+  if (per_solve_options.D != nullptr) {
     A->DeleteRows(num_cols);
   }
 
@@ -129,7 +131,7 @@ LinearSolver::Summary DynamicSparseNormalCholeskySolver::SolveImplUsingEigen(
                                                        A->mutable_values());
 
   Eigen::SparseMatrix<double> lhs = a.transpose() * a;
-  Eigen::SimplicialLDLT<Eigen::SparseMatrix<double> > solver;
+  Eigen::SimplicialLDLT<Eigen::SparseMatrix<double>> solver;
 
   LinearSolver::Summary summary;
   summary.num_iterations = 1;
@@ -253,19 +255,18 @@ DynamicSparseNormalCholeskySolver::SolveImplUsingSuiteSparse(
   cholmod_factor* factor = ss.AnalyzeCholesky(&lhs, &summary.message);
   event_logger.AddEvent("Analysis");
 
-  if (factor == NULL) {
+  if (factor == nullptr) {
     summary.termination_type = LINEAR_SOLVER_FATAL_ERROR;
     return summary;
   }
 
   summary.termination_type = ss.Cholesky(&lhs, factor, &summary.message);
   if (summary.termination_type == LINEAR_SOLVER_SUCCESS) {
-    cholmod_dense* rhs =
-        ss.CreateDenseVector(rhs_and_solution, num_cols, num_cols);
-    cholmod_dense* solution = ss.Solve(factor, rhs, &summary.message);
+    cholmod_dense cholmod_rhs =
+        ss.CreateDenseVectorView(rhs_and_solution, num_cols);
+    cholmod_dense* solution = ss.Solve(factor, &cholmod_rhs, &summary.message);
     event_logger.AddEvent("Solve");
-    ss.Free(rhs);
-    if (solution != NULL) {
+    if (solution != nullptr) {
       memcpy(
           rhs_and_solution, solution->x, num_cols * sizeof(*rhs_and_solution));
       ss.Free(solution);

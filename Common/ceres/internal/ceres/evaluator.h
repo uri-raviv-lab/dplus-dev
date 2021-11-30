@@ -55,25 +55,17 @@ class SparseMatrix;
 // function that is useful for an optimizer that wants to minimize the least
 // squares objective. This insulates the optimizer from issues like Jacobian
 // storage, parameterization, etc.
-class Evaluator {
+class CERES_EXPORT_INTERNAL Evaluator {
  public:
   virtual ~Evaluator();
 
   struct Options {
-    Options()
-        : num_threads(1),
-          num_eliminate_blocks(-1),
-          linear_solver_type(DENSE_QR),
-          dynamic_sparsity(false),
-          context(NULL),
-          evaluation_callback(NULL) {}
-
-    int num_threads;
-    int num_eliminate_blocks;
-    LinearSolverType linear_solver_type;
-    bool dynamic_sparsity;
-    ContextImpl* context;
-    EvaluationCallback* evaluation_callback;
+    int num_threads = 1;
+    int num_eliminate_blocks = -1;
+    LinearSolverType linear_solver_type = DENSE_QR;
+    bool dynamic_sparsity = false;
+    ContextImpl* context = nullptr;
+    EvaluationCallback* evaluation_callback = nullptr;
   };
 
   static Evaluator* Create(const Options& options,
@@ -100,17 +92,12 @@ class Evaluator {
 
   // Options struct to control Evaluator::Evaluate;
   struct EvaluateOptions {
-    EvaluateOptions()
-        : apply_loss_function(true),
-          new_evaluation_point(true) {
-    }
-
     // If false, the loss function correction is not applied to the
     // residual blocks.
-    bool apply_loss_function;
+    bool apply_loss_function = true;
 
     // If false, this evaluation point is the same as the last one.
-    bool new_evaluation_point;
+    bool new_evaluation_point = true;
   };
 
   // Evaluate the cost function for the given state. Returns the cost,
@@ -137,12 +124,8 @@ class Evaluator {
                 double* residuals,
                 double* gradient,
                 SparseMatrix* jacobian) {
-    return Evaluate(EvaluateOptions(),
-                    state,
-                    cost,
-                    residuals,
-                    gradient,
-                    jacobian);
+    return Evaluate(
+        EvaluateOptions(), state, cost, residuals, gradient, jacobian);
   }
 
   // Make a change delta (of size NumEffectiveParameters()) to state (of size
@@ -165,7 +148,7 @@ class Evaluator {
 
   // This is the effective number of parameters that the optimizer may adjust.
   // This applies when there are parameterizations on some of the parameters.
-  virtual int NumEffectiveParameters()  const = 0;
+  virtual int NumEffectiveParameters() const = 0;
 
   // The number of residuals in the optimization problem.
   virtual int NumResiduals() const = 0;

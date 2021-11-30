@@ -224,12 +224,6 @@ set(CMAKE_OSX_DEPLOYMENT_TARGET "" CACHE STRING
 # Set the architectures for which to build.
 set(CMAKE_OSX_ARCHITECTURES ${IOS_ARCH} CACHE STRING "Build architecture for iOS")
 
-# Skip the platform compiler checks for cross compiling.
-set(CMAKE_CXX_COMPILER_FORCED TRUE)
-set(CMAKE_CXX_COMPILER_WORKS TRUE)
-set(CMAKE_C_COMPILER_FORCED TRUE)
-set(CMAKE_C_COMPILER_WORKS TRUE)
-
 # All iOS/Darwin specific settings - some may be redundant.
 set(CMAKE_SHARED_LIBRARY_PREFIX "lib")
 set(CMAKE_SHARED_LIBRARY_SUFFIX ".dylib")
@@ -303,7 +297,7 @@ endif (NOT DEFINED CMAKE_INSTALL_NAME_TOOL)
 
 # Set the find root to the iOS developer roots and to user defined paths.
 set(CMAKE_FIND_ROOT_PATH ${CMAKE_IOS_DEVELOPER_ROOT} ${CMAKE_OSX_SYSROOT}
-  ${CMAKE_PREFIX_PATH} CACHE string  "iOS find search path root" FORCE)
+  ${CMAKE_PREFIX_PATH} CACHE STRING  "iOS find search path root" FORCE)
 
 # Default to searching for frameworks first.
 set(CMAKE_FIND_FRAMEWORK FIRST)
@@ -318,6 +312,7 @@ set(CMAKE_SYSTEM_FRAMEWORK_PATH
 set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM ONLY)
 set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
 set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
 
 # This little macro lets you set any XCode specific property.
 macro(set_xcode_property TARGET XCODE_PROPERTY XCODE_VALUE)

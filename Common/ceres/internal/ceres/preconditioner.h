@@ -32,9 +32,11 @@
 #define CERES_INTERNAL_PRECONDITIONER_H_
 
 #include <vector>
+
 #include "ceres/casts.h"
 #include "ceres/compressed_row_sparse_matrix.h"
 #include "ceres/context_impl.h"
+#include "ceres/internal/port.h"
 #include "ceres/linear_operator.h"
 #include "ceres/sparse_matrix.h"
 #include "ceres/types.h"
@@ -45,43 +47,31 @@ namespace internal {
 class BlockSparseMatrix;
 class SparseMatrix;
 
-class Preconditioner : public LinearOperator {
+class CERES_EXPORT_INTERNAL Preconditioner : public LinearOperator {
  public:
   struct Options {
-    Options()
-        : type(JACOBI),
-          visibility_clustering_type(CANONICAL_VIEWS),
-          sparse_linear_algebra_library_type(SUITE_SPARSE),
-          subset_preconditioner_start_row_block(-1),
-          use_postordering(false),
-          num_threads(1),
-          row_block_size(Eigen::Dynamic),
-          e_block_size(Eigen::Dynamic),
-          f_block_size(Eigen::Dynamic),
-          context(NULL) {
-    }
-
-    PreconditionerType type;
-    VisibilityClusteringType visibility_clustering_type;
-    SparseLinearAlgebraLibraryType sparse_linear_algebra_library_type;
+    PreconditionerType type = JACOBI;
+    VisibilityClusteringType visibility_clustering_type = CANONICAL_VIEWS;
+    SparseLinearAlgebraLibraryType sparse_linear_algebra_library_type =
+        SUITE_SPARSE;
 
     // When using the subset preconditioner, all row blocks starting
     // from this row block are used to construct the preconditioner.
     //
-    // i.e., the Jacobian matrix A is horizonatally partitioned as
+    // i.e., the Jacobian matrix A is horizontally partitioned as
     //
     // A = [P]
     //     [Q]
     //
     // where P has subset_preconditioner_start_row_block row blocks,
     // and the preconditioner is the inverse of the matrix Q'Q.
-    int subset_preconditioner_start_row_block;
+    int subset_preconditioner_start_row_block = -1;
 
     // See solver.h for information about these flags.
-    bool use_postordering;
+    bool use_postordering = false;
 
     // If possible, how many threads the preconditioner can use.
-    int num_threads;
+    int num_threads = 1;
 
     // Hints about the order in which the parameter blocks should be
     // eliminated by the linear solver.
@@ -110,11 +100,11 @@ class Preconditioner : public LinearOperator {
     //
     // Please see schur_complement_solver.h and schur_eliminator.h for
     // more details.
-    int row_block_size;
-    int e_block_size;
-    int f_block_size;
+    int row_block_size = Eigen::Dynamic;
+    int e_block_size = Eigen::Dynamic;
+    int f_block_size = Eigen::Dynamic;
 
-    ContextImpl* context;
+    ContextImpl* context = nullptr;
   };
 
   // If the optimization problem is such that there are no remaining
@@ -144,15 +134,13 @@ class Preconditioner : public LinearOperator {
   // LeftMultiply and num_cols are just calls to RightMultiply and
   // num_rows respectively. Update() must be called before
   // RightMultiply can be called.
-  virtual void RightMultiply(const double* x, double* y) const = 0;
-  virtual void LeftMultiply(const double* x, double* y) const {
+  void RightMultiply(const double* x, double* y) const override = 0;
+  void LeftMultiply(const double* x, double* y) const override {
     return RightMultiply(x, y);
   }
 
-  virtual int num_rows() const = 0;
-  virtual int num_cols() const {
-    return num_rows();
-  }
+  int num_rows() const override = 0;
+  int num_cols() const override { return num_rows(); }
 };
 
 // This templated subclass of Preconditioner serves as a base class for
@@ -162,7 +150,7 @@ template <typename MatrixType>
 class TypedPreconditioner : public Preconditioner {
  public:
   virtual ~TypedPreconditioner() {}
-  virtual bool Update(const LinearOperator& A, const double* D) {
+  bool Update(const LinearOperator& A, const double* D) final {
     return UpdateImpl(*down_cast<const MatrixType*>(&A), D);
   }
 
@@ -170,11 +158,13 @@ class TypedPreconditioner : public Preconditioner {
   virtual bool UpdateImpl(const MatrixType& A, const double* D) = 0;
 };
 
-// Preconditioners that depend on acccess to the low level structure
+// Preconditioners that depend on access to the low level structure
 // of a SparseMatrix.
-typedef TypedPreconditioner<SparseMatrix>              SparseMatrixPreconditioner;               // NOLINT
-typedef TypedPreconditioner<BlockSparseMatrix>         BlockSparseMatrixPreconditioner;          // NOLINT
-typedef TypedPreconditioner<CompressedRowSparseMatrix> CompressedRowSparseMatrixPreconditioner;  // NOLINT
+// clang-format off
+typedef TypedPreconditioner<SparseMatrix>              SparseMatrixPreconditioner;
+typedef TypedPreconditioner<BlockSparseMatrix>         BlockSparseMatrixPreconditioner;
+typedef TypedPreconditioner<CompressedRowSparseMatrix> CompressedRowSparseMatrixPreconditioner;
+// clang-format on
 
 // Wrap a SparseMatrix object as a preconditioner.
 class SparseMatrixPreconditionerWrapper : public SparseMatrixPreconditioner {

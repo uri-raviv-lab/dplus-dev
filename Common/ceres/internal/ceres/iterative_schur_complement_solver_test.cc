@@ -35,13 +35,14 @@
 #include "ceres/iterative_schur_complement_solver.h"
 
 #include <cstddef>
+#include <memory>
+
 #include "Eigen/Dense"
 #include "ceres/block_random_access_dense_matrix.h"
 #include "ceres/block_sparse_matrix.h"
 #include "ceres/casts.h"
 #include "ceres/context_impl.h"
 #include "ceres/internal/eigen.h"
-#include "ceres/internal/scoped_ptr.h"
 #include "ceres/linear_least_squares_problems.h"
 #include "ceres/linear_solver.h"
 #include "ceres/schur_eliminator.h"
@@ -58,12 +59,12 @@ using testing::AssertionResult;
 const double kEpsilon = 1e-14;
 
 class IterativeSchurComplementSolverTest : public ::testing::Test {
- protected :
+ protected:
   void SetUpProblem(int problem_id) {
-    scoped_ptr<LinearLeastSquaresProblem> problem(
+    std::unique_ptr<LinearLeastSquaresProblem> problem(
         CreateLinearLeastSquaresProblemFromId(problem_id));
 
-    CHECK_NOTNULL(problem.get());
+    CHECK(problem != nullptr);
     A_.reset(down_cast<BlockSparseMatrix*>(problem->A.release()));
     b_.reset(problem->b.release());
     D_.reset(problem->D.release());
@@ -74,9 +75,8 @@ class IterativeSchurComplementSolverTest : public ::testing::Test {
   }
 
   AssertionResult TestSolver(double* D) {
-    TripletSparseMatrix triplet_A(A_->num_rows(),
-                                  A_->num_cols(),
-                                  A_->num_nonzeros());
+    TripletSparseMatrix triplet_A(
+        A_->num_rows(), A_->num_cols(), A_->num_nonzeros());
     A_->ToTripletSparseMatrix(&triplet_A);
 
     DenseSparseMatrix dense_A(triplet_A);
@@ -85,7 +85,7 @@ class IterativeSchurComplementSolverTest : public ::testing::Test {
     options.type = DENSE_QR;
     ContextImpl context;
     options.context = &context;
-    scoped_ptr<LinearSolver> qr(LinearSolver::Create(options));
+    std::unique_ptr<LinearSolver> qr(LinearSolver::Create(options));
 
     LinearSolver::PerSolveOptions per_solve_options;
     per_solve_options.D = D;
@@ -99,24 +99,24 @@ class IterativeSchurComplementSolverTest : public ::testing::Test {
     IterativeSchurComplementSolver isc(options);
 
     Vector isc_sol(num_cols_);
-    per_solve_options.r_tolerance  = 1e-12;
+    per_solve_options.r_tolerance = 1e-12;
     isc.Solve(A_.get(), b_.get(), per_solve_options, isc_sol.data());
     double diff = (isc_sol - reference_solution).norm();
     if (diff < kEpsilon) {
       return testing::AssertionSuccess();
     } else {
       return testing::AssertionFailure()
-          << "The reference solution differs from the ITERATIVE_SCHUR"
-          << " solution by " << diff << " which is more than " << kEpsilon;
+             << "The reference solution differs from the ITERATIVE_SCHUR"
+             << " solution by " << diff << " which is more than " << kEpsilon;
     }
   }
 
   int num_rows_;
   int num_cols_;
   int num_eliminate_blocks_;
-  scoped_ptr<BlockSparseMatrix> A_;
-  scoped_array<double> b_;
-  scoped_array<double> D_;
+  std::unique_ptr<BlockSparseMatrix> A_;
+  std::unique_ptr<double[]> b_;
+  std::unique_ptr<double[]> D_;
 };
 
 TEST_F(IterativeSchurComplementSolverTest, NormalProblem) {

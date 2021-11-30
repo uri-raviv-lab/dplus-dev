@@ -35,9 +35,10 @@
 #define CERES_INTERNAL_DYNAMIC_SPARSE_NORMAL_CHOLESKY_SOLVER_H_
 
 // This include must come before any #ifndef check on Ceres compile options.
+// clang-format off
 #include "ceres/internal/port.h"
+// clang-format on
 
-#include "ceres/internal/macros.h"
 #include "ceres/linear_solver.h"
 
 namespace ceres {
@@ -49,6 +50,9 @@ class CompressedRowSparseMatrix;
 // sparsity is not constant across calls to Solve. This means that
 // there is no benefit to symbolically factorizing the matrix and
 // caching this factorization.
+//
+// TODO(alex): Add support for Accelerate sparse solvers:
+// https://github.com/ceres-solver/ceres-solver/issues/397
 class DynamicSparseNormalCholeskySolver
     : public CompressedRowSparseMatrixSolver {
  public:
@@ -57,26 +61,21 @@ class DynamicSparseNormalCholeskySolver
   virtual ~DynamicSparseNormalCholeskySolver() {}
 
  private:
-  virtual LinearSolver::Summary SolveImpl(
-      CompressedRowSparseMatrix* A,
-      const double* b,
-      const LinearSolver::PerSolveOptions& options,
-      double* x);
+  LinearSolver::Summary SolveImpl(CompressedRowSparseMatrix* A,
+                                  const double* b,
+                                  const LinearSolver::PerSolveOptions& options,
+                                  double* x) final;
 
-  LinearSolver::Summary SolveImplUsingSuiteSparse(
-      CompressedRowSparseMatrix* A,
-      double* rhs_and_solution);
+  LinearSolver::Summary SolveImplUsingSuiteSparse(CompressedRowSparseMatrix* A,
+                                                  double* rhs_and_solution);
 
-  LinearSolver::Summary SolveImplUsingCXSparse(
-      CompressedRowSparseMatrix* A,
-      double* rhs_and_solution);
+  LinearSolver::Summary SolveImplUsingCXSparse(CompressedRowSparseMatrix* A,
+                                               double* rhs_and_solution);
 
-  LinearSolver::Summary SolveImplUsingEigen(
-      CompressedRowSparseMatrix* A,
-      double* rhs_and_solution);
+  LinearSolver::Summary SolveImplUsingEigen(CompressedRowSparseMatrix* A,
+                                            double* rhs_and_solution);
 
   const LinearSolver::Options options_;
-  CERES_DISALLOW_COPY_AND_ASSIGN(DynamicSparseNormalCholeskySolver);
 };
 
 }  // namespace internal

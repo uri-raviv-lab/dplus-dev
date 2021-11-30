@@ -48,7 +48,7 @@ namespace PythonBackend
             if (exeDir.Contains("D+")) 
             {
                 //program
-                pythonPath = exeDir + @"\Python35";
+                pythonPath = exeDir + @"\Python38";
                 csharpPythonPath = exeDir + @"\Resources\CSharpPython";
             }
             else
@@ -58,7 +58,7 @@ namespace PythonBackend
                 int lastIndex = exeDir.LastIndexOf("\\");
                 string parent_path = Directory.GetParent(exeDir.Substring(0, lastIndex)).ToString();
 
-                pythonPath = parent_path + @"\Python35";
+                pythonPath = parent_path + @"\Python38";
                 csharpPythonPath = parent_path + @"\PythonBackend\PythonBackend\CSharpPython";
             }
             
@@ -88,7 +88,7 @@ namespace PythonBackend
             for (int i = 0; i < length; i++)
             {
                 string cur_path = sys_path[i];
-                if (cur_path.Contains("C:\\Python35"))
+                if (cur_path.Contains("C:\\Python38"))
                 {
                     path2remove.Add(cur_path);
                 }
@@ -96,7 +96,7 @@ namespace PythonBackend
             sys.path.append($@"{pythonPath}\Lib");
             sys.path.append(pythonPath);
             sys.path.append(csharpPythonPath);
-            // remove C:\\Python35 from the path
+            // remove C:\\Python38 from the path
             foreach (string item_path in path2remove)
             {
                 sys.path.remove(item_path);

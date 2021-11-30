@@ -53,7 +53,7 @@
 
     <Feature Id="ProductFeature" Title="Setup D+ (full)" Level="1">
       <ComponentGroupRef Id="DPlusComponents" />
-      <ComponentGroupRef Id="HeatPython35" />
+      <ComponentGroupRef Id="HeatPython38" />
     </Feature>
 
     <Feature Id="LuaFilesFeature" Title="Setup D+ Lua Files (full)" Level="1">
@@ -100,7 +100,7 @@
             <Directory Id="ResourcesDirectory" Name="Resources" >
               <Directory Id="CSharpPythonDirectory" Name="CSharpPython"/>
             </Directory>
-            <Directory Id="PythonsDirectory" Name="Python35"/>
+            <Directory Id="PythonsDirectory" Name="Python38"/>
   			  </Directory>
           <Directory Id="LuaScriptsDirectoryID" Name="LuaScripts"/>
           <Directory Id="ExampleFilesDirectoryID" Name="Example Files" >
@@ -746,9 +746,6 @@
             <Component Id="cmpB516684B5F59B2615F87F6EC589AC915" Directory="BIN_DIR" Guid="*">
                 <File Id="fil690C52429319C30060CC6D1FC47B8F23" KeyPath="yes" Source="..\x64\Release\xplusbackend.dll" />
             </Component>
-          <Component Id="cmp072DEC29FGHH2E2A4133D92393AA2A19" Directory="BIN_DIR" Guid="*">
-            <File Id="filB17367551E46ECBD2C5C5350A9D3F6F1" KeyPath="yes" Source="..\x64\Release\ceres1.12.dll" />
-          </Component>
             <Component Id="cmpAD1143F15FE009B5CE4EB9C13E94B5AA" Directory="BIN_DIR" Guid="*">
                 <File Id="filE0CAD4BC2A915C78C88C7B3E070CBA38" KeyPath="yes" Source="..\x64\Release\JSON.lua" />
             </Component>
@@ -763,9 +760,6 @@
           </Component>
           <!-- Command line -->  
           
-          <Component Id="cmpB2AC696E940A3575D0DBE741B2B6B451" Directory="BIN_DIR" Guid="*">
-                <File Id="filBF564AA10E7A33C0602989AA38969F30" KeyPath="yes" Source="..\x64\Release\Fit.exe" />
-            </Component>
             <Component Id="cmp6C33E9444E2C77544A7082333DCB889A" Directory="BIN_DIR" Guid="*">
                 <File Id="fil2527488CDB29B3D3826FCC1668086454" KeyPath="yes" Source="..\x64\Release\Generate.exe" />
             </Component>

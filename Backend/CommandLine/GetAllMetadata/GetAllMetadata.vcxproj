@@ -22,7 +22,7 @@
     <ProjectGuid>{217E0FDC-5EAB-4329-91F5-8F9F8AAE6CCF}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>GetAllMetadata</RootNamespace>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

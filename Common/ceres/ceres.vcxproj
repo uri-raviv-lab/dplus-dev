@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{647E8018-9C83-3BE9-8C81-E6C831E9E4A2}</ProjectGuid>
+    <ProjectGuid>{DB2C469C-0AB5-3A9F-BBA7-8CFDC5369ECE}</ProjectGuid>
     <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
@@ -57,47 +57,48 @@
   <PropertyGroup>
     <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(Platform)BE\$(Configuration)\</IntDir>
-    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectName)</TargetName>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ceres.dir\Debug\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ceres-debug</TargetName>
     <TargetExt Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.lib</TargetExt>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Platform)BE\$(Configuration)\</IntDir>
-    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectName)</TargetName>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ceres.dir\Release\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ceres</TargetName>
     <TargetExt Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.lib</TargetExt>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">$(Platform)BE\$(Configuration)\</IntDir>
-    <TargetName Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">$(ProjectName)</TargetName>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">ceres.dir\MinSizeRel\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">ceres</TargetName>
     <TargetExt Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">.lib</TargetExt>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">$(Platform)BE\$(Configuration)\</IntDir>
-    <TargetName Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">$(ProjectName)</TargetName>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">ceres.dir\RelWithDebInfo\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">ceres</TargetName>
     <TargetExt Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">.lib</TargetExt>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(ProjectDir)\config;$(ProjectDir)\include;$(ProjectDir)\internal;$(ProjectDir)\internal\ceres;$(ProjectDir)\internal\ceres\miniglog;$(ProjectDir)\..\..\Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\internal\ceres\miniglog;$(ProjectDir)\windows-config;$(ProjectDir)\internal;$(ProjectDir)\include;$(ProjectDir)\..\..\Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /bigobj</AdditionalOptions>
       <AssemblerListingLocation>Debug/</AssemblerListingLocation>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <CompileAs>CompileAsCpp</CompileAs>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <DisableSpecificWarnings>4018;4099;4996;4800;4996;4244;4251</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4018;4267;4099;4996;4800;4244;4251</DisableSpecificWarnings>
       <ExceptionHandling>Sync</ExceptionHandling>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
-      <OpenMPSupport>true</OpenMPSupport>
+      <LanguageStandard>stdcpp14</LanguageStandard>
       <Optimization>Disabled</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;MAX_LOG_LEVEL=2;_USE_MATH_DEFINES;_VARIADIC_MAX=10;CMAKE_INTDIR="Debug";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;CERES_EXPORT_INTERNAL_SYMBOLS;MAX_LOG_LEVEL=2;_USE_MATH_DEFINES;_VARIADIC_MAX=10;CMAKE_INTDIR="Debug";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;MAX_LOG_LEVEL=2;_USE_MATH_DEFINES;_VARIADIC_MAX=10;CMAKE_INTDIR=\"Debug\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)\config;$(ProjectDir)\include;$(ProjectDir)\internal;$(ProjectDir)\internal\ceres;$(ProjectDir)\internal\ceres\miniglog;$(ProjectDir)\..\..\Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;CERES_EXPORT_INTERNAL_SYMBOLS;MAX_LOG_LEVEL=2;_USE_MATH_DEFINES;_VARIADIC_MAX=10;CMAKE_INTDIR=\"Debug\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)\internal\ceres\miniglog;$(ProjectDir)\windows-config;$(ProjectDir)\internal;$(ProjectDir)\include;$(ProjectDir)\..\..\Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>$(ProjectDir)\config;$(ProjectDir)\include;$(ProjectDir)\internal;$(ProjectDir)\internal\ceres;$(ProjectDir)\internal\ceres\miniglog;$(ProjectDir)\..\..\Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\internal\ceres\miniglog;$(ProjectDir)\windows-config;$(ProjectDir)\internal;$(ProjectDir)\include;$(ProjectDir)\..\..\Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -110,29 +111,30 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(ProjectDir)\config;$(ProjectDir)\include;$(ProjectDir)\internal;$(ProjectDir)\internal\ceres;$(ProjectDir)\internal\ceres\miniglog;$(ProjectDir)\..\..\Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\internal\ceres\miniglog;$(ProjectDir)\windows-config;$(ProjectDir)\internal;$(ProjectDir)\include;$(ProjectDir)\..\..\Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /bigobj</AdditionalOptions>
       <AssemblerListingLocation>Release/</AssemblerListingLocation>
       <CompileAs>CompileAsCpp</CompileAs>
-      <DisableSpecificWarnings>4018;4099;4996;4800;4996;4244;4251</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4018;4267;4099;4996;4800;4244;4251</DisableSpecificWarnings>
       <ExceptionHandling>Sync</ExceptionHandling>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
-      <OpenMPSupport>true</OpenMPSupport>
+      <LanguageStandard>stdcpp14</LanguageStandard>
       <Optimization>MaxSpeed</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;MAX_LOG_LEVEL=2;_USE_MATH_DEFINES;_VARIADIC_MAX=10;CMAKE_INTDIR="Release";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;CERES_EXPORT_INTERNAL_SYMBOLS;MAX_LOG_LEVEL=2;_USE_MATH_DEFINES;_VARIADIC_MAX=10;CMAKE_INTDIR="Release";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
       <DebugInformationFormat>
       </DebugInformationFormat>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;MAX_LOG_LEVEL=2;_USE_MATH_DEFINES;_VARIADIC_MAX=10;CMAKE_INTDIR=\"Release\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)\config;$(ProjectDir)\include;$(ProjectDir)\internal;$(ProjectDir)\internal\ceres;$(ProjectDir)\internal\ceres\miniglog;$(ProjectDir)\..\..\Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;CERES_EXPORT_INTERNAL_SYMBOLS;MAX_LOG_LEVEL=2;_USE_MATH_DEFINES;_VARIADIC_MAX=10;CMAKE_INTDIR=\"Release\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)\internal\ceres\miniglog;$(ProjectDir)\windows-config;$(ProjectDir)\internal;$(ProjectDir)\include;$(ProjectDir)\..\..\Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>$(ProjectDir)\config;$(ProjectDir)\include;$(ProjectDir)\internal;$(ProjectDir)\internal\ceres;$(ProjectDir)\internal\ceres\miniglog;$(ProjectDir)\..\..\Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\internal\ceres\miniglog;$(ProjectDir)\windows-config;$(ProjectDir)\internal;$(ProjectDir)\include;$(ProjectDir)\..\..\Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -145,29 +147,30 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(ProjectDir)\config;$(ProjectDir)\include;$(ProjectDir)\internal;$(ProjectDir)\internal\ceres;$(ProjectDir)\internal\ceres\miniglog;$(ProjectDir)\..\..\Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\internal\ceres\miniglog;$(ProjectDir)\windows-config;$(ProjectDir)\internal;$(ProjectDir)\include;$(ProjectDir)\..\..\Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /bigobj</AdditionalOptions>
       <AssemblerListingLocation>MinSizeRel/</AssemblerListingLocation>
       <CompileAs>CompileAsCpp</CompileAs>
-      <DisableSpecificWarnings>4018;4099;4996;4800;4996;4244;4251</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4018;4267;4099;4996;4800;4244;4251</DisableSpecificWarnings>
       <ExceptionHandling>Sync</ExceptionHandling>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
-      <OpenMPSupport>true</OpenMPSupport>
+      <LanguageStandard>stdcpp14</LanguageStandard>
       <Optimization>MinSpace</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;MAX_LOG_LEVEL=2;_USE_MATH_DEFINES;_VARIADIC_MAX=10;CMAKE_INTDIR="MinSizeRel";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;CERES_EXPORT_INTERNAL_SYMBOLS;MAX_LOG_LEVEL=2;_USE_MATH_DEFINES;_VARIADIC_MAX=10;CMAKE_INTDIR="MinSizeRel";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
       <DebugInformationFormat>
       </DebugInformationFormat>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;MAX_LOG_LEVEL=2;_USE_MATH_DEFINES;_VARIADIC_MAX=10;CMAKE_INTDIR=\"MinSizeRel\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)\config;$(ProjectDir)\include;$(ProjectDir)\internal;$(ProjectDir)\internal\ceres;$(ProjectDir)\internal\ceres\miniglog;$(ProjectDir)\..\..\Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;CERES_EXPORT_INTERNAL_SYMBOLS;MAX_LOG_LEVEL=2;_USE_MATH_DEFINES;_VARIADIC_MAX=10;CMAKE_INTDIR=\"MinSizeRel\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)\internal\ceres\miniglog;$(ProjectDir)\windows-config;$(ProjectDir)\internal;$(ProjectDir)\include;$(ProjectDir)\..\..\Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>$(ProjectDir)\config;$(ProjectDir)\include;$(ProjectDir)\internal;$(ProjectDir)\internal\ceres;$(ProjectDir)\internal\ceres\miniglog;$(ProjectDir)\..\..\Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\internal\ceres\miniglog;$(ProjectDir)\windows-config;$(ProjectDir)\internal;$(ProjectDir)\include;$(ProjectDir)\..\..\Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -180,28 +183,29 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(ProjectDir)\config;$(ProjectDir)\include;$(ProjectDir)\internal;$(ProjectDir)\internal\ceres;$(ProjectDir)\internal\ceres\miniglog;$(ProjectDir)\..\..\Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\internal\ceres\miniglog;$(ProjectDir)\windows-config;$(ProjectDir)\internal;$(ProjectDir)\include;$(ProjectDir)\..\..\Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /bigobj</AdditionalOptions>
       <AssemblerListingLocation>RelWithDebInfo/</AssemblerListingLocation>
       <CompileAs>CompileAsCpp</CompileAs>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <DisableSpecificWarnings>4018;4099;4996;4800;4996;4244;4251</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4018;4267;4099;4996;4800;4244;4251</DisableSpecificWarnings>
       <ExceptionHandling>Sync</ExceptionHandling>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
-      <OpenMPSupport>true</OpenMPSupport>
+      <LanguageStandard>stdcpp14</LanguageStandard>
       <Optimization>MaxSpeed</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;MAX_LOG_LEVEL=2;_USE_MATH_DEFINES;_VARIADIC_MAX=10;CMAKE_INTDIR="RelWithDebInfo";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;CERES_EXPORT_INTERNAL_SYMBOLS;MAX_LOG_LEVEL=2;_USE_MATH_DEFINES;_VARIADIC_MAX=10;CMAKE_INTDIR="RelWithDebInfo";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;MAX_LOG_LEVEL=2;_USE_MATH_DEFINES;_VARIADIC_MAX=10;CMAKE_INTDIR=\"RelWithDebInfo\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)\config;$(ProjectDir)\include;$(ProjectDir)\internal;$(ProjectDir)\internal\ceres;$(ProjectDir)\internal\ceres\miniglog;$(ProjectDir)\..\..\Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;CERES_EXPORT_INTERNAL_SYMBOLS;MAX_LOG_LEVEL=2;_USE_MATH_DEFINES;_VARIADIC_MAX=10;CMAKE_INTDIR=\"RelWithDebInfo\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)\internal\ceres\miniglog;$(ProjectDir)\windows-config;$(ProjectDir)\internal;$(ProjectDir)\include;$(ProjectDir)\..\..\Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>$(ProjectDir)\config;$(ProjectDir)\include;$(ProjectDir)\internal;$(ProjectDir)\internal\ceres;$(ProjectDir)\internal\ceres\miniglog;$(ProjectDir)\..\..\Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\internal\ceres\miniglog;$(ProjectDir)\windows-config;$(ProjectDir)\internal;$(ProjectDir)\include;$(ProjectDir)\..\..\Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -213,6 +217,9 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(ProjectDir)\internal\ceres\parallel_for_cxx.cc" />
+    <ClCompile Include="$(ProjectDir)\internal\ceres\thread_pool.cc" />
+    <ClCompile Include="$(ProjectDir)\internal\ceres\accelerate_sparse.cc" />
     <ClCompile Include="$(ProjectDir)\internal\ceres\array_utils.cc" />
     <ClCompile Include="$(ProjectDir)\internal\ceres\blas.cc" />
     <ClCompile Include="$(ProjectDir)\internal\ceres\block_evaluate_preparer.cc" />
@@ -251,6 +258,8 @@
     <ClCompile Include="$(ProjectDir)\internal\ceres\evaluator.cc" />
     <ClCompile Include="$(ProjectDir)\internal\ceres\eigensparse.cc" />
     <ClCompile Include="$(ProjectDir)\internal\ceres\file.cc" />
+    <ClCompile Include="$(ProjectDir)\internal\ceres\float_suitesparse.cc" />
+    <ClCompile Include="$(ProjectDir)\internal\ceres\float_cxsparse.cc" />
     <ClCompile Include="$(ProjectDir)\internal\ceres\function_sample.cc" />
     <ClCompile Include="$(ProjectDir)\internal\ceres\gradient_checker.cc" />
     <ClCompile Include="$(ProjectDir)\internal\ceres\gradient_checking_cost_function.cc" />
@@ -259,6 +268,7 @@
     <ClCompile Include="$(ProjectDir)\internal\ceres\implicit_schur_complement.cc" />
     <ClCompile Include="$(ProjectDir)\internal\ceres\inner_product_computer.cc" />
     <ClCompile Include="$(ProjectDir)\internal\ceres\is_close.cc" />
+    <ClCompile Include="$(ProjectDir)\internal\ceres\iterative_refiner.cc" />
     <ClCompile Include="$(ProjectDir)\internal\ceres\iterative_schur_complement_solver.cc" />
     <ClCompile Include="$(ProjectDir)\internal\ceres\levenberg_marquardt_strategy.cc" />
     <ClCompile Include="$(ProjectDir)\internal\ceres\lapack.cc" />
@@ -274,8 +284,6 @@
     <ClCompile Include="$(ProjectDir)\internal\ceres\low_rank_inverse_hessian.cc" />
     <ClCompile Include="$(ProjectDir)\internal\ceres\minimizer.cc" />
     <ClCompile Include="$(ProjectDir)\internal\ceres\normal_prior.cc" />
-    <ClCompile Include="$(ProjectDir)\internal\ceres\parallel_for_cxx.cc" />
-    <ClCompile Include="$(ProjectDir)\internal\ceres\parallel_for_tbb.cc" />
     <ClCompile Include="$(ProjectDir)\internal\ceres\parallel_utils.cc" />
     <ClCompile Include="$(ProjectDir)\internal\ceres\parameter_block_ordering.cc" />
     <ClCompile Include="$(ProjectDir)\internal\ceres\partitioned_matrix_view.cc" />
@@ -303,7 +311,6 @@
     <ClCompile Include="$(ProjectDir)\internal\ceres\split.cc" />
     <ClCompile Include="$(ProjectDir)\internal\ceres\stringprintf.cc" />
     <ClCompile Include="$(ProjectDir)\internal\ceres\suitesparse.cc" />
-    <ClCompile Include="$(ProjectDir)\internal\ceres\thread_pool.cc" />
     <ClCompile Include="$(ProjectDir)\internal\ceres\thread_token_provider.cc" />
     <ClCompile Include="$(ProjectDir)\internal\ceres\triplet_sparse_matrix.cc" />
     <ClCompile Include="$(ProjectDir)\internal\ceres\trust_region_preprocessor.cc" />
@@ -314,6 +321,7 @@
     <ClCompile Include="$(ProjectDir)\internal\ceres\visibility.cc" />
     <ClCompile Include="$(ProjectDir)\internal\ceres\visibility_based_preconditioner.cc" />
     <ClCompile Include="$(ProjectDir)\internal\ceres\wall_time.cc" />
+    <ClInclude Include="$(ProjectDir)\internal\ceres\accelerate_sparse.h" />
     <ClInclude Include="$(ProjectDir)\internal\ceres\array_utils.h" />
     <ClInclude Include="$(ProjectDir)\internal\ceres\blas.h" />
     <ClInclude Include="$(ProjectDir)\internal\ceres\block_evaluate_preparer.h" />
@@ -331,7 +339,6 @@
     <ClInclude Include="$(ProjectDir)\internal\ceres\casts.h" />
     <ClInclude Include="$(ProjectDir)\internal\ceres\cgnr_linear_operator.h" />
     <ClInclude Include="$(ProjectDir)\internal\ceres\cgnr_solver.h" />
-    <ClInclude Include="$(ProjectDir)\internal\ceres\collections_port.h" />
     <ClInclude Include="$(ProjectDir)\internal\ceres\compressed_col_sparse_matrix_utils.h" />
     <ClInclude Include="$(ProjectDir)\internal\ceres\compressed_row_jacobian_writer.h" />
     <ClInclude Include="$(ProjectDir)\internal\ceres\compressed_row_sparse_matrix.h" />
@@ -357,17 +364,18 @@
     <ClInclude Include="$(ProjectDir)\internal\ceres\evaluator_test_utils.h" />
     <ClInclude Include="$(ProjectDir)\internal\ceres\execution_summary.h" />
     <ClInclude Include="$(ProjectDir)\internal\ceres\file.h" />
+    <ClInclude Include="$(ProjectDir)\internal\ceres\float_cxsparse.h" />
+    <ClInclude Include="$(ProjectDir)\internal\ceres\float_suitesparse.h" />
     <ClInclude Include="$(ProjectDir)\internal\ceres\function_sample.h" />
     <ClInclude Include="$(ProjectDir)\internal\ceres\gradient_checking_cost_function.h" />
     <ClInclude Include="$(ProjectDir)\internal\ceres\gradient_problem_evaluator.h" />
     <ClInclude Include="$(ProjectDir)\internal\ceres\graph.h" />
     <ClInclude Include="$(ProjectDir)\internal\ceres\graph_algorithms.h" />
-    <ClInclude Include="$(ProjectDir)\internal\ceres\householder_vector.h" />
     <ClInclude Include="$(ProjectDir)\internal\ceres\implicit_schur_complement.h" />
     <ClInclude Include="$(ProjectDir)\internal\ceres\inner_product_computer.h" />
-    <ClInclude Include="$(ProjectDir)\internal\ceres\integral_types.h" />
     <ClInclude Include="$(ProjectDir)\internal\ceres\invert_psd_matrix.h" />
     <ClInclude Include="$(ProjectDir)\internal\ceres\is_close.h" />
+    <ClInclude Include="$(ProjectDir)\internal\ceres\iterative_refiner.h" />
     <ClInclude Include="$(ProjectDir)\internal\ceres\iterative_schur_complement_solver.h" />
     <ClInclude Include="$(ProjectDir)\internal\ceres\lapack.h" />
     <ClInclude Include="$(ProjectDir)\internal\ceres\levenberg_marquardt_strategy.h" />
@@ -381,8 +389,8 @@
     <ClInclude Include="$(ProjectDir)\internal\ceres\low_rank_inverse_hessian.h" />
     <ClInclude Include="$(ProjectDir)\internal\ceres\map_util.h" />
     <ClInclude Include="$(ProjectDir)\internal\ceres\minimizer.h" />
-    <ClInclude Include="$(ProjectDir)\internal\ceres\mutex.h" />
     <ClInclude Include="$(ProjectDir)\internal\ceres\numeric_diff_test_utils.h" />
+    <ClInclude Include="$(ProjectDir)\internal\ceres\pair_hash.h" />
     <ClInclude Include="$(ProjectDir)\internal\ceres\parallel_for.h" />
     <ClInclude Include="$(ProjectDir)\internal\ceres\parallel_utils.h" />
     <ClInclude Include="$(ProjectDir)\internal\ceres\parameter_block.h" />
@@ -408,6 +416,7 @@
     <ClInclude Include="$(ProjectDir)\internal\ceres\scratch_evaluate_preparer.h" />
     <ClInclude Include="$(ProjectDir)\internal\ceres\single_linkage_clustering.h" />
     <ClInclude Include="$(ProjectDir)\internal\ceres\small_blas.h" />
+    <ClInclude Include="$(ProjectDir)\internal\ceres\small_blas_generic.h" />
     <ClInclude Include="$(ProjectDir)\internal\ceres\solver_utils.h" />
     <ClInclude Include="$(ProjectDir)\internal\ceres\sparse_cholesky.h" />
     <ClInclude Include="$(ProjectDir)\internal\ceres\sparse_matrix.h" />
@@ -420,6 +429,7 @@
     <ClInclude Include="$(ProjectDir)\internal\ceres\test_util.h" />
     <ClInclude Include="$(ProjectDir)\internal\ceres\thread_pool.h" />
     <ClInclude Include="$(ProjectDir)\internal\ceres\thread_token_provider.h" />
+    <ClInclude Include="$(ProjectDir)\internal\ceres\tiny_solver_test_util.h" />
     <ClInclude Include="$(ProjectDir)\internal\ceres\triplet_sparse_matrix.h" />
     <ClInclude Include="$(ProjectDir)\internal\ceres\trust_region_minimizer.h" />
     <ClInclude Include="$(ProjectDir)\internal\ceres\trust_region_preprocessor.h" />
@@ -430,6 +440,7 @@
     <ClInclude Include="$(ProjectDir)\internal\ceres\wall_time.h" />
     <ClInclude Include="$(ProjectDir)\internal\ceres\miniglog\glog\logging.h" />
     <ClInclude Include="$(ProjectDir)\include\ceres\autodiff_cost_function.h" />
+    <ClInclude Include="$(ProjectDir)\include\ceres\autodiff_first_order_function.h" />
     <ClInclude Include="$(ProjectDir)\include\ceres\autodiff_local_parameterization.h" />
     <ClInclude Include="$(ProjectDir)\include\ceres\c_api.h" />
     <ClInclude Include="$(ProjectDir)\include\ceres\ceres.h" />
@@ -445,7 +456,7 @@
     <ClInclude Include="$(ProjectDir)\include\ceres\dynamic_cost_function_to_functor.h" />
     <ClInclude Include="$(ProjectDir)\include\ceres\dynamic_numeric_diff_cost_function.h" />
     <ClInclude Include="$(ProjectDir)\include\ceres\evaluation_callback.h" />
-    <ClInclude Include="$(ProjectDir)\include\ceres\fpclassify.h" />
+    <ClInclude Include="$(ProjectDir)\include\ceres\first_order_function.h" />
     <ClInclude Include="$(ProjectDir)\include\ceres\gradient_checker.h" />
     <ClInclude Include="$(ProjectDir)\include\ceres\gradient_problem.h" />
     <ClInclude Include="$(ProjectDir)\include\ceres\gradient_problem_solver.h" />
@@ -466,16 +477,19 @@
     <ClInclude Include="$(ProjectDir)\include\ceres\tiny_solver_cost_function_adapter.h" />
     <ClInclude Include="$(ProjectDir)\include\ceres\types.h" />
     <ClInclude Include="$(ProjectDir)\include\ceres\version.h" />
+    <ClInclude Include="$(ProjectDir)\include\ceres\internal\array_selector.h" />
     <ClInclude Include="$(ProjectDir)\include\ceres\internal\autodiff.h" />
     <ClInclude Include="$(ProjectDir)\include\ceres\internal\disable_warnings.h" />
     <ClInclude Include="$(ProjectDir)\include\ceres\internal\eigen.h" />
     <ClInclude Include="$(ProjectDir)\include\ceres\internal\fixed_array.h" />
-    <ClInclude Include="$(ProjectDir)\include\ceres\internal\macros.h" />
-    <ClInclude Include="$(ProjectDir)\include\ceres\internal\manual_constructor.h" />
+    <ClInclude Include="$(ProjectDir)\include\ceres\internal\householder_vector.h" />
+    <ClInclude Include="$(ProjectDir)\include\ceres\internal\integer_sequence_algorithm.h" />
+    <ClInclude Include="$(ProjectDir)\include\ceres\internal\line_parameterization.h" />
+    <ClInclude Include="$(ProjectDir)\include\ceres\internal\memory.h" />
     <ClInclude Include="$(ProjectDir)\include\ceres\internal\numeric_diff.h" />
+    <ClInclude Include="$(ProjectDir)\include\ceres\internal\parameter_dims.h" />
     <ClInclude Include="$(ProjectDir)\include\ceres\internal\port.h" />
     <ClInclude Include="$(ProjectDir)\include\ceres\internal\reenable_warnings.h" />
-    <ClInclude Include="$(ProjectDir)\include\ceres\internal\scoped_ptr.h" />
     <ClInclude Include="$(ProjectDir)\include\ceres\internal\variadic_evaluate.h" />
     <ClCompile Include="$(ProjectDir)\internal\ceres\generated\partitioned_matrix_view_2_2_2.cc" />
     <ClCompile Include="$(ProjectDir)\internal\ceres\generated\partitioned_matrix_view_2_2_3.cc" />
@@ -493,6 +507,7 @@
     <ClCompile Include="$(ProjectDir)\internal\ceres\generated\partitioned_matrix_view_2_4_9.cc" />
     <ClCompile Include="$(ProjectDir)\internal\ceres\generated\partitioned_matrix_view_2_4_d.cc" />
     <ClCompile Include="$(ProjectDir)\internal\ceres\generated\partitioned_matrix_view_2_d_d.cc" />
+    <ClCompile Include="$(ProjectDir)\internal\ceres\generated\partitioned_matrix_view_3_3_3.cc" />
     <ClCompile Include="$(ProjectDir)\internal\ceres\generated\partitioned_matrix_view_4_4_2.cc" />
     <ClCompile Include="$(ProjectDir)\internal\ceres\generated\partitioned_matrix_view_4_4_3.cc" />
     <ClCompile Include="$(ProjectDir)\internal\ceres\generated\partitioned_matrix_view_4_4_4.cc" />
@@ -514,6 +529,7 @@
     <ClCompile Include="$(ProjectDir)\internal\ceres\generated\schur_eliminator_2_4_9.cc" />
     <ClCompile Include="$(ProjectDir)\internal\ceres\generated\schur_eliminator_2_4_d.cc" />
     <ClCompile Include="$(ProjectDir)\internal\ceres\generated\schur_eliminator_2_d_d.cc" />
+    <ClCompile Include="$(ProjectDir)\internal\ceres\generated\schur_eliminator_3_3_3.cc" />
     <ClCompile Include="$(ProjectDir)\internal\ceres\generated\schur_eliminator_4_4_2.cc" />
     <ClCompile Include="$(ProjectDir)\internal\ceres\generated\schur_eliminator_4_4_3.cc" />
     <ClCompile Include="$(ProjectDir)\internal\ceres\generated\schur_eliminator_4_4_4.cc" />

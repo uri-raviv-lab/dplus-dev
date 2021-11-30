@@ -35,10 +35,12 @@
 #define CERES_INTERNAL_SPARSE_NORMAL_CHOLESKY_SOLVER_H_
 
 // This include must come before any #ifndef check on Ceres compile options.
+// clang-format off
 #include "ceres/internal/port.h"
+// clang-format on
 
 #include <vector>
-#include "ceres/internal/macros.h"
+
 #include "ceres/linear_solver.h"
 
 namespace ceres {
@@ -53,19 +55,21 @@ class SparseCholesky;
 class SparseNormalCholeskySolver : public BlockSparseMatrixSolver {
  public:
   explicit SparseNormalCholeskySolver(const LinearSolver::Options& options);
+  SparseNormalCholeskySolver(const SparseNormalCholeskySolver&) = delete;
+  void operator=(const SparseNormalCholeskySolver&) = delete;
+
   virtual ~SparseNormalCholeskySolver();
 
  private:
-  virtual LinearSolver::Summary SolveImpl(
-      BlockSparseMatrix* A,
-      const double* b,
-      const LinearSolver::PerSolveOptions& options,
-      double* x);
+  LinearSolver::Summary SolveImpl(BlockSparseMatrix* A,
+                                  const double* b,
+                                  const LinearSolver::PerSolveOptions& options,
+                                  double* x) final;
 
   const LinearSolver::Options options_;
-  scoped_ptr<SparseCholesky> sparse_cholesky_;
-  scoped_ptr<InnerProductComputer> inner_product_computer_;
-  CERES_DISALLOW_COPY_AND_ASSIGN(SparseNormalCholeskySolver);
+  Vector rhs_;
+  std::unique_ptr<SparseCholesky> sparse_cholesky_;
+  std::unique_ptr<InnerProductComputer> inner_product_computer_;
 };
 
 }  // namespace internal

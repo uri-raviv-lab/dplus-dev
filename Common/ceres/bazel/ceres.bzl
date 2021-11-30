@@ -29,6 +29,7 @@
 # Support for building Ceres Solver with a specific configuration.
 
 CERES_SRCS = ["internal/ceres/" + filename for filename in [
+    "accelerate_sparse.cc",
     "array_utils.cc",
     "blas.cc",
     "block_evaluate_preparer.cc",
@@ -74,6 +75,7 @@ CERES_SRCS = ["internal/ceres/" + filename for filename in [
     "is_close.cc",
     "implicit_schur_complement.cc",
     "inner_product_computer.cc",
+    "iterative_refiner.cc",
     "iterative_schur_complement_solver.cc",
     "lapack.cc",
     "levenberg_marquardt_strategy.cc",
@@ -90,7 +92,7 @@ CERES_SRCS = ["internal/ceres/" + filename for filename in [
     "minimizer.cc",
     "normal_prior.cc",
     "parallel_for_cxx.cc",
-    "parallel_for_tbb.cc",
+    "parallel_for_openmp.cc",
     "parallel_utils.cc",
     "parameter_block_ordering.cc",
     "partitioned_matrix_view.cc",
@@ -135,8 +137,7 @@ CERES_SRCS = ["internal/ceres/" + filename for filename in [
 # like SuiteSparse or not, threading or not, glog or not, and so on.
 # See https://github.com/ceres-solver/ceres-solver/issues/335.
 def ceres_library(name,
-                  restrict_schur_specializations=False,
-                  gflags_namespace="gflags"):
+                  restrict_schur_specializations=False):
     # The path to internal/ depends on whether Ceres is the main workspace or
     # an external repository.
     if native.repository_name() != '@':
@@ -188,13 +189,14 @@ def ceres_library(name,
         # TODO(keir): These defines are placeholders for now to facilitate getting
         # started with a Bazel build. However, these should become configurable as
         # part of a Skylark Ceres target macro.
+        # https://github.com/ceres-solver/ceres-solver/issues/396
         defines = [
             "CERES_NO_SUITESPARSE",
             "CERES_NO_CXSPARSE",
-            "CERES_NO_THREADS",
+            "CERES_NO_ACCELERATE_SPARSE",
             "CERES_NO_LAPACK",
-            "CERES_STD_UNORDERED_MAP",
-            "CERES_GFLAGS_NAMESPACE=" + gflags_namespace,
+            "CERES_USE_EIGEN_SPARSE",
+            "CERES_USE_CXX_THREADS",
         ],
         includes = [
             "config",
@@ -202,7 +204,7 @@ def ceres_library(name,
         ],
         visibility = ["//visibility:public"],
         deps = [
-            "@com_github_eigen_eigen//:eigen",
+            "@com_gitlab_libeigen_eigen//:eigen",
             "@com_github_google_glog//:glog",
         ],
     )

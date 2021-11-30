@@ -48,14 +48,16 @@
 #ifndef CERES_INTERNAL_VISIBILITY_BASED_PRECONDITIONER_H_
 #define CERES_INTERNAL_VISIBILITY_BASED_PRECONDITIONER_H_
 
+#include <memory>
 #include <set>
+#include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <vector>
-#include "ceres/collections_port.h"
+
 #include "ceres/graph.h"
-#include "ceres/internal/macros.h"
-#include "ceres/internal/scoped_ptr.h"
 #include "ceres/linear_solver.h"
+#include "ceres/pair_hash.h"
 #include "ceres/preconditioner.h"
 #include "ceres/sparse_cholesky.h"
 
@@ -132,16 +134,19 @@ class VisibilityBasedPreconditioner : public BlockSparseMatrixPreconditioner {
   // based solvers. Please see schur_eliminator.h for more details.
   VisibilityBasedPreconditioner(const CompressedRowBlockStructure& bs,
                                 const Preconditioner::Options& options);
+  VisibilityBasedPreconditioner(const VisibilityBasedPreconditioner&) = delete;
+  void operator=(const VisibilityBasedPreconditioner&) = delete;
+
   virtual ~VisibilityBasedPreconditioner();
 
   // Preconditioner interface
-  virtual void RightMultiply(const double* x, double* y) const;
-  virtual int num_rows() const;
+  void RightMultiply(const double* x, double* y) const final;
+  int num_rows() const final;
 
   friend class VisibilityBasedPreconditionerTest;
 
  private:
-  virtual bool UpdateImpl(const BlockSparseMatrix& A, const double* D);
+  bool UpdateImpl(const BlockSparseMatrix& A, const double* D) final;
   void ComputeClusterJacobiSparsity(const CompressedRowBlockStructure& bs);
   void ComputeClusterTridiagonalSparsity(const CompressedRowBlockStructure& bs);
   void InitStorage(const CompressedRowBlockStructure& bs);
@@ -149,16 +154,17 @@ class VisibilityBasedPreconditioner : public BlockSparseMatrixPreconditioner {
   LinearSolverTerminationType Factorize();
   void ScaleOffDiagonalCells();
 
-  void ClusterCameras(const std::vector<std::set<int> >& visibility);
-  void FlattenMembershipMap(const HashMap<int, int>& membership_map,
+  void ClusterCameras(const std::vector<std::set<int>>& visibility);
+  void FlattenMembershipMap(const std::unordered_map<int, int>& membership_map,
                             std::vector<int>* membership_vector) const;
   void ComputeClusterVisibility(
-      const std::vector<std::set<int> >& visibility,
-      std::vector<std::set<int> >* cluster_visibility) const;
+      const std::vector<std::set<int>>& visibility,
+      std::vector<std::set<int>>* cluster_visibility) const;
   WeightedGraph<int>* CreateClusterGraph(
-      const std::vector<std::set<int> >& visibility) const;
-  void ForestToClusterPairs(const WeightedGraph<int>& forest,
-                            HashSet<std::pair<int, int> >* cluster_pairs) const;
+      const std::vector<std::set<int>>& visibility) const;
+  void ForestToClusterPairs(
+      const WeightedGraph<int>& forest,
+      std::unordered_set<std::pair<int, int>, pair_hash>* cluster_pairs) const;
   void ComputeBlockPairsInPreconditioner(const CompressedRowBlockStructure& bs);
   bool IsBlockPairInPreconditioner(int block1, int block2) const;
   bool IsBlockPairOffDiagonal(int block1, int block2) const;
@@ -178,17 +184,16 @@ class VisibilityBasedPreconditioner : public BlockSparseMatrixPreconditioner {
   // Non-zero camera pairs from the schur complement matrix that are
   // present in the preconditioner, sorted by row (first element of
   // each pair), then column (second).
-  std::set<std::pair<int, int> > block_pairs_;
+  std::set<std::pair<int, int>> block_pairs_;
 
   // Set of cluster pairs (including self pairs (i,i)) in the
   // preconditioner.
-  HashSet<std::pair<int, int> > cluster_pairs_;
-  scoped_ptr<SchurEliminatorBase> eliminator_;
+  std::unordered_set<std::pair<int, int>, pair_hash> cluster_pairs_;
+  std::unique_ptr<SchurEliminatorBase> eliminator_;
 
   // Preconditioner matrix.
-  scoped_ptr<BlockRandomAccessSparseMatrix> m_;
-  scoped_ptr<SparseCholesky> sparse_cholesky_;
-  CERES_DISALLOW_COPY_AND_ASSIGN(VisibilityBasedPreconditioner);
+  std::unique_ptr<BlockRandomAccessSparseMatrix> m_;
+  std::unique_ptr<SparseCholesky> sparse_cholesky_;
 };
 
 }  // namespace internal

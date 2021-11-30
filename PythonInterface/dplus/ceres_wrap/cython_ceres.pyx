@@ -4,6 +4,7 @@
 import cython
 from libcpp.vector cimport vector
 from libc.stdlib cimport malloc, free
+from libc.stdint cimport uint8_t, uint16_t, int32_t, uint64_t
 cimport cython.operator.dereference as drf
 
 
@@ -103,7 +104,7 @@ cdef class PyCostFunction:
 
     cpdef parameter_block_sizes(self):
         block_sizes = []
-        cdef vector[ceres_static.int32] _parameter_block_sizes = self._cost_function.parameter_block_sizes()
+        cdef vector[int32_t] _parameter_block_sizes = self._cost_function.parameter_block_sizes()
         for i in range(_parameter_block_sizes.size()):
             block_sizes.append(_parameter_block_sizes[i])
         return block_sizes
@@ -443,12 +444,6 @@ cdef class PySolverOptions:
         def __set__(self, value):
             self._options.num_threads = value
 
-    property num_linear_solver_threads:
-        def __get__(self):
-            return self._options.num_linear_solver_threads
-
-        def __set__(self, value):
-            self._options.num_linear_solver_threads = value
 
     property use_nonmonotonic_steps:
         def __get__(self):

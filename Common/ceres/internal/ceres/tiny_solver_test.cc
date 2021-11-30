@@ -34,6 +34,7 @@
 #include <algorithm>
 #include <cmath>
 
+#include "ceres/tiny_solver_test_util.h"
 #include "gtest/gtest.h"
 
 namespace ceres {
@@ -41,29 +42,6 @@ namespace ceres {
 typedef Eigen::Matrix<double, 2, 1> Vec2;
 typedef Eigen::Matrix<double, 3, 1> Vec3;
 typedef Eigen::VectorXd VecX;
-
-bool EvaluateResidualsAndJacobians(const double* parameters,
-                                   double* residuals,
-                                   double* jacobian) {
-  double x = parameters[0];
-  double y = parameters[1];
-  double z = parameters[2];
-
-  residuals[0] = x + 2*y + 4*z;
-  residuals[1] = y * z;
-
-  if (jacobian) {
-    jacobian[0 * 2 + 0] = 1;
-    jacobian[0 * 2 + 1] = 0;
-
-    jacobian[1 * 2 + 0] = 2;
-    jacobian[1 * 2 + 1] = z;
-
-    jacobian[2 * 2 + 0] = 4;
-    jacobian[2 * 2 + 1] = y;
-  }
-  return true;
-}
 
 class ExampleStatic {
  public:
@@ -88,9 +66,7 @@ class ExampleParametersDynamic {
     NUM_PARAMETERS = Eigen::Dynamic,
   };
 
-  int NumParameters() const {
-    return 3;
-  }
+  int NumParameters() const { return 3; }
 
   bool operator()(const double* parameters,
                   double* residuals,
@@ -107,9 +83,7 @@ class ExampleResidualsDynamic {
     NUM_PARAMETERS = 3,
   };
 
-  int NumResiduals() const {
-    return 2;
-  }
+  int NumResiduals() const { return 2; }
 
   bool operator()(const double* parameters,
                   double* residuals,
@@ -126,13 +100,9 @@ class ExampleAllDynamic {
     NUM_PARAMETERS = Eigen::Dynamic,
   };
 
-  int NumResiduals() const {
-    return 2;
-  }
+  int NumResiduals() const { return 2; }
 
-  int NumParameters() const {
-    return 3;
-  }
+  int NumParameters() const { return 3; }
 
   bool operator()(const double* parameters,
                   double* residuals,
@@ -160,7 +130,6 @@ TEST(TinySolver, SimpleExample) {
 
   TestHelper(f, x0);
 }
-
 
 // A test case for when the number of parameters is dynamically sized.
 TEST(TinySolver, ParametersDynamic) {

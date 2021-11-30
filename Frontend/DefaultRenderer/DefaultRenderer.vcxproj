@@ -22,7 +22,7 @@
     <ProjectName>DefaultRenderers</ProjectName>
     <ProjectGuid>{3FD906AE-8637-43AF-89A4-CA55F34EA332}</ProjectGuid>
     <RootNamespace>DefaultRenderer</RootNamespace>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">

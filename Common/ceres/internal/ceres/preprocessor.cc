@@ -28,10 +28,12 @@
 //
 // Author: sameragarwal@google.com (Sameer Agarwal)
 
+#include "ceres/preprocessor.h"
+
 #include "ceres/callbacks.h"
 #include "ceres/gradient_checking_cost_function.h"
 #include "ceres/line_search_preprocessor.h"
-#include "ceres/preprocessor.h"
+#include "ceres/parallel_for.h"
 #include "ceres/problem_impl.h"
 #include "ceres/solver.h"
 #include "ceres/trust_region_preprocessor.h"
@@ -52,32 +54,17 @@ Preprocessor* Preprocessor::Create(MinimizerType minimizer_type) {
   return NULL;
 }
 
-Preprocessor::~Preprocessor() {
-}
+Preprocessor::~Preprocessor() {}
 
 void ChangeNumThreadsIfNeeded(Solver::Options* options) {
-  if (options->num_linear_solver_threads != -1 &&
-      options->num_threads != options->num_linear_solver_threads) {
-    LOG(WARNING) << "Solver::Options::num_threads = "
-                 << options->num_threads
-                 << " and Solver::Options::num_linear_solver_threads = "
-                 << options->num_linear_solver_threads
-                 << ". Solver::Options::num_linear_solver_threads is "
-                 << "deprecated and is ignored."
-                 << "Solver::Options::num_threads now controls threading "
-                 << "behaviour in all of Ceres Solver. "
-                 << "This field will go away in Ceres Solver 1.15.0.";
+  const int num_threads_available = MaxNumThreadsAvailable();
+  if (options->num_threads > num_threads_available) {
+    LOG(WARNING) << "Specified options.num_threads: " << options->num_threads
+                 << " exceeds maximum available from the threading model Ceres "
+                 << "was compiled with: " << num_threads_available
+                 << ".  Bounding to maximum number available.";
+    options->num_threads = num_threads_available;
   }
-
-#ifdef CERES_NO_THREADS
-  if (options->num_threads > 1) {
-    LOG(WARNING)
-        << "Neither OpenMP nor TBB support is compiled into this binary; "
-        << "only options.num_threads = 1 is supported. Switching "
-        << "to single threaded mode.";
-    options->num_threads = 1;
-  }
-#endif  // CERES_NO_THREADS
 }
 
 void SetupCommonMinimizerOptions(PreprocessedProblem* pp) {
@@ -95,16 +82,15 @@ void SetupCommonMinimizerOptions(PreprocessedProblem* pp) {
   minimizer_options.evaluator = pp->evaluator;
 
   if (options.logging_type != SILENT) {
-    pp->logging_callback.reset(
-        new LoggingCallback(options.minimizer_type,
-                            options.minimizer_progress_to_stdout));
+    pp->logging_callback.reset(new LoggingCallback(
+        options.minimizer_type, options.minimizer_progress_to_stdout));
     minimizer_options.callbacks.insert(minimizer_options.callbacks.begin(),
                                        pp->logging_callback.get());
   }
 
   if (options.update_state_every_iteration) {
     pp->state_updating_callback.reset(
-      new StateUpdatingCallback(program, reduced_parameters));
+        new StateUpdatingCallback(program, reduced_parameters));
     // This must get pushed to the front of the callbacks so that it
     // is run before any of the user callbacks.
     minimizer_options.callbacks.insert(minimizer_options.callbacks.begin(),

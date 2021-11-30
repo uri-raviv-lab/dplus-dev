@@ -34,11 +34,12 @@
 #ifndef CERES_INTERNAL_BLOCK_SPARSE_MATRIX_H_
 #define CERES_INTERNAL_BLOCK_SPARSE_MATRIX_H_
 
+#include <memory>
+
 #include "ceres/block_structure.h"
-#include "ceres/sparse_matrix.h"
 #include "ceres/internal/eigen.h"
-#include "ceres/internal/macros.h"
-#include "ceres/internal/scoped_ptr.h"
+#include "ceres/internal/port.h"
+#include "ceres/sparse_matrix.h"
 
 namespace ceres {
 namespace internal {
@@ -53,7 +54,7 @@ class TripletSparseMatrix;
 //
 //   internal/ceres/block_structure.h
 //
-class BlockSparseMatrix : public SparseMatrix {
+class CERES_EXPORT_INTERNAL BlockSparseMatrix : public SparseMatrix {
  public:
   // Construct a block sparse matrix with a fully initialized
   // CompressedRowBlockStructure objected. The matrix takes over
@@ -64,22 +65,27 @@ class BlockSparseMatrix : public SparseMatrix {
   explicit BlockSparseMatrix(CompressedRowBlockStructure* block_structure);
 
   BlockSparseMatrix();
+  BlockSparseMatrix(const BlockSparseMatrix&) = delete;
+  void operator=(const BlockSparseMatrix&) = delete;
+
   virtual ~BlockSparseMatrix();
 
   // Implementation of SparseMatrix interface.
-  virtual void SetZero();
-  virtual void RightMultiply(const double* x, double* y) const;
-  virtual void LeftMultiply(const double* x, double* y) const;
-  virtual void SquaredColumnNorm(double* x) const;
-  virtual void ScaleColumns(const double* scale);
-  virtual void ToDenseMatrix(Matrix* dense_matrix) const;
-  virtual void ToTextFile(FILE* file) const;
+  void SetZero() final;
+  void RightMultiply(const double* x, double* y) const final;
+  void LeftMultiply(const double* x, double* y) const final;
+  void SquaredColumnNorm(double* x) const final;
+  void ScaleColumns(const double* scale) final;
+  void ToDenseMatrix(Matrix* dense_matrix) const final;
+  void ToTextFile(FILE* file) const final;
 
-  virtual int num_rows()         const { return num_rows_;     }
-  virtual int num_cols()         const { return num_cols_;     }
-  virtual int num_nonzeros()     const { return num_nonzeros_; }
-  virtual const double* values() const { return values_.get(); }
-  virtual double* mutable_values()     { return values_.get(); }
+  // clang-format off
+  int num_rows()         const final { return num_rows_;     }
+  int num_cols()         const final { return num_cols_;     }
+  int num_nonzeros()     const final { return num_nonzeros_; }
+  const double* values() const final { return values_.get(); }
+  double* mutable_values()     final { return values_.get(); }
+  // clang-format on
 
   void ToTripletSparseMatrix(TripletSparseMatrix* matrix) const;
   const CompressedRowBlockStructure* block_structure() const;
@@ -92,31 +98,20 @@ class BlockSparseMatrix : public SparseMatrix {
   void DeleteRowBlocks(int delta_row_blocks);
 
   static BlockSparseMatrix* CreateDiagonalMatrix(
-      const double* diagonal,
-      const std::vector<Block>& column_blocks);
+      const double* diagonal, const std::vector<Block>& column_blocks);
 
   struct RandomMatrixOptions {
-    RandomMatrixOptions()
-        : num_row_blocks(0),
-          min_row_block_size(0),
-          max_row_block_size(0),
-          num_col_blocks(0),
-          min_col_block_size(0),
-          max_col_block_size(0),
-          block_density(0.0) {
-    }
-
-    int num_row_blocks;
-    int min_row_block_size;
-    int max_row_block_size;
-    int num_col_blocks;
-    int min_col_block_size;
-    int max_col_block_size;
+    int num_row_blocks = 0;
+    int min_row_block_size = 0;
+    int max_row_block_size = 0;
+    int num_col_blocks = 0;
+    int min_col_block_size = 0;
+    int max_col_block_size = 0;
 
     // 0 < block_density <= 1 is the probability of a block being
     // present in the matrix. A given random matrix will not have
     // precisely this density.
-    double block_density;
+    double block_density = 0.0;
 
     // If col_blocks is non-empty, then the generated random matrix
     // has this block structure and the column related options in this
@@ -137,9 +132,33 @@ class BlockSparseMatrix : public SparseMatrix {
   int num_cols_;
   int num_nonzeros_;
   int max_num_nonzeros_;
-  scoped_array<double> values_;
-  scoped_ptr<CompressedRowBlockStructure> block_structure_;
-  CERES_DISALLOW_COPY_AND_ASSIGN(BlockSparseMatrix);
+  std::unique_ptr<double[]> values_;
+  std::unique_ptr<CompressedRowBlockStructure> block_structure_;
+};
+
+// A number of algorithms like the SchurEliminator do not need
+// access to the full BlockSparseMatrix interface. They only
+// need read only access to the values array and the block structure.
+//
+// BlockSparseDataMatrix a struct that carries these two bits of
+// information
+class BlockSparseMatrixData {
+ public:
+  BlockSparseMatrixData(const BlockSparseMatrix& m)
+      : block_structure_(m.block_structure()), values_(m.values()){};
+
+  BlockSparseMatrixData(const CompressedRowBlockStructure* block_structure,
+                        const double* values)
+      : block_structure_(block_structure), values_(values) {}
+
+  const CompressedRowBlockStructure* block_structure() const {
+    return block_structure_;
+  }
+  const double* values() const { return values_; }
+
+ private:
+  const CompressedRowBlockStructure* block_structure_;
+  const double* values_;
 };
 
 }  // namespace internal

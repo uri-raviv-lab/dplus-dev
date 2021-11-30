@@ -32,8 +32,8 @@
 
 #include <cstddef>
 #include <vector>
+
 #include "gtest/gtest.h"
-#include "ceres/collections_port.h"
 
 namespace ceres {
 namespace internal {

@@ -64,10 +64,10 @@ namespace internal {
 class PowellsFunction {
  public:
   PowellsFunction() {
-    x_[0] =  3.0;
+    x_[0] = 3.0;
     x_[1] = -1.0;
-    x_[2] =  0.0;
-    x_[3] =  1.0;
+    x_[2] = 0.0;
+    x_[3] = 1.0;
 
     problem_.AddResidualBlock(
         new AutoDiffCostFunction<F1, 1, 1, 1>(new F1), NULL, &x_[0], &x_[1]);
@@ -94,9 +94,8 @@ class PowellsFunction {
   // functions.
   class F1 {
    public:
-    template <typename T> bool operator()(const T* const x1,
-                                          const T* const x2,
-                                          T* residual) const {
+    template <typename T>
+    bool operator()(const T* const x1, const T* const x2, T* residual) const {
       // f1 = x1 + 10 * x2;
       *residual = *x1 + 10.0 * *x2;
       return true;
@@ -105,9 +104,8 @@ class PowellsFunction {
 
   class F2 {
    public:
-    template <typename T> bool operator()(const T* const x3,
-                                          const T* const x4,
-                                          T* residual) const {
+    template <typename T>
+    bool operator()(const T* const x3, const T* const x4, T* residual) const {
       // f2 = sqrt(5) (x3 - x4)
       *residual = sqrt(5.0) * (*x3 - *x4);
       return true;
@@ -116,9 +114,8 @@ class PowellsFunction {
 
   class F3 {
    public:
-    template <typename T> bool operator()(const T* const x2,
-                                          const T* const x4,
-                                          T* residual) const {
+    template <typename T>
+    bool operator()(const T* const x2, const T* const x4, T* residual) const {
       // f3 = (x2 - 2 x3)^2
       residual[0] = (x2[0] - 2.0 * x4[0]) * (x2[0] - 2.0 * x4[0]);
       return true;
@@ -127,9 +124,8 @@ class PowellsFunction {
 
   class F4 {
    public:
-    template <typename T> bool operator()(const T* const x1,
-                                          const T* const x4,
-                                          T* residual) const {
+    template <typename T>
+    bool operator()(const T* const x1, const T* const x4, T* residual) const {
       // f4 = sqrt(10) (x1 - x4)^2
       residual[0] = sqrt(10.0) * (x1[0] - x4[0]) * (x1[0] - x4[0]);
       return true;
@@ -144,46 +140,82 @@ class PowellsFunction {
 double PowellsFunction::kResidualTolerance = 1e-8;
 
 typedef SystemTest<PowellsFunction> PowellTest;
-const bool kAutomaticOrdering = true;
 
 TEST_F(PowellTest, DenseQR) {
-  RunSolverForConfigAndExpectResidualsMatch(
-      SolverConfig(DENSE_QR, NO_SPARSE));
+  PowellsFunction powells_function;
+  Solver::Options* options = powells_function.mutable_solver_options();
+  options->linear_solver_type = DENSE_QR;
+  RunSolverForConfigAndExpectResidualsMatch(*options,
+                                            powells_function.mutable_problem());
 }
 
 TEST_F(PowellTest, DenseNormalCholesky) {
-  RunSolverForConfigAndExpectResidualsMatch(
-      SolverConfig(DENSE_NORMAL_CHOLESKY));
+  PowellsFunction powells_function;
+  Solver::Options* options = powells_function.mutable_solver_options();
+  options->linear_solver_type = DENSE_NORMAL_CHOLESKY;
+  RunSolverForConfigAndExpectResidualsMatch(*options,
+                                            powells_function.mutable_problem());
 }
 
 TEST_F(PowellTest, DenseSchur) {
-  RunSolverForConfigAndExpectResidualsMatch(
-      SolverConfig(DENSE_SCHUR));
+  PowellsFunction powells_function;
+  Solver::Options* options = powells_function.mutable_solver_options();
+  options->linear_solver_type = DENSE_SCHUR;
+  RunSolverForConfigAndExpectResidualsMatch(*options,
+                                            powells_function.mutable_problem());
 }
 
 TEST_F(PowellTest, IterativeSchurWithJacobi) {
-  RunSolverForConfigAndExpectResidualsMatch(
-      SolverConfig(ITERATIVE_SCHUR, NO_SPARSE, kAutomaticOrdering, JACOBI));
+  PowellsFunction powells_function;
+  Solver::Options* options = powells_function.mutable_solver_options();
+  options->linear_solver_type = ITERATIVE_SCHUR;
+  options->sparse_linear_algebra_library_type = NO_SPARSE;
+  options->preconditioner_type = JACOBI;
+  RunSolverForConfigAndExpectResidualsMatch(*options,
+                                            powells_function.mutable_problem());
 }
 
 #ifndef CERES_NO_SUITESPARSE
 TEST_F(PowellTest, SparseNormalCholeskyUsingSuiteSparse) {
-  RunSolverForConfigAndExpectResidualsMatch(
-      SolverConfig(SPARSE_NORMAL_CHOLESKY, SUITE_SPARSE, kAutomaticOrdering));
+  PowellsFunction powells_function;
+  Solver::Options* options = powells_function.mutable_solver_options();
+  options->linear_solver_type = SPARSE_NORMAL_CHOLESKY;
+  options->sparse_linear_algebra_library_type = SUITE_SPARSE;
+  RunSolverForConfigAndExpectResidualsMatch(*options,
+                                            powells_function.mutable_problem());
 }
 #endif  // CERES_NO_SUITESPARSE
 
 #ifndef CERES_NO_CXSPARSE
 TEST_F(PowellTest, SparseNormalCholeskyUsingCXSparse) {
-  RunSolverForConfigAndExpectResidualsMatch(
-      SolverConfig(SPARSE_NORMAL_CHOLESKY, CX_SPARSE, kAutomaticOrdering));
+  PowellsFunction powells_function;
+  Solver::Options* options = powells_function.mutable_solver_options();
+  options->linear_solver_type = SPARSE_NORMAL_CHOLESKY;
+  options->sparse_linear_algebra_library_type = CX_SPARSE;
+  RunSolverForConfigAndExpectResidualsMatch(*options,
+                                            powells_function.mutable_problem());
 }
 #endif  // CERES_NO_CXSPARSE
 
+#ifndef CERES_NO_ACCELERATE_SPARSE
+TEST_F(PowellTest, SparseNormalCholeskyUsingAccelerateSparse) {
+  PowellsFunction powells_function;
+  Solver::Options* options = powells_function.mutable_solver_options();
+  options->linear_solver_type = SPARSE_NORMAL_CHOLESKY;
+  options->sparse_linear_algebra_library_type = ACCELERATE_SPARSE;
+  RunSolverForConfigAndExpectResidualsMatch(*options,
+                                            powells_function.mutable_problem());
+}
+#endif  // CERES_NO_ACCELERATE_SPARSE
+
 #ifdef CERES_USE_EIGEN_SPARSE
 TEST_F(PowellTest, SparseNormalCholeskyUsingEigenSparse) {
-  RunSolverForConfigAndExpectResidualsMatch(
-      SolverConfig(SPARSE_NORMAL_CHOLESKY, EIGEN_SPARSE, kAutomaticOrdering));
+  PowellsFunction powells_function;
+  Solver::Options* options = powells_function.mutable_solver_options();
+  options->linear_solver_type = SPARSE_NORMAL_CHOLESKY;
+  options->sparse_linear_algebra_library_type = EIGEN_SPARSE;
+  RunSolverForConfigAndExpectResidualsMatch(*options,
+                                            powells_function.mutable_problem());
 }
 #endif  // CERES_USE_EIGEN_SPARSE
 

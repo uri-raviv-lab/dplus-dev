@@ -30,24 +30,22 @@
 
 #include "ceres/coordinate_descent_minimizer.h"
 
-#if defined(CERES_USE_TBB) || defined(CERES_USE_CXX11_THREADS)
-#include "ceres/parallel_for.h"
-#endif
-
+#include <algorithm>
 #include <iterator>
+#include <memory>
 #include <numeric>
 #include <vector>
+
 #include "ceres/evaluator.h"
 #include "ceres/linear_solver.h"
 #include "ceres/minimizer.h"
+#include "ceres/parallel_for.h"
 #include "ceres/parameter_block.h"
 #include "ceres/parameter_block_ordering.h"
 #include "ceres/problem_impl.h"
 #include "ceres/program.h"
 #include "ceres/residual_block.h"
-#include "ceres/scoped_thread_token.h"
 #include "ceres/solver.h"
-#include "ceres/thread_token_provider.h"
 #include "ceres/trust_region_minimizer.h"
 #include "ceres/trust_region_strategy.h"
 
@@ -62,10 +60,11 @@ using std::string;
 using std::vector;
 
 CoordinateDescentMinimizer::CoordinateDescentMinimizer(ContextImpl* context)
-    : context_(CHECK_NOTNULL(context)) {}
-
-CoordinateDescentMinimizer::~CoordinateDescentMinimizer() {
+    : context_(context) {
+  CHECK(context_ != nullptr);
 }
+
+CoordinateDescentMinimizer::~CoordinateDescentMinimizer() {}
 
 bool CoordinateDescentMinimizer::Init(
     const Program& program,
@@ -79,19 +78,16 @@ bool CoordinateDescentMinimizer::Init(
   // Serialize the OrderedGroups into a vector of parameter block
   // offsets for parallel access.
   map<ParameterBlock*, int> parameter_block_index;
-  map<int, set<double*> > group_to_elements = ordering.group_to_elements();
-  for (map<int, set<double*> >::const_iterator it = group_to_elements.begin();
-       it != group_to_elements.end();
-       ++it) {
-    for (set<double*>::const_iterator ptr_it = it->second.begin();
-         ptr_it != it->second.end();
-         ++ptr_it) {
-      parameter_blocks_.push_back(parameter_map.find(*ptr_it)->second);
+  map<int, set<double*>> group_to_elements = ordering.group_to_elements();
+  for (const auto& g_t_e : group_to_elements) {
+    const auto& elements = g_t_e.second;
+    for (double* parameter_block : elements) {
+      parameter_blocks_.push_back(parameter_map.find(parameter_block)->second);
       parameter_block_index[parameter_blocks_.back()] =
           parameter_blocks_.size() - 1;
     }
-    independent_set_offsets_.push_back(
-        independent_set_offsets_.back() + it->second.size());
+    independent_set_offsets_.push_back(independent_set_offsets_.back() +
+                                       elements.size());
   }
 
   // The ordering does not have to contain all parameter blocks, so
@@ -114,8 +110,7 @@ bool CoordinateDescentMinimizer::Init(
     const int num_parameter_blocks = residual_block->NumParameterBlocks();
     for (int j = 0; j < num_parameter_blocks; ++j) {
       ParameterBlock* parameter_block = residual_block->parameter_blocks()[j];
-      const map<ParameterBlock*, int>::const_iterator it =
-          parameter_block_index.find(parameter_block);
+      const auto it = parameter_block_index.find(parameter_block);
       if (it != parameter_block_index.end()) {
         residual_blocks_[it->second].push_back(residual_block);
       }
@@ -130,10 +125,9 @@ bool CoordinateDescentMinimizer::Init(
   return true;
 }
 
-void CoordinateDescentMinimizer::Minimize(
-    const Minimizer::Options& options,
-    double* parameters,
-    Solver::Summary* summary) {
+void CoordinateDescentMinimizer::Minimize(const Minimizer::Options& options,
+                                          double* parameters,
+                                          Solver::Summary* summary) {
   // Set the state and mark all parameter blocks constant.
   for (int i = 0; i < parameter_blocks_.size(); ++i) {
     ParameterBlock* parameter_block = parameter_blocks_[i];
@@ -141,7 +135,7 @@ void CoordinateDescentMinimizer::Minimize(
     parameter_block->SetConstant();
   }
 
-  scoped_array<LinearSolver*> linear_solvers(
+  std::unique_ptr<LinearSolver*[]> linear_solvers(
       new LinearSolver*[options.num_threads]);
 
   LinearSolver::Options linear_solver_options;
@@ -165,65 +159,48 @@ void CoordinateDescentMinimizer::Minimize(
     evaluator_options_.num_threads =
         max(1, options.num_threads / num_inner_iteration_threads);
 
-    ThreadTokenProvider thread_token_provider(num_inner_iteration_threads);
-
-#ifdef CERES_USE_OPENMP
     // The parameter blocks in each independent set can be optimized
     // in parallel, since they do not co-occur in any residual block.
-#pragma omp parallel for num_threads(num_inner_iteration_threads)
-#endif
+    ParallelFor(
+        context_,
+        independent_set_offsets_[i],
+        independent_set_offsets_[i + 1],
+        num_inner_iteration_threads,
+        [&](int thread_id, int j) {
+          ParameterBlock* parameter_block = parameter_blocks_[j];
+          const int old_index = parameter_block->index();
+          const int old_delta_offset = parameter_block->delta_offset();
+          parameter_block->SetVarying();
+          parameter_block->set_index(0);
+          parameter_block->set_delta_offset(0);
 
-#if !(defined(CERES_USE_TBB) || defined(CERES_USE_CXX11_THREADS))
-    for (int j = independent_set_offsets_[i];
-         j < independent_set_offsets_[i + 1];
-         ++j) {
-#else
-    ParallelFor(context_,
-                independent_set_offsets_[i],
-                independent_set_offsets_[i + 1],
-                num_inner_iteration_threads,
-                [&](int j) {
-#endif // !(defined(CERES_USE_TBB) || defined(CERES_USE_CXX11_THREADS))
+          Program inner_program;
+          inner_program.mutable_parameter_blocks()->push_back(parameter_block);
+          *inner_program.mutable_residual_blocks() = residual_blocks_[j];
 
-      const ScopedThreadToken scoped_thread_token(&thread_token_provider);
-      const int thread_id = scoped_thread_token.token();
+          // TODO(sameeragarwal): Better error handling. Right now we
+          // assume that this is not going to lead to problems of any
+          // sort. Basically we should be checking for numerical failure
+          // of some sort.
+          //
+          // On the other hand, if the optimization is a failure, that in
+          // some ways is fine, since it won't change the parameters and
+          // we are fine.
+          Solver::Summary inner_summary;
+          Solve(&inner_program,
+                linear_solvers[thread_id],
+                parameters + parameter_block->state_offset(),
+                &inner_summary);
 
-      ParameterBlock* parameter_block = parameter_blocks_[j];
-      const int old_index = parameter_block->index();
-      const int old_delta_offset = parameter_block->delta_offset();
-      parameter_block->SetVarying();
-      parameter_block->set_index(0);
-      parameter_block->set_delta_offset(0);
-
-      Program inner_program;
-      inner_program.mutable_parameter_blocks()->push_back(parameter_block);
-      *inner_program.mutable_residual_blocks() = residual_blocks_[j];
-
-      // TODO(sameeragarwal): Better error handling. Right now we
-      // assume that this is not going to lead to problems of any
-      // sort. Basically we should be checking for numerical failure
-      // of some sort.
-      //
-      // On the other hand, if the optimization is a failure, that in
-      // some ways is fine, since it won't change the parameters and
-      // we are fine.
-      Solver::Summary inner_summary;
-      Solve(&inner_program,
-            linear_solvers[thread_id],
-            parameters + parameter_block->state_offset(),
-            &inner_summary);
-
-      parameter_block->set_index(old_index);
-      parameter_block->set_delta_offset(old_delta_offset);
-      parameter_block->SetState(parameters + parameter_block->state_offset());
-      parameter_block->SetConstant();
-    }
-#if defined(CERES_USE_TBB) || defined(CERES_USE_CXX11_THREADS)
-  );
-#endif
+          parameter_block->set_index(old_index);
+          parameter_block->set_delta_offset(old_delta_offset);
+          parameter_block->SetState(parameters +
+                                    parameter_block->state_offset());
+          parameter_block->SetConstant();
+        });
   }
 
-  for (int i =  0; i < parameter_blocks_.size(); ++i) {
+  for (int i = 0; i < parameter_blocks_.size(); ++i) {
     parameter_blocks_[i]->SetVarying();
   }
 
@@ -245,14 +222,17 @@ void CoordinateDescentMinimizer::Solve(Program* program,
 
   Minimizer::Options minimizer_options;
   minimizer_options.evaluator.reset(
-      CHECK_NOTNULL(Evaluator::Create(evaluator_options_, program, &error)));
+      Evaluator::Create(evaluator_options_, program, &error));
+  CHECK(minimizer_options.evaluator != nullptr);
   minimizer_options.jacobian.reset(
-      CHECK_NOTNULL(minimizer_options.evaluator->CreateJacobian()));
+      minimizer_options.evaluator->CreateJacobian());
+  CHECK(minimizer_options.jacobian != nullptr);
 
   TrustRegionStrategy::Options trs_options;
   trs_options.linear_solver = linear_solver;
   minimizer_options.trust_region_strategy.reset(
-      CHECK_NOTNULL(TrustRegionStrategy::Create(trs_options)));
+      TrustRegionStrategy::Create(trs_options));
+  CHECK(minimizer_options.trust_region_strategy != nullptr);
   minimizer_options.is_silent = true;
 
   TrustRegionMinimizer minimizer;
@@ -263,17 +243,16 @@ bool CoordinateDescentMinimizer::IsOrderingValid(
     const Program& program,
     const ParameterBlockOrdering& ordering,
     string* message) {
-  const map<int, set<double*> >& group_to_elements =
+  const map<int, set<double*>>& group_to_elements =
       ordering.group_to_elements();
 
   // Verify that each group is an independent set
-  map<int, set<double*> >::const_iterator it = group_to_elements.begin();
-  for (; it != group_to_elements.end(); ++it) {
-    if (!program.IsParameterBlockSetIndependent(it->second)) {
-      *message =
-          StringPrintf("The user-provided "
-                       "parameter_blocks_for_inner_iterations does not "
-                       "form an independent set. Group Id: %d", it->first);
+  for (const auto& g_t_e : group_to_elements) {
+    if (!program.IsParameterBlockSetIndependent(g_t_e.second)) {
+      *message = StringPrintf(
+          "The user-provided parameter_blocks_for_inner_iterations does not "
+          "form an independent set. Group Id: %d",
+          g_t_e.first);
       return false;
     }
   }
@@ -286,7 +265,7 @@ bool CoordinateDescentMinimizer::IsOrderingValid(
 // points.
 ParameterBlockOrdering* CoordinateDescentMinimizer::CreateOrdering(
     const Program& program) {
-  scoped_ptr<ParameterBlockOrdering> ordering(new ParameterBlockOrdering);
+  std::unique_ptr<ParameterBlockOrdering> ordering(new ParameterBlockOrdering);
   ComputeRecursiveIndependentSetOrdering(program, ordering.get());
   ordering->Reverse();
   return ordering.release();

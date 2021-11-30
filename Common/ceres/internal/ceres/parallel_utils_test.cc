@@ -29,7 +29,10 @@
 // Author: wjr@google.com (William Rucklidge)
 
 // This include must come before any #ifndef check on Ceres compile options.
+// clang-format off
 #include "ceres/internal/port.h"
+// clang-format on
+
 #include "ceres/parallel_utils.h"
 
 #include "glog/logging.h"
@@ -42,7 +45,7 @@ namespace internal {
 // indices that are in-range and unique.
 TEST(LinearIndexToUpperTriangularIndexTest, UniqueAndValid) {
   for (int n = 0; n < 100; n++) {
-    std::set<std::pair<int, int> > seen_pairs;
+    std::set<std::pair<int, int>> seen_pairs;
     int actual_work_items = (n * (n + 1)) / 2;
     for (int k = 0; k < actual_work_items; k++) {
       int i, j;

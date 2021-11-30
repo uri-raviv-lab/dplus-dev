@@ -33,13 +33,12 @@
 
 #ifndef CERES_NO_CXSPARSE
 
-#include "ceres/cxsparse.h"
-
 #include <string>
 #include <vector>
 
 #include "ceres/compressed_col_sparse_matrix_utils.h"
 #include "ceres/compressed_row_sparse_matrix.h"
+#include "ceres/cxsparse.h"
 #include "ceres/triplet_sparse_matrix.h"
 #include "glog/logging.h"
 
@@ -196,8 +195,9 @@ void CXSparse::Free(cs_dis* symbolic_factor) { cs_di_sfree(symbolic_factor); }
 
 void CXSparse::Free(csn* numeric_factor) { cs_di_nfree(numeric_factor); }
 
-CXSparseCholesky* CXSparseCholesky::Create(const OrderingType ordering_type) {
-  return new CXSparseCholesky(ordering_type);
+std::unique_ptr<SparseCholesky> CXSparseCholesky::Create(
+    const OrderingType ordering_type) {
+  return std::unique_ptr<SparseCholesky>(new CXSparseCholesky(ordering_type));
 }
 
 CompressedRowSparseMatrix::StorageType CXSparseCholesky::StorageType() const {

@@ -105,12 +105,6 @@
 # == Serial Graph Partitioning and Fill-reducing Matrix Ordering (METIS)
 # METIS_FOUND
 # METIS_LIBRARY
-#
-# == Intel Thread Building Blocks (TBB)
-# TBB_FOUND
-# TBB_LIBRARY
-# TBB_MALLOC_FOUND
-# TBB_MALLOC_LIBRARY
 
 # Reset CALLERS_CMAKE_FIND_LIBRARY_PREFIXES to its value when
 # FindSuiteSparse was invoked.
@@ -170,6 +164,27 @@ if (MSVC)
   # the libraries have no prefix (shared libraries / DLLs).
   set(CMAKE_FIND_LIBRARY_PREFIXES "lib" "" "${CMAKE_FIND_LIBRARY_PREFIXES}")
 endif (MSVC)
+
+# On macOS, add the Homebrew prefix (with appropriate suffixes) to the
+# respective HINTS directories (after any user-specified locations).  This
+# handles Homebrew installations into non-standard locations (not /usr/local).
+# We do not use CMAKE_PREFIX_PATH for this as given the search ordering of
+# find_xxx(), doing so would override any user-specified HINTS locations with
+# the Homebrew version if it exists.
+if (CMAKE_SYSTEM_NAME MATCHES "Darwin")
+  find_program(HOMEBREW_EXECUTABLE brew)
+  mark_as_advanced(FORCE HOMEBREW_EXECUTABLE)
+  if (HOMEBREW_EXECUTABLE)
+    # Detected a Homebrew install, query for its install prefix.
+    execute_process(COMMAND ${HOMEBREW_EXECUTABLE} --prefix
+      OUTPUT_VARIABLE HOMEBREW_INSTALL_PREFIX
+      OUTPUT_STRIP_TRAILING_WHITESPACE)
+    message(STATUS "Detected Homebrew with install prefix: "
+      "${HOMEBREW_INSTALL_PREFIX}, adding to CMake search paths.")
+    list(APPEND SUITESPARSE_INCLUDE_DIR_HINTS "${HOMEBREW_INSTALL_PREFIX}/include")
+    list(APPEND SUITESPARSE_LIBRARY_DIR_HINTS "${HOMEBREW_INSTALL_PREFIX}/lib")
+  endif()
+endif()
 
 # Specify search directories for include files and libraries (this is the union
 # of the search directories for all OSs).  Search user-specified hint
@@ -294,8 +309,9 @@ if (SUITESPARSEQR_FOUND)
   find_package(TBB QUIET)
   if (TBB_FOUND)
     message(STATUS "Found Intel Thread Building Blocks (TBB) library "
-      "(${TBB_VERSION}) assuming SuiteSparseQR was compiled "
-      "with TBB.")
+      "(${TBB_VERSION_MAJOR}.${TBB_VERSION_MINOR} / ${TBB_INTERFACE_VERSION}) "
+      "include location: ${TBB_INCLUDE_DIRS}. Assuming SuiteSparseQR was "
+      "compiled with TBB.")
     # Add the TBB libraries to the SuiteSparseQR libraries (the only
     # libraries to optionally depend on TBB).
     list(APPEND SUITESPARSEQR_LIBRARY ${TBB_LIBRARIES})

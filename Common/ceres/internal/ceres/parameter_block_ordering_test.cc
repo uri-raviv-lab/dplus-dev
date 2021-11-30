@@ -31,16 +31,17 @@
 #include "ceres/parameter_block_ordering.h"
 
 #include <cstddef>
+#include <memory>
+#include <unordered_set>
 #include <vector>
-#include "gtest/gtest.h"
-#include "ceres/collections_port.h"
+
+#include "ceres/cost_function.h"
 #include "ceres/graph.h"
 #include "ceres/problem_impl.h"
 #include "ceres/program.h"
-#include "ceres/stl_util.h"
-#include "ceres/cost_function.h"
-#include "ceres/internal/scoped_ptr.h"
 #include "ceres/sized_cost_function.h"
+#include "ceres/stl_util.h"
+#include "gtest/gtest.h"
 
 namespace ceres {
 namespace internal {
@@ -48,20 +49,20 @@ namespace internal {
 using std::vector;
 
 typedef Graph<ParameterBlock*> HessianGraph;
-typedef HashSet<ParameterBlock*> VertexSet;
+typedef std::unordered_set<ParameterBlock*> VertexSet;
 
-template <int M, int N1 = 0, int N2 = 0, int N3 = 0>
-class DummyCostFunction: public SizedCostFunction<M, N1, N2, N3> {
-  virtual bool Evaluate(double const* const* parameters,
-                        double* residuals,
-                        double** jacobians) const {
+template <int M, int... Ns>
+class DummyCostFunction : public SizedCostFunction<M, Ns...> {
+  bool Evaluate(double const* const* parameters,
+                double* residuals,
+                double** jacobians) const final {
     return true;
   }
 };
 
 class SchurOrderingTest : public ::testing::Test {
- protected :
-  virtual void SetUp() {
+ protected:
+  void SetUp() final {
     // The explicit calls to AddParameterBlock are necessary because
     // the below tests depend on the specific numbering of the
     // parameter blocks.
@@ -74,8 +75,8 @@ class SchurOrderingTest : public ::testing::Test {
     problem_.AddResidualBlock(new DummyCostFunction<6, 5, 4>, NULL, z_, y_);
     problem_.AddResidualBlock(new DummyCostFunction<3, 3, 5>, NULL, x_, z_);
     problem_.AddResidualBlock(new DummyCostFunction<7, 5, 3>, NULL, z_, x_);
-    problem_.AddResidualBlock(new DummyCostFunction<1, 5, 3, 6>, NULL,
-                              z_, x_, w_);
+    problem_.AddResidualBlock(
+        new DummyCostFunction<1, 5, 3, 6>, NULL, z_, x_, w_);
   }
 
   ProblemImpl problem_;
@@ -85,7 +86,7 @@ class SchurOrderingTest : public ::testing::Test {
 TEST_F(SchurOrderingTest, NoFixed) {
   const Program& program = problem_.program();
   const vector<ParameterBlock*>& parameter_blocks = program.parameter_blocks();
-  scoped_ptr<HessianGraph> graph(CreateHessianGraph(program));
+  std::unique_ptr<HessianGraph> graph(CreateHessianGraph(program));
 
   const VertexSet& vertices = graph->vertices();
   EXPECT_EQ(vertices.size(), 4);
@@ -130,7 +131,7 @@ TEST_F(SchurOrderingTest, AllFixed) {
   problem_.SetParameterBlockConstant(w_);
 
   const Program& program = problem_.program();
-  scoped_ptr<HessianGraph> graph(CreateHessianGraph(program));
+  std::unique_ptr<HessianGraph> graph(CreateHessianGraph(program));
   EXPECT_EQ(graph->vertices().size(), 0);
 }
 
@@ -139,7 +140,7 @@ TEST_F(SchurOrderingTest, OneFixed) {
 
   const Program& program = problem_.program();
   const vector<ParameterBlock*>& parameter_blocks = program.parameter_blocks();
-  scoped_ptr<HessianGraph> graph(CreateHessianGraph(program));
+  std::unique_ptr<HessianGraph> graph(CreateHessianGraph(program));
 
   const VertexSet& vertices = graph->vertices();
 

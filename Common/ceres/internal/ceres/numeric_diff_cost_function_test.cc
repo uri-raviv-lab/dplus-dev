@@ -32,11 +32,12 @@
 #include "ceres/numeric_diff_cost_function.h"
 
 #include <algorithm>
+#include <array>
 #include <cmath>
+#include <memory>
 #include <string>
 #include <vector>
-#include "ceres/internal/macros.h"
-#include "ceres/internal/scoped_ptr.h"
+
 #include "ceres/array_utils.h"
 #include "ceres/numeric_diff_test_utils.h"
 #include "ceres/test_util.h"
@@ -48,185 +49,176 @@ namespace ceres {
 namespace internal {
 
 TEST(NumericDiffCostFunction, EasyCaseFunctorCentralDifferences) {
-  internal::scoped_ptr<CostFunction> cost_function;
-  cost_function.reset(
-      new NumericDiffCostFunction<EasyFunctor,
-                                  CENTRAL,
-                                  3,  /* number of residuals */
-                                  5,  /* size of x1 */
-                                  5   /* size of x2 */>(
-          new EasyFunctor));
+  std::unique_ptr<CostFunction> cost_function;
+  cost_function.reset(new NumericDiffCostFunction<EasyFunctor,
+                                                  CENTRAL,
+                                                  3,  // number of residuals
+                                                  5,  // size of x1
+                                                  5   // size of x2
+                                                  >(new EasyFunctor));
   EasyFunctor functor;
   functor.ExpectCostFunctionEvaluationIsNearlyCorrect(*cost_function, CENTRAL);
 }
 
 TEST(NumericDiffCostFunction, EasyCaseFunctorForwardDifferences) {
-  internal::scoped_ptr<CostFunction> cost_function;
-  cost_function.reset(
-      new NumericDiffCostFunction<EasyFunctor,
-                                  FORWARD,
-                                  3,  /* number of residuals */
-                                  5,  /* size of x1 */
-                                  5   /* size of x2 */>(
-          new EasyFunctor));
+  std::unique_ptr<CostFunction> cost_function;
+  cost_function.reset(new NumericDiffCostFunction<EasyFunctor,
+                                                  FORWARD,
+                                                  3,  // number of residuals
+                                                  5,  // size of x1
+                                                  5   // size of x2
+                                                  >(new EasyFunctor));
   EasyFunctor functor;
   functor.ExpectCostFunctionEvaluationIsNearlyCorrect(*cost_function, FORWARD);
 }
 
 TEST(NumericDiffCostFunction, EasyCaseFunctorRidders) {
-  internal::scoped_ptr<CostFunction> cost_function;
-  cost_function.reset(
-      new NumericDiffCostFunction<EasyFunctor,
-                                  RIDDERS,
-                                  3,  /* number of residuals */
-                                  5,  /* size of x1 */
-                                  5   /* size of x2 */>(
-          new EasyFunctor));
+  std::unique_ptr<CostFunction> cost_function;
+  cost_function.reset(new NumericDiffCostFunction<EasyFunctor,
+                                                  RIDDERS,
+                                                  3,  // number of residuals
+                                                  5,  // size of x1
+                                                  5   // size of x2
+                                                  >(new EasyFunctor));
   EasyFunctor functor;
   functor.ExpectCostFunctionEvaluationIsNearlyCorrect(*cost_function, RIDDERS);
 }
 
 TEST(NumericDiffCostFunction, EasyCaseCostFunctionCentralDifferences) {
-  internal::scoped_ptr<CostFunction> cost_function;
+  std::unique_ptr<CostFunction> cost_function;
   cost_function.reset(
       new NumericDiffCostFunction<EasyCostFunction,
                                   CENTRAL,
-                                  3,  /* number of residuals */
-                                  5,  /* size of x1 */
-                                  5   /* size of x2 */>(
-          new EasyCostFunction, TAKE_OWNERSHIP));
+                                  3,  // number of residuals
+                                  5,  // size of x1
+                                  5   // size of x2
+                                  >(new EasyCostFunction, TAKE_OWNERSHIP));
   EasyFunctor functor;
   functor.ExpectCostFunctionEvaluationIsNearlyCorrect(*cost_function, CENTRAL);
 }
 
 TEST(NumericDiffCostFunction, EasyCaseCostFunctionForwardDifferences) {
-  internal::scoped_ptr<CostFunction> cost_function;
+  std::unique_ptr<CostFunction> cost_function;
   cost_function.reset(
       new NumericDiffCostFunction<EasyCostFunction,
                                   FORWARD,
-                                  3,  /* number of residuals */
-                                  5,  /* size of x1 */
-                                  5   /* size of x2 */>(
-          new EasyCostFunction, TAKE_OWNERSHIP));
+                                  3,  // number of residuals
+                                  5,  // size of x1
+                                  5   // size of x2
+                                  >(new EasyCostFunction, TAKE_OWNERSHIP));
   EasyFunctor functor;
   functor.ExpectCostFunctionEvaluationIsNearlyCorrect(*cost_function, FORWARD);
 }
 
 TEST(NumericDiffCostFunction, EasyCaseCostFunctionRidders) {
-  internal::scoped_ptr<CostFunction> cost_function;
+  std::unique_ptr<CostFunction> cost_function;
   cost_function.reset(
       new NumericDiffCostFunction<EasyCostFunction,
                                   RIDDERS,
-                                  3,  /* number of residuals */
-                                  5,  /* size of x1 */
-                                  5   /* size of x2 */>(
-          new EasyCostFunction, TAKE_OWNERSHIP));
+                                  3,  // number of residuals
+                                  5,  // size of x1
+                                  5   // size of x2
+                                  >(new EasyCostFunction, TAKE_OWNERSHIP));
   EasyFunctor functor;
   functor.ExpectCostFunctionEvaluationIsNearlyCorrect(*cost_function, RIDDERS);
 }
 
-TEST(NumericDiffCostFunction,
-     TranscendentalCaseFunctorCentralDifferences) {
-  internal::scoped_ptr<CostFunction> cost_function;
-  cost_function.reset(
-      new NumericDiffCostFunction<TranscendentalFunctor,
-                                  CENTRAL,
-                                  2,  /* number of residuals */
-                                  5,  /* size of x1 */
-                                  5   /* size of x2 */>(
-          new TranscendentalFunctor));
+TEST(NumericDiffCostFunction, TranscendentalCaseFunctorCentralDifferences) {
+  std::unique_ptr<CostFunction> cost_function;
+  cost_function.reset(new NumericDiffCostFunction<TranscendentalFunctor,
+                                                  CENTRAL,
+                                                  2,  // number of residuals
+                                                  5,  // size of x1
+                                                  5   // size of x2
+                                                  >(new TranscendentalFunctor));
   TranscendentalFunctor functor;
   functor.ExpectCostFunctionEvaluationIsNearlyCorrect(*cost_function, CENTRAL);
 }
 
-TEST(NumericDiffCostFunction,
-     TranscendentalCaseFunctorForwardDifferences) {
-  internal::scoped_ptr<CostFunction> cost_function;
-  cost_function.reset(
-      new NumericDiffCostFunction<TranscendentalFunctor,
-                                  FORWARD,
-                                  2,  /* number of residuals */
-                                  5,  /* size of x1 */
-                                  5   /* size of x2 */>(
-          new TranscendentalFunctor));
+TEST(NumericDiffCostFunction, TranscendentalCaseFunctorForwardDifferences) {
+  std::unique_ptr<CostFunction> cost_function;
+  cost_function.reset(new NumericDiffCostFunction<TranscendentalFunctor,
+                                                  FORWARD,
+                                                  2,  // number of residuals
+                                                  5,  // size of x1
+                                                  5   // size of x2
+                                                  >(new TranscendentalFunctor));
   TranscendentalFunctor functor;
   functor.ExpectCostFunctionEvaluationIsNearlyCorrect(*cost_function, FORWARD);
 }
 
-TEST(NumericDiffCostFunction,
-     TranscendentalCaseFunctorRidders) {
+TEST(NumericDiffCostFunction, TranscendentalCaseFunctorRidders) {
   NumericDiffOptions options;
 
   // Using a smaller initial step size to overcome oscillatory function
   // behavior.
   options.ridders_relative_initial_step_size = 1e-3;
 
-  internal::scoped_ptr<CostFunction> cost_function;
-  cost_function.reset(
-      new NumericDiffCostFunction<TranscendentalFunctor,
-                                  RIDDERS,
-                                  2,  /* number of residuals */
-                                  5,  /* size of x1 */
-                                  5   /* size of x2 */>(
-          new TranscendentalFunctor, TAKE_OWNERSHIP, 2, options));
+  std::unique_ptr<CostFunction> cost_function;
+  cost_function.reset(new NumericDiffCostFunction<TranscendentalFunctor,
+                                                  RIDDERS,
+                                                  2,  // number of residuals
+                                                  5,  // size of x1
+                                                  5   // size of x2
+                                                  >(
+      new TranscendentalFunctor, TAKE_OWNERSHIP, 2, options));
   TranscendentalFunctor functor;
   functor.ExpectCostFunctionEvaluationIsNearlyCorrect(*cost_function, RIDDERS);
 }
 
 TEST(NumericDiffCostFunction,
      TranscendentalCaseCostFunctionCentralDifferences) {
-  internal::scoped_ptr<CostFunction> cost_function;
-  cost_function.reset(
-      new NumericDiffCostFunction<TranscendentalCostFunction,
-                                  CENTRAL,
-                                  2,  /* number of residuals */
-                                  5,  /* size of x1 */
-                                  5   /* size of x2 */>(
-          new TranscendentalCostFunction, TAKE_OWNERSHIP));
+  std::unique_ptr<CostFunction> cost_function;
+  cost_function.reset(new NumericDiffCostFunction<TranscendentalCostFunction,
+                                                  CENTRAL,
+                                                  2,  // number of residuals
+                                                  5,  // size of x1
+                                                  5   // size of x2
+                                                  >(
+      new TranscendentalCostFunction, TAKE_OWNERSHIP));
   TranscendentalFunctor functor;
   functor.ExpectCostFunctionEvaluationIsNearlyCorrect(*cost_function, CENTRAL);
 }
 
 TEST(NumericDiffCostFunction,
      TranscendentalCaseCostFunctionForwardDifferences) {
-  internal::scoped_ptr<CostFunction> cost_function;
-  cost_function.reset(
-      new NumericDiffCostFunction<TranscendentalCostFunction,
-                                  FORWARD,
-                                  2,  /* number of residuals */
-                                  5,  /* size of x1 */
-                                  5   /* size of x2 */>(
-          new TranscendentalCostFunction, TAKE_OWNERSHIP));
+  std::unique_ptr<CostFunction> cost_function;
+  cost_function.reset(new NumericDiffCostFunction<TranscendentalCostFunction,
+                                                  FORWARD,
+                                                  2,  // number of residuals
+                                                  5,  // size of x1
+                                                  5   // size of x2
+                                                  >(
+      new TranscendentalCostFunction, TAKE_OWNERSHIP));
   TranscendentalFunctor functor;
   functor.ExpectCostFunctionEvaluationIsNearlyCorrect(*cost_function, FORWARD);
 }
 
-TEST(NumericDiffCostFunction,
-     TranscendentalCaseCostFunctionRidders) {
+TEST(NumericDiffCostFunction, TranscendentalCaseCostFunctionRidders) {
   NumericDiffOptions options;
 
   // Using a smaller initial step size to overcome oscillatory function
   // behavior.
   options.ridders_relative_initial_step_size = 1e-3;
 
-  internal::scoped_ptr<CostFunction> cost_function;
-  cost_function.reset(
-      new NumericDiffCostFunction<TranscendentalCostFunction,
-                                  RIDDERS,
-                                  2,  /* number of residuals */
-                                  5,  /* size of x1 */
-                                  5   /* size of x2 */>(
-          new TranscendentalCostFunction, TAKE_OWNERSHIP, 2, options));
+  std::unique_ptr<CostFunction> cost_function;
+  cost_function.reset(new NumericDiffCostFunction<TranscendentalCostFunction,
+                                                  RIDDERS,
+                                                  2,  // number of residuals
+                                                  5,  // size of x1
+                                                  5   // size of x2
+                                                  >(
+      new TranscendentalCostFunction, TAKE_OWNERSHIP, 2, options));
   TranscendentalFunctor functor;
   functor.ExpectCostFunctionEvaluationIsNearlyCorrect(*cost_function, RIDDERS);
 }
 
-template<int num_rows, int num_cols>
+template <int num_rows, int num_cols>
 class SizeTestingCostFunction : public SizedCostFunction<num_rows, num_cols> {
  public:
-  virtual bool Evaluate(double const* const* parameters,
-                        double* residuals,
-                        double** jacobians) const {
+  bool Evaluate(double const* const* parameters,
+                double* residuals,
+                double** jacobians) const final {
     return true;
   }
 };
@@ -238,22 +230,22 @@ class SizeTestingCostFunction : public SizedCostFunction<num_rows, num_cols> {
 // templates are instantiated for various shapes of the Jacobian
 // matrix.
 TEST(NumericDiffCostFunction, EigenRowMajorColMajorTest) {
-  scoped_ptr<CostFunction> cost_function;
+  std::unique_ptr<CostFunction> cost_function;
   cost_function.reset(
-      new NumericDiffCostFunction<SizeTestingCostFunction<1,1>,  CENTRAL, 1, 1>(
-          new SizeTestingCostFunction<1,1>, ceres::TAKE_OWNERSHIP));
+      new NumericDiffCostFunction<SizeTestingCostFunction<1, 1>, CENTRAL, 1, 1>(
+          new SizeTestingCostFunction<1, 1>, ceres::TAKE_OWNERSHIP));
 
   cost_function.reset(
-      new NumericDiffCostFunction<SizeTestingCostFunction<2,1>,  CENTRAL, 2, 1>(
-          new SizeTestingCostFunction<2,1>, ceres::TAKE_OWNERSHIP));
+      new NumericDiffCostFunction<SizeTestingCostFunction<2, 1>, CENTRAL, 2, 1>(
+          new SizeTestingCostFunction<2, 1>, ceres::TAKE_OWNERSHIP));
 
   cost_function.reset(
-      new NumericDiffCostFunction<SizeTestingCostFunction<1,2>,  CENTRAL, 1, 2>(
-          new SizeTestingCostFunction<1,2>, ceres::TAKE_OWNERSHIP));
+      new NumericDiffCostFunction<SizeTestingCostFunction<1, 2>, CENTRAL, 1, 2>(
+          new SizeTestingCostFunction<1, 2>, ceres::TAKE_OWNERSHIP));
 
   cost_function.reset(
-      new NumericDiffCostFunction<SizeTestingCostFunction<2,2>,  CENTRAL, 2, 2>(
-          new SizeTestingCostFunction<2,2>, ceres::TAKE_OWNERSHIP));
+      new NumericDiffCostFunction<SizeTestingCostFunction<2, 2>, CENTRAL, 2, 2>(
+          new SizeTestingCostFunction<2, 2>, ceres::TAKE_OWNERSHIP));
 
   cost_function.reset(
       new NumericDiffCostFunction<EasyFunctor, CENTRAL, ceres::DYNAMIC, 1, 1>(
@@ -282,75 +274,78 @@ TEST(NumericDiffCostFunction, EigenRowMajorColMajorTest) {
 
 TEST(NumericDiffCostFunction,
      EasyCaseFunctorCentralDifferencesAndDynamicNumResiduals) {
-  internal::scoped_ptr<CostFunction> cost_function;
+  std::unique_ptr<CostFunction> cost_function;
   cost_function.reset(
       new NumericDiffCostFunction<EasyFunctor,
                                   CENTRAL,
                                   ceres::DYNAMIC,
-                                  5,  /* size of x1 */
-                                  5   /* size of x2 */>(
-                                      new EasyFunctor, TAKE_OWNERSHIP, 3));
+                                  5,  // size of x1
+                                  5   // size of x2
+                                  >(new EasyFunctor, TAKE_OWNERSHIP, 3));
   EasyFunctor functor;
   functor.ExpectCostFunctionEvaluationIsNearlyCorrect(*cost_function, CENTRAL);
 }
 
 TEST(NumericDiffCostFunction, ExponentialFunctorRidders) {
-  internal::scoped_ptr<CostFunction> cost_function;
-  cost_function.reset(
-      new NumericDiffCostFunction<ExponentialFunctor,
-                                  RIDDERS,
-                                  1,  /* number of residuals */
-                                  1   /* size of x1 */>(
-             new ExponentialFunctor));
+  std::unique_ptr<CostFunction> cost_function;
+  cost_function.reset(new NumericDiffCostFunction<ExponentialFunctor,
+                                                  RIDDERS,
+                                                  1,  // number of residuals
+                                                  1   // size of x1
+                                                  >(new ExponentialFunctor));
   ExponentialFunctor functor;
   functor.ExpectCostFunctionEvaluationIsNearlyCorrect(*cost_function);
 }
 
 TEST(NumericDiffCostFunction, ExponentialCostFunctionRidders) {
-  internal::scoped_ptr<CostFunction> cost_function;
+  std::unique_ptr<CostFunction> cost_function;
   cost_function.reset(
       new NumericDiffCostFunction<ExponentialCostFunction,
                                   RIDDERS,
-                                  1,  /* number of residuals */
-                                  1   /* size of x1 */>(
-             new ExponentialCostFunction));
+                                  1,  // number of residuals
+                                  1   // size of x1
+                                  >(new ExponentialCostFunction));
   ExponentialFunctor functor;
   functor.ExpectCostFunctionEvaluationIsNearlyCorrect(*cost_function);
 }
 
 TEST(NumericDiffCostFunction, RandomizedFunctorRidders) {
-  internal::scoped_ptr<CostFunction> cost_function;
+  std::unique_ptr<CostFunction> cost_function;
   NumericDiffOptions options;
   // Larger initial step size is chosen to produce robust results in the
   // presence of random noise.
   options.ridders_relative_initial_step_size = 10.0;
 
-  cost_function.reset(
-      new NumericDiffCostFunction<RandomizedFunctor,
-                                  RIDDERS,
-                                  1,  /* number of residuals */
-                                  1   /* size of x1 */>(
-             new RandomizedFunctor(kNoiseFactor, kRandomSeed), TAKE_OWNERSHIP,
-             1, options));
-  RandomizedFunctor functor (kNoiseFactor, kRandomSeed);
+  cost_function.reset(new NumericDiffCostFunction<RandomizedFunctor,
+                                                  RIDDERS,
+                                                  1,  // number of residuals
+                                                  1   // size of x1
+                                                  >(
+      new RandomizedFunctor(kNoiseFactor, kRandomSeed),
+      TAKE_OWNERSHIP,
+      1,
+      options));
+  RandomizedFunctor functor(kNoiseFactor, kRandomSeed);
   functor.ExpectCostFunctionEvaluationIsNearlyCorrect(*cost_function);
 }
 
 TEST(NumericDiffCostFunction, RandomizedCostFunctionRidders) {
-  internal::scoped_ptr<CostFunction> cost_function;
+  std::unique_ptr<CostFunction> cost_function;
   NumericDiffOptions options;
   // Larger initial step size is chosen to produce robust results in the
   // presence of random noise.
   options.ridders_relative_initial_step_size = 10.0;
 
-  cost_function.reset(
-      new NumericDiffCostFunction<RandomizedCostFunction,
-                                  RIDDERS,
-                                  1,  /* number of residuals */
-                                  1   /* size of x1 */>(
-             new RandomizedCostFunction(kNoiseFactor, kRandomSeed),
-             TAKE_OWNERSHIP, 1, options));
-  RandomizedFunctor functor (kNoiseFactor, kRandomSeed);
+  cost_function.reset(new NumericDiffCostFunction<RandomizedCostFunction,
+                                                  RIDDERS,
+                                                  1,  // number of residuals
+                                                  1   // size of x1
+                                                  >(
+      new RandomizedCostFunction(kNoiseFactor, kRandomSeed),
+      TAKE_OWNERSHIP,
+      1,
+      options));
+  RandomizedFunctor functor(kNoiseFactor, kRandomSeed);
   functor.ExpectCostFunctionEvaluationIsNearlyCorrect(*cost_function);
 }
 
@@ -368,7 +363,7 @@ TEST(NumericDiffCostFunction, PartiallyFilledResidualShouldFailEvaluation) {
   double* parameters[] = {&parameter};
   double* jacobians[] = {jacobian};
 
-  scoped_ptr<CostFunction> cost_function(
+  std::unique_ptr<CostFunction> cost_function(
       new NumericDiffCostFunction<OnlyFillsOneOutputFunctor, CENTRAL, 2, 1>(
           new OnlyFillsOneOutputFunctor));
   InvalidateArray(2, jacobian);
@@ -383,6 +378,63 @@ TEST(NumericDiffCostFunction, PartiallyFilledResidualShouldFailEvaluation) {
   // residuals inside NumericDiffCostFunction, there is no way of
   // ensuring that the Jacobian array is invalid.
   EXPECT_FALSE(IsArrayValid(2, residuals));
+}
+
+TEST(NumericDiffCostFunction, ParameterBlockConstant) {
+  constexpr int kNumResiduals = 3;
+  constexpr int kX1 = 5;
+  constexpr int kX2 = 5;
+
+  std::unique_ptr<CostFunction> cost_function;
+  cost_function.reset(new NumericDiffCostFunction<EasyFunctor,
+                                                  CENTRAL,
+                                                  kNumResiduals,
+                                                  kX1,
+                                                  kX2>(new EasyFunctor));
+
+  // Prepare the parameters and residuals.
+  std::array<double, kX1> x1{1e-64, 2.0, 3.0, 4.0, 5.0};
+  std::array<double, kX2> x2{9.0, 9.0, 5.0, 5.0, 1.0};
+  std::array<double*, 2> parameter_blocks{x1.data(), x2.data()};
+
+  std::vector<double> residuals(kNumResiduals, -100000);
+
+  // Evaluate the full jacobian.
+  std::vector<std::vector<double>> jacobian_full_vect(2);
+  jacobian_full_vect[0].resize(kNumResiduals * kX1, -100000);
+  jacobian_full_vect[1].resize(kNumResiduals * kX2, -100000);
+  {
+    std::array<double*, 2> jacobian{jacobian_full_vect[0].data(),
+                                    jacobian_full_vect[1].data()};
+    ASSERT_TRUE(cost_function->Evaluate(
+        parameter_blocks.data(), residuals.data(), jacobian.data()));
+  }
+
+  // Evaluate and check jacobian when first parameter block is constant.
+  {
+    std::vector<double> jacobian_vect(kNumResiduals * kX2, -100000);
+    std::array<double*, 2> jacobian{nullptr, jacobian_vect.data()};
+
+    ASSERT_TRUE(cost_function->Evaluate(
+        parameter_blocks.data(), residuals.data(), jacobian.data()));
+
+    for (int i = 0; i < kNumResiduals * kX2; ++i) {
+      EXPECT_DOUBLE_EQ(jacobian_full_vect[1][i], jacobian_vect[i]);
+    }
+  }
+
+  // Evaluate and check jacobian when second parameter block is constant.
+  {
+    std::vector<double> jacobian_vect(kNumResiduals * kX1, -100000);
+    std::array<double*, 2> jacobian{jacobian_vect.data(), nullptr};
+
+    ASSERT_TRUE(cost_function->Evaluate(
+        parameter_blocks.data(), residuals.data(), jacobian.data()));
+
+    for (int i = 0; i < kNumResiduals * kX1; ++i) {
+      EXPECT_DOUBLE_EQ(jacobian_full_vect[0][i], jacobian_vect[i]);
+    }
+  }
 }
 
 }  // namespace internal

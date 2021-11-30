@@ -32,34 +32,35 @@
 #define CERES_INTERNAL_CONTEXT_IMPL_H_
 
 // This include must come before any #ifndef check on Ceres compile options.
+// clang-format off
 #include "ceres/internal/port.h"
+// clanf-format on
 
 #include "ceres/context.h"
-#include "ceres/internal/macros.h"
 
-#ifdef CERES_USE_CXX11_THREADS
+#ifdef CERES_USE_CXX_THREADS
 #include "ceres/thread_pool.h"
-#endif  // CERES_USE_CXX11_THREADS
+#endif  // CERES_USE_CXX_THREADS
 
 namespace ceres {
 namespace internal {
 
-class ContextImpl : public Context {
+class CERES_EXPORT_INTERNAL ContextImpl : public Context {
  public:
   ContextImpl() {}
+  ContextImpl(const ContextImpl&) = delete;
+  void operator=(const ContextImpl&) = delete;
+
   virtual ~ContextImpl() {}
 
-  // When compiled with C++11 threading support, resize the thread pool to have
+  // When compiled with C++ threading support, resize the thread pool to have
   // at min(num_thread, num_hardware_threads) where num_hardware_threads is
   // defined by the hardware.  Otherwise this call is a no-op.
   void EnsureMinimumThreads(int num_threads);
 
-#ifdef CERES_USE_CXX11_THREADS
+#ifdef CERES_USE_CXX_THREADS
   ThreadPool thread_pool;
-#endif  // CERES_USE_CXX11_THREADS
-
- private:
-  CERES_DISALLOW_COPY_AND_ASSIGN(ContextImpl);
+#endif  // CERES_USE_CXX_THREADS
 };
 
 }  // namespace internal

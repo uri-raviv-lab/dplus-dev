@@ -31,17 +31,19 @@
 #ifndef CERES_INTERNAL_THREAD_POOL_H_
 #define CERES_INTERNAL_THREAD_POOL_H_
 
+#include <functional>
 #include <mutex>
 #include <thread>
 #include <vector>
 
 #include "ceres/concurrent_queue.h"
+#include "ceres/internal/port.h"
 
 namespace ceres {
 namespace internal {
 
 // A thread-safe thread pool with an unbounded task queue and a resizable number
-// of workers.  The size of the thread pool can be increased by never decreased
+// of workers.  The size of the thread pool can be increased but never decreased
 // in order to support the largest number of threads requested.  The ThreadPool
 // has three states:
 //
@@ -56,8 +58,11 @@ namespace internal {
 //  workers to stop.  The workers will finish all of the tasks that have already
 //  been added to the thread pool.
 //
-class ThreadPool {
+class CERES_EXPORT_INTERNAL ThreadPool {
  public:
+  // Returns the maximum number of hardware threads.
+  static int MaxNumThreadsAvailable();
+
   // Default constructor with no active threads.  We allow instantiating a
   // thread pool with no threads to support the use case of single threaded
   // Ceres where everything will be executed on the main thread. For single
@@ -65,7 +70,7 @@ class ThreadPool {
   // are expensive to create, and no unused threads shown in the debugger.
   ThreadPool();
 
-  // Instantiates a thread pool with min(num_hardware_threads, num_threads)
+  // Instantiates a thread pool with min(MaxNumThreadsAvailable, num_threads)
   // number of threads.
   explicit ThreadPool(int num_threads);
 
@@ -74,7 +79,7 @@ class ThreadPool {
   ~ThreadPool();
 
   // Resizes the thread pool if it is currently less than the requested number
-  // of threads.  The thread pool will be resized to min(num_hardware_threads,
+  // of threads.  The thread pool will be resized to min(MaxNumThreadsAvailable,
   // num_threads) number of threads.  Resize does not support reducing the
   // thread pool size.  If a smaller number of threads is requested, the thread
   // pool remains the same size.  The thread pool is reused within Ceres with
