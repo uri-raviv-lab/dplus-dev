@@ -645,7 +645,18 @@ struct Parameter {
 		res[7] = double(linkIndex) + double(abs(linkIndex)/linkIndex)*0.0000001;
 		res[8] = sigma;
 	}
-
+	bool ParamValidateConstraint()
+	{
+		if (consMax < consMin)
+			return false;
+		return true;
+	}
+	void SwapMinMaxValue()
+	{
+		double tmp = consMax;
+		consMax = consMin;
+		consMin = tmp;
+	}
 	bool operator == (const Parameter& rhs) const {
 		if(fabs((1.0 - this->value / rhs.value)) > 1.0e-9)
 			return false;

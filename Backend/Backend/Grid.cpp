@@ -532,6 +532,9 @@ ArrayXcX JacobianSphereGrid::getAmplitudesAtPoints(const std::vector<FACC> & rel
 
 			frac = frc - double(planeIndex);
 
+			//this is equation 37 in Ginsburg et al 2019 (F(q) = Fb2...)
+			//frac = "t"
+			//pl1 = Fb2, d1=db2, pl2 = Fa1, d2=da1
 			auto myres = pl1 + d1 * frac +
 				(3.0 * (pl2 - pl1) - 2.0 * d1 - d2) * (frac*frac) +
 				(2.0 * (pl1 - pl2) + d1 + d2) * (frac*frac*frac);

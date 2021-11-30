@@ -228,7 +228,7 @@ template <typename ComplexRealType, typename ResComplexRealType>
 void EvenlySpacedFourPointSpline(const ComplexRealType y1, const ComplexRealType y2, const ComplexRealType y3,
 								 const ComplexRealType y4, ResComplexRealType *d2, ResComplexRealType *d3) {
 	typedef typename std::conditional<sizeof(ComplexRealType) == 2*sizeof(double), double, float>::type fType;
-									 
+	//this is from equations 35, 36 in Ginsburg et al 2019. d2 = d1(in the calling function)= Db2, d3=d2(in the calling function)=Da1						 
 	*d2 = -fType(7. / 15.)*(y2 - y1) + fType(14. / 15.)*(y3 - y1) - fType(4. / 15.)*(y4 - y2) + fType(2. / 15.)*(y4 - y3);
 	*d3 = fType(2. / 15.)*(y2 - y1) - fType(4. / 15.)*(y3 - y1) + fType(14. / 15.)*(y4 - y2) - fType(7. / 15.)*(y4 - y3);
 }

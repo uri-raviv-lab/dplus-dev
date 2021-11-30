@@ -22,6 +22,7 @@
     <ProjectGuid>{FBEF1E8A-9893-4D68-9F8B-0FBD4A100E10}</ProjectGuid>
     <RootNamespace>DPlus</RootNamespace>
     <Keyword>ManagedCProj</Keyword>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -338,6 +339,10 @@ xcopy "$(ProjectDir)JSON.lua" "$(TargetDir)" /Y
       <Project>{1898ab0c-bb6b-4d59-aee6-1d090fecad9d}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
+    <ProjectReference Include="..\PythonBackend\PythonBackend\PythonBackend.csproj">
+      <Project>{eaf55267-45bc-4acc-9447-d6551daa5e23}</Project>
+      <CopyLocalSatelliteAssemblies>true</CopyLocalSatelliteAssemblies>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Icons\app.ico" />
@@ -349,6 +354,7 @@ xcopy "$(ProjectDir)JSON.lua" "$(TargetDir)" /Y
     <ClCompile Include="AboutDPlus.cpp" />
     <ClCompile Include="ConstraintsWindow.cpp" />
     <ClCompile Include="FittingPrefsPane.cpp" />
+    <ClCompile Include="ControlButtonsPane.cpp" />
     <ClCompile Include="LuaBinding.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
@@ -362,6 +368,7 @@ xcopy "$(ProjectDir)JSON.lua" "$(TargetDir)" /Y
     <ClCompile Include="GraphPane3D.cpp" />
     <ClCompile Include="MainWindowLua.cpp" />
     <ClCompile Include="ManagedHTTPCallerForm.cpp" />
+    <ClCompile Include="ManagePythonPreCaller.cpp" />
     <ClCompile Include="ParameterEditor.cpp" />
     <ClCompile Include="PreferencesPane.cpp" />
     <ClCompile Include="ScriptPane.cpp" />
@@ -385,6 +392,7 @@ xcopy "$(ProjectDir)JSON.lua" "$(TargetDir)" /Y
     <ClInclude Include="FittingPrefsPane.h">
       <FileType>CppControl</FileType>
     </ClInclude>
+    <ClInclude Include="ControlButtonsPane.h" />
     <ClInclude Include="GraphFigure.h">
       <FileType>CppForm</FileType>
     </ClInclude>
@@ -413,6 +421,7 @@ xcopy "$(ProjectDir)JSON.lua" "$(TargetDir)" /Y
     <ClInclude Include="ManagedHTTPCallerForm.h">
       <FileType>CppForm</FileType>
     </ClInclude>
+    <ClInclude Include="ManagePythonPreCaller.h" />
     <ClInclude Include="ParameterEditor.h">
       <FileType>CppControl</FileType>
     </ClInclude>

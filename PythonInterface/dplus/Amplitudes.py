@@ -5,7 +5,12 @@ import numpy as np
 import os
 import zipfile
 import pathlib
-from CythonWrapping import CJacobianSphereGrid
+try:
+    from CythonGrid import CJacobianSphereGrid
+except:
+    print("could not import from CythonGrid")
+    
+from math import pi
 
 PI = 3.14159265358979323846  # math.pi
 encoding = 'ascii'
@@ -24,10 +29,19 @@ def cart2sph(x, y, z):
     # note that a faster vectorized version of this can be found at:
     # https://stackoverflow.com/questions/4116658/faster-numpy-cartesian-to-spherical-coordinate-conversion/4116803#4116803
     XsqPlusYsq = x ** 2 + y ** 2
-    r = math.sqrt(XsqPlusYsq + z ** 2)  # r
-    elev = math.atan2(z, math.sqrt(XsqPlusYsq))  # theta
-    az = math.atan2(y, x)  # phi
-    return r, elev, az
+    r = math.sqrt(XsqPlusYsq + z ** 2)
+    theta = math.atan2(math.sqrt(XsqPlusYsq), z)
+    phi = math.atan2(y, x)
+    if math.fabs(theta) < 1e-10:
+        theta = 0
+    if math.fabs(phi) < 1e-10:
+        phi = 0
+    if theta < 0:
+        theta += pi
+    if phi < 0:
+        phi += 2*pi
+    print(r, theta,phi)
+    return r, theta, phi
 
 
 class Grid:
@@ -42,10 +56,11 @@ class Grid:
     2. The individual angle indices `i`, `j`, `k`
     '''
 
-    def __init__(self, q_max, grid_size):
+    def __init__(self, grid_size, q_max, q_min=0):
         if grid_size % 2:
             raise ValueError("Grid size must be even")
         self.q_max = q_max
+        self.q_min=q_min
         self.grid_size = grid_size
         self.extra_shells = 3
 
@@ -66,6 +81,13 @@ class Grid:
     def actual_size(self):
         return self.N + self.extra_shells
 
+    @property
+    def totalsz(self):
+        i=self.actual_size
+        return (6 * i * (i + 1) * (3 + 3 + 2 * 3 * i)) / 6 #+1 for origin?
+
+
+
     def _G_i_q(self, i):
         return 6 * i + 12 * i ** 2 + 6 * i ** 3
 
@@ -75,13 +97,13 @@ class Grid:
         '''
         for i in range(0, self.N + 4):
             if i == 0:
-                yield 0, 0, 0
+                yield 0, (0, 0, 0)
                 continue
             J_i = (3 * i) + 1
             K_ij = 6 * i
             for j in range(0, J_i):
                 for k in range(0, K_ij):
-                    yield self.angles_from_indices(i, j, k)
+                    yield self.index_from_indices(i,j,k), self.angles_from_indices(i, j, k)
 
     def angles_from_indices(self, i, j, k):
         '''
@@ -94,6 +116,7 @@ class Grid:
         '''
         if i == 0:
             return 0, 0, 0
+
         q = npDouble(i * self.step_size)
         theta_ij = npDouble((j * PI) / (3 * i))
         phi_ijk = npDouble((k * PI) / (3 * i))
@@ -151,13 +174,20 @@ class Grid:
         eps = 0.000001
         i = math.floor(q / self.step_size + eps)
 
+        j,k=self._jk_indices_from_angles_and_index(i, theta, phi)
+
+        return i, j, k
+
+    def _jk_indices_from_angles_and_index(self, i, theta, phi):
+        eps = 0.000001
+
         phiPoints = 6.0 * i
         thePoints = 3.0 * i
 
         j = math.floor((theta / PI) * thePoints + eps)
         k = math.floor((phi / (PI * 2)) * phiPoints + eps)
 
-        return i, j, k
+        return j, k
 
     def index_from_angles(self, q, theta, phi):
         '''
@@ -178,14 +208,16 @@ class Amplitude():
     which can then be opened in D+ (or sent in a class AMP) but it itself cannot be added directly to the Domain parameter tree.
     '''
 
-    def __init__(self, q_max, grid_size):
-        self.grid = CJacobianSphereGrid(q_max, grid_size)
+    def __init__(self, grid_size, q_max, q_min=0):
+        self.grid = CJacobianSphereGrid(grid_size, q_max)
+        self.helper_grid=Grid(grid_size, q_max, q_min)
         self.external_headers = None
         self.__description = ""
         self.filename = ""
+        self.__initialized_splines=False
 
     @property
-    def values(self):
+    def _values(self):
         '''
         array that contains the grid intensity values as 2 values - real and imaginary
 
@@ -197,9 +229,9 @@ class Amplitude():
         else:
             raise ValueError("Amplitude values empty-- has not been initialized yet")
 
-    @values.setter
-    def values(self, tmp_values):
-        data = self.values
+    @_values.setter
+    def _values(self, tmp_values):
+        data = self._values
         if len(data) != len(tmp_values):
             raise ValueError("exists grid len doesn't fit to new grid len")
         for i in range(len(tmp_values)):
@@ -212,14 +244,14 @@ class Amplitude():
 
         :return: complex array
         '''
-        values = self.values
+        values = self._values
         complex_arr = np.zeros((int(values.__len__() / 2), 1), dtype=np.complex)
         for index in range(0, complex_arr.__len__()):
             complex_arr[index] = values[2 * index] + 1j * values[2 * index + 1]
         return complex_arr
 
     @property
-    def default_header(self):
+    def _default_header(self):
         '''
         Return the default file headers values for amplidute class.
 
@@ -257,7 +289,7 @@ class Amplitude():
         if self.external_headers:
             return self.external_headers
         else:
-            return self.default_header
+            return self._default_header
 
     @property
     def description(self):
@@ -280,7 +312,7 @@ class Amplitude():
         with open(filename, 'wb') as f:
             for header in self.headers:
                 f.write(header)
-            amps = np.float64(self.values)
+            amps = np.float64(self._values)
             amps.tofile(f)
         self.filename = os.path.abspath(filename)
 
@@ -289,7 +321,7 @@ class Amplitude():
         if extension == ".amp":
             raise ValueError("Please save amplitudes in .ampj format, not .amp")
         ampzip = zipfile.ZipFile(filename, mode='w')
-        ampzip.writestr('grid.dat', self.values.tobytes())
+        ampzip.writestr('grid.dat', self._values.tobytes())
         info = self.grid.get_param_json_string()
         ampzip.writestr("criticalinfo.json", info)
 
@@ -306,12 +338,116 @@ class Amplitude():
 
     def fill(self, calcAmplitude):
         self.grid.fill(calcAmplitude)
+        self.__initialized_splines = True
 
-    def calculate_splines(self):
+    def fill_cart(self, calcAmplitude_cart):
+        self.grid.fill_cart(calcAmplitude_cart)
+        self.__initialized_splines = True
+
+    def _calculate_splines(self):
         self.grid.calculate_splines()
+        self.__initialized_splines = True
 
-    def interpolate_theta_phi_plane(self, ri, theta, phi):
-        return self.grid.interpolate_theta_phi_plane(ri, theta, phi)
+
+    def __interpolate_q_theta_phi(self, q, theta, phi):
+        '''
+        :param q: must be within [qmin, qmax]
+        :param theta:
+        :param phi: whatever
+        :return:
+        '''
+        raise NotImplementedError
+        if theta <0 or theta > math.pi:
+            raise ValueError("theta must be between 0 and pi")
+        if phi <0 or phi > 2*math.pi:
+            raise ValueError("phi must be between 0 and 2pi")
+        if q>self.helper_grid.q_max or q<self.helper_grid.q_min:
+            raise ValueError("The q value given is outside of the range qmin:qmax ([{q_min}, {q_max}])".format(q_min=self.helper_grid.q_min, q_max=self.helper_grid.q_max))
+        #all the qs must be between the same two is (ie same two shells)
+        i,j,k=self.helper_grid.indices_from_angles(q, theta, phi)
+        m_index=self.helper_grid.index_from_indices(i,j,k)
+        if m_index > self.helper_grid.totalsz:
+            raise ValueError("Size overflow: the angle values you have given ({q}, {theta}, {phi}) produce an index ({index}) which exceeds"
+                             " the size of the calculated grid ({totalsz}".format(q=q, theta=theta, phi=phi, index = m_index, totalsz=self.helper_grid.totalsz))
+
+
+    def interpolate_theta_phi_plane(self, index, theta, phi):
+        """
+        :param index: index for grid layer
+        :param theta:
+        :param phi:
+        :return:
+        """
+        if type(index) != int and not index.is_integer():
+            raise TypeError("The first parameter (index for grid layer) must be of type integer,"
+                            " instead it was %s." % type(index))
+        if index < 0:
+            raise ValueError("The first parameter (index for grid layer) is %s, but it must"
+                             " be a positive integer" % index)
+        if index > self.helper_grid.N:
+            raise ValueError("The first parameter (index for grid layer) is %s, but it must"
+                             " be smaller than grid.actual_size %s" % (index, self.grid.actual_size))
+        if theta <0 or theta > math.pi:
+            raise ValueError("theta must be between 0 and pi")
+        if phi <0 or phi > 2*math.pi:
+            raise ValueError("phi must be between 0 and 2pi")
+        return self.grid.interpolate_theta_phi_plane(index, theta, phi)
+
+    def get_dim(self, x=1, y=1):
+        return self.grid.get_dim(x, y)
+
+    def validation_input_interpolate(self, q, theta, phi):
+        if not isinstance(q, (int, float)) or q < 0:
+            raise ValueError("The first parameter q is %s, but it must"
+                             " be a positive integer" % q)
+        if q > self.helper_grid.q_max:
+            raise ValueError("The first parameter q is %s, but it must"
+                             " be smaller than q_max: %s" % (q, self.helper_grid.q_max))
+        if not isinstance(theta, (int, float)) or theta < 0 or theta > math.pi :
+            raise ValueError("theta must be a valid number between 0 and pi")
+        if not isinstance(phi, (int, float)) or phi < 0 or phi > 2*math.pi:
+            raise ValueError("phi must be a valid number between 0 and 2pi")
+        if theta == math.pi:
+            theta = 0.0
+        if phi == 2*math.pi:
+            phi = 0.0
+        return float(q), float(theta), float(phi)
+
+    def __get_interpolation_q1(self, q, theta, phi):
+        """
+        Receives *one* q value and returns the interpolation for the point
+        :param q: a number (int or float) between q_min and q_max
+        :param theta: an angle
+        :param phi: an angle
+        :return: interpolation for the point
+        """
+        if not self.__initialized_splines:
+            raise ValueError("Cannot get interpolated data from uninitalized Amplitude. did you forget to call fill()?")
+        q, th, ph = self.validation_input_interpolate(q, theta, phi)
+        interp = self.grid.get_sphr(q, th, ph)
+        return interp
+
+    def get_interpolation(self, q_list, theta, phi):
+        """
+        :param q_list: list-double list of q's
+        :param theta: double theta angle
+        :param phi: double phi angle
+        :return: list interpolation of all the q's values
+        """
+        if isinstance(q_list, (int, float)):
+            return self.__get_interpolation_q1(q_list, theta, phi)
+        interp_list = []
+        try:
+            q_list.sort()
+            if min(q_list) < self.helper_grid.q_min or max(q_list) > self.helper_grid.q_max:
+                raise ValueError("The q values given is outside of the range q_min:q_max [{q_min}, {q_max}]. "
+                                 "Your range is [{min_val}, {max_val}]"
+                                 .format(q_min=self.helper_grid.q_min, q_max=self.helper_grid.q_max,min_val=min(q_list), max_val=max(q_list)))
+        except TypeError:
+            raise TypeError("The q values should include only numbers")
+        for q in q_list:
+            interp_list.append(self.__get_interpolation_q1(q, theta, phi))
+        return interp_list
 
     @staticmethod
     def _legacy_load(filename):
@@ -396,9 +532,9 @@ class Amplitude():
                 header_List.append(tmpExtras_r + b"\n")
                 header_List.append(step_size.tobytes())
 
-            amp = Amplitude(q_max, grid_size)
+            amp = Amplitude(grid_size, q_max)
             amp.extra_shells = extra_shells
-            amp.values = amp_values
+            amp._values = amp_values
             amp.external_headers = header_List
             return amp
 
@@ -414,7 +550,9 @@ class Amplitude():
         # legacy support
         extension = pathlib.Path(filename).suffix
         if extension == ".amp":
-            return Amplitude._legacy_load(filename)
+            amp= Amplitude._legacy_load(filename)
+            amp._calculate_splines()
+            return amp
 
         ampzip = zipfile.ZipFile(filename, mode='r')
         b_info = ampzip.read("criticalinfo.json")
@@ -439,10 +577,10 @@ class Amplitude():
         except KeyError:
             pass  # it's okay to not have headers
 
-        amp = Amplitude(q_max, grid_size)
+        amp = Amplitude(grid_size, q_max)
         amp.extra_shells = extra_shells
-        amp.values = amp_values
-        amp.calculate_splines()
+        amp._values = amp_values
+        amp._calculate_splines()
         amp.external_headers = header_dict
         return amp
 
@@ -453,7 +591,7 @@ def amp_to_ampj_converter(amp_filename):
     old_a.save(new_filename)
     new_a = Amplitude.load(new_filename)
 
-    for old, new in zip(old_a.values, new_a.values):
+    for old, new in zip(old_a._values, new_a._values):
         assert old == new
 
     return new_filename
@@ -465,7 +603,7 @@ def ampj_to_amp_converter(ampj_filename):
     ampj.old_save(new_filename)
     amp = Amplitude.load(new_filename)
 
-    for old, new in zip(ampj.values, amp.values):
+    for old, new in zip(ampj._values, amp._values):
         assert old == new
 
     return new_filename
@@ -492,8 +630,8 @@ def scrap():
 
 
 if __name__ == "__main__":
-    files = scrap()
-
+    #files = scrap()
+    files=[]
     for file in files:
         new = amp_to_ampj_converter(file)
         print(new)

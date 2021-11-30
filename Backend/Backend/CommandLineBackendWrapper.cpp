@@ -2,6 +2,7 @@
 #include "LocalBackend.h"
 #include "CommandLineBackendWrapper.h"
 #include "AmplitudeCache.h"
+namespace fs = boost::filesystem;
 using namespace std;
 
 void CommandLineBackendWrapper::GetAllModelMetadata(JsonWriter &writer)
@@ -78,8 +79,7 @@ void CommandLineBackendWrapper::SaveAmplitude(ModelPtr modelPtr, std::string fol
 	char _Dest[50];
 	sprintf(_Dest, "%08d.ampj", modelPtr);
 	std::string filename(_Dest);
-	std::string filepath = folderpath + filename;
-
+	std::string  filepath = (boost::filesystem::path(folderpath) / boost::filesystem::path(filename)).string();
 	std::string amp = "";
 
 	try
@@ -101,8 +101,8 @@ void CommandLineBackendWrapper::SavePDB(ModelPtr modelPtr, std::string folderpat
 	char _Dest[50];
 	sprintf(_Dest, "%08d.pdb", modelPtr);
 	std::string filename(_Dest);
-	std::string filepath = folderpath + filename;
-
+	std::string filepath = (boost::filesystem::path(folderpath) / boost::filesystem::path(filename)).string();
+	
 	std::string pdb = "";
 
 	try
@@ -124,4 +124,9 @@ void CommandLineBackendWrapper::SavePDB(ModelPtr modelPtr, std::string folderpat
 		//we try getting pdb even on models that don't have
 		//hence, for these models, we simply continue without saving a file-- hence the empty catch statement
 	}
+}
+
+void CommandLineBackendWrapper::CheckCapabilities(bool checkTdr)
+{
+	BackendWrapper::CheckCapabilities(checkTdr);
 }

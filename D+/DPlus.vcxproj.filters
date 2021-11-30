@@ -91,6 +91,10 @@
     <ClCompile Include="MainWindowLua.cpp">
       <Filter>Forms\Main Window</Filter>
     </ClCompile>
+    <ClCompile Include="ManagePythonPreCaller.cpp" />
+    <ClCompile Include="ControlButtonsPane.cpp">
+      <Filter>Forms\Main Window\Docking Panes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MainWindow.h">
@@ -162,6 +166,10 @@
     </ClInclude>
     <ClInclude Include="TdrLevelInfo.h">
       <Filter>Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="ManagePythonPreCaller.h" />
+    <ClInclude Include="ControlButtonsPane.h">
+      <Filter>Forms\Main Window\Docking Panes</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

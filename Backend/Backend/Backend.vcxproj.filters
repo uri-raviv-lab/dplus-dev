@@ -416,6 +416,9 @@
     <ClInclude Include="backend_exception.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Residual.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\Common\Eigen\Array">

@@ -154,18 +154,6 @@ void DPlus::Controls3D::TextBox_KeyDown(System::Object^ sender, System::Windows:
 	}
 }
 
-System::Void DPlus::Controls3D::generateButton_Click( System::Object^ sender, System::EventArgs^ e ) {
-	parentForm->Generate(); //1
-}
-
-System::Void DPlus::Controls3D::fitButton_Click(System::Object^ sender, System::EventArgs^ e) {
-	parentForm->Fit();
-}
-
-System::Void DPlus::Controls3D::stopButton_Click(System::Object^ sender, System::EventArgs^ e) {
-	parentForm->Stop();
-}
-
 System::String ^DPlus::Controls3D::SerializePreferences() {
 	String ^contents = "";
 
@@ -192,6 +180,8 @@ System::String ^DPlus::Controls3D::SerializePreferences() {
 	contents += "\tAxes_at_origin = " + (this->showAxesCheckBox->Checked ? "true" : "false") + ",\n";
 	contents += "\tAxes_in_corner = " + (this->showCornerAxesCheckBox->Checked ? "true" : "false") + ",\n";
 
+	contents += "\tDrawDistance = " + this->drawDistTrackbar->Value + ",\n";
+	contents += "\tLevelOfDetail = " + this->lodTrackbar->Value + ",\n";
 
 	contents += "};\n";
 
@@ -249,36 +239,39 @@ void DPlus::Controls3D::DeserializePreferences(LuaTable ^viewPrefs) {
 		this->showAxesCheckBox->Checked = LuaItemToBoolean(viewPrefs["Axes_at_origin"]);
 	if(viewPrefs["Axes_in_corner"] != nullptr)
 		this->showCornerAxesCheckBox->Checked = LuaItemToBoolean(viewPrefs["Axes_in_corner"]);
-}
 
-System::Void DPlus::Controls3D::textBox_Leave(System::Object^ sender, System::EventArgs^ e)
-{
-	TextBox ^source = dynamic_cast<TextBox^>(sender);
-	double res;
-
-	if(Double::TryParse(source->Text, res) || source->Text->StartsWith("=")) {
-		if(source->Text->StartsWith("=")) {
-			res = parentForm->LuaParseExpression(source->Text->Substring(1));
-			source->Text = res.ToString();
-		}
-
-		// Set the scale parameter in the parent form
-		if (source == scaleBox)
-			parentForm->domainScale = res;
-		else if (source == constantBox)
-			parentForm->domainConstant = res;
+	if(viewPrefs["DrawDistance"] != nullptr) {
+	drawDistTrackbar->Value = (LuaItemToDouble(viewPrefs["DrawDistance"]), drawDistTrackbar->Minimum, drawDistTrackbar->Maximum);
+	drawDistTrack_Scroll(drawDistTrackbar, nullptr);
 	}
-}
 
-System::Void DPlus::Controls3D::textBox_KeyDown(System::Object^ sender, System::Windows::Forms::KeyEventArgs^ e)
-{
-	if(e->KeyCode == Keys::Enter || e->KeyCode == Keys::Return
-		|| e->KeyCode == Keys::Escape) {
-			parentForm->takeFocus(sender, e);
-			e->Handled = true;
+	if(viewPrefs["LevelOfDetail"] != nullptr) {
+	lodTrackbar->Value = (LuaItemToDouble(viewPrefs["LevelOfDetail"]), lodTrackbar->Minimum, lodTrackbar->Maximum);
+	lodTrackbar_Scroll(lodTrackbar, nullptr);
 	}
+
 }
 
+System::Void DPlus::Controls3D::drawDistTrack_Scroll(System::Object^ sender, System::EventArgs^ e) {
+	GraphPane3D ^g3 = (GraphPane3D ^)(parentForm->PaneList[GRAPH3D]);
+
+	g3->glCanvas3D1->DrawFog = true;
+	g3->glCanvas3D1->ViewDistance = (float)drawDistTrackbar->Value;
+	if (drawDistTrackbar->Value == drawDistTrackbar->Maximum)
+		g3->glCanvas3D1->ViewDistance = 2000.0f;
+
+	g3->glCanvas3D1->Invalidate();
+	g3->Invalidate();
+}
+
+System::Void DPlus::Controls3D::lodTrackbar_Scroll(System::Object^ sender, System::EventArgs^ e) {
+	GraphPane3D ^g3 = (GraphPane3D ^)(parentForm->PaneList[GRAPH3D]);
+
+	g3->InvalidateEntities(LevelOfDetail(lodTrackbar->Value));
+
+	g3->glCanvas3D1->Invalidate();
+	g3->Invalidate();
+}
 
 System::Void DPlus::Controls3D::SetDefaultParams()
 {
@@ -300,13 +293,10 @@ System::Void DPlus::Controls3D::SetDefaultParams()
 
 	this->fixedSize_checkBox->Checked = false;
 	this->fixedSize_checkBox->CheckState = System::Windows::Forms::CheckState::Unchecked;
+
+	this->lodTrackbar->Value = 1;
+	lodTrackbar_Scroll(NULL, gcnew EventArgs());
+	this->drawDistTrackbar->Value = 200;
+	drawDistTrack_Scroll(NULL, gcnew EventArgs());
 	
-	this->scaleMut->Checked = false;
-	this->scaleMut->CheckState = System::Windows::Forms::CheckState::Unchecked;
-
-	this->constantMut->Checked = false;
-	this->constantMut->CheckState = System::Windows::Forms::CheckState::Unchecked;
-
-	this->scaleBox->Text = L"1";
-	this->constantBox->Text = L"0";
 }

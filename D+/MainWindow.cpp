@@ -16,6 +16,7 @@
 #include "GraphPane3D.h"
 #include "SymmetryEditor.h"
 #include "SymmetryView.h"
+#include "ControlButtonsPane.h"
 #include "PreferencesPane.h"
 #include "Controls3D.h"
 #include "ParameterEditor.h"
@@ -200,6 +201,7 @@ namespace DPlus {
 		GraphPane2D ^grph2D = gcnew GraphPane2D(this);
 		GraphPane3D ^grph3D = gcnew GraphPane3D(this);
 		SymmetryView ^sv = gcnew SymmetryView(this);
+		ControlButtonsPane ^ gf = gcnew ControlButtonsPane(this);
 		SymmetryEditor ^se = gcnew SymmetryEditor(this, sv);
 		PreferencesPane ^pr = gcnew PreferencesPane(this);
 		Controls3D ^cn3 = gcnew Controls3D(this, grph3D);
@@ -216,6 +218,7 @@ namespace DPlus {
 		PaneList->Add(cn3);
 		PaneList->Add(pe);
 		PaneList->Add(fp);
+		PaneList->Add(gf);
 
 		MenuPaneList->Add(Graph2DToolStripMenuItem);
 		MenuPaneList->Add(Graph3DToolStripMenuItem);
@@ -225,6 +228,7 @@ namespace DPlus {
 		MenuPaneList->Add(controls3DToolStripMenuItem);
 		MenuPaneList->Add(parameterEditorToolStripMenuItem);
 		MenuPaneList->Add(fittingPreferencesToolStripMenuItem);
+		MenuPaneList->Add(GenerateFitToolStripMenuItem);
 
 		if (luaState != nullptr) {
 			sp = gcnew ScriptPane(this, luaState);
@@ -343,7 +347,15 @@ namespace DPlus {
 
 		if (useLocal)
 		{
-			backendCaller = new LocalBackendCaller();
+			//backendCaller = new LocalBackendCaller();
+			String^ current_path = Path::GetDirectoryName(Application::ExecutablePath);
+			msclr::interop::marshal_context context;
+			std::string cur_dir_str = context.marshal_as<std::string>(current_path);
+
+			pythonCall = gcnew ManagedPythonPreCaller(cur_dir_str);
+			ManagedPythonPreCaller::CallBackendDelegate ^ pyDel = pythonCall->GetDelegate();
+			ManagedBackendCaller::callFunc funcPtr = (ManagedBackendCaller::callFunc)Marshal::GetFunctionPointerForDelegate(pyDel).ToPointer();
+			backendCaller = new ManagedBackendCaller(funcPtr, true);
 		}
 
 		else
@@ -493,6 +505,7 @@ namespace DPlus {
 		ParameterEditor ^pe = (ParameterEditor ^)PaneList[PARAMETER_EDITOR];
 		PreferencesPane ^pr = (PreferencesPane ^)PaneList[PREFERENCES];
 		FittingPrefsPane ^fp = (FittingPrefsPane ^)PaneList[FITTINGPREFS];
+		ControlButtonsPane ^ gf = (ControlButtonsPane ^)PaneList[CALC_BUTTONS];
 		ScriptPane ^sp = nullptr;
 		CommandWindow ^cw = nullptr;
 
@@ -515,10 +528,11 @@ namespace DPlus {
 
 
 		sv->Show(mainDockPanel, DockState::DockLeft);
-		se->Show(sv->Pane, DockAlignment::Bottom, 0.5);
+		se->Show(sv->Pane, DockAlignment::Bottom, 0.4);
 
-
+		
 		cn3->Show(mainDockPanel, DockState::DockRight);
+		gf->Show(cn3->Pane, DockAlignment::Top, 0.15);
 		pr->Show(cn3->Pane, DockAlignment::Bottom, 0.5);
 
 		mainDockPanel->UpdateDockWindowZOrder(DockStyle::Bottom, true);
@@ -529,10 +543,14 @@ namespace DPlus {
 		Controls3D ^cn3 = (Controls3D ^)PaneList[CONTROLS];
 		PreferencesPane ^pr = (PreferencesPane ^)PaneList[PREFERENCES];
 		FittingPrefsPane ^fp = (FittingPrefsPane ^)PaneList[FITTINGPREFS];
+		SymmetryView ^ sv = (SymmetryView ^)PaneList[SYMMETRY_VIEWER];
+		ControlButtonsPane ^ gf = (ControlButtonsPane ^)PaneList[CALC_BUTTONS];
 
 		pr->SetDefaultParams();
 		fp->SetDefaultParams();
 		cn3->SetDefaultParams();
+		sv->SetDefaultParams();
+		gf->SetDefaultParams();
 	}
 	bool MainWindow::LoadLayout(System::String^ fileName) {
 		// Confirm existence of file
@@ -594,6 +612,8 @@ namespace DPlus {
 			return PaneList[COMMAND_WINDOW];
 		if (persistString->Equals(FittingPrefsPane::typeid->FullName))
 			return PaneList[FITTINGPREFS];
+		if (persistString->Equals(ControlButtonsPane::typeid->FullName))
+			return PaneList[CALC_BUTTONS];
 
 		MessageBox::Show("Unrecognized type: " + persistString);
 
@@ -995,9 +1015,9 @@ namespace DPlus {
 	}
 
 	void MainWindow::Stop() {
-		Controls3D ^cn3 = (Controls3D ^)PaneList[CONTROLS];
-		cn3->stopButton->Enabled = false;
-		EnableGenDFitButton(!cn3->stopButton->Enabled);
+		ControlButtonsPane ^gf = (ControlButtonsPane ^)PaneList[CALC_BUTTONS];
+		gf->stopButton->Enabled = false;
+		EnableGenDFitButton(!gf->stopButton->Enabled);
 		frontend->Stop(job);
 	}
 
@@ -1014,11 +1034,11 @@ namespace DPlus {
 		//if(!progressBar->Visible)
 		//	progressBar->Visible = true;		
 
-		Controls3D ^cn3 = (Controls3D ^)PaneList[CONTROLS];
-		if (!cn3->stopButton->Enabled)
+		ControlButtonsPane ^ gf = (ControlButtonsPane ^)PaneList[CALC_BUTTONS];
+		if (!gf->stopButton->Enabled)
 		{
-			cn3->stopButton->Enabled = true;
-			EnableGenDFitButton(!cn3->stopButton->Enabled);
+			gf->stopButton->Enabled = true;
+			EnableGenDFitButton(!gf->stopButton->Enabled);
 		}
 
 		if (progress < 0)
@@ -1067,6 +1087,7 @@ namespace DPlus {
 
 			SymmetryView ^sv = (SymmetryView ^)PaneList[SYMMETRY_VIEWER];
 			ParameterEditor ^pe = (ParameterEditor ^)PaneList[PARAMETER_EDITOR];
+
 			Entity ^ent = sv->GetSelectedEntity();
 			// If an entity is selected, reload parameters in UI
 			if (ent) {
@@ -1090,9 +1111,10 @@ namespace DPlus {
 
 		if (tbm) tbm->SetProgressState(TaskbarProgressBarState::NoProgress);
 		progressBar->Value = 0;
-		Controls3D ^cn3 = (Controls3D ^)PaneList[CONTROLS];
-		cn3->stopButton->Enabled = false;
-		EnableGenDFitButton(!cn3->stopButton->Enabled);
+
+		ControlButtonsPane ^ gf = (ControlButtonsPane ^)PaneList[CALC_BUTTONS];
+		gf->stopButton->Enabled = false;
+		EnableGenDFitButton(!gf->stopButton->Enabled);
 		progressBar->Visible = false;
 
 		if (error) {
@@ -1713,8 +1735,8 @@ namespace DPlus {
 		paramStruct compositeps = pt->GetNodeParameters(2 + populationTrees->Count, 0);
 		domainScale = compositeps.params[0][0].value;
 		domainConstant = compositeps.params[1][0].value;
-		c3->scaleBox->Text = "" + domainScale;
-		c3->constantBox->Text = "" + domainConstant;
+		sv->scaleBox->Text = "" + domainScale;
+		sv->constantBox->Text = "" + domainConstant;
 
 		// Re-create entity tree from parameter tree
 		// Modify population sizes
@@ -2114,16 +2136,16 @@ namespace DPlus {
 			return;
 		}
 
-		Controls3D ^cn3 = (Controls3D ^)PaneList[CONTROLS];
-		cn3->stopButton->Enabled = true;
-		EnableGenDFitButton(!cn3->stopButton->Enabled);
+		ControlButtonsPane ^gf = (ControlButtonsPane ^)PaneList[CALC_BUTTONS];
+		gf->stopButton->Enabled = true;
+		EnableGenDFitButton(!gf->stopButton->Enabled);
 
 	}
 	void MainWindow::EnableGenDFitButton(bool newStatus)
 	{
-		Controls3D ^cn3 = (Controls3D ^)PaneList[CONTROLS];
-		cn3->generateButton->Enabled = newStatus;
-		cn3->fitButton->Enabled = newStatus;
+		ControlButtonsPane ^gf = (ControlButtonsPane ^)PaneList[CALC_BUTTONS];
+		gf->generateButton->Enabled = newStatus;
+		gf->fitButton->Enabled = newStatus;
 	}
 
 	System::Void MainWindow::Figure_FormClosing(System::Object^ sender, System::Windows::Forms::FormClosingEventArgs^ e) {
@@ -2461,7 +2483,7 @@ namespace DPlus {
 
 		for each (String ^ table in _tableNames)
 		{
-			Object ^ res = paramLua->DoString("raw_json_text= JSON:encode(" + table + ")");
+			Object ^ res = paramLua->DoString("raw_json_text= JSON:encode_pretty(" + table + ")");
 			String ^ str = (String ^)paramLua["raw_json_text"];
 			json += "\"" + table + "\": " + str + ",";
 
@@ -2797,7 +2819,7 @@ namespace DPlus {
 	}
 
 	LevelOfDetail MainWindow::GetLevelOfDetail() {
-		return LevelOfDetail(((PreferencesPane ^)PaneList[PREFERENCES])->lodTrackbar->Value);
+		return LevelOfDetail(((Controls3D ^)PaneList[CONTROLS])->lodTrackbar->Value);
 	}
 
 	System::Void MainWindow::export1DGraphToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) {
@@ -3011,14 +3033,15 @@ namespace DPlus {
 	paramStruct MainWindow::GetCompositeDomainParameters()
 	{
 		Controls3D ^c3d = dynamic_cast<Controls3D ^>(PaneList[CONTROLS]);
+		SymmetryView ^ sv = dynamic_cast<SymmetryView ^>(PaneList[SYMMETRY_VIEWER]);
 
 		// Get and set the parameters for the composite
 		paramStruct ps;
 		ps.nlp = 2 + domainModels->Count; // THE NUMBER OF PARAMS + NUMBER OF SUBDOMAINS
 		ps.layers = 1;
 		ps.params.resize(ps.nlp);
-		ps.params[0].push_back(Parameter(domainScale, c3d->scaleMut->Checked)); // SCALE
-		ps.params[1].push_back(Parameter(domainConstant, c3d->constantMut->Checked)); // Constant
+		ps.params[0].push_back(Parameter(domainScale, sv->scaleMut->Checked)); // SCALE
+		ps.params[1].push_back(Parameter(domainConstant, sv->constantMut->Checked)); // Constant
 		// Change the constraints if/when we create a way for the user to modify them
 		for (int i = 0; i < domainModels->Count; i++)
 			ps.params[i + 1].push_back(Parameter(populationSizes[i], populationSizeMutable[i], true, 0.)); // AVERAGE POPULATION SIZE
@@ -3296,13 +3319,13 @@ namespace DPlus {
 	{
 		System::Diagnostics::Process::Start("https://scholars.huji.ac.il/uriraviv/book/d-0");
 	}
-	void MainWindow::checkCapabilitiesMainWind(){
+	void MainWindow::checkCapabilitiesMainWind() {
 		ErrorCode err = frontend->CheckCapabilities(UseGPU);
 		if (err != OK) {
 			if (err == ERROR_TDR_LEVEL) {
 				TdrLevelInfo ^cw = gcnew TdrLevelInfo();
 				cw->ShowDialog();
-				while (cw->retry){
+				while (cw->retry) {
 					err = frontend->CheckCapabilities(UseGPU);
 					if (err == ERROR_TDR_LEVEL)
 						cw->ShowDialog();
@@ -3321,7 +3344,7 @@ namespace DPlus {
 				}
 				else
 				{
-					MessageBox::Show(gcnew String(g_errorStrings[err]), "Error", MessageBoxButtons::OK, MessageBoxIcon::Error);
+					HandleErr("ERROR check capabilities", err);
 					this->Close();
 					return;
 				}

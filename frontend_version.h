@@ -9,8 +9,8 @@
 
 // The version is used in RC files for resources, so it must be broken into elements
 #define FRONTEND_VERSION_MAJOR 4 //releases to public, eg each version that goes to a reviewer
-#define FRONTEND_VERSION_MINOR 3 //significant new features or changes in how running D+ works
-#define FRONTEND_VERSION_REVISION 1//minor changes and bug fixes
+#define FRONTEND_VERSION_MINOR 5 //significant new features or changes in how running D+ works
+#define FRONTEND_VERSION_REVISION 0//minor changes and bug fixes
 // Don't use this field for creating different installer versions as
 // WiX (and MSI) MSI specifically ignore this field when comparing versions.
 // This leads to many versions being installed in the same place and being

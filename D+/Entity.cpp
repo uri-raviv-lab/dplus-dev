@@ -2,7 +2,7 @@
 #include <GL/gl.h>
 
 #include "Entity.h"
-
+#include "clrfunctionality.h"
 #include "GraphPane3D.h" // For PDB rendering
 
 using Aga::Controls::Tree::Node;
@@ -325,5 +325,183 @@ bool Entity::IsParentUseGrid()
 	return ent->IsParentUseGrid();
 
 }
+void Entity::validateConstrains(System::Collections::Generic::List<Entity^>^ invalidVec)
+{
+	if (!params)
+		return ;
 
+	bool hasInvalidParam = false;
+	if (params->nExtraParams > 0)
+	{
+
+		std::vector<Parameter> tmpEP = params->extraParams;
+		for (Parameter p : tmpEP) {
+			if (!p.ParamValidateConstraint())
+				hasInvalidParam = true;
+		}
+	}
+	for (std::vector<Parameter> paramsVec : params->params) {
+		for (Parameter p : paramsVec) {
+			if (!p.ParamValidateConstraint())
+				hasInvalidParam = true;
+		}
+	}
+	if (!params->x.ParamValidateConstraint() || !params->y.ParamValidateConstraint() || !params->z.ParamValidateConstraint()
+		|| !params->alpha.ParamValidateConstraint() || !params->beta.ParamValidateConstraint() || !params->gamma.ParamValidateConstraint())
+		hasInvalidParam = true;
+	
+	if (hasInvalidParam)
+		invalidVec->Add(this);
+
+	for (int i = 0; i < Nodes->Count; i++)
+	{
+		Entity^ ent = dynamic_cast<Entity^>(this->Nodes[i]);
+		ent->validateConstrains(invalidVec);
+	}
+	return ;
+}
+System::String^ Entity::InvalidParamsString()
+{
+	System::String^ invalidString = "";
+	if (!params)
+		invalidString;
+	System::String^ ExtraString = "";
+	System::String^ ParametersString = "";
+	System::String^ XYZABGString = "";
+	if (params->nExtraParams > 0)
+	{
+		std::vector<Parameter> tmpEP = params->extraParams;
+		
+		for (int i = 0; i < params->nExtraParams; i++)
+		{
+			if (tmpEP[i].ParamValidateConstraint())
+				continue;
+			ExtraParam ext = this->modelUI->GetExtraParameter(i);
+			ExtraString += String::Format("{0}, ", stringToClr(ext.name));
+		}
+		//ExtraString = "Extra params: \n" + ExtraString + "\n";
+		if (ExtraString->Length > 0)
+			ExtraString = "Extra params: " + ExtraString->Remove(ExtraString->Length - 2) + "\n";
+		//ExtraString += "\n";
+	}
+	int layers_num = params->layers;
+	int param_size = params->params.size();
+	if (param_size == layers_num) {
+		for (int i = 0; i < params->params.size(); i++)
+		{
+			std::vector<Parameter> paramsVec = params->params[i];
+			System::String^ paramString = "";
+			std::string layer = this->modelUI->GetLayerName(i);
+			for (int j = 0; j < paramsVec.size(); j++)
+			{
+				if (paramsVec[j].ParamValidateConstraint())
+					continue;
+
+				std::string paramN = this->modelUI->GetLayerParamName(j);
+				paramString += String::Format("{0},", stringToClr(paramN));
+			}
+			if (paramString->Length > 0)
+			{
+				paramString = paramString->Remove(paramString->Length - 1);
+				ParametersString += String::Format("param layer:{0}, params names: {1} \n", stringToClr(layer), paramString);
+			}
+		}
+	}
+	if (param_size < layers_num) // scripted symmetry for example
+	{
+		for (int i = 0; i < params->params.size(); i++)
+		{
+			std::vector<Parameter> paramsVec = params->params[i];
+			System::String^ paramString = "";
+			for (int j = 0; j < paramsVec.size(); j++)
+			{
+				if (paramsVec[j].ParamValidateConstraint())
+					continue;
+				std::string paramN = this->modelUI->GetLayerName(j);
+				paramString += String::Format("{0},", stringToClr(paramN));
+			}
+			if (paramString->Length > 0)
+			{
+				paramString = paramString->Remove(paramString->Length - 1);
+				ParametersString += String::Format("params layer:{0} \n", paramString);
+			}
+		}
+	}
+	if (param_size > layers_num) // manual symmetry for example - the layers are the params and the params are the layers.... :(
+	{
+		for (int i = 0; i < layers_num; i++)
+		{
+			System::String^ paramString = "";
+			for (int j = 0; j < param_size; j++)
+			{
+				Parameter parameter = params->params[j][i];
+				if (parameter.ParamValidateConstraint())
+					continue;
+				std::string paramN = this->modelUI->GetLayerParamName(j);
+				paramString += String::Format("{0},", stringToClr(paramN));
+			}
+			std::string layer = this->modelUI->GetLayerName(i);
+			if (paramString->Length > 0) 
+			{
+				paramString = paramString->Remove(paramString->Length - 1);
+				ParametersString += String::Format("param layer:{0}, params names: {1} \n", stringToClr(layer), paramString);
+			}
+		}
+	}
+
+	int num = this->modelUI->GetMaxLayers();
+	if (!params->x.ParamValidateConstraint())
+		XYZABGString += "X,";
+	if (!params->y.ParamValidateConstraint())
+		XYZABGString += "Y,";
+	if (!params->z.ParamValidateConstraint())
+		XYZABGString += "Z,";
+	if (!params->alpha.ParamValidateConstraint())
+		XYZABGString += "Alpha,";
+	if (!params->beta.ParamValidateConstraint())
+		XYZABGString += "Beta,";
+	if (!params->gamma.ParamValidateConstraint())
+		XYZABGString += "Gama,";
+
+	if (XYZABGString->Length > 0)
+		XYZABGString = XYZABGString->Remove(XYZABGString->Length - 1);
+
+	invalidString = this->modelName + ": \n" + XYZABGString + "\n" + ParametersString + ExtraString;
+	return invalidString;
+}
+
+void Entity::FixConstrains()
+{
+	if (!params)
+		return;
+
+	bool hasInvalidParam = false;
+	if (params->nExtraParams > 0)
+	{
+
+		std::vector<Parameter> tmpEP = params->extraParams;
+		for (int i = 0; i < params->extraParams.size(); i++)
+		{
+			if (!params->extraParams[i].ParamValidateConstraint())
+				params->extraParams[i].SwapMinMaxValue();
+		}
+	}
+
+	for (int i = 0; i < params->params.size(); i++)
+	{
+		for (int j = 0; j < params->params[i].size(); j++)
+		{
+			if (!params->params[i][j].ParamValidateConstraint())
+				params->params[i][j].SwapMinMaxValue();
+		}
+	}
+	if (!params->x.ParamValidateConstraint()) params->x.SwapMinMaxValue();
+	if (!params->y.ParamValidateConstraint()) params->y.SwapMinMaxValue();
+	if (!params->z.ParamValidateConstraint()) params->z.SwapMinMaxValue();
+	if (!params->alpha.ParamValidateConstraint()) params->alpha.SwapMinMaxValue();
+	if (!params->beta.ParamValidateConstraint()) params->beta.SwapMinMaxValue();
+	if (!params->gamma.ParamValidateConstraint()) params->gamma.SwapMinMaxValue();
+
+	return;
+}
 }

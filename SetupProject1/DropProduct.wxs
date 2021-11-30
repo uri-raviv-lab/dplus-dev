@@ -17,7 +17,7 @@
 <Property Id="ALLUSERS" Value="1" />
 -->
     <Binary Id="AVXAction.CA.dll"
-            src="..\SetupProject1\CustomActionAVX\bin\$(var.Configuration)\CustomActionAVX.CA.dll" />
+            SourceFile="..\SetupProject1\CustomActionAVX\bin\$(var.Configuration)\CustomActionAVX.CA.dll" />
     <CustomAction Id="checkAVX"
              Return="check"
              Execute="immediate"
@@ -53,6 +53,7 @@
 
     <Feature Id="ProductFeature" Title="Setup D+ (full)" Level="1">
       <ComponentGroupRef Id="DPlusComponents" />
+      <ComponentGroupRef Id="HeatPython35" />
     </Feature>
 
     <Feature Id="LuaFilesFeature" Title="Setup D+ Lua Files (full)" Level="1">
@@ -96,7 +97,10 @@
 			<Directory Id="ProgramFiles64Folder">
 				<Directory Id="INSTALLFOLDER" Name="D+">
   				<Directory Id="BIN_DIR" Name="bin">
-            <Directory Id="ResourcesDirectory" Name="Resources" />
+            <Directory Id="ResourcesDirectory" Name="Resources" >
+              <Directory Id="CSharpPythonDirectory" Name="CSharpPython"/>
+            </Directory>
+            <Directory Id="PythonsDirectory" Name="Python35"/>
   			  </Directory>
           <Directory Id="LuaScriptsDirectoryID" Name="LuaScripts"/>
           <Directory Id="ExampleFilesDirectoryID" Name="Example Files" >
@@ -628,8 +632,7 @@
           <Component Id="SuggestParametersExecutable" Directory="BIN_DIR" Guid="*">
             <File Id="SuggestParametersEXE" KeyPath="yes" Source="..\x64\Release\Suggest Parameters.exe" >   </File>
           </Component>
-          <!--       -->
-          <!--          -->
+
 
        <Component Id="CMP_Shortcuts" Directory="DIR_Shortcuts" Guid="*">
 
@@ -730,6 +733,12 @@
           <Component Id="cmpA80B4AD020AF2751F84E074C35601BE6" Directory="ResourcesDirectory" Guid="*">
             <File Id="batfile" KeyPath="yes" Source="..\x64\Release\Resources\restartdplus.bat" />
           </Component>
+          <Component Id="cmpA80B4AD020AF2751F84E074C35601BE7" Directory="CSharpPythonDirectory" Guid="*">
+            <File Id="initfile" KeyPath="yes" Source="..\PythonBackend\PythonBackend\CSharpPython\__init__.py" />
+          </Component>
+          <Component Id="cmpA80B4AD020AF2751F84E074C35601BE8" Directory="CSharpPythonDirectory" Guid="*">
+            <File Id="CSharpPythonEntryfile" KeyPath="yes" Source="..\PythonBackend\PythonBackend\CSharpPython\CSharpPythonEntry.py" />
+          </Component>
 
           
           <!-- Backend -->  
@@ -737,22 +746,21 @@
             <Component Id="cmpB516684B5F59B2615F87F6EC589AC915" Directory="BIN_DIR" Guid="*">
                 <File Id="fil690C52429319C30060CC6D1FC47B8F23" KeyPath="yes" Source="..\x64\Release\xplusbackend.dll" />
             </Component>
-            <Component Id="cmp072DFC29EBFF2E2A4133D92393AA2A19" Directory="BIN_DIR" Guid="*">
-                <File Id="filB17367551D46DCBD2B5C5350A9D3E6E1" KeyPath="yes" Source="..\x64\Release\ceres.dll" />
-            </Component>
-            <Component Id="cmp6C0CCBF5D643D9CB5ABACE0855E5E5BF" Directory="BIN_DIR" Guid="*">
-                <File Id="filBF8A45DD618E0C176B61CCCF25889F45" KeyPath="yes" Source="..\x64\Release\cudart64_100.dll" />
-            </Component>
-            <Component Id="cmpD2911B31DBED0CB91D65B1EEC4E47817" Directory="BIN_DIR" Guid="*">
-                <File Id="filE6D38F4F591DFF5E4454097F9ECB25E4" KeyPath="yes" Source="..\x64\Release\curand64_100.dll" />
-            </Component>
+          <Component Id="cmp072DEC29FGHH2E2A4133D92393AA2A19" Directory="BIN_DIR" Guid="*">
+            <File Id="filB17367551E46ECBD2C5C5350A9D3F6F1" KeyPath="yes" Source="..\x64\Release\ceres1.12.dll" />
+          </Component>
             <Component Id="cmpAD1143F15FE009B5CE4EB9C13E94B5AA" Directory="BIN_DIR" Guid="*">
                 <File Id="filE0CAD4BC2A915C78C88C7B3E070CBA38" KeyPath="yes" Source="..\x64\Release\JSON.lua" />
             </Component>
                 <Component Id="cmp31B1399A6FEAFEB989AAD4E2C597D9F8" Directory="BIN_DIR" Guid="*">
                 <File Id="filA5233125D850EF90CEDBCC60E715520A" KeyPath="yes" Source="..\x64\Release\lua51-backend.dll" />
             </Component>
-          
+            <Component Id="cmp31B1399A6FEAFEB989AAD4E2C597D9F9" Directory="BIN_DIR" Guid="*">
+            <File Id="filA5233125D850EF90CEDBCC60E715520C" KeyPath="yes" Source="..\x64\Release\Python.Runtime.dll" />
+          </Component>
+          <Component Id="Python" Directory="BIN_DIR" Guid="*">
+            <File Id="Pythondll" KeyPath="yes" Source="..\x64\Release\PythonBackend.dll" >   </File>
+          </Component>
           <!-- Command line -->  
           
           <Component Id="cmpB2AC696E940A3575D0DBE741B2B6B451" Directory="BIN_DIR" Guid="*">
@@ -764,6 +772,9 @@
             <Component Id="cmp3E3FA747B92CD969E711DCDED36F3D46" Directory="BIN_DIR" Guid="*">
                 <File Id="fil3013CE23AC4D3773474F66A794F23926" KeyPath="yes" Source="..\x64\Release\GetAllMetadata.exe" />
             </Component>
+          <Component Id="cmp3E3FA747B92CD969E711DCDED36F3D47" Directory="BIN_DIR" Guid="*">
+            <File Id="fil3013CE23AC4D3773474F66A794F23927" KeyPath="yes" Source="..\x64\Release\CheckCapabilities.exe" />
+          </Component>
 
           <!-- Misc. -->  
           

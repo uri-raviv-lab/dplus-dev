@@ -13,7 +13,7 @@ class CalculationInput(State):
 
     def __init__(self, use_gpu=True):
         super().__init__()
-        self.use_gpu = use_gpu
+        self._use_gpu = use_gpu
 
     @property
     def use_gpu(self):
@@ -58,7 +58,7 @@ class CalculationInput(State):
 
         :return: The json dict that is send to D+ backed
         """
-
+        self.validate_use_grid()
         return dict(args=dict(state=self.serialize(),
                               x=self.x,
                               y=self.y,

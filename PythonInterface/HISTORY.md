@@ -1,5 +1,22 @@
 The DPLus Python Wrapper
-=================
+========================
+4.3.7
+----------------
+* Added classes ParameterContainers, Layers, Children to help with input validation
+* added function add_layer
+* reworked dynamic loading so variables that should be hidden from user are hidden
+* fixed an infinity json encoding bug
+ 
+4.3.6
+----------------
+* added interpolation
+* renamed CythonWrapping to CythonGrid
+* changed function create_grid to return `index, (q,theta,phi)` instead of `q, theta, phi` 
+
+4.3.5
+----------------
+* fix installation error that was caused from JacobianSphereGrid
+
 4.3.1
 ---------------- 
 * add the class Signal with represent signal file. All the references to x and y in the other class now passes through Signal class

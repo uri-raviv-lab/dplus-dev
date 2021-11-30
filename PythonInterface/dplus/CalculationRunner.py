@@ -37,38 +37,42 @@ _is_windows = platform.system() == 'Windows'
 class Runner(object):
     """abstract class that presents the interface for dplus calls."""
 
-    def generate(self, calc_data):
+    def generate(self, calc_data, save_amp=True):
         '''
         run sync dplus generate.
 
         :param calc_data: an instance of a CalculationInput class
+        :param save_amp: bool , should the system save amp and pdb at the end of calculation
         :rtype: an instance of a GenerateResult class
         '''
         raise NotImplemented
 
-    def generate_async(self, calc_data):
+    def generate_async(self, calc_data, save_amp=True):
         '''
         run async dplus generate.
 
         :param calc_data: an instance of a CalculationInput class
+        :param save_amp: bool , should the system save amp and pdb at the end of calculation
         :rtype: an instance of a RunningJob class
         '''
         raise NotImplemented
 
-    def fit(self, calc_data):
+    def fit(self, calc_data, save_amp=True):
         '''
         run sync dplus fit.
 
         :param calc_data: an instance of a CalculationInput class
+        :param save_amp: bool , should the system save amp and pdb at the end of calculation
         :rtype: an instance of a FitResult class
         '''
         raise NotImplemented
 
-    def fit_async(self, calc_data):
+    def fit_async(self, calc_data, save_amp=True):
         '''
         run async dplus fit.
 
         :param calc_data: an instance of a CalculationInput class
+        :param save_amp: bool , should the system save amp and pdb at the end of calculation
         :rtype: an instance of a RunningJob class
         '''
         raise NotImplemented
@@ -208,11 +212,28 @@ class LocalRunner(Runner):
                         break
                 except (AssertionError, FileNotFoundError, BlockingIOError) as e:
                     if x == 4:
-                        return {"error": {"code": "22", "message": "failed to read job status"}}
+                        return {"error": {"code": 22, "message": "failed to read job status"}}
                     time.sleep(0.1)
             try:
                 result = json.loads(result)
-                return result
+                keys = ["isRunning", "progress", "code", "message"]
+                if all(k in result for k in keys):
+                    return result
+                try:
+                    # the dict of job status isn't full, so we are checking if the job is running.
+                    # if so - just return result that everything is ok
+                    # else - if there is no process, there program stop run for some reason- raise an error
+                    # if access denied - should wait
+                    if self.pid != -1:
+                        process = psutil.Process(self.pid)
+                        result = {"isRunning": True, "progress": 0.0, "code": -1, "message": ""}
+                        return result
+                except psutil.NoSuchProcess:
+                    result = {"isRunning": False, "progress": 0.0, "code": 3 , "message": "job stop run with an error"}
+                    return result
+                except psutil.AccessDenied:
+                    result = {"isRunning": True, "progress": 0.0, "code": -1, "message": ""}
+                    return result
             except json.JSONDecodeError:
                 return {"error": {"code": "22", "message": "json error in job status"}}
 
@@ -262,13 +283,22 @@ class LocalRunner(Runner):
             :param model_ptr:
             :return:
             '''
-            ptr_string = '%08d.amp' % (int(model_ptr))
-            file_location = os.path.join(self.session_directory, 'cache', ptr_string)
-            if os.path.isfile(file_location):
+            ptr_string_amp = '%08d.amp' % (int(model_ptr))
+            file_location_amp = os.path.join(self.session_directory, 'cache', ptr_string_amp)
+
+            ptr_string_ampj = '%08d.ampj' % (int(model_ptr))
+            file_location_ampj = os.path.join(self.session_directory, 'cache', ptr_string_ampj)
+
+            if os.path.isfile(file_location_amp):
                 if destination_folder:
-                    shutil.copy2(file_location, destination_folder)
-                    return os.path.join(destination_folder, ptr_string)
-                return file_location
+                    shutil.copy2(file_location_amp, destination_folder)
+                    return os.path.join(destination_folder, ptr_string_amp)
+                return file_location_amp
+            elif os.path.isfile(file_location_ampj):
+                if destination_folder:
+                    shutil.copy2(file_location_ampj, destination_folder)
+                    return os.path.join(destination_folder, ptr_string_ampj)
+                return file_location_ampj
             raise FileNotFoundError
 
     def __init__(self, exe_directory=None, session_directory=None):
@@ -355,7 +385,7 @@ class LocalRunner(Runner):
         if not os.path.isdir(self._exe_directory):
             raise NotADirectoryError("%s is not a directory" % self._exe_directory)
 
-        programs = ['generate', 'fit', 'getallmetadata']
+        programs = ['generate', 'fit', 'getallmetadata', 'checkCapabilities']
         paths = [self._get_program_path(program) for program in programs]
         valid = [os.path.isfile(path) for path in paths]
 
@@ -368,50 +398,76 @@ class LocalRunner(Runner):
         os.makedirs(os.path.join(directory, 'amp'), exist_ok=True)
         os.makedirs(os.path.join(directory, 'cache'), exist_ok=True)
 
-    def generate(self, calc_data):
+    def generate(self, calc_data, save_amp=True):
         """
         The method generate waits until dplus has returned a result.
 
         :param  calc_data: an instance of a CalculationInput class
         :rtype: an instance of a CalculationResult class"""
-        job = self._run(calc_data)
+        job = self._run(calc_data, save_amp=save_amp)
         calc_result = GenerateResult(calc_data, job._get_result(), job)
         return calc_result
 
-    def generate_async(self, calc_data):
+    def generate_async(self, calc_data, save_amp=True):
         """
         The method generate_async allows dplus calculations to be run in the background.
 
         :param  calc_data: an instance of a CalculationInput class
         :rtype: an instance of a RunningJob class"""
-        job = self._run(calc_data, is_async=True)
+        job = self._run(calc_data, is_async=True, save_amp=save_amp)
         return job
 
-    def fit(self, calc_data):
+    def fit(self, calc_data, save_amp=True):
         """
         The method fit waits until dplus has returned a result.
 
         :param  calc_data: an instance of a CalculationInput class
         :rtype: an instance of a CalculationResult class"""
-        job = self._run(calc_data, calculation_type="fit")
+        job = self._run(calc_data, calculation_type="fit", save_amp=save_amp)
         calc_result = FitResult(calc_data, job._get_result(), job)
         return calc_result
 
-    def fit_async(self, calc_data):
+    def fit_async(self, calc_data, save_amp=True):
         """
         The method fit_async allows dplus calculations to be run in the background.
 
         :param  calc_data: an instance of a CalculationInput class
         :rtype: an instance of a RunningJob class"""
-        job = self._run(calc_data, calculation_type="fit", is_async=True)
+        job = self._run(calc_data, calculation_type="fit", is_async=True, save_amp=save_amp)
         return job
 
-    def _run(self, calc_data, calculation_type="generate", is_async=False):
+    def check_capabilities(self, check_tdr=True):
+        """
+        The method check_capabilities runs the exe CheckCapabilities
+        raises an error if 'check_capabilities.json' has error with code different than 0
+
+         :param  check_tdr: boolean value, determine if the system should check tdr or not)
+         """
+        err_file = open(os.path.join(self._session_directory, "error.txt"), 'w')
+        out_file = open(os.path.join(self._session_directory, "output.txt"), 'w')
+        program_path = self._get_program_path("CheckCapabilities")
+        if not os.path.isfile(program_path):
+            raise FileNotFoundError
+        process = subprocess.Popen([program_path, self._session_directory], cwd=self._exe_directory, stdout=out_file,
+                                   stderr=err_file)
+        process.communicate()
+        filename = os.path.join(self.session_directory, "check_capabilities.json")
+        with codecs.open(filename, 'r', encoding='utf8') as f:
+            result = json.load(f)
+        if type(result) is dict:
+            if 'error' in result.keys():
+                error_message_dict = result['error']
+                if error_message_dict['code'] != 0:
+                    raise Exception(error_message_dict['message'], error_message_dict['code'])
+        else:
+            raise Exception("problem in file check_capabilities")
+
+    def _run(self, calc_data, calculation_type="generate", is_async=False, save_amp=True):
         # 1 start the job
         job = LocalRunner.RunningJob(self._session_directory, calculation_type=calculation_type)
         job._start(calc_data)
         # 2 call the executable process
-        process = self._call_exe(calculation_type)
+        process = self._call_exe(calculation_type, save_amp=save_amp)
         job.pid = process.pid
         # 3 return, based on async
         if is_async:
@@ -420,14 +476,20 @@ class LocalRunner(Runner):
         process.communicate()
         return job
 
-    def _call_exe(self, calculation_type):
+    def _call_exe(self, calculation_type, save_amp=True):
         err_file = open(os.path.join(self._session_directory, "error.txt"), 'w')
         out_file = open(os.path.join(self._session_directory, "output.txt"), 'w')
         program_path = self._get_program_path(calculation_type)
         if not os.path.isfile(program_path):
             raise FileNotFoundError
-        process = subprocess.Popen([program_path, self._session_directory], cwd=self._exe_directory, stdout=out_file,
-                                   stderr=err_file)
+        if save_amp:
+            process = subprocess.Popen([program_path, self._session_directory], cwd=self._exe_directory, stdout=out_file,
+                                       stderr=err_file)
+        else:
+            cache_dir = os.path.join(self._session_directory, "cache")
+            process = subprocess.Popen([program_path, self._session_directory, cache_dir, "False"], cwd=self._exe_directory,
+                                       stdout=out_file,
+                                       stderr=err_file)
         return process
 
     @staticmethod
@@ -543,8 +605,9 @@ class WebRunner(Runner):
             '''
             if not destination_folder:
                 destination_folder = tempfile.mkdtemp()
-            ptr_string = '%08d.amp' % (int(model_ptr))
-            destination_file = os.path.join(destination_folder, ptr_string)
+            # ptr_string_amp = '%08d.amp' % (int(model_ptr))
+            ptr_string_ampj = '%08d.ampj' % (int(model_ptr))
+            destination_file = os.path.join(destination_folder, ptr_string_ampj)
             # code used from: https://stackoverflow.com/questions/13137817/how-to-download-image-using-requests
             response = requests.get(url=self._url + "amplitude/" + str(model_ptr) + self._session_string,
                                     headers=self._header, stream=True)

@@ -10,7 +10,9 @@ Domain is located in DataModels.py
 
 import warnings
 from dplus.Signal import Signal
-from dplus.DataModels import Domain
+from dplus.DataModels import Domain, Parameter
+
+RESOLUTION_SIGMA_DEFAULT = 0.02
 
 
 class DomainPreferences:
@@ -25,6 +27,8 @@ class DomainPreferences:
         self.__orientation_iterations = 100
         self.__orientation_method = "Monte Carlo (Mersenne Twister)"
         self.__use_grid = True
+        self.__apply_resolution = False
+        self.__resolution_sigma = RESOLUTION_SIGMA_DEFAULT
         self.signal = Signal.create_x_vector(7.5, 0, 800)
 
     @property
@@ -189,6 +193,35 @@ class DomainPreferences:
             raise ValueError("use_grid must be a boolean")
 
     @property
+    def apply_resolution(self):
+        '''
+        boolean flag for apply or not apply resolution
+        '''
+        return self.__apply_resolution
+
+    @apply_resolution.setter
+    def apply_resolution(self, apply_resolution):
+        if type(apply_resolution) == bool:
+            self.__apply_resolution = apply_resolution
+        else:
+            raise ValueError("apply_resolution must be a boolean")
+
+    @property
+    def resolution_sigma(self):
+        '''
+        number for the parameter sigma
+        '''
+        return  self.__resolution_sigma
+
+    @resolution_sigma.setter
+    def resolution_sigma(self, resolution_sigma):
+        if isinstance(resolution_sigma, (int, float, complex)) and not isinstance(resolution_sigma, bool) \
+                and resolution_sigma >= 0:
+            self.__resolution_sigma = resolution_sigma
+        else:
+            raise ValueError("resolution_sigma must be a positive number")
+
+    @property
     def orientation_iterations(self):
         '''
         The number of iterations (or depth in the case of Gauss
@@ -216,13 +249,15 @@ class DomainPreferences:
             "qMax": self.q_max,
             "OrientationIterations": self.orientation_iterations,
             "OrientationMethod": self.orientation_method,
+            "ApplyResolution": self.apply_resolution,
+            "ResolutionSigma": self.resolution_sigma,
 
-            #####irrelevant/defunct parameters:####
+            ##### irrelevant/defunct parameters:####
             "DrawDistance": 200,  # GUI parameter. Determines how far camera can "see." It's a
-            #	cutoff for rendering.
+            # cutoff for rendering.
             "LevelOfDetail": 1,  # GUI parameter. Determines the level of detail when rendering.
             "Fitting_UpdateDomain": False,  # Deprecated and disabled in the GUI. Default should be false?
-            "Fitting_UpdateGraph": False,  # Deprecated and disabled in the GUI. Default should be false?
+            "Fitting_UpdateGraph": True,  # Deprecated and disabled in the GUI. Default should be true to match GUI
             "UpdateInterval": 100,  # The number of milliseconds that the frontend waits before
             "GeneratedPoints": self.generated_points,  # The length of x vector
             #	polling the backend for progress. Broken.
@@ -238,6 +273,8 @@ class DomainPreferences:
         self.convergence = in_dict["Convergence"]
         self.grid_size = in_dict["GridSize"]
         self.use_grid = in_dict["UseGrid"]
+        self.resolution_sigma = in_dict.get("ResolutionSigma", RESOLUTION_SIGMA_DEFAULT)
+        self.apply_resolution = in_dict.get("ApplyResolution", False)
 
         if not self.signal_file:
             q_min = in_dict.get("qMin", 0)
@@ -653,17 +690,62 @@ class State:
         return result
 
     def get_model_recursive(self, model, name_or_ptr):
-        if model.name == name_or_ptr or model.model_ptr == name_or_ptr:
-            return model
+        if hasattr(model, 'name') and hasattr(model, 'model_ptr'):
+            if model.name == name_or_ptr or model.model_ptr == name_or_ptr:
+                return model
+        if hasattr(model, 'Name') and hasattr(model, 'ModelPtr'):
+            if model.Name == name_or_ptr or model.ModelPtr == name_or_ptr:
+                return model
         if not hasattr(model, 'Children'):
             return None
-        if len(model.Children) == 0:
+        if len(model.children) == 0:
             return None
-        for child in model.Children:
+        for child in model.children:
             result = self.get_model_recursive(child, name_or_ptr)
             if result is not None:
                 return result
         return None
+
+    def validate_use_grid(self):
+        """
+        The function check all the "use_grid" in the tree, and changes them to False if it's needed.
+        If one model has use_grid==False, all the model's parents should be False too.
+        :return:
+        """
+        [_, model_dict] = self.validate_use_grid_recursive(self.Domain, {})
+        if model_dict:
+            raise ValueError("There are models that have use_grid==True,"
+                             " but they have a child with use_grid==False. model_ptr:{},"
+                             "please change them to False or fix their child to True ".format(model_dict.keys()))
+
+    def _fix_use_grid(self):
+        """
+        The function check all the "use_grid" in the tree, and changes them to False if it's needed.
+        If one model has use_grid==False, all the model's parents should be False too.
+        :return:
+        """
+        [_, model_dict] = self.validate_use_grid_recursive(self.Domain, {})
+        for model_ptr, model in model_dict.items():
+            model.use_grid = False
+
+    def validate_use_grid_recursive(self, model, dict_res):
+        """
+        If one model has use_grid==False, all the model's parents should be False too.
+        The function return the dict of the models that need to be use_grid==False
+        :param model: The model we are testing if needs to change
+        :param dict_res: dictionary for represent the models that needed change
+        :return: add_parent: bool value if the model has child with "false", dict_res: the dictionary of the models
+        """
+        add_parent = False
+        if not hasattr(model, 'children') or len(model.children) == 0:
+            return not model.use_grid, {}
+        for child in model.children:
+            add_parent, dict_tmp = self.validate_use_grid_recursive(child, dict_res)
+            dict_res = {**dict_tmp, **dict_res}
+            if add_parent:
+                if hasattr(model, 'use_grid') and model.use_grid:
+                    dict_res[model.model_ptr] = model
+        return add_parent, dict_res
 
     def get_models_by_type(self, type):
         """
@@ -674,21 +756,21 @@ class State:
           """
 
         models = []
-        for population in self.Domain.Children:
-            for model in population.Children:
+        for population in self.Domain.children:
+            for model in population.children:
                 self.get_model_by_type_recursive(model, type, models)
                 # if model.type_name == type:
                 #     models.append(model)
         return models
 
     def get_model_by_type_recursive(self, model, type, models_list):
-        if model.type_name == type:
+        if hasattr(model, '_metadata') and model._metadata["type_name"] == type:
             models_list.append(model)
-        if not hasattr(model, 'Children'):
+        if not hasattr(model, 'children'):
             return
-        if len(model.Children) == 0:
+        if len(model.children) == 0:
             return
-        for child in model.Children:
+        for child in model.children:
             self.get_model_by_type_recursive(child, type, models_list)
         return
 
@@ -701,16 +783,23 @@ class State:
 
         params = self.get_mutable_params()
         param_array = []
+        for model_params in params:
+            for param in model_params:
+                param_array.append(param.value)
+        return param_array
+
+    def get_mutable_parameter_options(self):
+        params = self.get_mutable_params()
         sigma_array = []
         constr_min = []
         constr_max = []
         for model_params in params:
             for param in model_params:
-                param_array.append(param.value)
                 sigma_array.append(param.sigma)
-                constr_min.append(param.constraints.MinValue)
-                constr_max.append(param.constraints.MaxValue)
-        return param_array
+                constr_min.append(param.constraints.min_value)
+                constr_max.append(param.constraints.max_value)
+        bounds= tuple([constr_min, constr_max])
+        return sigma_array, bounds
 
     def set_mutable_parameter_values(self, param_vals_array):
         """
@@ -720,13 +809,20 @@ class State:
            :param param_vals_array: a list of floats
            """
 
-        param_index = 0
-        params = self.get_mutable_params()
 
-        for model_params in params:
-            for param in model_params:
-                param.value = param_vals_array[param_index]
-                param_index += 1
+        def _set_recursive(param_array, model):
+            mut_len = len(model.get_mutable_params())
+            model.set_mutable_params(param_array[:mut_len])
+            try:
+                used_values = 0
+                for child in model.children:
+                    used_values += _set_recursive(param_array[mut_len + used_values:], child)
+            except AttributeError as E:
+                pass
+            return mut_len + used_values
+
+        _set_recursive(param_vals_array, self.Domain)
+
 
     def get_mutable_params(self):
         '''
@@ -740,7 +836,7 @@ class State:
             if mut:
                 param_array.append(mut)
             try:
-                for child in model.Children:
+                for child in model.children:
                     models_set = _recursive(param_array, child)
             except AttributeError:
                 pass
@@ -749,13 +845,34 @@ class State:
         res = _recursive([], self.Domain)
         return [par for par in res if par is not None]
 
-    def _all_models_indices(self):
+    def get_mutable_params_array(self):
+        '''
+        return array of arrays of all mutable parameters in array.
+
+        :rtype: a list of `Parameters`
+        '''
+
+        def _recursive(param_array, model):
+            mut = model.get_mutable_params()
+            if mut:
+                param_array.extend(mut)
+            try:
+                for child in model.children:
+                    models_set = _recursive(param_array, child)
+            except AttributeError:
+                pass
+            return param_array
+
+        res = _recursive([], self.Domain)
+        return [par for par in res if par is not None]
+
+    def _validate_all_models_indices(self):
         def _recursive(models_set, model):
             if model.model_ptr in models_set:
                 raise ValueError("There are non-unique model pointers")
             models_set.add(model.model_ptr)
             try:
-                for child in model.Children:
+                for child in model.children:
                     models_set = _recursive(models_set, child)
             except AttributeError:
                 pass
@@ -771,7 +888,7 @@ class State:
             except AttributeError:
                 pass
             try:
-                for child in model.Children:
+                for child in model.children:
                     _recursive(child)
             except AttributeError:
                 pass
@@ -792,7 +909,12 @@ class State:
         !!model_ptr must be unique!!
 
         '''
-        self._all_models_indices()
+
+        man_symms = self.get_models_by_type("Manual Symmetry")
+        for model in man_symms:
+            if not model.layer_params:
+                raise ValueError("Manual Symmetry model must include at least one layer. model_ptr:{}".format(model.model_ptr))
+        self._validate_all_models_indices()
 
     def add_model(self, model, population_index=0):
         """
@@ -802,7 +924,7 @@ class State:
         :param model: instance of 'Model' type
         :param population_index: int value
         """
-        self.Domain.populations[population_index].Children.append(model)
+        self.Domain.populations[population_index].children.append(model)
 
     def add_amplitude(self, amplitude, population_index=0):
         """
@@ -838,3 +960,34 @@ class State:
 
         self.add_model(A, population_index)
         return A
+
+    def _get_dplus_fit_results_json(self):
+        '''
+        D+ expects the results of fitting to be returned in a special json format (used nowhere else)
+        that the D+ code refers to as "simple"
+
+        Not part of the Python Interface public API, as it's only use is when integrating with D+
+        '''
+        orientation_dict = {
+            "Monte Carlo (Mersenne Twister)": 0,
+            "Adaptive (VEGAS) Monte Carlo": 1,
+            "Adaptive Gauss Kronrod": 2,
+            "Direct Computation - MC": 3,
+            "Monte Carlo (Sobol) - unimplemented": 4
+        }
+
+        basic_dict = self.Domain._basic_json_params(self.DomainPreferences.use_grid)
+
+        # the populations have domain preferences added as parameters (i have no idea why),
+        # and hence their dictionary needs to be modified here in the state
+        # this is not necessarily correct for singleGeometry, I'm not sure how to handle that
+        for population_dict in basic_dict["Submodels"]:
+            population_dict["Parameters"].append(Parameter(self.DomainPreferences.orientation_iterations, name="orientation iterations").serialize())
+            population_dict["Parameters"].append(Parameter(self.DomainPreferences.grid_size, name="grid_size").serialize())
+            use_grid_val= 1 if self.DomainPreferences.use_grid else 0
+            population_dict["Parameters"].append(Parameter(use_grid_val, name="use_grid").serialize())
+            population_dict["Parameters"].append(Parameter(self.DomainPreferences.convergence, name="covergence").serialize())
+            population_dict["Parameters"].append(Parameter(self.DomainPreferences.q_max, name="q_max").serialize())
+            population_dict["Parameters"].append(Parameter(orientation_dict[self.DomainPreferences.orientation_method], name="orientation method").serialize())  ##expects to receive an ENUM translation
+            population_dict["Parameters"].append(Parameter(self.DomainPreferences.q_min, name="q_min").serialize())
+        return basic_dict

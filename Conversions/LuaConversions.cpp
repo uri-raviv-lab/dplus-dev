@@ -81,7 +81,7 @@ void LuaToJSON::WriteState(JsonWriter &writer)
 	int numTables = _tableNames.size();
 	for (int i = 0; i < numTables; ++i)
 	{
-		string cmd = "return JSON:encode(" + _tableNames[i] + ")";
+		string cmd = "return JSON:encode_pretty(" + _tableNames[i] + ")";
 		if (luaL_dostring(_luaState, cmd.c_str()))
 		{
 			throw new std::invalid_argument("Can't extract table from Lua");

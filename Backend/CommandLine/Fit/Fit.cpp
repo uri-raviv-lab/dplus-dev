@@ -132,6 +132,13 @@ int main(int argc, char *argv[])
 		fs::path withcache = fs::path(directory) / fs::path("cache");
 		cache_dir = withcache.string();
 	}
+
+	bool flag_save_amp_pdb = true;
+	if (argc > 3)
+	{
+		flag_save_amp_pdb = false;
+
+	}
 	
 	try
 	{
@@ -159,7 +166,9 @@ int main(int argc, char *argv[])
 		//write final job status to file
 		string finishedJob = "{\n    \"isRunning\": false,\n    \"progress\": 1.0,\n    \"code\": 0, \"message\" : \"OK\"\n}";
 		print_to_file(directory, "/job.json", finishedJob);
-		save_amp_pdb(directory, cache_dir, wrapper);
+		if (flag_save_amp_pdb)
+			save_amp_pdb(directory, cache_dir, wrapper);
+
 		print_to_file(directory, "/notrunning.txt", "True");
 		return 0;
 	}

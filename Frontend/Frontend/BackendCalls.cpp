@@ -32,6 +32,15 @@ std::string BackendCall::GetArgs()
 	return writer.GetString();
 }
 
+std::string BackendCall::GetOptions()
+{
+	JsonWriter writer;
+	writer.StartObject();
+	WriteOptions(writer);
+	writer.EndObject();
+	return writer.GetString();
+}
+
 std::string BackendCall::GetCallString()
 {
 	JsonWriter writer;

@@ -25,10 +25,21 @@ void LocalBackendCaller::CallBackend(BackendCall &call, bool runInBackground)
 	std::string response = _backend->CallBackend(request);
 	call.ParseResults(response);
 }
-
 ManagedBackendCaller::ManagedBackendCaller(callFunc callHandler)
 {
 	_handler = callHandler;
+	_isPython = false;
+}
+
+ManagedBackendCaller::ManagedBackendCaller(callFunc callHandler, bool isPython)
+{
+	_handler = callHandler;
+	_isPython = isPython;
+}
+
+bool ManagedBackendCaller::Python()
+{
+	return _isPython;
 }
 
 ManagedBackendCaller::~ManagedBackendCaller()

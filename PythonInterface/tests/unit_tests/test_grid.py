@@ -7,7 +7,7 @@ import math
 
 q_max = 7.5
 grid_size = 50
-test_grid = Grid(q_max, grid_size)
+test_grid = Grid(grid_size, q_max)
 M_2PI = 6.28318530717958647692528676656
 M_PI = 3.14159265358979323846
 phiDivisions = 6
@@ -481,14 +481,14 @@ class TestCreateGrid:
         assert len_uri == len_avi
 
     def test_values(self):
-        for uri, avi in zip(test_grid.create_grid(), CreateGridAvi.avi_func()):
+        for (ind, uri), avi in zip(test_grid.create_grid(), CreateGridAvi.avi_func()):
             assert uri == avi
 
 
 def test_index_from_angles():
     g = Grid(8, 50)
-    for index, (q, theta, phi) in enumerate(g.create_grid()):
+    for m_index, (index, (q, theta, phi)) in enumerate(g.create_grid()):
         m = g.index_from_angles(q, theta, phi)
         # if not index==m:
         #    print(index, "(",m, "):\t",  q, theta, phi, ":\t", g.indices_from_angles(q, theta, phi))
-        assert index == m
+        assert m_index == m

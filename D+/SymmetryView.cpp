@@ -149,7 +149,9 @@ System::Void SymmetryView::buttonAdd_Click(System::Object^ sender, System::Event
 		// Puts the basename without extension in the treeview
 		// Example: C:\1SVA.pdb --> "1SVA (PDB)"
 		ent = g3->RegisterPDB(pdbfilename, anomfilename, parentForm->GetLevelOfDetail(), CenterChecked());
-	} else if(selmodel->GetID() == 1000) {
+	} 
+	else if(selmodel->GetID() == 1000) 
+	{
 		// Hardcoded code for AMPs
 		OpenFileDialog ^ofd = gcnew OpenFileDialog();
 		ofd->Title = "Select an amplitude grid file...";
@@ -162,7 +164,9 @@ System::Void SymmetryView::buttonAdd_Click(System::Object^ sender, System::Event
 		// Puts the basename without extension in the treeview
 		// Example: C:\1SVA.amp --> "1SVA (AMP)"		
 		ent = g3->RegisterAMPGrid(ofd->FileName, parentForm->GetLevelOfDetail(), CenterChecked());
-	} else if(selmodel->GetID() >= 1001 && selmodel->GetID() <= 1003) {
+	} 
+	else if(selmodel->GetID() >= 1001 && selmodel->GetID() <= 1003)
+	{
 		// Hardcoded code for scripted geometries, models and symmetries (in this order)
 		OpenFileDialog ^ofd = gcnew OpenFileDialog();
 		ofd->Title = "Select a script...";
@@ -173,7 +177,9 @@ System::Void SymmetryView::buttonAdd_Click(System::Object^ sender, System::Event
 			return;
 
 		ent = parentForm->RegisterLuaEntity(ofd->FileName, selmodel->GetID());	
-	} else if(selmodel->GetID() >= 0) {
+	} 
+	else if(selmodel->GetID() >= 0)
+	{
 		FrontendComm *frontend = parentForm->frontend;
 		std::wstring contstr;
 		const wchar_t *container = NULL;
@@ -186,7 +192,8 @@ System::Void SymmetryView::buttonAdd_Click(System::Object^ sender, System::Event
 		
 		ent = parentForm->CreateEntityFromID(container, selmodel->GetID(), selmodel->ToString());
 
-		if(ent != nullptr && selmodel->GetContainer() == nullptr && selmodel->ToString() == "Manual Symmetry") {
+		if(ent != nullptr && selmodel->GetContainer() == nullptr && selmodel->ToString() == "Manual Symmetry")
+		{
 			// Hardcoded code for manual symmetries (DOLs)
 			String ^fname = nullptr;
 			if(MessageBox::Show("Would you like to import locations from file?", "Import", MessageBoxButtons::YesNo) == System::Windows::Forms::DialogResult::Yes) {
@@ -199,7 +206,11 @@ System::Void SymmetryView::buttonAdd_Click(System::Object^ sender, System::Event
 					fname = ofd->FileName;
 				}
 			}
-
+			else
+			{ // creating manual symmetry with at least one layer (like the function ParameterEditor::addLayerButton_Click)
+				AddLayerManualSymmetry(sender, e, ent);
+					
+			}
 			ent->SetParameters(DOLToParamStruct(fname, ent->GetParameters()), parentForm->GetLevelOfDetail());
 			ent->modelName += " (" + fname + ")";// As per Roi's request
 		}
@@ -287,6 +298,10 @@ System::Void SymmetryView::buttonGroup_Click(System::Object^ sender, System::Eve
 				if(ofd->ShowDialog() == System::Windows::Forms::DialogResult::OK) {
 					fname = ofd->FileName;
 				}
+			}
+			else
+			{ // creating manual symmetry with at least one layer (like the function ParameterEditor::addLayerButton_Click)
+				AddLayerManualSymmetry(sender, e, ent);
 			}
 
 			ent->SetParameters(DOLToParamStruct(fname, ent->GetParameters()), parentForm->GetLevelOfDetail());
@@ -907,5 +922,79 @@ System::Void SymmetryView::UpdateModelPtr(Entity ^ ent, String ^anomfilename)
 		ent->BackendModel = ent->frontend->CreateFileAmplitude(parentForm->job, AF_PDB, nullptr,
 			nullptr, filenames.data(), fnLens.data(), int(fnLens.size()), ent->bCentered);
 	}
+
+System::Void SymmetryView::AddLayerManualSymmetry(System::Object ^ sender, System::EventArgs^ e, Entity^ ent)
+{
+	
+	 // creating manual symmetry with at least one layer (like the function ParameterEditor::addLayerButton_Click)
+		ParameterEditor^ pe = (ParameterEditor^)(parentForm->PaneList[PARAMETER_EDITOR]);
+		paramStruct ps = ent->GetParameters();
+		if (ps.layers == 0)
+		{
+			ps.params.resize(ps.nlp);
+
+			// Add the actual layer	
+			for (int i = 0; i < ps.nlp; i++)
+				ps.params[i].push_back(Parameter(ent->modelUI->GetDefaultParamValue(ps.layers, i)));
+
+			ps.layers++;
+
+			// Commit the new parameters
+			ent->SetParameters(ps, parentForm->GetLevelOfDetail());
+
+			// Update grid-view and buttons
+			pe->FillParamGridView(ent);
+
+			// Invalidate 3D viewport
+			GraphPane3D ^g3 = (GraphPane3D ^)parentForm->PaneList[GRAPH3D];
+			g3->glCanvas3D1->Invalidate();
+			g3->Invalidate();
+
+			// Scroll to bottom
+			if (ps.nlp > 0)
+				pe->parameterDataGridView->CurrentCell = pe->parameterDataGridView[0, ps.layers - 1];
+		}
+
+}
+
+System::Void DPlus::SymmetryView::textBox_Leave(System::Object^ sender, System::EventArgs^ e)
+{
+	TextBox ^source = dynamic_cast<TextBox^>(sender);
+	double res;
+
+	if (Double::TryParse(source->Text, res) || source->Text->StartsWith("=")) {
+		if (source->Text->StartsWith("=")) {
+			res = parentForm->LuaParseExpression(source->Text->Substring(1));
+			source->Text = res.ToString();
+		}
+
+		// Set the scale parameter in the parent form
+		if (source == scaleBox)
+			parentForm->domainScale = res;
+		else if (source == constantBox)
+			parentForm->domainConstant = res;
+	}
+}
+
+System::Void DPlus::SymmetryView::textBox_KeyDown(System::Object^ sender, System::Windows::Forms::KeyEventArgs^ e)
+{
+	if (e->KeyCode == Keys::Enter || e->KeyCode == Keys::Return
+		|| e->KeyCode == Keys::Escape) {
+		parentForm->takeFocus(sender, e);
+		e->Handled = true;
+	}
+}
+
+System::Void DPlus::SymmetryView::SetDefaultParams()
+{
+	this->scaleMut->Checked = false;
+	this->scaleMut->CheckState = System::Windows::Forms::CheckState::Unchecked;
+
+	this->constantMut->Checked = false;
+	this->constantMut->CheckState = System::Windows::Forms::CheckState::Unchecked;
+
+	this->scaleBox->Text = L"1";
+	this->constantBox->Text = L"0";
+}
 
 };

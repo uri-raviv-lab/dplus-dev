@@ -76,7 +76,7 @@
 
 namespace ceres {
 
-	template <typename CostFunctor, NumericDiffMethod method = CENTRAL, 
+	template <typename CostFunctor, NumericDiffMethodType method = CENTRAL,
 			  int max_extrapolation = 10, bool relative_error = true>
 	class DynamicAdaptiveNumericDiffCostFunction : public CostFunction {
 	public:

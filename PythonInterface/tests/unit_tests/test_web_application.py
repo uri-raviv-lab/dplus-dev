@@ -22,7 +22,7 @@ def _calc_data():
     return calc_data
 
 @pytest.mark.incremental
-class TestWebApp():
+class xTestWebApp():
     _url = base_url + r'api/v1/'
     _header = {'Authorization': "Token " + str(token)}
     _session = str(uuid.uuid4())

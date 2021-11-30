@@ -1,4 +1,4 @@
-﻿This document was last updated on April 2 2018, for version 4.3.1
+﻿This document was last updated on April 2 2018, for version 4.3.7
 
 # The Dplus Python API
 
@@ -13,7 +13,7 @@ Installing the Python API is done using PIP:
 
     pip install dplus-api
     
-The API was tested with Python 3.5 and newer. It *may* work with older versions of Python, although Python 2 
+The API was tested with Python 3.8 and newer. It *may* work with older versions of Python, although Python 2 
 is probably not supported.
 
 ## Overview
@@ -46,7 +46,7 @@ either `FitResult` or `GenerateResult`.
 
 Here is a very simple example of what this might look like in main.py:
 
-```
+```python
 from dplus.CalculationInput import CalculationInput
 from dplus.CalculationRunner import LocalRunner
 
@@ -75,16 +75,16 @@ Amplitude files, and protein data bank (PDB) files, from the C++ executable.
 By default, its value is `None`, and an automatically generated 
 temporary folder will be used. 
 
-```
+```python
 from dplus.CalculationRunner import LocalRunner
 
 exe_dir = r"C:\Program Files\D+\bin"
 sess_dir = r"sessions"
 runner = LocalRunner(exe_dir, sess_dir)
-#also possible:
-#runner = LocalRunner()
-#runner = LocalRunner(exe_dir)
-#runner = LocalRunner(session_directory=sess_dir)
+# also possible:
+# runner = LocalRunner()
+# runner = LocalRunner(exe_dir)
+# runner = LocalRunner(session_directory=sess_dir)
 ```
 
 The WebRunner is intended for users accessing the D+ server. It takes two required initialization arguments, with no
@@ -93,7 +93,7 @@ default values:
 * `url` is the address of the server.
 * `token` is the authentication token granting access to the server. 
 
-```
+```python
 from dplus.CalculationRunner import WebRunner
 
 url = r'http://localhost:8000/'
@@ -117,7 +117,7 @@ Their asynchronous counterparts (`generate_async` and `fit_async`) allow D+ calc
 and then return and check if the computation is finished). 
 
 
-#### RunningJob
+### RunningJob
 
 The user should not be initializing this class. When returned from an async function
  (`generate_async` or `fit_async`) in `CalculationRunner`, the user can 
@@ -129,7 +129,8 @@ Should only be called when the job is completed. It is the user's responsibility
 before calling. 
 * `abort()`: end a currently running job
 
-```
+```python
+import datetime
 from dplus.CalculationInput import CalculationInput
 from dplus.CalculationRunner import LocalRunner
 
@@ -201,7 +202,7 @@ still saved in the serialized dictionary.
 
 
 
-#### DomainPreferences
+### DomainPreferences
 The DomainPreferences class contains properties that are copied from the D+ interface. Their usage is explained in 
 the D+ documentation.
 
@@ -232,7 +233,7 @@ Any property can then be easily changed, for example,
 If the user tries to set a property to an invalid value (for example, setting q_max to something other than a positive number) they will get an error.
 
 
-#### Fitting Preferences
+### Fitting Preferences
 The `FittingPreferences` class contains properties that are copied from the D+ interface. Their usage is explained in the D+ documentation.
 
 We create a new instance of FittingPreferences by calling the python initialization function:
@@ -265,14 +266,14 @@ Any property can then be easily changed, for example,
 If the user tries to set a property to an invalid value they will get an error.
 
 
-#### Domain
+### Domain
 
 The Domain class describes the parameter tree. 
 
 The root of the tree is the `Domain` class. This class contains an array of `Population` classes. 
 Each `Population` can contain a number of `Model` classes. Some models have children, which are also models.
 
-##### Models
+#### Models
 
 `Domain` and `Population` are two special kinds of models.
 
@@ -298,14 +299,32 @@ Please note that models are dynamically loaded from those available in D+.
 Therefore, your code editor may underline the model in red even if the model exists.
 
 All models have `location_params` (Location Parameters) and  `extra_params` (Extra Parameters). 
-Some models (that support layers) also contain `layer_params` (Layer Parameters).
-These are all collection of instances of the `Parameter` class, and can be accessed from 
-`model.location_params`, `model.extra_params`, and `model.layer_params`, respectively.
+Some models (that support layers) also contain `layer_params`.
+These can be accessed from `model.location_params`, `model.extra_params`, and `model.layer_params`, respectively.
 
-All of these can be modified. They are accessed using dictionaries.
+They contain special custom python containers, based on standard python containers, but with validation
+of what the user does to them.
+`layer_params` contains an instance of the class `Layers`, a modified list which enforces minimum/maximum length
+and requires any entries to the list be instances of the class `ParameterContainer`
+`location_params`, `extra_params`, and each entry in `layer_params` contain an instance of the class `ParameterContainer`,
+a modified dictionary. `ParameterContainer` is initialized with a dictionary containing keys and values, and thereafter
+does not allow the addition of any new keys. It also requires the value of the keys to be set exclusively to isntances of the
+`Parameter` class.
+
+The goal of all this customization is to help the user be alerted to any mistakes they might make setting up their models.
+
+An example of code that will raise an error:
+
+```python
+from dplus.DataModels.models import UniformHollowCylinder
+uhc=UniformHollowCylinder()
+uhc.layer_params[1]["Radius"]=2.0 #will raise error "Radius can only be set to an instance of Parameter
+```
+
+
 Example:
 
-```
+```python
 from dplus.DataModels.models import UniformHollowCylinder
 
 uhc=UniformHollowCylinder()
@@ -317,7 +336,7 @@ uhc.location_params["x"].value=2
 For additional information about which models have layers and what the various parameters available for each model are,
 please consult the D+ User's Manual.
 
-###### Parameters
+#### Parameters
 
 The `Parameter` class contains the following properties:
 
@@ -331,7 +350,7 @@ The `Parameter` class contains the following properties:
 
 Usage:
 
-```  
+```python  
 p=Parameter()  #creates a parameter with value: '0', sigma: '0', mutable: 'False', and the default constraints.
 p=Parameter(7) #creates a parameter with value: '7', sigma: '0', mutable: 'False', and the default constraints.
 p=Parameter(sigma=2) #creates a parameter with value: '0', sigma: '2', mutable: 'False', and the default constraints.
@@ -340,17 +359,18 @@ p.mutable=True #modifies the value of mutable to be 'True'.
 p.sigma=3 #modifies sigma to be 3.
 p.constraints=Constraints(min_val=5) #sets constraints to a 'Constraints' instance whose minimum value (min_val) is 5.
 ```
+
 ###### Constraints
 
 The `Constraints` class contains the following properties:
 
-`MaxValue`: a float whose default value is `infinity`.
+`max_value`: a float whose default value is `infinity`.
 
-`MinValue`: a float whose default value is `-infinity`.
+`min_value`: a float whose default value is `-infinity`.
 
 The usage is similar to 'Parameter' class, for example:
 
-```
+```python
 c=Constraints(min_val=5) #creates a 'Constraints' instance whose minimum value is 5 and whose maximum value is the default ('infinity').
 ```
 
@@ -378,70 +398,26 @@ In addition, CalculationInput has the following static methods to create an inst
  based on the PDB 
  * `copy_from_state` returns a new `CalculationInput` based on an existing state or `CalculationInput`
 
-```
+```python
 from dplus.CalculationInput import CalculationInput
 gen_input=CalculationInput()
 ```
 
-```
+```python
 from dplus.CalculationInput import CalculationInput
 gen_input=CalculationInput.load_from_state_file('sphere.state')
 ```
-
-
-## CythonWrapping
-
-In module CythonWrapping there is one class CJacobianSphereGrid.
-
-CJacobianSphereGrid is a python wraper class to D+ cpp class JacobianSphereGrid.
-It has a constractor that recieves qMax and gridSize and initialize the cpp class JacobianSphereGrid with those params
-
-It has the following properties (read only properties):
-
-|Property Name | Description|
-|---|---|
-|`q_max`|	The max q value of the grid|
-|`grid_size`|	The grid size attribute from D+ UI |
-|`step_size`| The difference between 2 q values |
-
-
-
-It has the methods:
-* `index_from_indices` - calls the c++ function IndexFromIndices,  receives q, theta and phi indices 
- returns the index position of the amplitude value in the data array
-* `indices_from_index` - calls the c++ function IndicesFromIndex, receives index position of an amplitude value in data array 
- returns q, theta and phi indices 
-* `get_data` - reads the data from c++ data array and returns a numpy array of amplitude values
-* `get_param_json_string` - calls the c++ function GetParamJsonString, return the critical params of the grid as json string
-* `fill` - a python function that receive pointer to function that calulate amplitude for model, and fill all the c++ data array with those values.
-at the end this function runs calculate_splines.
-* `calculate_splines` - calls the c++ function that calculate the splines on the data array (should be called after fill)
-* `get_interpolant_coeffs` - reads the data from c++ interpolant coefficients array and returns a numpy array of interpolant coefficients values
-* `interpolate_theta_phi_plane` - calls the c++ function InterpolateThetaPhiPlane, receives ri, theta and phi angels 
-returns the intepolation value 
- 
-
 
 
 ## Amplitudes
 
 In the module `Amplitudes` there are 2 classes:
 * `Grid` 
-* `Amplitude` which contains an instance of class PyJacobianSphereGrid.
-
-**Please note**: The class Amplitude is not similar to AMP from Dplus.DataModels.Models.
-
-The class `AMP` contains a filename pointing to an amplitude file, an extra parameter scale, a boolean centered, and it can be
-serialized and sent as part of the Domain parameter tree to D+. 
-
-The class `Amplitude`, by contrast, can be used to build an amplitude and then save that amplitude as an amplitude file,
-which can then be opened in D+ (or sent in as class AMP) but it itself cannot be added directly to the Domain parameter tree.
-If you want to add it, you must save the amplitude to a file first using the `save` method, 
-and then you can use the State's function `add_amplitude`, to add it to the tree.
+* `Amplitude`
 
 ### Grid
 
-The class `Grid` is initialized with `q_max` and `grid_size`. 
+The class `Grid` is initialized with `grid_size` and `q_max`. 
 
 `Grid` is used to create/describe a grid of `q`, `theta`, `phi` angle values. 
 
@@ -469,53 +445,83 @@ There is a one-to-one relation between the two  indexing methods.
 * `index_from_angles`: receives angles `q`, `theta`, `phi` and returns the matching overall index `m`
 
 
-```
+```python
 from dplus.Amplitudes import Grid
 
-g = Grid(5, 100)
-for q,theta,phi in g.create_grid():
+g = Grid(100, 5)
+for ind, (q,theta,phi) in g.create_grid():
     print(g.index_from_angles(q, theta, phi))
 ```
 ### Amplitude
 
-The class Amplitude has an instance of CJacobianSphereGrid. It is a class intended to describe the amplitude of a model/function, and can
-save these values to an amplitude file (that can be read by D+) and can also read amplitude files (like those created by D+)
+**Important:** The class Amplitude is *not* similar to the class AMP from Dplus.DataModels.Models.
 
-Amplitude is initialized with q_max and grid_size.
+The class `AMP` from DataModels is meant to be used as a node in a parameter tree within a `State`.
+It contains a `filename` pointing to an amplitude file, an extra parameter `scale`, and a boolean `centered`. 
+It can be serialized and sent as part of the Domain parameter tree to D+. 
+
+The class `Amplitude` is a full-fledged python class.
+
+It can be used to build an amplitude and then save that amplitude as an amplitude file,
+which can then be opened in D+ (or used as the filename in `AMP`) but it itself cannot be added directly to the Domain parameter tree.
+If you want to add it, you *must* save the amplitude to a file first using the `save` method, 
+and then you can use the State's function `add_amplitude`, to add it to the tree.
+
+To build an amplitude:
+
+1. initialize the class Amplitude with `grid_size` and `q_max`. 
+2. define a python function to be used for populating the grid with values (the function should receive q, theta, phi)
+3. call the Ampltiude function `fill` with a pointer to the function you defined
+
+an example of the process is given below.
+
+It is also possible to load an existing amplitude file, and perform various python calculations upon it.
+
+Every Amplitude contains within it an instance of the python class `Grid` described above, and 
+also an instance of a C++ grid, `CJacobianSphereGrid` (wrapped in Cython), from the original D+ C++ code. 
 
 Amplitude has the following properties:
-* `values` - returns a numpy array from the c++ data array of the instance CJacobianSphereGrid ( call the function CJacobianSphereGrid.get_data()) 
-* `complex_amplitude_array` - returns a complex numpy array from  values - each pair data[idx], data[idx+1] are one complex number (data[idx] + j*data[idx+1]) when idx is even number
-* `default_header` - build header list with the data of the new created amplitude
-* `headers` - return default header is the amplitude is new, and return external_headers when the amplitude was loaded from a file
-* `description` - an optional string the user can fill with data about the amplitude class (for example what the type of the model). The description property will be added to the headers.
+* `complex_amplitude_array` - returns the contents of the amplitude grid as a numpy array of complex numbers. 
+* `description` - an optional string the user can fill with data about the amplitude class (for example, the type of the model). 
+* `headers` - Amplitude files contain headers describing the contents of the amplitude. If the python Amplitude was loaded from a file, the property headers will simply return the original headers from the file. 
+If the Amplitude was created within python, headers will return some basic information about the amplitude (eg grid_size), a note that the amplitude was created in python,
+and the contents of the property `description` if description was set by the user. 
 
 Amplitude also has the following methods:
 * `save` - save the information in the Amplitude class to an Amplitude file which can then be 
 passed along to D+ to calculate its signal or perform fitting.
-* `load` - Alternately, Amplitude has a static method, `load`,  which receives a filename of an Amplitude file, and returns an Amplitude instance
+* `load` - a static function that receives a filename of an Amplitude file, and returns an Amplitude instance
 with the values from that file already loaded.
-* `fill` - for a new amplitude, this function calculate the amplitude values for CJacobianSphereGrid data array (call CJacobianSphereGrid.fill())
-* `interpolate_theta_phi_plane` - calls CJacobianSphereGrid.InterpolateThetaPhiPlane function, receives ri, theta and phi angels
-returns the intepolation value  
+* `fill` - populate a new Amplitude with values calculated by a function provided by the user. The function must expect to receive three arguments, (q, theta, phi).
+* `get_interpolation` - The user *must* call `fill` before using this function unless loading an existing amplitude. Receives a single q or array of q values, a value for theta, and a value for pi. It returns a complex number, representing the *interpolated* value of the amplitude at the point(s) given
+q must be between q_min and q_max. Theta must be between 0 and pi. Phi must be between 0 and 2pi. 
 
-```
+
+#### Examples:
+
+```python
+#loading an existing amplitude and viewing the values it contains
 from dplus.Amplitudes import Amplitude
 my_amp = Amplitude.load("myamp.ampj")
 for c in my_amp.complex_amplitude_array:
     print(c)
 ```
 
-```
+```python
+#creating, filling, saving, and calculating interpolation values from a new amplitude
+import numpy as np
 from dplus.Amplitudes import Amplitude
 
 def my_func(q, theta, phi):
 	return np.complex64(q+1 + 0.0j)
 
-a = Amplitude(7.5, 80)
-a.description= "An exmaple amplitude"						 
+a = Amplitude(80, 7.5)
+a.description= "An example amplitude"						 
 a.fill(my_func)
 a.save("myfile.ampj")
+
+output_intrp = a.get_interpolation(5,3,6)
+output_intrp_arr = a.get_interpolation([1,2,3],3,6)
 ```
 
 There are examples of using Amplitudes to implement models similar to D+ in the additional examples section.
@@ -525,13 +531,15 @@ The module Amplitudes also contains two convenience functions for converting bet
 * `sph2cart` receives r, theta, phi and returns x, y, z
 * `cart2sph` receives x, y, z and returns r, theta, phi
 
-```
+
+```python
 from dplus.Amplitudes import sph2cart, cart2sph
 
 q, theta, phi = cart2sph(1,2,3)
 x, y, z = sph2cart(q,theta,phi)
 
 ```
+
 
 In addition the module contains two functions that conert old ".amp" file to ".ampj" file and vice versa
 * `amp_to_ampj_converter` - receives amp file and save it as ampj file, returns the new filename
@@ -587,7 +595,7 @@ The module contains the class NumpyHandlingEncoder.
 
 ***Example One***
 
-```
+```python
 from dplus.CalculationInput import CalculationInput
 from dplus.CalculationRunner import LocalRunner
 
@@ -605,7 +613,7 @@ This program loads a state file from `spherefit.state`, runs fitting with the lo
 
 ***Example Two***
 
-```
+```python
 from dplus.CalculationInput import CalculationInput
 from dplus.CalculationRunner import LocalRunner
 from dplus.DataModels import ModelFactory, Population
@@ -625,7 +633,7 @@ print(result.graph)
 
 ***Example Three***
 
-```
+```python
 from dplus.CalculationRunner import LocalRunner
 from dplus.CalculationInput import CalculationInput
 
@@ -637,7 +645,7 @@ print(result.graph)
 
 ***Example Four***
 
-```
+```python
 from dplus.CalculationRunner import LocalRunner
 from dplus.CalculationInput import CalculationInput
 runner=LocalRunner()
@@ -667,11 +675,13 @@ Comments:
 
 ### Implementing Models using Amplitudes
 
-For the purpose of these exmaples the models are implemented with minimal default parameters, in a realistic usage 
+For the purpose of these examples the models are implemented with minimal default parameters, in a realistic usage 
 scenario the user would set those parameters as editable properties to be changed at his convenience.
 
-```
+```python
 from dplus.Amplitudes import Amplitude
+from dplus.CalculationRunner import LocalRunner
+from dplus.CalculationInput import CalculationInput
 import math
 import numpy as np
 
@@ -716,7 +726,7 @@ class UniformSphere:
 
 
 sphere = UniformSphere()
-a = Amplitude(7.5, 200)
+a = Amplitude(50, 5)
 a.fill(sphere.calculate)
 a.save("sphere.ampj")
 
@@ -727,7 +737,7 @@ runner = LocalRunner()
 result = runner.generate(input)
 ```
 
-```
+```python
 
 class SymmetricSlab:
     def __init__(self):
@@ -780,7 +790,7 @@ from dplus.State import State
 from dplus.CalculationRunner import LocalRunner
 from dplus.CalculationInput import CalculationInput
 symSlab = SymmetricSlab()
-a = Amplitude(7.5, 80)
+a = Amplitude(80, 7.5)
 a.fill(symSlab.calculate)
 
 ```
@@ -791,7 +801,7 @@ All that is requires is wrapping the interface code so that it receives and retu
  
 An example follows:
 
-```
+```python
 import numpy as np
 from scipy import optimize
 from dplus.CalculationInput import CalculationInput

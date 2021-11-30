@@ -1,0 +1,10 @@
+# Python
+__pycache__/
+workspace.xmlcmake/
+activate
+/D+/Server.dserv
+WebApplication/logs
+media/
+logs/
+local_settings.py
+cmake/

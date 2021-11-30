@@ -209,6 +209,10 @@ WebApplication/env
 /Common/ceres-solver-1.9.0-windows/Win32
 /Common/ceres-solver-1.9.0-windows/x64
 
+# /Common/ceres-solver-1.12.0/
+/Common/ceres-solver-1.12.0/Win32
+/Common/ceres-solver-1.12.0/x64
+
 # /Common/lua-5.1.4/src/
 /Common/lua-5.1.4/src/Debug
 /Common/lua-5.1.4/src/Release
@@ -265,21 +269,21 @@ WebApplication/env
 /Externals/ceres-for-windows/*.suo
 /Externals/ceres-for-windows/Release
 
-# /Externals/ceres-for-windows/ceres-solver-1.9.0/
-/Externals/ceres-for-windows/ceres-solver-1.9.0/Win32
-/Externals/ceres-for-windows/ceres-solver-1.9.0/x64
+# /Externals/ceres-for-windows/ceres-solver-1.12.0/
+/Externals/ceres-for-windows/ceres-solver-1.12.0/Win32
+/Externals/ceres-for-windows/ceres-solver-1.12.0/x64
 
-# /Externals/ceres-for-windows/ceres-solver-1.9.0/examples/
-/Externals/ceres-for-windows/ceres-solver-1.9.0/examples/Debug
-/Externals/ceres-for-windows/ceres-solver-1.9.0/examples/x64
-/Externals/ceres-for-windows/ceres-solver-1.9.0/examples/Release
+# /Externals/ceres-for-windows/ceres-solver-1.12.0/examples/
+/Externals/ceres-for-windows/ceres-solver-1.12.0/examples/Debug
+/Externals/ceres-for-windows/ceres-solver-1.12.0/examples/x64
+/Externals/ceres-for-windows/ceres-solver-1.12.0/examples/Release
 
-# /Externals/ceres-for-windows/ceres-solver-1.9.0/realworld/
-/Externals/ceres-for-windows/ceres-solver-1.9.0/realworld/Debug
-/Externals/ceres-for-windows/ceres-solver-1.9.0/realworld/*.tsv
-/Externals/ceres-for-windows/ceres-solver-1.9.0/realworld/*.user
-/Externals/ceres-for-windows/ceres-solver-1.9.0/realworld/x64
-/Externals/ceres-for-windows/ceres-solver-1.9.0/realworld/Release
+# /Externals/ceres-for-windows/ceres-solver-1.12.0/realworld/
+/Externals/ceres-for-windows/ceres-solver-1.12.0/realworld/Debug
+/Externals/ceres-for-windows/ceres-solver-1.12.0/realworld/*.tsv
+/Externals/ceres-for-windows/ceres-solver-1.12.0/realworld/*.user
+/Externals/ceres-for-windows/ceres-solver-1.12.0/realworld/x64
+/Externals/ceres-for-windows/ceres-solver-1.12.0/realworld/Release
 
 # /Frontend/DefaultRenderer/
 /Frontend/DefaultRenderer/Win32
@@ -493,7 +497,7 @@ obj/
 x64/
 _ReSharper*/
 [Tt]est[Rr]esult*
-packages/
+/packages/
 *.orig
 
 **/ceres-solver/docs/**

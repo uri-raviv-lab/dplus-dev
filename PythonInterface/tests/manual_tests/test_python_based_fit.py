@@ -80,7 +80,7 @@ def test_fit_2():
 
 def test_fit_manual():
     input = CalculationInput.load_from_state_file(os.path.join(root_path, "files", "2_pops_fixed.state"))
-    generate_runner = LocalRunner()
+    generate_runner = LocalRunner(exe_directory)
 
     def run_generate(xdata, *params):
         '''

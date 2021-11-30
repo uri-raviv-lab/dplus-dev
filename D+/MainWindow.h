@@ -4,7 +4,7 @@
 #include "MainWindowAux.h"
 #include "ManagedHTTPCallerForm.h"
 #include "ServerConfigForm.h"
-
+#include "ManagePythonPreCaller.h"
 class FrontendComm;
 class BackendCaller;
 
@@ -73,6 +73,7 @@ namespace DPlus {
 	private: System::Windows::Forms::ToolStripMenuItem^  parameterEditorToolStripMenuItem;
 	private: System::Windows::Forms::ToolStripMenuItem^  luaTestToolStripMenuItem;
 	private: System::Windows::Forms::ToolStripMenuItem^  commandWindowToolStripMenuItem;
+	private: System::Windows::Forms::ToolStripMenuItem^  GenerateFitToolStripMenuItem;
 
 	private: System::Windows::Forms::ToolStripMenuItem^  saveParametersToolStripMenuItem;
 	private: System::Windows::Forms::ToolStripSeparator^  toolStripSeparator1;
@@ -254,6 +255,7 @@ private: System::ComponentModel::IContainer^  components;
 			this->symmetryEditorToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->preferencesToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->controls3DToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
+			this->GenerateFitToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->parameterEditorToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->scriptWindowToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->commandWindowToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
@@ -463,15 +465,16 @@ private: System::ComponentModel::IContainer^  components;
 			// 
 			// viewToolStripMenuItem
 			// 
-			this->viewToolStripMenuItem->DropDownItems->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(10) {
+			this->viewToolStripMenuItem->DropDownItems->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(11) {
 				this->Graph2DToolStripMenuItem,
 					this->Graph3DToolStripMenuItem, this->symmetryViewToolStripMenuItem, this->symmetryEditorToolStripMenuItem, this->preferencesToolStripMenuItem,
 					this->controls3DToolStripMenuItem, this->parameterEditorToolStripMenuItem, this->scriptWindowToolStripMenuItem, this->commandWindowToolStripMenuItem,
-					this->fittingPreferencesToolStripMenuItem
+					this->fittingPreferencesToolStripMenuItem, this->GenerateFitToolStripMenuItem
 			});
 			this->viewToolStripMenuItem->Name = L"viewToolStripMenuItem";
 			this->viewToolStripMenuItem->Size = System::Drawing::Size(44, 20);
 			this->viewToolStripMenuItem->Text = L"View";
+
 			// 
 			// Graph2DToolStripMenuItem
 			// 
@@ -493,7 +496,7 @@ private: System::ComponentModel::IContainer^  components;
 			// 
 			this->symmetryViewToolStripMenuItem->Image = (cli::safe_cast<System::Drawing::Image^>(resources->GetObject(L"symmetryViewToolStripMenuItem.Image")));
 			this->symmetryViewToolStripMenuItem->Name = L"symmetryViewToolStripMenuItem";
-			this->symmetryViewToolStripMenuItem->Size = System::Drawing::Size(178, 22);
+			this->symmetryViewToolStripMenuItem->Size = System::Drawing::Size(178, 60);
 			this->symmetryViewToolStripMenuItem->Text = L"Symmetry View";
 			this->symmetryViewToolStripMenuItem->Click += gcnew System::EventHandler(this, &MainWindow::MenuPaneStripMenuItem_Click);
 			// 
@@ -501,7 +504,7 @@ private: System::ComponentModel::IContainer^  components;
 			// 
 			this->symmetryEditorToolStripMenuItem->Image = (cli::safe_cast<System::Drawing::Image^>(resources->GetObject(L"symmetryEditorToolStripMenuItem.Image")));
 			this->symmetryEditorToolStripMenuItem->Name = L"symmetryEditorToolStripMenuItem";
-			this->symmetryEditorToolStripMenuItem->Size = System::Drawing::Size(178, 22);
+			this->symmetryEditorToolStripMenuItem->Size = System::Drawing::Size(178, 25);
 			this->symmetryEditorToolStripMenuItem->Text = L"Symmetry Editor";
 			this->symmetryEditorToolStripMenuItem->Click += gcnew System::EventHandler(this, &MainWindow::MenuPaneStripMenuItem_Click);
 			// 
@@ -520,6 +523,14 @@ private: System::ComponentModel::IContainer^  components;
 			this->controls3DToolStripMenuItem->Size = System::Drawing::Size(178, 22);
 			this->controls3DToolStripMenuItem->Text = L"Controls";
 			this->controls3DToolStripMenuItem->Click += gcnew System::EventHandler(this, &MainWindow::MenuPaneStripMenuItem_Click);
+			//
+			//GenerateFitToolStripMenuItem
+			//
+			this->GenerateFitToolStripMenuItem->Image = (cli::safe_cast<System::Drawing::Image^>(resources->GetObject(L"GenerateFitToolStripMenuItem.Image")));
+			this->GenerateFitToolStripMenuItem->Name = L"GenerateFitToolStripMenuItem";
+			this->GenerateFitToolStripMenuItem->Size = System::Drawing::Size(178, 15);
+			this->GenerateFitToolStripMenuItem->Text = L"Controls";
+			this->GenerateFitToolStripMenuItem->Click += gcnew System::EventHandler(this, &MainWindow::MenuPaneStripMenuItem_Click);
 			// 
 			// parameterEditorToolStripMenuItem
 			// 
@@ -1018,6 +1029,7 @@ private: String ^ serverAddress;
 private: String ^ validationCode;
 		 //The HTTP caller:
 private: ManagedHTTPCallerForm ^ httpCallForm;
+private: ManagedPythonPreCaller ^ pythonCall;
 private:
 		 System::Void OnserverLabelClicked(System::Object^  sender, System::EventArgs^  e);
 		 System::Void OncancelButtonClicked(System::Object^  sender, System::EventArgs^  e);

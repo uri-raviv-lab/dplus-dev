@@ -41,8 +41,8 @@ private:
 	int _last_error_code;
 	std::string _last_error_message;
 
-	void SetGenerateResults(JobPtr job);
-	void SetFitResults(JobPtr job);
+	ErrorCode SetGenerateResults(JobPtr job);
+	ErrorCode SetFitResults(JobPtr job);
 	bool _isJobRunning;
 	bool _is_valid;
 

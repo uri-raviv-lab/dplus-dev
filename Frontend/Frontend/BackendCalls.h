@@ -25,6 +25,7 @@ public:
 	std::string GetCallString();
 	std::string GetFuncName();
 	std::string GetArgs();
+	std::string GetOptions();
 	void ParseResults(const std::string result);
 
 	ErrorCode GetErrorCode() const { return _errorCode; }

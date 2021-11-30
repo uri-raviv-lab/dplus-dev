@@ -121,6 +121,12 @@ namespace DPlus {
 		void SetParameters(const paramStruct& parConst, LevelOfDetail lod);
 
 		void Invalidate(LevelOfDetail lod, bool bInvalidateParents);
+		
+		void validateConstrains(System::Collections::Generic::List<Entity^>^ invalidVec);
+
+		System::String^ InvalidParamsString();
+
+		void FixConstrains();
 
 		void Invalidate(LevelOfDetail lod) { Invalidate(lod, true); }
 

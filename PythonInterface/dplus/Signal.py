@@ -31,6 +31,8 @@ class Signal:
         except TypeError:
             self._y = tuple()
 
+        self._graph=self._init_graph()
+
     @property
     def x(self):
         return self._x
@@ -51,17 +53,20 @@ class Signal:
     def generated_points(self):
         return len(self.x) - 1  # len(x)-1?
 
+    @property
     def graph(self):
-        # because graph changes every time x and y change, with no good way of getting notified, I've left it as a function
+        return self._graph
+
+    def _init_graph(self):
         y = self.y
-        if y is None:
+        if y is None or not len(y):
             y = ["NaN"] * len(self.x)
 
-        assert len(self.y) == len(self.x)
+        assert len(y) == len(self.x)
 
         graph = OrderedDict()
         for i in range(len(self.x)):
-            graph[self.x[i]] = self.y[i]
+            graph[self.x[i]] = y[i]
 
         return graph
 
@@ -184,7 +189,6 @@ class Signal:
              :return: a signal instance
 
              '''
-        # TODO
         x = list(self.x)
         y = list(self.y)
         length = len(y)

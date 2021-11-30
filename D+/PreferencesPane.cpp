@@ -1,7 +1,7 @@
 #include "PreferencesPane.h"
-
 #include "SymmetryView.h"
 #include "GraphPane3D.h"
+#include "ControlButtonsPane.h"
 
 System::Void DPlus::PreferencesPane::usGridCheckBox_CheckedChanged(System::Object^ sender, System::EventArgs^ e) {
 	bool ch = useGridCheckBox->Checked;
@@ -9,9 +9,13 @@ System::Void DPlus::PreferencesPane::usGridCheckBox_CheckedChanged(System::Objec
 	gridSizeTextBox->Enabled = ch;
 }
 
+
+
 paramStruct DPlus::PreferencesPane::GetDomainPreferences() {
 	paramStruct ps;
-	
+	//return ps; //TODO: this function appears to be useless (as tested by returning here), investigate further (eg Lua) and remove
+
+
 	ps.nlp = 7; // THE NUMBER OF PREFERENCES
 	ps.layers = 1;
 	ps.params.resize(ps.nlp);
@@ -38,6 +42,7 @@ paramStruct DPlus::PreferencesPane::GetDomainPreferences() {
 	ps.params[1].push_back(Parameter(dbl));
 
 	ps.params[2].push_back(Parameter(this->useGridCheckBox->Checked ? 1.0 : 0.0));
+
 
 	if(!Double::TryParse(this->convTextBox->Text, dbl))
 	{
@@ -75,6 +80,9 @@ String ^DPlus::PreferencesPane::SerializePreferences() {
 		return ((String ^)(this->Invoke(gcnew FuncNoParamsReturnString(this, &PreferencesPane::SerializePreferences))));
 	}	
 
+	 String ^ applyResolutionCheckBox = ((ControlButtonsPane ^)(this->parentForm->PaneList[CALC_BUTTONS]))->applyResolutionCheckBox->Checked ? "true" : "false";
+	 String ^ resolutionSigmaTextBox = ((ControlButtonsPane ^)(this->parentForm->PaneList[CALC_BUTTONS]))->resolutionSigmaTextBox->Text;
+
 	String ^contents = "";
 
 	contents += "DomainPreferences = {\n";
@@ -87,18 +95,20 @@ String ^DPlus::PreferencesPane::SerializePreferences() {
 	contents += "\tOrientationIterations = " + this->integIterTextBox->Text + ",\n";
 	contents += "\tGridSize = " + this->gridSizeTextBox->Text + ",\n";
 	contents += "\tUseGrid = " + (this->useGridCheckBox->Checked ? "true" : "false") + ",\n";
+
 	contents += "\tConvergence = " + this->convTextBox->Text + ",\n";
 	contents += "\tqMin = " + this->qMinTextBox->Text + ",\n";
 	contents += "\tqMax = " + this->qMaxTextBox->Text + ",\n";
 	contents += "\tUpdateInterval = " + this->updateIntervalMSTextBox->Text + ",\n";
 	contents += "\tGeneratedPoints = " + this->genResTextBox->Text + ",\n";
 
+	contents += "\tApplyResolution = " + applyResolutionCheckBox + ",\n";
+	contents += "\tResolutionSigma = " + resolutionSigmaTextBox + ",\n";
+
 	if(parentForm->loadedSignal != nullptr)
 		contents += "\tSignalFile = [[" + parentForm->signalFilename + "]],\n";
 
-	contents += "\tDrawDistance = " + this->drawDistTrackbar->Value + ",\n";
-
-	contents += "\tLevelOfDetail = " + this->lodTrackbar->Value + ",\n";
+	
 
 	contents += "};\n";
 
@@ -151,6 +161,14 @@ void DPlus::PreferencesPane::DeserializePreferences(LuaTable ^domainPrefs) {
 	if(domainPrefs["UseGrid"] != nullptr)
 		this->useGridCheckBox->Checked = LuaItemToBoolean(domainPrefs["UseGrid"]);
 
+	if (domainPrefs["ApplyResolution"] != nullptr)
+		((ControlButtonsPane ^)(this->parentForm->PaneList[CALC_BUTTONS]))->applyResolutionCheckBox->Checked = 
+														 LuaItemToBoolean(domainPrefs["ApplyResolution"]);
+	
+	if (domainPrefs["ResolutionSigma"] != nullptr)
+		((ControlButtonsPane ^)(this->parentForm->PaneList[CALC_BUTTONS]))->resolutionSigmaTextBox->Text =
+														LuaItemToDouble(domainPrefs["ResolutionSigma"]).ToString(); 
+
 	if(domainPrefs["Convergence"] != nullptr)
 		this->convTextBox->Text = LuaItemToDouble(domainPrefs["Convergence"]).ToString();
 
@@ -169,38 +187,8 @@ void DPlus::PreferencesPane::DeserializePreferences(LuaTable ^domainPrefs) {
 	if(domainPrefs["SignalFile"] != nullptr && dynamic_cast<String ^>(domainPrefs["SignalFile"]))
 		parentForm->LoadSignal((String ^)domainPrefs["SignalFile"]);
 
-	if(domainPrefs["DrawDistance"] != nullptr) {
-		drawDistTrackbar->Value = ClampInt(LuaItemToDouble(domainPrefs["DrawDistance"]), drawDistTrackbar->Minimum, drawDistTrackbar->Maximum);
-		drawDistTrack_Scroll(drawDistTrackbar, nullptr);
-	}
-
-	if(domainPrefs["LevelOfDetail"] != nullptr) {
-		lodTrackbar->Value = ClampInt(LuaItemToDouble(domainPrefs["LevelOfDetail"]), lodTrackbar->Minimum, lodTrackbar->Maximum);
-		lodTrackbar_Scroll(lodTrackbar, nullptr);
-	}
-
 }
 
-System::Void DPlus::PreferencesPane::drawDistTrack_Scroll(System::Object^ sender, System::EventArgs^ e) {
-	GraphPane3D ^g3 = (GraphPane3D ^)(parentForm->PaneList[GRAPH3D]);
-
-	g3->glCanvas3D1->DrawFog = true;
-	g3->glCanvas3D1->ViewDistance = (float)drawDistTrackbar->Value;
-	if(drawDistTrackbar->Value == drawDistTrackbar->Maximum)
-		g3->glCanvas3D1->ViewDistance = 2000.0f;
-
-	g3->glCanvas3D1->Invalidate();
-	g3->Invalidate();
-}
-
-System::Void DPlus::PreferencesPane::lodTrackbar_Scroll(System::Object^ sender, System::EventArgs^ e) {
-	GraphPane3D ^g3 = (GraphPane3D ^)(parentForm->PaneList[GRAPH3D]);
-
-	g3->InvalidateEntities(LevelOfDetail(lodTrackbar->Value));
-
-	g3->glCanvas3D1->Invalidate();
-	g3->Invalidate();
-}
 
 System::Void DPlus::PreferencesPane::gridSizeTextBox_Validating(System::Object^ sender, System::ComponentModel::CancelEventArgs^ e)
 {
@@ -209,8 +197,67 @@ System::Void DPlus::PreferencesPane::gridSizeTextBox_Validating(System::Object^ 
 	Int32 asInt;
 	
 	if (Int32::TryParse(tb->Text, asInt))
+	{
 		if (asInt % 2 == 1)
-			MessageBox::Show("The grid size must be even. The size will be increased by one upon calculation.");
+		{
+			MessageBox::Show("The grid size must be even. The size will be increased by one upon calculation.",
+									 "Invalid input", MessageBoxButtons::OK, MessageBoxIcon::Error);
+			gridSizeTextBox->Text = L"80";
+		}
+	}
+	else
+	{
+		MessageBox::Show("The grid size must be an integer.", "Invalid input", MessageBoxButtons::OK, MessageBoxIcon::Error);
+		gridSizeTextBox->Text = L"80";
+	}
+}
+
+System::Void DPlus::PreferencesPane::qMinTextBox_Validating(System::Object ^ sender, System::ComponentModel::CancelEventArgs ^ e)
+{
+	TextBox ^ tb = (TextBox ^)(sender);
+
+	double qmin;
+	double qmax;
+	if (Double::TryParse(tb->Text, qmin)) {
+		if (Double::TryParse(qMaxTextBox->Text, qmax)) {
+			if (qmin > qmax) {
+				MessageBox::Show("qmin value must be smaller than qmax value", "Invalid input", MessageBoxButtons::OK, MessageBoxIcon::Error);
+				qMinTextBox->Text = prev_qmin.ToString();
+				return;
+			}
+			prev_qmin = qmin;
+		}
+	}
+	else
+	{ 
+		MessageBox::Show("The qmin value must be a valid number.", "Invalid input", MessageBoxButtons::OK, MessageBoxIcon::Error);
+		qMinTextBox->Text = prev_qmin.ToString();
+	}
+	return;
+}
+
+System::Void DPlus::PreferencesPane::qMaxTextBox_Validating(System::Object ^ sender, System::ComponentModel::CancelEventArgs ^ e)
+{
+	TextBox ^ tb = (TextBox ^)(sender);
+
+	double qmin;
+	double qmax;
+	if (Double::TryParse(tb->Text, qmax)) {
+		if (Double::TryParse(qMinTextBox->Text, qmin)) {
+			if (qmax < qmin) {
+				MessageBox::Show("qmax value must be bigger than qmin value", "Invalid input", MessageBoxButtons::OK, MessageBoxIcon::Error);
+				qMaxTextBox->Text = prev_qmax.ToString();
+				return;
+			}
+			prev_qmax = qmax;
+		}
+	}
+	else 
+	{
+		MessageBox::Show("The qmax value must be a valid number.", "Invalid input", MessageBoxButtons::OK, MessageBoxIcon::Error);
+		qMaxTextBox->Text = prev_qmax.ToString();
+	}
+	return;
 }
 
 System::Void DPlus::PreferencesPane::qMinTextBox_TextChanged(System::Object ^ sender, System::EventArgs ^ e)
@@ -221,38 +268,34 @@ System::Void DPlus::PreferencesPane::qMinTextBox_TextChanged(System::Object ^ se
 	TextBox ^ tb = (TextBox ^)(sender);
 	double qmin;
 	double qmax;
-	if (Double::TryParse(tb->Text, qmin))
+	if (Double::TryParse(tb->Text, qmin)) {
 		if (Double::TryParse(qMaxTextBox->Text, qmax)) {
 			if (qmin < 0) {
-				MessageBox::Show("qmin value must be bigger than 0");
+				MessageBox::Show("qmin value must be bigger than 0", "Invalid input", MessageBoxButtons::OK, MessageBoxIcon::Error);
 				qMinTextBox->Text = prev_qmin.ToString();
 				return;
 			}
-			if (qmin > qmax) {
-				MessageBox::Show("qmin value must be smaller than qmax value");
-				qMinTextBox->Text = prev_qmin.ToString();
-				return;
-			}
-			prev_qmin = qmin;
 		}
+	}
 }
 System::Void DPlus::PreferencesPane::qMaxTextBox_TextChanged(System::Object ^ sender, System::EventArgs ^ e)
 {
-	// if validate_qs is false, the system now loading data from signal file, therfore there is no need to run validations on qmin and qmax
-	if (!validate_qs)
-		return;
-	TextBox ^ tb = (TextBox ^)(sender);
-	double qmin;
-	double qmax;
-	if (Double::TryParse(tb->Text, qmax))
-		if (Double::TryParse(qMinTextBox->Text, qmin)) {
-			if (qmax < qmin) {
-				MessageBox::Show("qmax value must be bigger than qmin value");
-				qMaxTextBox->Text = prev_qmax.ToString();
-				return;
-			}
-			prev_qmax = qmax;
-		}
+	//// if validate_qs is false, the system now loading data from signal file, therfore there is no need to run validations on qmin and qmax
+	//if (!validate_qs)
+	//	return;
+	//TextBox ^ tb = (TextBox ^)(sender);
+	//double qmin;
+	//double qmax;
+	//if (Double::TryParse(tb->Text, qmax)) {
+	//	if (Double::TryParse(qMinTextBox->Text, qmin)) {
+	//		if (qmax < qmin) {
+	//			MessageBox::Show("qmax value must be bigger than qmin value", "Invalid input", MessageBoxButtons::OK, MessageBoxIcon::Error);
+	//			qMaxTextBox->Text = prev_qmax.ToString();
+	//			return;
+	//		}
+	//		prev_qmax = qmax;
+	//	}
+	//}
 }
 
 System::Void DPlus::PreferencesPane::SetDefaultParams()
@@ -265,9 +308,5 @@ System::Void DPlus::PreferencesPane::SetDefaultParams()
 	this->genResTextBox->Text = L"800";
 	this->convTextBox->Text = L"0.001";
 	this->updateIntervalMSTextBox->Text = L"100";
-	this->lodTrackbar->Value = 1;
-	lodTrackbar_Scroll(NULL, gcnew EventArgs());
-	this->drawDistTrackbar->Value = 200;
-	drawDistTrack_Scroll(NULL, gcnew EventArgs());
 	this->integrationMethodComboBox->SelectedIndex = 0;
 }

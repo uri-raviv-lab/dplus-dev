@@ -5,9 +5,9 @@ from dplus.Signal import Signal
 
 
 class CalculationResult(object):
-    '''
+    """
     Stores the various aspects of the result for further manipulation
-    '''
+    """
 
     def __init__(self, calc_data, result, job):
         '''
@@ -28,11 +28,21 @@ class CalculationResult(object):
             raise ValueError("Result graph size mismatch")
         else:
             self.signal = Signal(self._calc_data.x, self._raw_result['Graph'])
-            self.graph = self.signal.graph()
+
+
+    @property
+    def processed_result(self):
+        res=self._raw_result
+        res['Graph']=list(self.signal.y)
+        return res
+
 
     def __str__(self):
         return pprint.pformat(self._raw_result)
 
+    @property
+    def graph(self):
+        return self.signal.graph
     @property
     def y(self):
         '''
@@ -81,7 +91,7 @@ class CalculationResult(object):
           '''
 
         addresses = []
-        for model_ptr in self._calc_data._all_models_indices():
+        for model_ptr in self._calc_data._validate_all_models_indices():
             try:
                 addresses.append(self.get_amp(model_ptr, destination_folder))
             except FileNotFoundError:  # not every model will necessarily have an amplitude file
@@ -124,6 +134,8 @@ class GenerateResult(CalculationResult):
 
     def __init__(self, calc_data, result, job):
         super().__init__(calc_data, result, job)
+        if self._calc_data.DomainPreferences.apply_resolution:
+            self.signal = self.signal.apply_resolution_function(self._calc_data.DomainPreferences.resolution_sigma)
         self._parse_headers()  # sets self._headers to a list of headers
 
     def _parse_headers(self):

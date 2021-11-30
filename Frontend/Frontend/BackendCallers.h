@@ -35,11 +35,14 @@ class EXPORTED ManagedBackendCaller : public BackendCaller
 public:
 	typedef void (STDCALL *callFunc)(BackendCall &call, bool runInBackground);
 	ManagedBackendCaller(callFunc callHandler);
+	ManagedBackendCaller(callFunc callHandler, bool isPython);
+	bool Python();
 	virtual ~ManagedBackendCaller();
 	virtual void CallBackend(BackendCall &call, bool runInBackground = false);
 
 private:
 	callFunc _handler;
+	bool _isPython;
 
 };
 

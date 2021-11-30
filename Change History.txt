@@ -1,3 +1,16 @@
+4.5.0.0:
+--Feature: Resolution function
+--Feature: Redesign UI to be more intuitive
+--BugFix: improvements to argument validation
+--Bugfix: raise error message when attempting to save an amplitude before it is created
+--Bugfix: setting value for population or domain size to 0 or less is not allowed
+--Bugfix: "Generating intensity and amplitude using Lua scripting does not work "
+--Bugfix: When loading invalid state file from before the min/max fix, allow it to load if user agrees to swap values
+
+4.4.0.0:
+--Feature: local backend is python now!
+--BugFix:  Error message after grid size change twice
+--BugFix:  D+ crashes after significant change in q range.
 4.3.1.0:
 --BugFix: fixed bug with log(q) in 2D graph in UI
 --Feature: change code to work with python wrapper

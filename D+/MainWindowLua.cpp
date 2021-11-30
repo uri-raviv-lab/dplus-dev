@@ -332,15 +332,16 @@ namespace DPlus {
 		otbl["ModelPtr"] = compositeModel;
 		// Total domain scale and mutability
 		otbl["Scale"] = domainScale;
-		Controls3D ^c3d = (Controls3D ^)PaneList[CONTROLS];
-		if (c3d)
-			otbl["ScaleMut"] = c3d->scaleMut->Checked;
+		SymmetryView ^ sv = (SymmetryView ^)PaneList[SYMMETRY_VIEWER];
+
+		if (sv)
+			otbl["ScaleMut"] = sv->scaleMut->Checked;
 		else
 			otbl["ScaleMut"] = false;
 
 		otbl["Constant"] = domainConstant;
-		if (c3d)
-			otbl["ConstantMut"] = c3d->constantMut->Checked;
+		if (sv)
+			otbl["ConstantMut"] = sv->constantMut->Checked;
 		else
 			otbl["ConstantMut"] = false;
 
@@ -440,10 +441,10 @@ namespace DPlus {
 		else
 			domainScale = 1.0;
 		if (ptree["ScaleMut"] != nullptr)
-			c3->scaleMut->Checked = LuaItemToBoolean(ptree["ScaleMut"]);
+			sv->scaleMut->Checked = LuaItemToBoolean(ptree["ScaleMut"]);
 		else
-			c3->scaleMut->Checked = false;
-		c3->scaleBox->Text = "" + domainScale;
+			sv->scaleMut->Checked = false;
+		sv->scaleBox->Text = "" + domainScale;
 
 		// Set domain scale and mutability
 		if (ptree["Constant"] != nullptr)
@@ -451,10 +452,10 @@ namespace DPlus {
 		else
 			domainConstant = 0.0;
 		if (ptree["ConstantMut"] != nullptr)
-			c3->constantMut->Checked = LuaItemToBoolean(ptree["ConstantMut"]);
+			sv->constantMut->Checked = LuaItemToBoolean(ptree["ConstantMut"]);
 		else
-			c3->constantMut->Checked = false;
-		c3->constantBox->Text = "" + domainConstant;
+			sv->constantMut->Checked = false;
+		sv->constantBox->Text = "" + domainConstant;
 
 		// Re-create entity tree from parameter tree
 		// Modify number of populations
@@ -466,7 +467,8 @@ namespace DPlus {
 			pops = (LuaTable ^)ptree["Populations"];
 		else if (type->Equals("Domain")) // Backward compatibility - Ignore this case
 			bcompat = true;
-
+		System::Collections::Generic::List<Entity^>^ invalidVec = gcnew System::Collections::Generic::List<Entity^>();
+		bool constrainsValid = true;
 		for (int i = 0; i < pt.GetNumSubModels(); i++) // Loop over populations
 		{
 			// Get table and pointer to parameter tree
@@ -496,14 +498,42 @@ namespace DPlus {
 
 				for (int j = 0; j < keys; j++) {
 					Entity ^ent = InnerSetParameterTree(domain->GetSubModel(j), (LuaTable ^)mods[j + 1]);  // Set one model
+					
 					if (ent != nullptr)
+					{
 						populationTrees[i]->Nodes->Add(ent);
+						ent->validateConstrains(invalidVec);
+					}
 					ClearParameterTree(domain->GetSubModel(j));
 				}
 			}
 		}
 
+		if (invalidVec->Count > 0)
+		{
 
+			System::Windows::Forms::DialogResult result;
+			result = MessageBox::Show("One of the models constraints upper bound is lower than it's lower bound.\n Do you want the system to swap the values?",
+				"Question", MessageBoxButtons::YesNo, MessageBoxIcon::Question);
+			if (result == ::DialogResult::Yes)
+			{
+				for (int i = 0; i < invalidVec->Count; i++)
+				{
+					invalidVec[i]->FixConstrains();
+				}
+			}
+			else
+			{
+				System::String^ allInvalidString = "";
+				for (int i = 0; i < invalidVec->Count; i++)
+				{
+					allInvalidString += "\n" + invalidVec[i]->InvalidParamsString();
+				}
+				result = MessageBox::Show("Invalid params list: \n" + allInvalidString,
+					"Warning", MessageBoxButtons::OK, MessageBoxIcon::Warning);
+			}
+		}
+			 
 		sv->tvInvalidate();
 	}
 

@@ -77,6 +77,15 @@ namespace DPlus {
 	private: System::Windows::Forms::TabPage^  addPopulationFakeTab;
 	private: System::ComponentModel::IContainer^  components;
 
+	private: System::Windows::Forms::Label^  scaleLabel;
+	public: System::Windows::Forms::TextBox^  scaleBox;
+	private:
+	public: System::Windows::Forms::CheckBox^  scaleMut;
+	public: System::Windows::Forms::CheckBox^  constantMut;
+
+	public: System::Windows::Forms::TextBox^  constantBox;
+	private: System::Windows::Forms::Label^ constantLabel;
+
 	public: 
 	private: 
 
@@ -93,44 +102,53 @@ namespace DPlus {
 		/// </summary>
 		void InitializeComponent(void)
 		{
-			this->components = (gcnew System::ComponentModel::Container());
-			System::ComponentModel::ComponentResourceManager^  resources = (gcnew System::ComponentModel::ComponentResourceManager(SymmetryView::typeid));
-			this->groupBox1 = (gcnew System::Windows::Forms::GroupBox());
-			this->treeViewAdv1 = (gcnew Aga::Controls::Tree::TreeViewAdv());
-			this->treeColumn1 = (gcnew Aga::Controls::Tree::TreeColumn());
-			this->contextMenuModelName = (gcnew System::Windows::Forms::ContextMenuStrip(this->components));
-			this->modelRenameToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
-			this->modelDeleteNameToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
-			this->nodeIcon1 = (gcnew Aga::Controls::Tree::NodeControls::NodeIcon());
-			this->nodeTextBox1 = (gcnew Aga::Controls::Tree::NodeControls::NodeTextBox());
-			this->entityCombo = (gcnew System::Windows::Forms::ComboBox());
-			this->buttonAdd = (gcnew System::Windows::Forms::Button());
-			this->buttonRemove = (gcnew System::Windows::Forms::Button());
-			this->buttonGroup = (gcnew System::Windows::Forms::Button());
-			this->centerPDBCheckBox = (gcnew System::Windows::Forms::CheckBox());
-			this->populationTabs = (gcnew System::Windows::Forms::TabControl());
-			this->contextMenuStrip1 = (gcnew System::Windows::Forms::ContextMenuStrip(this->components));
-			this->toolStripSeparator1 = (gcnew System::Windows::Forms::ToolStripSeparator());
-			this->renameToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
-			this->closeToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
-			this->tabPage1 = (gcnew System::Windows::Forms::TabPage());
-			this->addPopulationFakeTab = (gcnew System::Windows::Forms::TabPage());
-			this->avgpopsizeText = (gcnew System::Windows::Forms::TextBox());
-			this->label1 = (gcnew System::Windows::Forms::Label());
-			this->avgpopsizeMut = (gcnew System::Windows::Forms::CheckBox());
-			this->anomalousCheckBox = (gcnew System::Windows::Forms::CheckBox());
-			this->anomalousCheckBox->Visible = false;
-			this->anomalousCheckBox->Click += gcnew System::EventHandler(this, &SymmetryView::anomalous_CheckedClick);
-			this->splitContainer1 = (gcnew System::Windows::Forms::SplitContainer());
-			this->groupBox1->SuspendLayout();
-			this->contextMenuModelName->SuspendLayout();
-			this->populationTabs->SuspendLayout();
-			this->contextMenuStrip1->SuspendLayout();
-			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->splitContainer1))->BeginInit();
-			this->splitContainer1->Panel1->SuspendLayout();
-			this->splitContainer1->Panel2->SuspendLayout();
-			this->splitContainer1->SuspendLayout();
-			this->SuspendLayout();
+			
+				this->components = (gcnew System::ComponentModel::Container());
+				System::ComponentModel::ComponentResourceManager^  resources = (gcnew System::ComponentModel::ComponentResourceManager(SymmetryView::typeid));
+				this->groupBox1 = (gcnew System::Windows::Forms::GroupBox());
+				this->treeViewAdv1 = (gcnew Aga::Controls::Tree::TreeViewAdv());
+				this->treeColumn1 = (gcnew Aga::Controls::Tree::TreeColumn());
+				this->contextMenuModelName = (gcnew System::Windows::Forms::ContextMenuStrip(this->components));
+				this->modelRenameToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
+				this->modelDeleteNameToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
+				this->nodeIcon1 = (gcnew Aga::Controls::Tree::NodeControls::NodeIcon());
+				this->nodeTextBox1 = (gcnew Aga::Controls::Tree::NodeControls::NodeTextBox());
+				this->entityCombo = (gcnew System::Windows::Forms::ComboBox());
+				this->buttonAdd = (gcnew System::Windows::Forms::Button());
+				this->buttonRemove = (gcnew System::Windows::Forms::Button());
+				this->buttonGroup = (gcnew System::Windows::Forms::Button());
+				this->centerPDBCheckBox = (gcnew System::Windows::Forms::CheckBox());
+				this->populationTabs = (gcnew System::Windows::Forms::TabControl());
+				this->contextMenuStrip1 = (gcnew System::Windows::Forms::ContextMenuStrip(this->components));
+				this->toolStripSeparator1 = (gcnew System::Windows::Forms::ToolStripSeparator());
+				this->renameToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
+				this->closeToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
+				this->tabPage1 = (gcnew System::Windows::Forms::TabPage());
+				this->addPopulationFakeTab = (gcnew System::Windows::Forms::TabPage());
+				this->avgpopsizeText = (gcnew System::Windows::Forms::TextBox());
+				this->label1 = (gcnew System::Windows::Forms::Label());
+				this->avgpopsizeMut = (gcnew System::Windows::Forms::CheckBox());
+				this->anomalousCheckBox = (gcnew System::Windows::Forms::CheckBox());
+				this->anomalousCheckBox->Visible = false;
+				this->anomalousCheckBox->Click += gcnew System::EventHandler(this, &SymmetryView::anomalous_CheckedClick);
+				this->splitContainer1 = (gcnew System::Windows::Forms::SplitContainer());
+				this->groupBox1->SuspendLayout();
+				this->contextMenuModelName->SuspendLayout();
+				this->populationTabs->SuspendLayout();
+				this->contextMenuStrip1->SuspendLayout();
+				(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->splitContainer1))->BeginInit();
+				this->splitContainer1->Panel1->SuspendLayout();
+				this->splitContainer1->Panel2->SuspendLayout();
+				this->splitContainer1->SuspendLayout();
+				this->SuspendLayout();
+
+				this->scaleLabel = (gcnew System::Windows::Forms::Label());
+				this->scaleBox = (gcnew System::Windows::Forms::TextBox());
+				this->scaleMut = (gcnew System::Windows::Forms::CheckBox());
+				this->constantMut = (gcnew System::Windows::Forms::CheckBox());
+				this->constantBox = (gcnew System::Windows::Forms::TextBox());
+				this->constantLabel = (gcnew System::Windows::Forms::Label());
+			
 			// 
 			// groupBox1
 			// 
@@ -281,7 +299,7 @@ namespace DPlus {
 			this->populationTabs->ContextMenuStrip = this->contextMenuStrip1;
 			this->populationTabs->Controls->Add(this->tabPage1);
 			this->populationTabs->Controls->Add(this->addPopulationFakeTab);
-			this->populationTabs->Location = System::Drawing::Point(4, 3);
+			this->populationTabs->Location = System::Drawing::Point(4, 67);
 			this->populationTabs->Name = L"populationTabs";
 			this->populationTabs->SelectedIndex = 0;
 			this->populationTabs->Size = System::Drawing::Size(295, 20);
@@ -390,9 +408,10 @@ namespace DPlus {
 			this->splitContainer1->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((((System::Windows::Forms::AnchorStyles::Top | System::Windows::Forms::AnchorStyles::Bottom)
 				| System::Windows::Forms::AnchorStyles::Left)
 				| System::Windows::Forms::AnchorStyles::Right));
-			this->splitContainer1->Location = System::Drawing::Point(0, 26);
+			this->splitContainer1->Location = System::Drawing::Point(0, 90);
 			this->splitContainer1->Name = L"splitContainer1";
 			this->splitContainer1->Orientation = System::Windows::Forms::Orientation::Horizontal;
+			this->splitContainer1->AutoScroll = true;
 			// 
 			// splitContainer1.Panel1
 			// 
@@ -422,10 +441,17 @@ namespace DPlus {
 			this->ClientSize = System::Drawing::Size(306, 450);
 			this->Controls->Add(this->populationTabs);
 			this->Controls->Add(this->splitContainer1);
+			this->Controls->Add(this->constantMut);
+			this->Controls->Add(this->constantBox);
+			this->Controls->Add(this->constantLabel);
+			this->Controls->Add(this->scaleMut);
+			this->Controls->Add(this->scaleBox);
+			this->Controls->Add(this->scaleLabel);
 			this->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 8.25F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(177)));
 			this->FormBorderStyle = System::Windows::Forms::FormBorderStyle::SizableToolWindow;
 			this->HideOnClose = true;
+			this->AutoScroll = true;
 			this->Icon = (cli::safe_cast<System::Drawing::Icon^>(resources->GetObject(L"$this.Icon")));
 			this->Name = L"SymmetryView";
 			this->ShowIcon = false;
@@ -440,6 +466,64 @@ namespace DPlus {
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->splitContainer1))->EndInit();
 			this->splitContainer1->ResumeLayout(false);
 			this->ResumeLayout(false);
+			// 
+			// scaleLabel
+			// 
+			this->scaleLabel->AutoSize = true;
+			this->scaleLabel->Location = System::Drawing::Point(12, 9);
+			this->scaleLabel->Name = L"scaleLabel";
+			this->scaleLabel->Size = System::Drawing::Size(76, 13);
+			this->scaleLabel->TabIndex = 16;
+			this->scaleLabel->Text = L"Domain Scale:";
+			// 
+			// scaleBox
+			// 
+			this->scaleBox->Location = System::Drawing::Point(105, 7);
+			this->scaleBox->Name = L"scaleBox";
+			this->scaleBox->Size = System::Drawing::Size(90, 20);
+			this->scaleBox->TabIndex = 18;
+			this->scaleBox->Text = L"1";
+			this->scaleBox->KeyDown += gcnew System::Windows::Forms::KeyEventHandler(this, &SymmetryView::textBox_KeyDown);
+			this->scaleBox->Leave += gcnew System::EventHandler(this, &SymmetryView::textBox_Leave);
+			// 
+			// scaleMut
+			// 
+			this->scaleMut->AutoSize = true;
+			this->scaleMut->Location = System::Drawing::Point(201, 9);
+			this->scaleMut->Name = L"scaleMut";
+			this->scaleMut->Size = System::Drawing::Size(64, 17);
+			this->scaleMut->TabIndex = 19;
+			this->scaleMut->Text = L"Mutable";
+			this->scaleMut->UseVisualStyleBackColor = true;
+			// 
+			// constantMut
+			// 
+			this->constantMut->AutoSize = true;
+			this->constantMut->Location = System::Drawing::Point(201, 35);
+			this->constantMut->Name = L"constantMut";
+			this->constantMut->Size = System::Drawing::Size(64, 17);
+			this->constantMut->TabIndex = 21;
+			this->constantMut->Text = L"Mutable";
+			this->constantMut->UseVisualStyleBackColor = true;
+			// 
+			// constantBox
+			// 
+			this->constantBox->Location = System::Drawing::Point(105, 33);
+			this->constantBox->Name = L"constantBox";
+			this->constantBox->Size = System::Drawing::Size(90, 20);
+			this->constantBox->TabIndex = 20;
+			this->constantBox->Text = L"0";
+			this->constantBox->KeyDown += gcnew System::Windows::Forms::KeyEventHandler(this, &SymmetryView::textBox_KeyDown);
+			this->constantBox->Leave += gcnew System::EventHandler(this, &SymmetryView::textBox_Leave);
+			// 
+			// constantLabel
+			// 
+			this->constantLabel->AutoSize = true;
+			this->constantLabel->Location = System::Drawing::Point(12, 36);
+			this->constantLabel->Name = L"constantLabel";
+			this->constantLabel->Size = System::Drawing::Size(91, 13);
+			this->constantLabel->TabIndex = 23;
+			this->constantLabel->Text = L"Domain Constant:";
 
 		}
 #pragma endregion
@@ -482,6 +566,10 @@ private: System::Void avgpopsizeText_KeyDown(System::Object^  sender, System::Wi
 private: System::Void avgpopsizeMut_CheckedChanged(System::Object^  sender, System::EventArgs^  e);
 private: System::Void anomalous_CheckedClick(System::Object^  sender, System::EventArgs^  e);
 private: System::Void UpdateModelPtr(Entity ^ ent, String ^anomfilename);
+private: System::Void AddLayerManualSymmetry(System::Object^ sender, System::EventArgs^ e, Entity^ ent);
+		private: System::Void textBox_KeyDown(System::Object^  sender, System::Windows::Forms::KeyEventArgs^  e);
+		private: System::Void textBox_Leave(System::Object^  sender, System::EventArgs^  e);
+				 public: void SetDefaultParams();
 };
 
 // A class just to help with the model combobox (provides reference to model names, containers and IDs)

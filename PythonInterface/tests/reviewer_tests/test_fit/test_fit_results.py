@@ -6,6 +6,7 @@ import struct
 import pytest
 
 from dplus.CalculationInput import CalculationInput
+from dplus.PyCeresOptimizer import PyCeresOptimizer
 from dplus.CalculationRunner import LocalRunner, WebRunner
 from tests.old_stuff.fix_state_files import fix_file
 from tests.reviewer_tests.utils import DplusProps
@@ -36,16 +37,29 @@ class TestFitRun(DplusProps):
         input=self.get_input(test_folder_path)
         #then run the program:
         session_folder=self.get_session_folder(test_folder_path)
+
         if web:
             api = WebRunner("http://192.168.18.100/", token)
         else:
             api=LocalRunner(exe_directory, session_folder)
-        result = api.fit(input)
+        
+        test_python_ceres = False
+        if test_python_ceres:
+            python_fit = PyCeresOptimizer(input, api)
+            python_fit.solve()
+            result = python_fit.save_dplus_arrays(python_fit.best_results, os.path.join(session_folder, "data.json"))
+
+        else:
+            result = api.fit(input)
+
         if web:
             self.save_for_web_tests(result, session_folder)
         #and finally, a sanity check on the results
-        if result.error["code"]!=0:
-            print("Result returned error:", result.error)
+        try:
+            if result.error["code"]!=0:
+                print("Result returned error:", result.error)
+        except AttributeError:
+            pass
 
 class TestFitCorrect(DplusProps):
     def test_parameters_correct(self, test_folder_path):
@@ -63,10 +77,14 @@ class TestFitCorrect(DplusProps):
             for expected_param, result_param in zip(expected_model, result_model):
                 e_val=expected_param.value
                 r_val=result_param.value
-                e_str=str(e_val)
-                r_str = str(r_val)
+
                 passed=True
-                for i in range(len(e_str) - 1):
+                # if np.fabs((1.0 - np.double(e_val / r_val))) > 1.0e-8:
+                #     print(np.fabs((1.0 - np.double(e_val / r_val))))
+                # passed = False
+                e_str = str(e_val)
+                r_str= str(r_val)
+                for i in range(len(e_str)-1):
                     if r_str[i] != e_str[i]:
                         passed = False
                 if not passed:

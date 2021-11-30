@@ -8,8 +8,8 @@
 #include "Eigen/Core"
 #include <omp.h>
 #include <functional>
-#include "../../../Common/ZipLib/Source/streams/memstream.h"
-#include "../../../Common/ZipLib/Source/ZipFile.h"
+#include "../../Common/ZipLib/Source/streams/memstream.h"
+#include "../../Common/ZipLib/Source/ZipFile.h"
 
 typedef Eigen::Array<std::complex<FACC>, Eigen::Dynamic, 1> ArrayXcX;
 

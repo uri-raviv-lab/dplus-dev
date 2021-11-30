@@ -23,38 +23,10 @@ namespace DPlus {
 	protected:
 		MainWindow ^parentForm;
 	private: System::Windows::Forms::Timer^  scrollTimer;
-	public: System::Windows::Forms::Button^  generateButton;
-	private:
-
-
-
 	public: System::Windows::Forms::CheckBox^  showCornerAxesCheckBox;
 	private: System::Windows::Forms::GroupBox^  groupBox1;
-	public: System::Windows::Forms::Button^  fitButton;
-	private:
-	public:
-
-
-	public: System::Windows::Forms::Button^  stopButton;
-	private: System::Windows::Forms::Label^  label1;
-	public: System::Windows::Forms::TextBox^  scaleBox;
-	private: 
-	public: System::Windows::Forms::CheckBox^  scaleMut;
-	public: System::Windows::Forms::CheckBox^  constantMut;
-
-	public: System::Windows::Forms::TextBox^  constantBox;
-
-	private: System::Windows::Forms::Label^  label2;
 	public: System::Windows::Forms::CheckBox^  fixedSize_checkBox;
-
-	public:
-	public:
-	public: 
-
-	private: 
-	private: 
-
-	private: 
+ 
 	protected: 
 		GraphPane3D ^controlledForm;
 	public:
@@ -94,7 +66,12 @@ namespace DPlus {
 	public: System::Windows::Forms::TextBox^  yawTextBox;
 	public: System::Windows::Forms::CheckBox^  showAxesCheckBox;
 	private: System::ComponentModel::IContainer^  components;
-	public: 
+
+	private: System::Windows::Forms::Label^  detailLabel;
+	private: System::Windows::Forms::GroupBox^  graphicGroupBox;
+	private: System::Windows::Forms::Label^  distLabel;
+	public: System::Windows::Forms::TrackBar^  lodTrackbar;
+	public: System::Windows::Forms::TrackBar^  drawDistTrackbar;
 
 	private:
 		/// <summary>
@@ -125,23 +102,22 @@ namespace DPlus {
 			this->yawTextBox = (gcnew System::Windows::Forms::TextBox());
 			this->showAxesCheckBox = (gcnew System::Windows::Forms::CheckBox());
 			this->scrollTimer = (gcnew System::Windows::Forms::Timer(this->components));
-			this->generateButton = (gcnew System::Windows::Forms::Button());
 			this->showCornerAxesCheckBox = (gcnew System::Windows::Forms::CheckBox());
 			this->groupBox1 = (gcnew System::Windows::Forms::GroupBox());
 			this->fixedSize_checkBox = (gcnew System::Windows::Forms::CheckBox());
-			this->fitButton = (gcnew System::Windows::Forms::Button());
-			this->stopButton = (gcnew System::Windows::Forms::Button());
-			this->label1 = (gcnew System::Windows::Forms::Label());
-			this->scaleBox = (gcnew System::Windows::Forms::TextBox());
-			this->scaleMut = (gcnew System::Windows::Forms::CheckBox());
-			this->constantMut = (gcnew System::Windows::Forms::CheckBox());
-			this->constantBox = (gcnew System::Windows::Forms::TextBox());
-			this->label2 = (gcnew System::Windows::Forms::Label());
+			this->lodTrackbar = (gcnew System::Windows::Forms::TrackBar());
+			this->detailLabel = (gcnew System::Windows::Forms::Label());
+			this->graphicGroupBox = (gcnew System::Windows::Forms::GroupBox());
+			this->distLabel = (gcnew System::Windows::Forms::Label());
+			this->drawDistTrackbar = (gcnew System::Windows::Forms::TrackBar());
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->angle1TrackBar))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->zoomTrackBar))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->angle3TrackBar))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->angle2TrackBar))->BeginInit();
 			this->groupBox1->SuspendLayout();
+			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->lodTrackbar))->BeginInit();
+			this->graphicGroupBox->SuspendLayout();
+			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->drawDistTrackbar))->BeginInit();
 			this->SuspendLayout();
 			// 
 			// pitchTextBox
@@ -278,16 +254,6 @@ namespace DPlus {
 			// 
 			this->scrollTimer->Tick += gcnew System::EventHandler(this, &Controls3D::scrollTimer_Tick);
 			// 
-			// generateButton
-			// 
-			this->generateButton->Location = System::Drawing::Point(12, 58);
-			this->generateButton->Name = L"generateButton";
-			this->generateButton->Size = System::Drawing::Size(73, 23);
-			this->generateButton->TabIndex = 30;
-			this->generateButton->Text = L"Generate";
-			this->generateButton->UseVisualStyleBackColor = true;
-			this->generateButton->Click += gcnew System::EventHandler(this, &Controls3D::generateButton_Click);
-			// 
 			// showCornerAxesCheckBox
 			// 
 			this->showCornerAxesCheckBox->AutoSize = true;
@@ -318,7 +284,7 @@ namespace DPlus {
 			this->groupBox1->Controls->Add(this->angle3Label);
 			this->groupBox1->Controls->Add(this->angle2Label);
 			this->groupBox1->Controls->Add(this->yawTextBox);
-			this->groupBox1->Location = System::Drawing::Point(12, 114);
+			this->groupBox1->Location = System::Drawing::Point(12, 5);
 			this->groupBox1->Name = L"groupBox1";
 			this->groupBox1->Size = System::Drawing::Size(276, 167);
 			this->groupBox1->TabIndex = 16;
@@ -336,116 +302,87 @@ namespace DPlus {
 			this->fixedSize_checkBox->UseVisualStyleBackColor = true;
 			this->fixedSize_checkBox->CheckedChanged += gcnew System::EventHandler(this, &Controls3D::showAxesCheckBox_CheckedChanged);
 			// 
-			// fitButton
+			// lodTrackbar
 			// 
-			this->fitButton->Location = System::Drawing::Point(12, 87);
-			this->fitButton->Name = L"fitButton";
-			this->fitButton->Size = System::Drawing::Size(73, 23);
-			this->fitButton->TabIndex = 31;
-			this->fitButton->Text = L"Fit";
-			this->fitButton->UseVisualStyleBackColor = true;
-			this->fitButton->Click += gcnew System::EventHandler(this, &Controls3D::fitButton_Click);
+			this->lodTrackbar->Location = System::Drawing::Point(86, 19);
+			this->lodTrackbar->Maximum = 5;
+			this->lodTrackbar->Minimum = 1;
+			this->lodTrackbar->Name = L"lodTrackbar";
+			this->lodTrackbar->Size = System::Drawing::Size(104, 45);
+			this->lodTrackbar->TabIndex = 9;
+			this->lodTrackbar->Value = 1;
+			this->lodTrackbar->Scroll += gcnew System::EventHandler(this, &Controls3D::lodTrackbar_Scroll);
 			// 
-			// stopButton
+			// detailLabel
 			// 
-			this->stopButton->Enabled = false;
-			this->stopButton->Location = System::Drawing::Point(91, 87);
-			this->stopButton->Name = L"stopButton";
-			this->stopButton->Size = System::Drawing::Size(73, 23);
-			this->stopButton->TabIndex = 32;
-			this->stopButton->Text = L"Stop";
-			this->stopButton->UseVisualStyleBackColor = true;
-			this->stopButton->Click += gcnew System::EventHandler(this, &Controls3D::stopButton_Click);
+			this->detailLabel->AutoSize = true;
+			this->detailLabel->Location = System::Drawing::Point(5, 22);
+			this->detailLabel->Name = L"detailLabel";
+			this->detailLabel->Size = System::Drawing::Size(75, 13);
+			this->detailLabel->TabIndex = 10;
+			this->detailLabel->Text = L"Level of Detail";
 			// 
-			// label1
+			// graphicGroupBox
 			// 
-			this->label1->AutoSize = true;
-			this->label1->Location = System::Drawing::Point(12, 10);
-			this->label1->Name = L"label1";
-			this->label1->Size = System::Drawing::Size(76, 13);
-			this->label1->TabIndex = 16;
-			this->label1->Text = L"Domain Scale:";
+			this->graphicGroupBox->Controls->Add(this->distLabel);
+			this->graphicGroupBox->Controls->Add(this->drawDistTrackbar);
+			this->graphicGroupBox->Controls->Add(this->detailLabel);
+			this->graphicGroupBox->Controls->Add(this->lodTrackbar);
+			this->graphicGroupBox->Location = System::Drawing::Point(13, 178);
+			this->graphicGroupBox->Name = L"graphicGroupBox";
+			this->graphicGroupBox->Size = System::Drawing::Size(200, 75);
+			this->graphicGroupBox->TabIndex = 11;
+			this->graphicGroupBox->TabStop = false;
+			this->graphicGroupBox->Text = L"Graphics:";
 			// 
-			// scaleBox
+			// distLabel
 			// 
-			this->scaleBox->Location = System::Drawing::Point(105, 7);
-			this->scaleBox->Name = L"scaleBox";
-			this->scaleBox->Size = System::Drawing::Size(90, 20);
-			this->scaleBox->TabIndex = 18;
-			this->scaleBox->Text = L"1";
-			this->scaleBox->KeyDown += gcnew System::Windows::Forms::KeyEventHandler(this, &Controls3D::textBox_KeyDown);
-			this->scaleBox->Leave += gcnew System::EventHandler(this, &Controls3D::textBox_Leave);
+			this->distLabel->AutoSize = true;
+			this->distLabel->Location = System::Drawing::Point(6, 56);
+			this->distLabel->Name = L"distLabel";
+			this->distLabel->Size = System::Drawing::Size(77, 13);
+			this->distLabel->TabIndex = 12;
+			this->distLabel->Text = L"Draw Distance";
 			// 
-			// scaleMut
+			// drawDistTrackbar
 			// 
-			this->scaleMut->AutoSize = true;
-			this->scaleMut->Location = System::Drawing::Point(201, 9);
-			this->scaleMut->Name = L"scaleMut";
-			this->scaleMut->Size = System::Drawing::Size(64, 17);
-			this->scaleMut->TabIndex = 19;
-			this->scaleMut->Text = L"Mutable";
-			this->scaleMut->UseVisualStyleBackColor = true;
-			// 
-			// constantMut
-			// 
-			this->constantMut->AutoSize = true;
-			this->constantMut->Location = System::Drawing::Point(201, 35);
-			this->constantMut->Name = L"constantMut";
-			this->constantMut->Size = System::Drawing::Size(64, 17);
-			this->constantMut->TabIndex = 21;
-			this->constantMut->Text = L"Mutable";
-			this->constantMut->UseVisualStyleBackColor = true;
-			// 
-			// constantBox
-			// 
-			this->constantBox->Location = System::Drawing::Point(105, 33);
-			this->constantBox->Name = L"constantBox";
-			this->constantBox->Size = System::Drawing::Size(90, 20);
-			this->constantBox->TabIndex = 20;
-			this->constantBox->Text = L"0";
-			this->constantBox->KeyDown += gcnew System::Windows::Forms::KeyEventHandler(this, &Controls3D::textBox_KeyDown);
-			this->constantBox->Leave += gcnew System::EventHandler(this, &Controls3D::textBox_Leave);
-			// 
-			// label2
-			// 
-			this->label2->AutoSize = true;
-			this->label2->Location = System::Drawing::Point(12, 36);
-			this->label2->Name = L"label2";
-			this->label2->Size = System::Drawing::Size(91, 13);
-			this->label2->TabIndex = 23;
-			this->label2->Text = L"Domain Constant:";
+			this->drawDistTrackbar->LargeChange = 50;
+			this->drawDistTrackbar->Location = System::Drawing::Point(87, 48);
+			this->drawDistTrackbar->Maximum = 200;
+			this->drawDistTrackbar->Minimum = 1;
+			this->drawDistTrackbar->Name = L"drawDistTrackbar";
+			this->drawDistTrackbar->Size = System::Drawing::Size(104, 45);
+			this->drawDistTrackbar->TabIndex = 11;
+			this->drawDistTrackbar->TickStyle = System::Windows::Forms::TickStyle::None;
+			this->drawDistTrackbar->Value = 200;
+			this->drawDistTrackbar->Scroll += gcnew System::EventHandler(this, &Controls3D::drawDistTrack_Scroll);
 			// 
 			// Controls3D
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(96, 96);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Dpi;
 			this->AutoScroll = true;
-			this->ClientSize = System::Drawing::Size(300, 287);
-			this->Controls->Add(this->constantMut);
-			this->Controls->Add(this->constantBox);
-			this->Controls->Add(this->label2);
-			this->Controls->Add(this->scaleMut);
-			this->Controls->Add(this->scaleBox);
-			this->Controls->Add(this->label1);
-			this->Controls->Add(this->generateButton);
-			this->Controls->Add(this->stopButton);
-			this->Controls->Add(this->fitButton);
+			this->ClientSize = System::Drawing::Size(300, 293);
 			this->Controls->Add(this->groupBox1);
+			this->Controls->Add(this->graphicGroupBox);
 			this->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 8.25F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(177)));
 			this->HideOnClose = true;
 			this->Icon = (cli::safe_cast<System::Drawing::Icon^>(resources->GetObject(L"$this.Icon")));
 			this->Name = L"Controls3D";
 			this->ShowIcon = false;
-			this->Text = L"Controls";
+			this->Text = L"Viewport";
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->angle1TrackBar))->EndInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->zoomTrackBar))->EndInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->angle3TrackBar))->EndInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->angle2TrackBar))->EndInit();
 			this->groupBox1->ResumeLayout(false);
 			this->groupBox1->PerformLayout();
+			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->lodTrackbar))->EndInit();
+			this->graphicGroupBox->ResumeLayout(false);
+			this->graphicGroupBox->PerformLayout();
+			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->drawDistTrackbar))->EndInit();
 			this->ResumeLayout(false);
-			this->PerformLayout();
 
 		}
 #pragma endregion
@@ -487,16 +424,13 @@ private:
 	 * when a value is assigned to the textBox->Text
 	 **/
 	System::Void angleTextBox_TextChanged(System::Object^  sender, System::EventArgs^  e);
+	
 private: System::Void TextBox_KeyDown(System::Object^  sender, System::Windows::Forms::KeyEventArgs^  e);
-private: System::Void generateButton_Click(System::Object^  sender, System::EventArgs^  e);
 private: System::Void showCornerAxesCheckBox_CheckedChanged(System::Object^  sender, System::EventArgs^  e);
-private: System::Void fitButton_Click(System::Object^  sender, System::EventArgs^  e);
-private: System::Void stopButton_Click(System::Object^  sender, System::EventArgs^  e);
 		 public: String ^SerializePreferences(); 
 				 void DeserializePreferences(LuaTable ^domainPrefs);
-private: System::Void textBox_Leave(System::Object^  sender, System::EventArgs^  e);
-private: System::Void textBox_KeyDown(System::Object^  sender, System::Windows::Forms::KeyEventArgs^  e);
-public:
-	void SetDefaultParams();
+private: System::Void lodTrackbar_Scroll(System::Object^  sender, System::EventArgs^  e);
+private: System::Void drawDistTrack_Scroll(System::Object^  sender, System::EventArgs^  e);
+public: void SetDefaultParams();
 };
 }

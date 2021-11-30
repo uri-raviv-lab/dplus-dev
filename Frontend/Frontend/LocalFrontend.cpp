@@ -235,13 +235,18 @@ ErrorCode LocalFrontend::CheckCapabilities(bool checkTdr)
 {
 
 	// The system should check the capabilities of the server computer just if the backend is local (and not remote)
-	LocalBackendCaller* tmp = dynamic_cast<LocalBackendCaller*> (_backendCaller);
-	if (tmp)
+	LocalBackendCaller* local = dynamic_cast<LocalBackendCaller*> (_backendCaller);
+	ManagedBackendCaller* manage = dynamic_cast<ManagedBackendCaller*> (_backendCaller);
+	if (local || manage->Python())
 	{
 		CheckCapabilitiesCall call(checkTdr);
 		_backendCaller->CallBackend(call);
+		ErrorCode	retErr;
+		retErr = call.GetErrorCode();
+		_last_error_code = retErr;
+		_last_error_message = call.GetErrorMessage();
 
-		return call.GetErrorCode();
+		return retErr;
 	}
 	return OK;
 }
@@ -400,21 +405,22 @@ void LocalFrontend::HandleProgress(JobPtr job, double progress) {
 
 void LocalFrontend::HandleCompletion(JobPtr job, int code, const std::string& message) {
 	_last_error_message = message;
+	ErrorCode e = OK;
 	if (job && _jobHandlers.find(job) != _jobHandlers.end())
 	{
 		if (JT_GENERATE == GetJobType(job))
 		{
-			SetGenerateResults(job);
+			e = SetGenerateResults(job);
 		}
 
 		if (JT_FIT == GetJobType(job))
 		{
-			SetFitResults(job);
+			e = SetFitResults(job);
 		}
-
 		if (_jobHandlers[job].completionHandler)
 		{
-			_jobHandlers[job].completionHandler(_jobHandlers[job].args, code);
+			int choose_code = e == OK ? code : e;
+			_jobHandlers[job].completionHandler(_jobHandlers[job].args, choose_code);
 		}
 
 	}
@@ -459,20 +465,39 @@ ErrorCode LocalFrontend::GetDomainHeader(JobPtr job, ModelPtr model, OUT char *h
 	return OK;
 }
 
-void LocalFrontend::SetGenerateResults(JobPtr job)
+ErrorCode LocalFrontend::SetGenerateResults(JobPtr job)
 {
 	GetGenerateResultsCall call;
 	_backendCaller->CallBackend(call);
 
+	ErrorCode	retErr;
+	retErr = call.GetErrorCode();
+
+	_last_error_code = retErr;
+	_last_error_message = call.GetErrorMessage();
+	if (OK != retErr)
+		return retErr;
+
 	_domainHeaders = call.GetDomainHeaders();
 	_resultGraph = call.GetGraph();
+	return retErr;
+
 }
 
-void LocalFrontend::SetFitResults(JobPtr job)
+ErrorCode LocalFrontend::SetFitResults(JobPtr job)
 {
 	GetFitResultsCall call;
 	_backendCaller->CallBackend(call);
 
+	ErrorCode	retErr;
+	retErr = call.GetErrorCode();
+	_last_error_code = retErr;
+	_last_error_message = call.GetErrorMessage();
+
+	if (OK != retErr)
+		return retErr;
+
 	_fitResultTree = call.GetParameterTree();
 	_resultGraph = call.GetGraph();
+	return retErr;
 }

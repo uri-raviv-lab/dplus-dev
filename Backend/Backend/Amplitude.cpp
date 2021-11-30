@@ -1048,6 +1048,7 @@ PDB_READER_ERRS DomainModel::gridComputation()
 		// Check to see if amplitude needs to be generated and bUseGrid
 		double progSec = (progMax - progMin) / double(GetNumSubAmplitudes());
 		if (_amps[i]->GetUseGrid() && !_amps[i]->GridIsReadyToBeUsed()) {
+			std::cout << "*************** calc grid ! ********************\n";
 			_amps[i]->calculateGrid(qMax, gridSize, progFunc, progArgs, progMin + double(i) * progSec,
 				progMin + double(i + 1) * progSec, pStop);
 		}
@@ -2196,7 +2197,6 @@ std::complex<FACC> Amplitude::getAmplitude(FACC qx, FACC qy, FACC qz) {
 	Eigen::Vector3d R(tx, ty, tz);
 	Qt = Q.transpose() * RotMat;
 
-	//exp(Im * (Q.dot(1.0 * R))) * OldGrid.getAmplitude( Qt  ) ;
 	qx = Qt.x();
 	qy = Qt.y();
 	qz = Qt.z();
@@ -2209,7 +2209,7 @@ std::complex<FACC> Amplitude::getAmplitude(FACC qx, FACC qy, FACC qz) {
 	if (grid)
 		return exp(Im * (Q.dot(R))) * grid->GetCart(qx, qy, qz);
 	else // WTF?
-		return std::complex<FACC>(-42.03, -1.0);
+		throw backend_exception(13, "Amplitude::getAmplitude illegal area of code");
 }
 
 PDB_READER_ERRS Amplitude::getError() const {
@@ -2449,7 +2449,9 @@ bool Amplitude::GridIsReadyToBeUsed() {
 	if (!bUseGrid) {
 		return false;	// I think...
 	}
+	std::cout << "GridIsReadyToBeUsed\n";
 	if (gridStatus == AMP_CACHED) {
+		std::cout << "AMP_CACHED\n";
 		if (PDB_OK != ReadAmplitudeFromCache())
 		{
 			gridStatus = AMP_OUT_OF_DATE;
@@ -2457,8 +2459,10 @@ bool Amplitude::GridIsReadyToBeUsed() {
 		}
 	}
 	if (gridStatus == AMP_READY) {
+		std::cout << "AMP_READY\n";
 		return true;
 	}
+	std::cout << "Amp: " << gridStatus << "\n";
 	return false;
 
 }
@@ -3089,7 +3093,6 @@ std::complex<FACC> AmpGridAmplitude::getAmplitude(FACC qx, FACC qy, FACC qz) {
 	Eigen::Vector3d R(tx, ty, tz);
 	Qt = Q.transpose() * RotMat;
 
-	//exp(Im * (Q.dot(1.0 * R))) * OldGrid.getAmplitude( Qt  ) ;
 	qx = Qt.x();
 	qy = Qt.y();
 	qz = Qt.z();
@@ -3097,7 +3100,7 @@ std::complex<FACC> AmpGridAmplitude::getAmplitude(FACC qx, FACC qy, FACC qz) {
 	if (grid)
 		return exp(Im * (Q.dot(R))) * originalGrid->GetCart(qx, qy, qz) * scale;
 	else // WTF?
-		return std::complex<FACC>(-42.03, -1.0);
+		throw backend_exception(13, "AmpGridAmplitude::getAmplitude illegal area of code");
 }
 
 bool AmpGridAmplitude::CalculateGridGPU(GridWorkspace& workspace) {

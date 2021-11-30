@@ -90,8 +90,9 @@ void check_job(string directory, CommandLineBackendWrapper &wrapper)
 		found = status.find("false");
 		if (found != std::string::npos)
 			break;
+		
 		print_to_file(directory, "/job.json", status);
-		std::this_thread::sleep_for(std::chrono::seconds(1));
+		std::this_thread::sleep_for(std::chrono::milliseconds(20));
 	}
 }
 
@@ -125,6 +126,12 @@ int main(int argc, char *argv[])
 		fs::path withcache = fs::path(directory) / fs::path("cache");
 		cache_dir = withcache.string();
 	}
+	bool flag_save_amp_pdb = true;
+	if (argc > 3)
+	{
+		flag_save_amp_pdb = false;
+
+	}
 
 	//write initial job status to file
 	string jobstat = "{\n    \"isRunning\": true,\n    \"progress\": 0.0,\n    \"code\": -1,\n \"message\": \"Not applicable\"}";
@@ -135,19 +142,17 @@ int main(int argc, char *argv[])
 
 	try
 	{
+		
 		//parse arguments
 		rapidjson::Document doc;
 		parse_args(dir, doc);
 
 		//initialize cache
 		wrapper.initializeCache(cache_dir);
-
 		//call function
 		wrapper.StartGenerate(doc.FindMember("args")->value, doc.FindMember("options")->value);
-
 		//check if function has finished
 		check_job(directory, wrapper);
-
 		//save function results to file
 		JsonWriter writer;
 		wrapper.GetGenerateResults(writer);
@@ -156,9 +161,9 @@ int main(int argc, char *argv[])
 		//write final job status to file
 		string jobstat = "{\n    \"isRunning\": false,\n    \"progress\": 1.0,\n    \"code\": 0,\n \"message\": \"Not applicable\"}";
 		print_to_file(directory, "/job.json", jobstat);
-
 		//save amps/pdbs
-		save_amp_pdb(directory, cache_dir, wrapper);
+		if (flag_save_amp_pdb)
+			save_amp_pdb(directory, cache_dir, wrapper);
 
 		print_to_file(directory, "/notrunning.txt", "False");
 		return 0;
@@ -177,6 +182,4 @@ int main(int argc, char *argv[])
 	{
 		handle_errors(directory, 19, "error: "+ std::string(e.what()));
 	}
-
-
 }

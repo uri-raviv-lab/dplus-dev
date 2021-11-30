@@ -353,7 +353,12 @@ bool RecursiveModelSetter(Job *j, const ParameterTree *pt, int *pStop, bool bAmp
 	 //template <typename T> 
 	 bool operator()(double const* const* p, double* residual) const {
 		 double res = 0.0;
+		 auto t1 = std::chrono::high_resolution_clock::now();
 		 dm_->CalculateVectorForCeres(x_, p, residual, numResiduals_);
+		 auto t2 = std::chrono::high_resolution_clock::now();
+		 std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
+		 std::cout <<"time span: "<<time_span.count() << std::endl;
+
 		 for(int i = 0; i < numResiduals_; i++) {
 			 double rat = residual[i] / y_[i];
 			 //rat = 1. - ( (rat < 1.) ? rat : (1./rat) );

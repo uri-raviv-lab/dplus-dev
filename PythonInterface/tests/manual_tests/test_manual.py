@@ -23,9 +23,9 @@ def test_overview_generate_empty_local_runner():
     from dplus.CalculationRunner import LocalRunner
 
     calc_data = CalculationInput.load_from_state_file(os.path.join(root_path, "files", "mystate.state"))
-    runner = LocalRunner()
+    runner = LocalRunner(exe_directory)
     result = runner.generate(calc_data)
-    assert len(result.graph)>0
+    assert len(result.graph) > 0
 
 def test_calculation_runner_2_params_local_runner():
     sess_dir = r"sessions"
@@ -46,7 +46,7 @@ def test_calculation_runner_sess_param_local_runner():
     sess_dir = r"sessions"
     state_file=os.path.join(root_path, "files", "mystate.state")
     calc_data = CalculationInput.load_from_state_file(state_file)
-    runner = LocalRunner(session_directory= sess_dir)
+    runner = LocalRunner(exe_directory, session_directory= sess_dir)
     result = runner.generate(calc_data)
     assert len(result.graph)>0
 
@@ -64,7 +64,7 @@ def test_running_job_generate():
 
     state_file=os.path.join(root_path, "files", "mystate.state")
     calc_data = CalculationInput.load_from_state_file(state_file)
-    runner = LocalRunner()
+    runner = LocalRunner(exe_directory)
     job = runner.generate_async(calc_data)
     start_time = datetime.datetime.now()
     status=True
@@ -96,7 +96,7 @@ def test_datamodels_generate_calculate_input_new_state():
     gen_input.Domain.populations[0].add_model(uhc)
     gen_input.DomainPreferences.q_max = 10
 
-    runner = LocalRunner()
+    runner = LocalRunner(exe_directory)
     result = runner.generate(gen_input)
     assert len(result.graph) > 0
 
@@ -124,13 +124,13 @@ def test_datamodels_fit_calculate_input_state():
     fixed_state_file = fix_file(state_file)
     fit_input = CalculationInput.load_from_state_file(fixed_state_file)
     fit_input.FittingPreferences.convergence=0.5
-    runner = LocalRunner()
+    runner = LocalRunner(exe_directory)
     result = runner.fit(fit_input)
     assert len(result.graph) > 0
 
 def test_datamodels_generate_model():
     sess_directory = r"sessions"
-    runner = LocalRunner(session_directory=sess_directory)
+    runner = LocalRunner(exe_directory, session_directory=sess_directory)
     uhc = UniformHollowCylinder()
     caldata = CalculationInput()
     caldata.Domain.populations[0].add_model(uhc)
@@ -148,7 +148,7 @@ def test_example_one_sphere_fit():
     from dplus.CalculationInput import CalculationInput
     from dplus.CalculationRunner import LocalRunner
 
-    exe_directory = r"C:\Program Files\D+\bin"
+    # exe_directory = r"C:\Program Files\D+\bin"
     sess_directory = r"session"
     runner = LocalRunner(exe_directory, sess_directory)
     state_file = os.path.join(root_path, "files", "sphere.state")
@@ -158,7 +158,7 @@ def test_example_one_sphere_fit():
     assert result
 
 def test_example_two_generate_model():
-    exe_directory = r"C:\Program Files\D+\bin"
+    # exe_directory = r"C:\Program Files\D+\bin"
     sess_directory = r"session"
     runner = LocalRunner(exe_directory,sess_directory)
     uhc = UniformHollowCylinder()
@@ -174,12 +174,12 @@ def test_example_two_generate_model():
 def test_example_three_generate_pdb():
     pdb_file = os.path.join(root_path, "files", "1JFF.pdb")
     caldata = CalculationInput.load_from_PDB(pdb_file, 5)
-    runner = LocalRunner()
+    runner = LocalRunner(exe_directory)
     result = runner.generate(caldata)
     assert len(result.graph) > 0
 
 def test_example_four_fit_UniformHollowCylinder():
-    API = LocalRunner()
+    API = LocalRunner(exe_directory)
     state_file = os.path.join(root_path, "files", "uhc.state")
     input = CalculationInput.load_from_state_file(state_file)
     cylinder = input.get_model("test_cylinder")
@@ -192,5 +192,6 @@ def test_example_four_fit_UniformHollowCylinder():
     input.use_gpu = True
     fit_result = API.fit(input)
     assert len(fit_result.graph) > 0
-#
-#
+
+
+

@@ -1,6 +1,9 @@
 import math
 import sys
-
+from pathlib import Path
+from collections import UserDict, MutableSequence
+from copy import deepcopy
+from dplus.FileReaders import _handle_infinity_for_json
 from dplus.metadata import meta_models, hardcode_models, _type_to_int, _models_with_files_index_dict, _int_to_type
 
 
@@ -8,23 +11,21 @@ class Constraints:
     '''
     The Constraints class contains the following properties:
 
-    * MaxValue: a float whose default value is infinity
-    * MinValue: a float whose default value is -infinity
+    * max_value: a float whose default value is infinity
+    * min_value: a float whose default value is -infinity
     '''
 
     def __init__(self, max_val=math.inf, min_val=-math.inf, minindex=-1, maxindex=-1, link=-1):
-        try:
-            if max_val <= min_val:
-                raise ValueError("Constraints' upper bound must be greater than lower bound")
-        except TypeError:  # for some reason, strings weren't being converted to numbers properly
-            if max_val == "inf":
-                max_val = math.inf
-            if min_val == "-inf":
-                min_val = -math.inf
-            if max_val <= min_val:
-                raise ValueError("Constraints' upper bound must be greater than lower bound")
-        self.MaxValue = max_val
-        self.MinValue = min_val
+        if max_val == "inf":
+            max_val = math.inf
+        if min_val == "-inf":
+            min_val = -math.inf
+
+        if max_val <= min_val:
+            raise ValueError("Constraints' upper bound must be greater than lower bound")
+
+        self.max_value = max_val
+        self.min_value = min_val
         self.isConstrained = False
         if max_val != math.inf or min_val != -math.inf:
             self.isConstrained = True
@@ -51,13 +52,14 @@ class Constraints:
 
         :return: dictionary of the class fields (isConstrained, consMin and consMax)
         """
-        return {
+        return_dict= _handle_infinity_for_json({
             "Link": self.link,
             "MaxIndex": self.max_index,
-            "MaxValue": self.MaxValue,
+            "MaxValue": self.max_value,
             "MinIndex": self.min_index,
-            "MinValue": self.MinValue
-        }
+            "MinValue": self.min_value
+        })
+        return return_dict
 
 
 class Parameter:
@@ -70,7 +72,7 @@ class Parameter:
     * constraints: an instance of the Constraints class, by default it is the default Constraints
     '''
 
-    def __init__(self, value=0, sigma=0, mutable=False, constraints=Constraints()):
+    def __init__(self, value=0, sigma=0, mutable=False, constraints=Constraints(), name=""):
         try:
             self.value = float(value)
             self.sigma = float(sigma)
@@ -78,6 +80,7 @@ class Parameter:
             raise ValueError("non-number value creeping into param" + str(value) + " " + str(sigma))
         self.mutable = mutable
         self.constraints = constraints
+        self.name = name
 
     @property
     def isConstrained(self):
@@ -90,11 +93,11 @@ class Parameter:
             return True
         if self.constraints.max_index != -1:
             return True
-        if self.constraints.MaxValue != math.inf:
+        if self.constraints.max_value != math.inf:
             return True
         if self.constraints.min_index != -1:
             return True
-        if self.constraints.MinValue != -math.inf:
+        if self.constraints.min_value != -math.inf:
             return True
         return False
 
@@ -105,21 +108,99 @@ class Parameter:
 
         :return: dictionary of the class fields (Value, isMutable, consMinIndex,consMaxIndex, linkIndex, sigma and constraints)
         """
-        return {"Value": self.value,
+        return _handle_infinity_for_json({"Value": self.value,
                 "isMutable": self.mutable,
                 "isConstrained": self.isConstrained,
-                "consMin": self.constraints.MinValue,
-                "consMax": self.constraints.MaxValue,
+                "consMin": self.constraints.min_value,
+                "consMax": self.constraints.max_value,
                 "consMinIndex": self.constraints.min_index,
                 "consMaxIndex": self.constraints.max_index,
                 "linkIndex": self.constraints.link,
-                "sigma": self.sigma}
+                "sigma": self.sigma,
+                "name": self.name
+                })
 
     def __str__(self):
         return str(self.serialize())
 
     def __repr__(self):
         return str(self.serialize())
+
+
+class ParameterContainer(UserDict):
+    def __init__(self, data):
+        self.data=deepcopy(data)
+    def __setitem__(self, key, item):
+        if key not in self.data:
+            raise KeyError("The parameter {} is not defined.".format(key))
+        if not isinstance(item, Parameter):
+            raise ValueError("{} can only be set to an instance of Parameter".format(item))
+        self.data[key] = item
+
+    def __delitem__(self, k):
+        raise ValueError("You cannot delete a parameter from a layer")
+
+
+class Layers(MutableSequence):
+    def __init__(self, data=[], min_length=0, max_length=-1):
+        self.list = list()
+        self.extend(list(data))
+        self.min_length = min_length
+        if max_length == -1:
+            max_length = math.inf
+        self.max_length = max_length
+
+    def __setitem__(self, i, item):
+        if not isinstance(item, ParameterContainer):
+            raise ValueError("You can't add an invalid layer")
+        self.list[i] = item
+
+    def __delitem__(self, i):
+        if len(self.list) - 1 < self.min_length:
+            raise ValueError("This model doesn't allow fewer than {} layers".format(self.max_length))
+        del self.list[i]
+
+    def __getitem__(self, i):
+        return self.list[i]
+
+    def insert(self, i, item):
+        if not isinstance(item, ParameterContainer):
+            raise ValueError("You can't add an invalid layer")
+        if len(self.list) + 1 > self.max_length:
+            raise ValueError("This model doesn't allow more than {} layers".format(self.max_length))
+        self.list.insert(i, item)
+
+    def __str__(self):
+        return str(self.list)
+
+    def __len__(self):
+        return len(self.list)
+
+
+class Children(MutableSequence):
+    def __init__(self, data=[]):
+        self.list = list()
+        self.extend(list(data))
+
+    def __setitem__(self, i, item):
+        if not isinstance(item, Model) and item != []:
+            raise ValueError("A model's children must be models")
+        self.list[i] = item
+
+    def __delitem__(self, i):
+        del self.list[i]
+
+    def __getitem__(self, i):
+        return self.list[i]
+
+    def insert(self, i, item):
+        self.list.insert(i, item)
+
+    def __str__(self):
+        return str(self.list)
+
+    def __len__(self):
+        return len(self.list)
 
 
 class Model:
@@ -135,26 +216,29 @@ class Model:
         Model._model_ptr_index += 1
 
         self.extra_params = {}
-        self.extra_param_index_map = []
+        self._extra_param_index_map = []
         self.location_params = {}
-        self.location_param_index_map = ["x", "y", "z", "alpha", "beta", "gamma"]
+        self._location_param_index_map = ["x", "y", "z", "alpha", "beta", "gamma"]
 
         self._init_from_metadata()
 
     def _init_from_metadata(self):
         # location params:
         location_vals = ["x", "y", "z", "alpha", "beta", "gamma"]
+        location_params_dict = {}
         for val in location_vals:
-            self.location_params[val] = Parameter()
-
+            location_params_dict[val] = Parameter(name=val)
+        self.location_params = ParameterContainer(location_params_dict)
         # extra params:
         try:
-            e_params = self.metadata["extraParams"]
+            e_params = self._metadata["extraParams"]
         except:  # nothing to do here
             return
+        extra_params_dict = {}
         for index, param in enumerate(e_params):
-            self.extra_param_index_map.append(param["name"])
-            self.extra_params[param["name"]] = Parameter(value=param["defaultValue"])
+            self._extra_param_index_map.append(param["name"])
+            extra_params_dict[param["name"]] = Parameter(value=param["defaultValue"], name=param["name"])
+        self.extra_params = ParameterContainer(extra_params_dict)
 
     def serialize(self):
         """
@@ -167,7 +251,7 @@ class Model:
                   "nLayers": 0, "nlp": 0,  # this is default, overwritten by modelWithLayers
                   "Type": _int_to_type(
                       # for now, type must be proceeded with comma because we haven't gotten rid of containers yet
-                      self.index),  # self.index is set in the factory
+                      self._metadata["index"]),  # self.index is set in the factory
                   "Mutables": [],
                   "Parameters": [],
                   "Sigma": [],
@@ -176,7 +260,7 @@ class Model:
                   "Location": {}, "LocationConstraints": {}, "LocationMutables": {}, "LocationSigma": {}
                   }
         # extraparams
-        for i, param_name in enumerate(self.extra_param_index_map):
+        for i, param_name in enumerate(self._extra_param_index_map):
             param = self.extra_params[param_name]
             mydict["ExtraParameters"].append(param.value)
             mydict["ExtraConstraints"].append(param.constraints.serialize())
@@ -205,12 +289,12 @@ class Model:
 
         # first, check that the type matches the model's type index and everything is in order
         # Domains and populations don't have metadata, their type_index is -1, skip this section
-        if self.index == -1:
+        if self._metadata["index"] == -1:
             pass
         else:
             type_index = _type_to_int(json["Type"])
 
-            if type_index != self.index:
+            if type_index != self._metadata["index"]:
                 raise ValueError("Model type index mismatch")
 
         # override instance values
@@ -222,16 +306,19 @@ class Model:
         self.use_grid = json.get("Use_Grid", False)
 
         for param_index in range(len(json.get("ExtraParameters", []))):
+            param_name = self._extra_param_index_map[param_index]
             param = Parameter(value=json["ExtraParameters"][param_index], mutable=json["ExtraMutables"][param_index],
                               sigma=json["ExtraSigma"][param_index],
-                              constraints=Constraints.from_dictionary(json["ExtraConstraints"][param_index]))
-            self.extra_params[self.extra_param_index_map[param_index]] = param
+                              constraints=Constraints.from_dictionary(json["ExtraConstraints"][param_index]),
+                              name=param_name)
+            self.extra_params[param_name] = param
 
-        for param_index in json.get("Location", []):
-            param = Parameter(value=json["Location"][param_index], mutable=json["LocationMutables"][param_index],
-                              sigma=json["LocationSigma"][param_index],
-                              constraints=Constraints.from_dictionary(json["LocationConstraints"][param_index]))
-            self.location_params[param_index] = param
+        for param_name in json.get("Location", []):
+            param = Parameter(value=json["Location"][param_name], mutable=json["LocationMutables"][param_name],
+                              sigma=json["LocationSigma"][param_name],
+                              constraints=Constraints.from_dictionary(json["LocationConstraints"][param_name]),
+                              name=param_name)
+            self.location_params[param_name] = param
 
     def get_mutable_params(self):
         '''
@@ -241,12 +328,12 @@ class Model:
         '''
         mut_array = []
         # location params
-        for param_name in self.location_param_index_map:
+        for param_name in self._location_param_index_map:
             if self.location_params[param_name].mutable:
                 mut_array.append(self.location_params[param_name])
 
         # mutable params
-        for param_name in self.extra_param_index_map:
+        for param_name in self._extra_param_index_map:
             if self.extra_params[param_name].mutable:
                 mut_array.append(self.extra_params[param_name])
 
@@ -259,18 +346,22 @@ class Model:
         :param mut_arr: array of mutable params
         '''
         param_index = 0
-        for param_name in self.location_param_index_map:
+
+        for param_name in self._location_param_index_map:
             if self.location_params[param_name].mutable:
                 self.location_params[param_name].value = mut_arr[param_index]
                 param_index += 1
-        for param_name in self.extra_param_index_map:
+
+        for param_name in self._extra_param_index_map:
             if self.extra_params[param_name].mutable:
                 self.extra_params[param_name].value = mut_arr[param_index]
                 param_index += 1
-
+        if type(self) == Domain:
+            self.constant = self.extra_params['Constant'].value
+            self.scale = self.extra_params['Scale'].value
             # location params
 
-    def __basic_json_params(self):
+    def _basic_json_params(self):
         '''
 
         :return: a dictionary in the form:
@@ -305,19 +396,19 @@ class Model:
             try:
                 params.append(self.location_params[val].serialize())
             except:  # if we don't have location params, no big, just attach defaults
-                params.append(Parameter().serialize())
+                params.append(Parameter(name=val).serialize())
 
         # add useGrid
         if self.use_grid:
-            params.append(Parameter(1).serialize())
+            params.append(Parameter(1, name="UseGrid").serialize())
         else:
-            params.append(Parameter(0).serialize())
+            params.append(Parameter(0, name="UseGrid").serialize())
 
         # add number of layers
-        params.append(Parameter(1).serialize())
+        params.append(Parameter(1, name="numlayers").serialize())
 
         # add extra params
-        for param in self.extra_param_index_map:
+        for param in self._extra_param_index_map:
             params.append(self.extra_params[param].serialize())
 
         return {
@@ -333,7 +424,7 @@ class ModelWithChildren(Model):
     '''
 
     def __init__(self):
-        self.Children = []
+        self.children = Children()
         super().__init__()
 
     def serialize(self):
@@ -347,7 +438,7 @@ class ModelWithChildren(Model):
 
         mydict.update(
             {
-                "Children": [child.serialize() for child in self.Children]
+                "Children": [child.serialize() for child in self.children]
             }
         )
         return mydict
@@ -365,12 +456,12 @@ class ModelWithChildren(Model):
         super().load_from_dictionary(json)
         for child in json["Children"]:
             childmodel = ModelFactory.create_model_from_dictionary(child)
-            self.Children.append(childmodel)
+            self.children.append(childmodel)
 
-    def __basic_json_params(self):
-        basic_dict = super().__basic_json_params()
-        for child in self.Children:
-            basic_dict["Submodels"].append(child.__basic_json_params())
+    def _basic_json_params(self):
+        basic_dict = super()._basic_json_params()
+        for child in self.children:
+            basic_dict["Submodels"].append(child._basic_json_params())
         return basic_dict
 
 
@@ -380,26 +471,31 @@ class ModelWithLayers(Model):
     '''
 
     def __init__(self):
-        self.layer_params = []
         super().__init__()
+
+    @property
+    def default_layer(self):
+        _default_layer={}
+        layer = self._metadata["layers"]["layerInfo"][-1]
+        for param_index, parameter in enumerate(self._layer_param_index_map):
+            _default_layer[parameter] = Parameter(value=layer["defaultValues"][param_index],
+                                                   name=parameter)
+        return ParameterContainer(_default_layer)
 
     def _init_from_metadata(self):
         super()._init_from_metadata()
         # layer params:
-        layerinfo = self.metadata["layers"]["layerInfo"]
-        params = self.metadata["layers"]["params"]
+        layerinfo = self._metadata["layers"]["layerInfo"]
+        self._layer_param_index_map = self._metadata["layers"]["params"]
+        self.layer_params = Layers(min_length=self._metadata["layers"]["min"],
+                                   max_length=self._metadata["layers"]["max"])
         for layer in layerinfo:
+            if layer["index"] == -1:
+                continue
             layer_dict = {}
-            for param_index, parameter in enumerate(params):
-                if layer["index"] == -1:
-                    # This is just an indication of the default layer when more layers are added
-                    # it is not an actual layer.
-                    self._default_layer = Parameter(value=layer["defaultValues"][param_index])
-                else:
-                    layer_dict[parameter] = Parameter(value=layer["defaultValues"][param_index])
-            if layer["index"] != -1:
-                self.layer_params.append(layer_dict)
-        self.layer_param_index_map = self.metadata["layers"]["params"]
+            for param_index, parameter in enumerate(self._layer_param_index_map):
+                layer_dict[parameter] = Parameter(value=layer["defaultValues"][param_index], name=parameter)
+            self.layer_params.append(ParameterContainer(layer_dict))
 
     def parameters_to_json_arrays(self):
         json_dict = {"Parameters": [], "Constraints": [], "Mutables": [], "Sigma": []}
@@ -409,7 +505,7 @@ class ModelWithLayers(Model):
             constr_array = []
             mut_array = []
             sigma_array = []
-            for i, param_name in enumerate(self.layer_param_index_map):
+            for i, param_name in enumerate(self._layer_param_index_map):
                 param = layer[param_name]
                 param_array.append(param.value)
                 constr_array.append(param.constraints.serialize())
@@ -433,23 +529,27 @@ class ModelWithLayers(Model):
          '''
         super().load_from_dictionary(json)
         for layer_index in range(len(json["Parameters"])):
+            layer_dict = {}
             for param_index in range(len(json["Parameters"][layer_index])):
+                param_name = self._layer_param_index_map[param_index]
                 param = Parameter(value=json["Parameters"][layer_index][param_index],
                                   mutable=json["Mutables"][layer_index][param_index],
                                   sigma=json["Sigma"][layer_index][param_index],
                                   constraints=Constraints.from_dictionary(
-                                      json["Constraints"][layer_index][param_index]))
-                try:
-                    self.layer_params[layer_index][self.layer_param_index_map[param_index]] = param
-                except IndexError:
-                    if len(json["Parameters"]) > self.metadata["layers"]["max"] and self.metadata["layers"][
-                        "max"] != -1:
-                        raise ValueError(
-                            "Not allowed to set more than " + str(self.metadata["layers"]["max"]) + " layers")
+                                      json["Constraints"][layer_index][param_index]),
+                                  name=param_name)
+                layer_dict[param_name] = param
+            try:
+                self.layer_params[layer_index] = ParameterContainer(layer_dict)
+            except IndexError:
+                self.layer_params.append(ParameterContainer(layer_dict))
+            except ValueError as e:
+                hi = 1
+                raise e
 
-                    # otherwise go ahead and add the layer
-                    self.layer_params.append({})
-                    self.layer_params[layer_index][self.layer_param_index_map[param_index]] = param
+    def add_layer(self):
+        self.layer_params.append(self.default_layer)
+        return self.layer_params[-1]
 
     def serialize(self):
         '''
@@ -473,16 +573,16 @@ class ModelWithLayers(Model):
         mut_array = []
 
         # location params
-        for param_name in self.location_param_index_map:
+        for param_name in self._location_param_index_map:
             if self.location_params[param_name].mutable:
                 mut_array.append(self.location_params[param_name])
         # layer params
         for layer in self.layer_params:
-            for param_name in self.layer_param_index_map:
+            for param_name in self._layer_param_index_map:
                 if layer[param_name].mutable:
                     mut_array.append(layer[param_name])
         # extra params
-        for param_name in self.extra_param_index_map:
+        for param_name in self._extra_param_index_map:
             if self.extra_params[param_name].mutable:
                 mut_array.append(self.extra_params[param_name])
 
@@ -497,25 +597,25 @@ class ModelWithLayers(Model):
         index = 0
 
         # location params
-        for param_name in self.location_param_index_map:
+        for param_name in self._location_param_index_map:
             if self.location_params[param_name].mutable:
-                self.location_params[param_name] = mut_array[index]
+                self.location_params[param_name].value = mut_array[index]
                 index += 1
 
         # layer params
         for layer in self.layer_params:
             for param_name in layer:
                 if layer[param_name].mutable:
-                    layer[param_name] = mut_array[index]
+                    layer[param_name].value = mut_array[index]
                     index += 1
 
         # extra params
-        for param_name in self.extra_param_index_map:
+        for param_name in self._extra_param_index_map:
             if self.extra_params[param_name].mutable:
-                self.extra_params[param_name] = mut_array[index]
+                self.extra_params[param_name].value = mut_array[index]
                 index += 1
 
-    def __basic_json_params(self):
+    def _basic_json_params(self):
         '''
         :param use_grid:
         :return:
@@ -533,24 +633,24 @@ class ModelWithLayers(Model):
         extraparams[i]
         ...
         '''
-        # basic_dict = super().__basic_json_params(useGrid)
+        # basic_dict = super()._basic_json_params(useGrid)
         # override basic entirely
-        basic_dict = super().__basic_json_params()
+        basic_dict = super()._basic_json_params()
         super_params_arr = basic_dict["Parameters"]
 
         # the first 7 params are location and use_grid and remain unchanged. The rest are overwritten
         params = super_params_arr[:7]
 
         # add number of layers
-        params.append(Parameter(len(self.layer_params)).serialize())
+        params.append(Parameter(len(self.layer_params), name="nlp").serialize())
 
         # add params:
-        for param in self.layer_param_index_map:
+        for param in self._layer_param_index_map:
             for layer in self.layer_params:
                 params.append(layer[param].serialize())
 
         # add extra params
-        for param in self.extra_param_index_map:
+        for param in self._extra_param_index_map:
             params.append(self.extra_params[param].serialize())
 
         basic_dict["Parameters"] = params
@@ -564,8 +664,32 @@ class ModelWithFile(Model):
 
     def __init__(self, filename=""):
         self.filenames = []
-        self.filename = filename
+        self._filename = filename
+        self._anomfilename=""
         super().__init__()
+
+    @property
+    def filename(self):
+        return str(Path(self._filename).absolute())
+
+    @filename.setter
+    def filename(self, name):
+        self._filename=name
+
+    @property
+    def anomfilename(self):
+        if self._anomfilename:
+            return str(Path(self._anomfilename).absolute())
+        return ""
+
+    @anomfilename.setter
+    def anomfilename(self, name):
+        if name:
+            self._anomfilename = name
+        else:
+            self._anomfilename = ""
+
+
 
     def serialize(self):
         '''
@@ -578,6 +702,7 @@ class ModelWithFile(Model):
         mydict.update(
             {
                 "Filename": self.filename,
+                "AnomFilename": self.anomfilename,
             }
         )
 
@@ -590,14 +715,6 @@ class ModelWithFile(Model):
         except (AttributeError, KeyError) as err:  # not everything has centered
             pass
 
-        try:
-            mydict.update(
-                {
-                    "AnomFilename": self.anomfilename,
-                }
-            )
-        except (AttributeError, KeyError) as err:  # not everything has an anomfilename
-            pass
         return mydict
 
     def __str__(self):
@@ -621,7 +738,7 @@ class ModelWithFile(Model):
 
         try:
             self.anomfilename = json["AnomFilename"]
-            self.filenames.append(json["AnomFilename"])
+            self.filenames.append(self.anomfilename)
         except KeyError as err:  # not everything has an anomfilename
             pass
 
@@ -666,10 +783,68 @@ class ScriptedSymmetry(Model):
             self.filename = json["Filename"]
             self.filenames = [self.filename]
         if "Children" in json:
-            self.Children = []
+            self.children = []
             for child in json["Children"]:
                 childmodel = ModelFactory.create_model_from_dictionary(child)
-                self.Children.append(childmodel)
+                self.children.append(childmodel)
+
+    def get_mutable_params(self):
+        mut_array = []
+
+        # location params
+        if hasattr(self, 'Location'):
+            location_vals = ["x", "y", "z", "alpha", "beta", "gamma"]
+            for param_name in location_vals:
+                if self.LocationMutables[param_name]:
+                    mut_array.append(Parameter(value=self.Location[param_name],
+                                               sigma=self.LocationSigma[param_name],
+                                               mutable=self.LocationMutables[param_name],
+                                               constraints=Constraints.from_dictionary(
+                                                   self.LocationConstraints[param_name]),
+                                               name=param_name))
+        # layer params
+        if hasattr(self, 'Parameters'):
+            for param_val_list, sigma_list, mut_list, constraints_list in zip(self.Parameters, self.Sigma,
+                                                                              self.Mutables, self.Constraints):
+                for param_val, sigma, mut, constraints in zip(param_val_list, sigma_list, mut_list, constraints_list):
+                    if mut:
+                        mut_array.append(Parameter(value=param_val,
+                                                   sigma=sigma,
+                                                   mutable=mut,
+                                                   constraints=Constraints.from_dictionary(constraints)))
+        # extra params
+        if hasattr(self, 'ExtraParameters'):
+            for ex_param_val, ex_sigma, ex_mut, ex_constraints in zip(self.ExtraParameters, self.ExtraSigma,
+                                                                      self.ExtraMutables, self.ExtraConstraints):
+                if ex_mut:
+                    mut_array.append(Parameter(value=ex_param_val,
+                                               sigma=ex_sigma,
+                                               mutable=ex_mut,
+                                               constraints=Constraints.from_dictionary(ex_constraints)))
+        return mut_array
+
+    def set_mutable_params(self, mut_array):
+
+        index = 0
+        if hasattr(self, 'Location'):
+            location_vals = ["x", "y", "z", "alpha", "beta", "gamma"]
+            for param_name in location_vals:
+                if self.LocationMutables[param_name]:
+                    self.LocationMutables[param_name] = mut_array[index]
+                    index += 1
+        # layer params
+        if hasattr(self, 'Parameters'):
+            for list_index, (param_val_list, mut_list) in enumerate(zip(self.Parameters, self.Mutables)):
+                for item_index, (param_val, mut) in enumerate(zip(param_val_list, mut_list)):
+                    if mut:
+                        self.Parameters[list_index][item_index] = mut_array[index]
+                        index += 1
+        # extra params
+        if hasattr(self, 'ExtraParameters'):
+            for cur_index, (extra_param_val, extra_mut) in enumerate(zip(self.ExtraParameters, self.ExtraMutables)):
+                if extra_mut:
+                    self.ExtraParameters[cur_index] = mut_array[index]
+                    index += 1
 
     def serialize(self):
         '''
@@ -682,9 +857,59 @@ class ScriptedSymmetry(Model):
             return_dict[key] = self.__dict__[key]
 
         if "Children" in self.json:
-            return_dict["Children"] = [child.serialize() for child in self.Children]
+            return_dict["Children"] = [child.serialize() for child in self.children]
 
         return return_dict
+
+    def _basic_json_params(self):
+        basic_dict = {
+            "ModelPtr": self.ModelPtr,
+            "Parameters": [],
+            "Submodels": []
+        }
+        params = []
+        if hasattr(self, 'Location'):
+            location_vals = ["x", "y", "z", "alpha", "beta", "gamma"]
+            for param_name in location_vals:
+                params.append(Parameter(value=self.Location[param_name],
+                                        sigma=self.LocationSigma[param_name],
+                                        mutable=self.LocationMutables[param_name],
+                                        constraints=Constraints.from_dictionary(self.LocationConstraints[param_name]),
+                                        name=param_name).serialize())
+
+        # add useGrid
+        try:
+            if self.Use_Grid:
+                params.append(Parameter(1, name="UseGrid").serialize())
+            else:
+                params.append(Parameter(0, name="UseGrid").serialize())
+
+        except:
+            pass
+            # add number of layers
+        params.append(Parameter(self.nLayers, name="nLayers").serialize())
+
+        if hasattr(self, 'Parameters'):
+            for param_val_list, sigma_list, mut_list, constraints_list in zip(self.Parameters, self.Sigma,
+                                                                              self.Mutables, self.Constraints):
+                for param_val, sigma, mut, constraints in zip(param_val_list, sigma_list, mut_list, constraints_list):
+                    params.append(Parameter(value=param_val,
+                                            sigma=sigma,
+                                            mutable=mut,
+                                            constraints=Constraints.from_dictionary(constraints)).serialize())
+        # extra params
+        if hasattr(self, 'ExtraParameters'):
+            for ex_param_val, ex_sigma, ex_mut, ex_constraints in zip(self.ExtraParameters, self.ExtraSigma,
+                                                                      self.ExtraMutables, self.ExtraConstraints):
+                params.append(Parameter(value=ex_param_val,
+                                        sigma=ex_sigma,
+                                        mutable=ex_mut,
+                                        constraints=Constraints.from_dictionary(ex_constraints)).serialize())
+
+        basic_dict["Parameters"] = params
+        for child in self.children:
+            basic_dict["Submodels"].append(child._basic_json_params())
+        return basic_dict
 
 
 class ModelFactory:
@@ -701,9 +926,8 @@ class ModelFactory:
 
         # replace name with type_name
         metadata["type_name"] = metadata.pop("name")
-        metadata["metadata"] = metadata.copy()
         myclass = type(no_space_name, modeltuple,
-                       metadata)
+                       {"_metadata": metadata})
 
         ModelFactory.models_arr.append(myclass)
         setattr(ModelFactory.models, no_space_name, myclass)
@@ -723,7 +947,7 @@ class ModelFactory:
         model_index = _type_to_int(model_index_str)
 
         for model in ModelFactory.models_arr:  # TODO: Turn this into a dictionary at some point
-            if model.index == model_index:
+            if model._metadata["index"] == model_index:
                 m = model()
                 m.load_from_dictionary(json)
                 return m
@@ -744,7 +968,7 @@ class Population(ModelWithChildren):
     '''
     `Population` can contain a number of `Model` classes. Some models have children, which are also models.
     '''
-    index = -1
+    _metadata = {"index": -1}
 
     def __init__(self):
         super().__init__()
@@ -752,7 +976,8 @@ class Population(ModelWithChildren):
         self.population_size_mut = False
         self.extra_param_index_map = ["Population Size"]
         self.extra_params["Population Size"] = Parameter(value=self.population_size,
-                                                         mutable=self.population_size_mut)
+                                                         mutable=self.population_size_mut,
+                                                         name="PopulationSize")
 
     @property
     def models(self):
@@ -761,7 +986,7 @@ class Population(ModelWithChildren):
 
         :return: models array
         '''
-        return self.Children
+        return self.children
 
     def add_model(self, model):
         '''
@@ -796,11 +1021,24 @@ class Population(ModelWithChildren):
         '''
         self.model_ptr = json["ModelPtr"]
         for model in json["Models"]:
-            self.Children.append(ModelFactory.create_model_from_dictionary(model))
+            self.children.append(ModelFactory.create_model_from_dictionary(model))
         self.population_size = json["PopulationSize"]
         self.population_size_mut = json["PopulationSizeMut"]
         self.extra_params["Population Size"] = Parameter(value=self.population_size,
-                                                         mutable=self.population_size_mut)
+                                                         mutable=self.population_size_mut,
+                                                         name="PopulationSize")
+
+    def _basic_json_params(self):
+        '''
+
+        :return:
+        '''
+        # for reasons unknown to any sane being, population size is treated as belonging to Domain, and is not expected
+        # in the basic json params for population. since it is added as part of extra params, it is then politely removed, here
+
+        res = super()._basic_json_params()
+        res["Parameters"].pop()
+        return res
 
 
 class Domain(ModelWithChildren):
@@ -808,7 +1046,7 @@ class Domain(ModelWithChildren):
     The Domain class describes the parameter tree.
     The Domain model is the root of the parameter tree, which can contain multiple populations.
     '''
-    index = -1
+    _metadata = {"index": -1}
 
     def __init__(self):
         super().__init__()
@@ -819,8 +1057,8 @@ class Domain(ModelWithChildren):
         self.geometry = "Domains"
         self.populations.append(Population())
         self.extra_param_index_map = ["Scale", "Constant"]
-        self.extra_params["Constant"] = Parameter(value=self.constant, mutable=self.constant_mut)
-        self.extra_params["Scale"] = Parameter(value=self.scale, mutable=self.scale_mut)
+        self.extra_params["Constant"] = Parameter(value=self.constant, mutable=self.constant_mut, name="Constant")
+        self.extra_params["Scale"] = Parameter(value=self.scale, mutable=self.scale_mut, name="Domain Scale")
 
     @property
     def populations(self):
@@ -828,7 +1066,7 @@ class Domain(ModelWithChildren):
 
         :return: The populations of the domain
         '''
-        return self.Children
+        return self.children
 
     def serialize(self):
         """
@@ -866,7 +1104,7 @@ class Domain(ModelWithChildren):
         for population in json["Populations"]:
             popu = Population()
             popu.load_from_dictionary(population)
-            self.Children.append(popu)
+            self.children.append(popu)
         self.scale = json["Scale"]
         self.scale_mut = json["ScaleMut"]
         try:
@@ -876,21 +1114,21 @@ class Domain(ModelWithChildren):
             print(e)  # is probably an old model without constant
         self.geometry = json["Geometry"]
         self.model_ptr = json["ModelPtr"]
-        self.extra_params["Constant"] = Parameter(value=self.constant, mutable=self.constant_mut)
-        self.extra_params["Scale"] = Parameter(value=self.scale, mutable=self.scale_mut)
+        self.extra_params["Constant"] = Parameter(value=self.constant, mutable=self.constant_mut, name="Constant")
+        self.extra_params["Scale"] = Parameter(value=self.scale, mutable=self.scale_mut, name="Domain Scale")
 
-    def __basic_json_params(self, useGrid):
+    def _basic_json_params(self, useGrid):
         '''
 
         :param useGrid:
         :return:
         '''
         self.use_grid = useGrid
-        basic_dict = super().__basic_json_params(useGrid)
+        basic_dict = super()._basic_json_params()
         # we need to add in parameters to the domain
-        basic_dict["Parameters"].append(self.scale_param.serialize())
-        for population in self.Children:
-            basic_dict["Parameters"].append(population.population_size_param.serialize())
+        for population in self.children:
+            basic_dict["Parameters"].append(population.extra_params["Population Size"].serialize())
+
         return basic_dict
 
 

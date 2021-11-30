@@ -22,6 +22,7 @@ public:
 	void GetFitResults(JsonWriter &writer);
 	void SaveAmplitude(ModelPtr modelPtr, std::string filepath);
 	void SavePDB(ModelPtr modelPtr, std::string filepath);
+	void CheckCapabilities(bool checkTdr);
 
 	//void WriteGraph(JsonWriter &writer, const LocalBackendInfo &backend);
 	//void Stop(const LocalBackendInfo &backend);

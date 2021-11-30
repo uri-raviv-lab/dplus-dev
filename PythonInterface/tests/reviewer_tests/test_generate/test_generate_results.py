@@ -48,6 +48,7 @@ class TestGenerateRun(DplusProps):
         #first, do basic checks:
         expected=self.get_expected_signal(test_folder_path)
         input=self.get_input(test_folder_path)
+        input._fix_use_grid()
         #then run the program:
         session_folder=self.get_session_folder(test_folder_path)
         if web:
