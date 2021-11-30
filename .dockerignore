@@ -1,0 +1,8 @@
+build/
+env/
+dist/
+Dockerfile.manylinux
+tests/
+x64/
+obj/
+bin/
