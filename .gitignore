@@ -517,3 +517,6 @@ Creating Installer/*.pdf
 Creating Installer/document.synctex.gz
 
 *_fixed.state
+
+# Visual Studio Files
+v15/
