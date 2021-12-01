@@ -14,11 +14,16 @@ namespace PythonBackend
 {
     public class PythonBackendCaller
     {
+        /*
+         * Add CSharpPython as an embedded resource
+         * In PythonInstaller, add a /Src subfolder which can hold Python files and is in the path.
+         * Store CSharpPythonEntry.py in the /Src subfolder
+         * Get list of required wheels (pip install dplus-api in new environment, then pip freeze for list of installed packages)
+         * Add all wheels as embedded resources.
+         * 
+         */
         IntPtr lockPythonPtr;
-        string pythonPath;
-        string session;
-        string exeDir;
-        string csharpPythonPath;
+        string session, exeDir;
         dynamic cSharpPythonEntry;
 
         public PythonBackendCaller(string _exeDir)
@@ -43,70 +48,18 @@ namespace PythonBackend
         }
         public void InitPython()
         {
-            pythonPath = "";
-            //check what is the location of python
-            if (exeDir.Contains("D+")) 
-            {
-                //program
-                pythonPath = exeDir + @"\Python38";
-                csharpPythonPath = exeDir + @"\Resources\CSharpPython";
-            }
-            else
-            {
-                //debug or release
-                string [] dirsArray = exeDir.Split('\\');
-                int lastIndex = exeDir.LastIndexOf("\\");
-                string parent_path = Directory.GetParent(exeDir.Substring(0, lastIndex)).ToString();
+            Console.WriteLine("Initializing the embedded Python environment");
+            PythonInstaller.ApplicationName = "DPlus";
+            PythonInstaller.InitializePythonEnvironment();
+            PythonEngine.BeginAllowThreads();
 
-                pythonPath = parent_path + @"\Python38";
-                csharpPythonPath = parent_path + @"\PythonBackend\PythonBackend\CSharpPython";
-            }
-            
-            Environment.SetEnvironmentVariable("PATH", $@"{pythonPath};" + Environment.GetEnvironmentVariable("PATH"));
-            if (!PythonEngine.IsInitialized)
+            using (Py.GIL())
             {
-                PythonEngine.Initialize();
-                PythonEngine.BeginAllowThreads();
+                dynamic csharpModule = Py.Import("CSharpPythonEntry");
+                cSharpPythonEntry = csharpModule.CSharpPython(exeDir, session, PythonInstaller.ActualInstallationFolder);
             }
 
-            UpdatePath();
-
-            lockPythonPtr = PythonEngine.AcquireLock();
-            dynamic csharpModule = Py.Import("CSharpPythonEntry");
-            cSharpPythonEntry = csharpModule.CSharpPython(exeDir, session, pythonPath);
-            PythonEngine.ReleaseLock(lockPythonPtr);
-        }
-
-        public void UpdatePath()
-        {
-            lockPythonPtr = PythonEngine.AcquireLock();
-
-            dynamic sys = Py.Import("sys");
-            dynamic sys_path = sys.path;
-            int length = sys_path.__len__();
-            ArrayList path2remove = new ArrayList();
-            for (int i = 0; i < length; i++)
-            {
-                string cur_path = sys_path[i];
-                if (cur_path.Contains("C:\\Python38"))
-                {
-                    path2remove.Add(cur_path);
-                }
-            }
-            sys.path.append($@"{pythonPath}\Lib");
-            sys.path.append(pythonPath);
-            sys.path.append(csharpPythonPath);
-            // remove C:\\Python38 from the path
-            foreach (string item_path in path2remove)
-            {
-                sys.path.remove(item_path);
-            }
-
-            PythonEngine.ReleaseLock(lockPythonPtr);
-        }
-
-        ~PythonBackendCaller()
-        {
+            Console.WriteLine("Python Environment Initialized");
         }
 
         public void RunCall(CSharpManagedBackendCall call)
