@@ -385,7 +385,7 @@ class LocalRunner(Runner):
         if not os.path.isdir(self._exe_directory):
             raise NotADirectoryError("%s is not a directory" % self._exe_directory)
 
-        programs = ['generate', 'fit', 'getallmetadata', 'checkCapabilities']
+        programs = ['generate']
         paths = [self._get_program_path(program) for program in programs]
         valid = [os.path.isfile(path) for path in paths]
 
