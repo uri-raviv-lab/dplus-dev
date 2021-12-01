@@ -1,4 +1,4 @@
-from cython_ceres import *
+from pyceres import *
 from dplus.CalculationInput import CalculationInput
 from dplus.Residuals import XRayResiduals, XRayLogResiduals, XRayRatioResiduals
 from dplus.CalculationRunner import LocalRunner
@@ -18,6 +18,7 @@ class PyCeresOptimizer:
 
         self.problem = PyProblem()
         self.options = PySolverOptions()
+        self.options.linear_solver_type=1
         self.best_params = None
         self.best_val = np.array([np.inf])
         self.bConverged = False
