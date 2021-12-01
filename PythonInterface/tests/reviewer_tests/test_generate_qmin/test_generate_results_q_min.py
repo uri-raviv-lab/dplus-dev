@@ -9,7 +9,7 @@ from dplus.CalculationInput import CalculationInput
 from dplus.CalculationRunner import LocalRunner
 from tests.old_stuff.fix_state_files import fix_file
 from tests.reviewer_tests.utils import DplusProps
-from tests.test_settings import session, exe_directory, test_files_dir
+from tests.test_settings import session, exe_directory, tests_dir
 import numpy as np
 
 
@@ -28,7 +28,7 @@ class TestGenerateRun(DplusProps):
         return input
 
     def test_GPU(self):
-        test_file=os.path.join(test_files_dir, 'unit_tests', 'files_for_tests', 'sphere_GPU.state')
+        test_file=os.path.join(tests_dir, 'unit_tests', 'files_for_tests', 'sphere_GPU.state')
         input = CalculationInput.load_from_state_file(test_file)
         input.use_gpu = True
         api = LocalRunner(exe_directory, session_directory=os.path.join(session, "gpu_test"))

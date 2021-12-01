@@ -3,13 +3,13 @@ Configuration for fitting tests. All fitting tests assume there is a gpu.
 '''
 import pytest
 import os
-from tests.test_settings import test_files_dir
+from tests.test_settings import tests_dir
 
 def get_files_dirs(no_gpu=True, slow=False):
     if no_gpu: #if there's no gpu, don't test fit
         return []
 
-    generate_path=os.path.join(test_files_dir, 'reviewer_tests', 'files_for_tests', 'fit')
+    generate_path=os.path.join(tests_dir, 'reviewer_tests', 'files_for_tests', 'fit')
     fast_gpu_files_dir=os.path.join(generate_path, 'gpu', 'short')
     slow_gpu_files_dir=os.path.join(generate_path, 'gpu', 'long')
     file_dirs = []
@@ -25,7 +25,7 @@ def pytest_generate_tests(metafunc):
         metafunc.parametrize("test_folder_path", result_params, ids=result_ids)
 
 def get_specific_tests():
-    generate_path = os.path.join(test_files_dir, 'reviewer_tests', 'files_for_tests', 'fit')
+    generate_path = os.path.join(tests_dir, 'reviewer_tests', 'files_for_tests', 'fit')
     fast_gpu_files_dir = os.path.join(generate_path, 'gpu', 'short')
     failed_tests = [
         "DPPC_slabs_fit",

@@ -3,7 +3,7 @@ import numpy as np
 import time
 import argparse
 import os
-from tests.test_settings import session, exe_directory, test_files_dir
+from tests.test_settings import session, exe_directory, tests_dir
 from tests.time_tests.utils import TestsGenerateTimer
 parser = argparse.ArgumentParser(description='create timer configuration file')
 parser.add_argument("--slow", action="store_true", default=False,
@@ -25,12 +25,12 @@ args = parser.parse_args()
 
 def get_files(no_cpu, no_gpu, slow):
     #note that the slow directories INCLUDE all the files from the fast directories as well.
-    generate_path=os.path.join(test_files_dir, 'reviewer_tests', 'files_for_tests', 'generate')
+    generate_path=os.path.join(tests_dir, 'reviewer_tests', 'files_for_tests', 'generate')
     fast_gpu_files_dir=os.path.join(generate_path, 'gpu', 'short')
     fast_cpu_files_dir = os.path.join(generate_path, 'cpu', 'short')
     slow_gpu_files_dir=os.path.join(generate_path, 'gpu', 'long')
     slow_cpu_files_dir = os.path.join(generate_path, 'cpu', 'long')
-    files_with_cache = os.path.join(test_files_dir, 'time_tests', 'files_for_tests_with_cache', 'gpu')
+    files_with_cache = os.path.join(tests_dir, 'time_tests', 'files_for_tests_with_cache', 'gpu')
     file_dirs = []
 
     #file_dirs.append(files_with_cache)
