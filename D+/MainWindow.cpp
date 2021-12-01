@@ -2833,7 +2833,7 @@ namespace DPlus {
 		ParameterTree pt;
 		if (!ent) {
 			// TODO::HEADER - I'm not being successfull when nothing is selected... Should export the entire tree's amplitude.
-			if (sv->treeViewAdv1->SelectedNodes->Count > 1) {
+			if (sv->treeViewAdv1->SelectedNodes->Count != 1) {
 				MessageBox::Show("A single element in the tree must be selected!");
 				return;
 			}
