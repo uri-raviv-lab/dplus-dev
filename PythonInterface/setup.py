@@ -123,7 +123,7 @@ class PrepareCommand(setuptools.Command):
 
 setup(
     name='dplus-api',
-    version='4.4.1',
+    version='4.4',
     packages=['dplus'],
 	install_requires=['numpy>=1.10', 'psutil>=5.6.3', 'requests>=2.10.0', 'pyceres>=0.1.0'],
     include_package_data=True,
