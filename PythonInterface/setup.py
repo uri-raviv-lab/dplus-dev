@@ -34,7 +34,7 @@ elif sys.platform in ['linux', 'linux2']:
 # allow setup.py to be run from any path
 os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 class PrepareCommand(setuptools.Command):
-    description = "Build fast.pyx so there's no cython dependence in installation"
+    description = "Convert the pyx files to cpp so there's no cython dependence in installation"
     user_options = []
 
     def initialize_options(self):
@@ -123,9 +123,9 @@ class PrepareCommand(setuptools.Command):
 
 setup(
     name='dplus-api',
-    version='4.4',
+    version='4.4.1',
     packages=['dplus'],
-	install_requires=['numpy>=1.10', 'psutil==5.6.3', 'requests>=2.10.0'],
+	install_requires=['numpy>=1.10', 'psutil==5.6.3', 'requests>=2.10.0', 'pyceres>=0.1.0'],
     include_package_data=True,
     license=LICENSE,  # example license
     description='Call the DPlus Calculation Backend',
