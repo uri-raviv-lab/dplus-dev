@@ -125,7 +125,7 @@ setup(
     name='dplus-api',
     version='4.4.1',
     packages=['dplus'],
-	install_requires=['numpy>=1.10', 'psutil==5.6.3', 'requests>=2.10.0', 'pyceres>=0.1.0'],
+	install_requires=['numpy>=1.10', 'psutil>=5.6.3', 'requests>=2.10.0', 'pyceres>=0.1.0'],
     include_package_data=True,
     license=LICENSE,  # example license
     description='Call the DPlus Calculation Backend',
