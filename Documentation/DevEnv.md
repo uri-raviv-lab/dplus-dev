@@ -23,6 +23,9 @@ You should also set the BOOST_ROOT environment variable to c:\boost\1.67 (or wha
 ### 5. Python
 You must have Python 3.9 64 bit installed
 
+### 6. WIX Toolset
+From Visual Studio 2017, open the Tools menu and choose "Extensions and Updates". Search for "wix" and install WiX Toolset Build Tools and Wix Toolset Visual 2017 Extension.
+
 ## IMPORTANT
 At this point, the entire D+ project is in one solution. This is about to change, as you will clearly see - the backend and frontend require two different builds.
 

@@ -42,8 +42,8 @@
     </Condition>
       
     <DirectoryRef Id="TARGETDIR">
-        <Merge Id="VCRedist2017" SourceFile="$(env.CommonProgramFiles)\Merge Modules\Microsoft_VC140_CRT_x64.msm" DiskId="1" Language="0"/>
-        <Merge Id="VCRedist2017OMP" SourceFile="$(env.CommonProgramFiles)\Merge Modules\Microsoft_VC140_OpenMP_x64.msm" DiskId="1" Language="0"/>
+        <Merge Id="VCRedist2017" SourceFile="Microsoft_VC141_CRT_x64.msm" DiskId="1" Language="0"/>
+        <Merge Id="VCRedist2017OMP" SourceFile="Microsoft_VC141_OpenMP_x64.msm" DiskId="1" Language="0"/>
     </DirectoryRef>
 
     <Feature Id="VCRedist2017Feature" Title="Visual C++ 2017 Runtime" AllowAdvertise="no" Display="hidden" Level="1">
@@ -53,7 +53,6 @@
 
     <Feature Id="ProductFeature" Title="Setup D+ (full)" Level="1">
       <ComponentGroupRef Id="DPlusComponents" />
-      <ComponentGroupRef Id="HeatPython38" />
     </Feature>
 
     <Feature Id="LuaFilesFeature" Title="Setup D+ Lua Files (full)" Level="1">
@@ -98,9 +97,7 @@
 				<Directory Id="INSTALLFOLDER" Name="D+">
   				<Directory Id="BIN_DIR" Name="bin">
             <Directory Id="ResourcesDirectory" Name="Resources" >
-              <Directory Id="CSharpPythonDirectory" Name="CSharpPython"/>
             </Directory>
-            <Directory Id="PythonsDirectory" Name="Python38"/>
   			  </Directory>
           <Directory Id="LuaScriptsDirectoryID" Name="LuaScripts"/>
           <Directory Id="ExampleFilesDirectoryID" Name="Example Files" >
@@ -732,12 +729,6 @@
             </Component>
           <Component Id="cmpA80B4AD020AF2751F84E074C35601BE6" Directory="ResourcesDirectory" Guid="*">
             <File Id="batfile" KeyPath="yes" Source="..\x64\Release\Resources\restartdplus.bat" />
-          </Component>
-          <Component Id="cmpA80B4AD020AF2751F84E074C35601BE7" Directory="CSharpPythonDirectory" Guid="*">
-            <File Id="initfile" KeyPath="yes" Source="..\PythonBackend\PythonBackend\CSharpPython\__init__.py" />
-          </Component>
-          <Component Id="cmpA80B4AD020AF2751F84E074C35601BE8" Directory="CSharpPythonDirectory" Guid="*">
-            <File Id="CSharpPythonEntryfile" KeyPath="yes" Source="..\PythonBackend\PythonBackend\CSharpPython\CSharpPythonEntry.py" />
           </Component>
 
           
