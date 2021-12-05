@@ -21,6 +21,7 @@
 /ipch
 /obj
 /x64
+.vs/
 
 # /WebApplication/
 WebApplication/env

@@ -220,6 +220,8 @@ void BackendWrapper::CheckCapabilities(bool checkTdr)
 void BackendWrapper::checkTdrLevel()
 {
 #ifdef _WIN32
+#pragma comment(lib, "advapi32")
+
 	HKEY root = HKEY_LOCAL_MACHINE;
 	wstring key = L"SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers";
 	wstring name = L"TdrLevel";
