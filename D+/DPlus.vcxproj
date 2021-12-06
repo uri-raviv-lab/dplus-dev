@@ -22,7 +22,7 @@
     <ProjectGuid>{FBEF1E8A-9893-4D68-9F8B-0FBD4A100E10}</ProjectGuid>
     <RootNamespace>DPlus</RootNamespace>
     <Keyword>ManagedCProj</Keyword>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />

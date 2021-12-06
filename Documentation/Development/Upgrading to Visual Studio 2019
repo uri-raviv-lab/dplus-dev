@@ -1,0 +1,19 @@
+# Upgrading from VS 2017 to VS 2019
+These are the steps taken to upgrade the project from VS 2017 to VS 2019.
+
+## Get everything ready
+* Download the MSVC 14.2 Boost Binaries, install them and update BOOST_ROOT, as described in the Setup Development Environment document.
+* Get Visual Studio 2019 installed with all its components, as well as the WiX extension, as described in the Setup Development Environment document.
+
+## Upgrade projects to VS 2019
+This is a delicate step due to CUDA properties.
+
+Open the solution, VS 2019 will offer to upgrade the projects, choose MSVC v142 and the latest Windows 10 SDK available.
+
+This did not work for the CUDA projects (Backend and DebyeCalculator). For those, we had to open the project files, delete the references to the CUDA targets file, save, open the projects again in VS 2017, upgrade the proejcts, save, then open the proejct files and add the CUDA targets reference again. This is because VS 2019 opened the project in VS 2017 mode, and couldn't find the target files - something went wrong with the CUDA installation on that specific computer.
+
+The .NET Target of all projects needed to be updated from 4.7.2 to 4.8. Open the directory in VS Code, do a CTRL-SHIFT-H (global search and replace) from 4.7.2 to 4.8 - make sure only project files are updated.
+
+## Other fixes
+* Graph1D.h references `std::string` without including `<string>` - which worked in a previous version. Adding `#include <string>` fixed the issue.
+* The registry functions from the Backend weren't found by the linked, even though `ADVAPI32.lib` was specified properly. We had to add `#pragma comment(lib, "advapi32.lib")` for the linker to find it.

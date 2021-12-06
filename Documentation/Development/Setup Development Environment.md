@@ -1,14 +1,15 @@
 # Setting up a D+ Development Environment on Windows
-(updated December 2nd 2021)
+(updated December 6th 2021)
 
 ## Prequisites
 You need to install the following on your computer, in order to compile and debug D+:
 
-### 1. Visual Studio 2017
+### 1. Visual Studio 2019
 Download and install it. You need to include:
 
-* Desktop development with C++ - make sure VC++ v141 and C++/CLI support, MFC and Windows SDK 10.0.17763.0.
-* Desktop .NET Development - make sure to include .NET Framework 4.7.2 Development Tools
+* Desktop development with C++ - make sure VC++ v142 and C++/CLI support, MFC and Windows SDK 10.0.18362.0.
+* Desktop .NET Development - make sure to include .NET Framework 4.8 Development Tools
+* From Individual Modules, choose C++ 2019 Redistributables MSMs
 
 ### 2. CUDA 11.5
 Install it, along with the Visual Studio Integration.
@@ -16,15 +17,15 @@ Install it, along with the Visual Studio Integration.
 ### 3. cmake 3.22 or later
 
 ### 4. Boost sources and binaries
-Download Boost (version 1.67 is used with D+, later versions should work). Download the sources, unzip into a folder (for instance `c:\boost\1.67`). Then download the binaries from here https://boost.teeks99.com/bin/1.67.0/ - choose the right compiler version (msvc-14.1) and choose the 64-bit executable. Download and install it. Then rename the library folder to lib64.
+Download Boost (version 1.77 is used with D+, later versions should work). Download the Windows binaries from here https://boost.teeks99.com/bin/1.77.0/ - choose the right compiler version (msvc-14.2) and choose the 64-bit executable. Download and install it. Then rename the lib64-msvc-14.2 folder to lib64.
 
-You should also set the BOOST_ROOT environment variable to c:\boost\1.67 (or whatever path you choose)
+You should also set the BOOST_ROOT environment variable to c:\boost\1.77 (or whatever path you choose)
 
 ### 5. Python
 You must have Python 3.9 64 bit installed
 
 ### 6. WIX Toolset
-From Visual Studio 2017, open the Tools menu and choose "Extensions and Updates". Search for "wix" and install WiX Toolset Build Tools and Wix Toolset Visual 2017 Extension.
+From Visual Studio 2019, open the Tools menu and choose "Extensions and Updates". Search for "wix" and install WiX Toolset Build Tools and Wix Toolset Visual 2019 Extension. On Windows 11 you may need to enable .NET 3.5.1 from the control panel (Win-S and search Turn Windows Features On and Off)
 
 ## IMPORTANT
 At this point, the entire D+ project is in one solution. This is about to change, as you will clearly see - the backend and frontend require two different builds.
