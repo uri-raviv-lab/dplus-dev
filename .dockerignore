@@ -1,5 +1,6 @@
 build/
 env/
+test-env/
 dist/
 Dockerfile.manylinux
 tests/
