@@ -608,7 +608,7 @@ std::complex<FACC> PDBAmplitude::calcAmplitude(int indqx, int indqy, int indqz) 
 FACC PDBAmplitude::atomicFF(FACC q, int elem) {
 	// NOTE: Units are (inverse) Angstroms
 	FACC res = 0.0;
-	FACC sqq = q * q / (157.913670417429737901351855998);
+	FACC sqq = q * q / (157.913670417429737901351855998); 
 	// Should the number be 100*pi/2 = 157.07963267948966192313216916397514420985846996876
 
 	for(int i = 0; i < 4; i++)
@@ -625,8 +625,7 @@ FACC PDBAmplitude::atomicFF(FACC q, int elem) {
 FACC PDBAmplitude::atomicFF(FACC q, int elem) {
 	// NOTE: Units are (inverse) Angstroms
 	FACC res = 0.0;
-	FACC sqq = q * q / (157.913670417429737901351855998);
-	// Should the number be 100*pi/2 = 157.07963267948966192313216916397514420985846996876
+	FACC sqq = q * q // According to Peng et al. (1996) the exp was defined without the 1/(4pi)^2
 
 	for(int i = 0; i < 5; i++)
 		res += (atmFFcoefs(elem, 2*i)) * exp(-atmFFcoefs(elem, (2*i) + 1) * sqq);
@@ -657,16 +656,14 @@ void PDBAmplitude::initialize() {
 // Since in this case we do noth have a Gaussian, maybe it is better to build each independently of the other.
 
 
-FACC PDBAmplitude::atomicFF(FACC q, int elem) {
+FACC PDBAmplitude::atomicFF(int elem) {
 	// NOTE: Units are (inverse) Angstroms
 	FACC res = 0.0;
-	FACC sqq = q * q / (157.913670417429737901351855998);
-	// Should the number be 100*pi/2 = 157.07963267948966192313216916397514420985846996876
-
-	// Somehow, it would be interesting to enter a weighted sum of all the isotopes i.e. res = sum(p_i * b_i)
+	
+	// It might be interesting to enter a weighted sum of all the isotopes i.e. res = sum(p_i * b_i)
 	// Also, put a default (default abundance in nature) and a possibility for the user to enter it's own abundance (maybe like with anomalous scattering for x-ray).
 	
-	res = atmFFcoefs(elem, 1);
+	res = atmFFcoefs(elem);
 	return res;
 
 void PDBAmplitude::initialize() {
