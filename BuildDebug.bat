@@ -1,1 +1,0 @@
-msbuild DPlus2013.sln /p:Configuration=Debug /m:3 /p:Platform=x64
