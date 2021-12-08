@@ -561,7 +561,7 @@ std::complex<FACC> PDBAmplitude::calcAmplitude(int indqx, int indqy, int indqz) 
 			gi *= exp(-sq((*this->pdb.rad)[pdb.atmInd[i]] * q / 2.0));
 #else
 			gi = 4.1887902047863909846 * (*pdb.rad)[pdb.atmInd[i]] * (*pdb.rad)[pdb.atmInd[i]] * (*pdb.rad)[pdb.atmInd[i]]
-				* exp(-(0.20678349696647 * sq((*pdb.rad)[pdb.atmInd[i]] * q)));
+				* exp(-(0.20678349696647 * sq((*pdb.rad)[pdb.atmInd[i]] * q))); // 0.206... = (4pi/3)^(2/3) / (4pi)
 #endif
 			solI += gi * sin(phase);
 			solR += gi * cos(phase);
@@ -621,11 +621,18 @@ FACC PDBAmplitude::atomicFF(FACC q, int elem) {
 
 // Not sure what is better or easier but, we can either change both the x-ray and elec to be a 5-Gaussian (as shown underneath) and change the atomic form factors so that for x-ray the 10th col is 0, or instead build two separate options for calculations that will be chosen depending on what the user wants.
 
+// In the direct method we will want to solve the integral:
+m_0 = 9.1093837015e-31 // kg
+e = 1.602176634e-19 // C
+h = 6.62607015e-34 //in kg*m^2/s (Js), will probably have to change to A^2 or nm^2 (but not sure)
+f(q) = (8*pi^2*m_0*e)/(h^2) Integral{r^2 * phi(r) * sinc(4*pi*q*r)dr, bounds = [0, infty] } // Not sure we'll want to have this as an option...
+// sinc(x) = sin(x)/x
+
 
 FACC PDBAmplitude::atomicFF(FACC q, int elem) {
 	// NOTE: Units are (inverse) Angstroms
 	FACC res = 0.0;
-	FACC sqq = q * q // According to Peng et al. (1996) the exp was defined without the 1/(4pi)^2
+	FACC sqq = q * q // According to Doyle & Turner (1967) the exp was defined without the 1/(4pi)^2
 
 	for(int i = 0; i < 5; i++)
 		res += (atmFFcoefs(elem, 2*i)) * exp(-atmFFcoefs(elem, (2*i) + 1) * sqq);
@@ -654,6 +661,7 @@ void PDBAmplitude::initialize() {
 /* This part is supposed to show the changes that will have to be made for neutron diffraction (at least the mathematical part of it):
 
 // Since in this case we do noth have a Gaussian, maybe it is better to build each independently of the other.
+// Do we want to put a resolution function here as shown in Pedersen, Posselt, Mortesen (1990)?
 
 
 FACC PDBAmplitude::atomicFF(int elem) {
