@@ -9,7 +9,7 @@ Download and install it. You need to include:
 
 * Desktop development with C++ - make sure VC++ v142 and C++/CLI support, MFC and Windows SDK 10.0.18362.0.
 * Desktop .NET Development - make sure to include .NET Framework 4.8 Development Tools
-* From Individual Modules, choose C++ 2019 Redistributables MSMs
+* From Individual Modules, add C++ 2019 Redistributables MSMs and Windows Universal CRT SDK.
 
 ### 2. CUDA 11.5
 Install it, along with the Visual Studio Integration.
