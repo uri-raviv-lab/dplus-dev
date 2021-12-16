@@ -6,9 +6,9 @@ import os
 import zipfile
 import pathlib
 try:
-    from CythonGrid import CJacobianSphereGrid
+    from dplus.wrapper import CJacobianSphereGrid
 except:
-    print("could not import from CythonGrid")
+    print("could not import from dplus_backend_wrapper")
     
 from math import pi
 
