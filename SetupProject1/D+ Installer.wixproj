@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
-    <ProductVersion>3.10</ProductVersion>
+    <ProductVersion>4.6</ProductVersion>
     <ProjectGuid>cf908d36-d240-4fef-b78c-c8ac71831623</ProjectGuid>
     <SchemaVersion>2.0</SchemaVersion>
     <OutputName>DPlus Installer</OutputName>
