@@ -3852,6 +3852,7 @@ void AnomDebyeCalTester::PreCalculate(VectorXd& p, int nLayers)
 std::complex<F_TYPE> AnomDebyeCalTester::anomAtomicFF(F_TYPE q, int elem, F_TYPE fPrime, F_TYPE fPrimePrime)
 {
 	return DebyeCalTester::atomicFF(q, elem) + fPrimePrime + std::complex<F_TYPE>(0, 1) * fPrimePrime;
+	// TODO:: Shouldn't it be "return DebyeCalTester::atomicFF(q, elem) + fPrime + std::complex<F_TYPE>(0, 1) * fPrimePrime;" ???
 }
 
 bool PDBAmplitude::GetHasAnomalousScattering()

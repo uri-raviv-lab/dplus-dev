@@ -1,4 +1,4 @@
-from cython_ceres import *
+from pyceres import *
 from dplus.CalculationInput import CalculationInput
 from dplus.Residuals import XRayResiduals, XRayLogResiduals, XRayRatioResiduals
 from dplus.CalculationRunner import LocalRunner

@@ -50,10 +50,6 @@ class PrepareCommand(setuptools.Command):
         self.copy_source_files()
         first_pyx = './dplus/grid_wrap/CythonGrid.pyx'
         self.convert_to_c(first_pyx)
-        second_pyx = './dplus/ceres_wrap/call_obj.pyx'
-        self.convert_to_c(second_pyx)
-        third_pyx = './dplus/ceres_wrap/cython_ceres.pyx'
-        self.convert_to_c(third_pyx)
 
     def copy_source_files(self):
         if os.path.exists("IncludeFiles"):
@@ -167,13 +163,5 @@ setup(
                           numpy.get_include()],
             extra_compile_args=extra_compile_args,
             extra_link_args=extra_link_args),
-        Extension(
-             "cython_ceres",
-             ["dplus/ceres_wrap/cython_ceres.pyx", "dplus/ceres_wrap/call_obj.pyx"],
-             language='c++',
-             include_dirs=[CERES_INCLUDE, INCLUDE_DIR, COMMON_DIR, MINIGLOG, numpy.get_include()],
-             define_macros=macros,
-             extra_compile_args=extra_compile_args,
-             extra_objects=[LIB_DIR]),
     ]
 )
