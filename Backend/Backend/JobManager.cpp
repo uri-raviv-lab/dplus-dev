@@ -68,30 +68,7 @@ void JobManager::DestroyJob(JobPtr job) {
 }
 
 static void FitJobThread(void *args) {
-	if(!args)
-		return;
-	fitJobArgs *fja = (fitJobArgs *)args;
-	fitJobArgs localArgs = *fja;
-	
-	ErrorCode err = OK;
-	std::string errMsg;
 
-	// Delete the just-now created argument structure (because we have a local copy)
-	delete fja; fja = NULL;
-
-	try
-	{
-		err = PerformModelFitting(&localArgs);
-	}
-	catch (backend_exception& be)
-	{
-		err = (ErrorCode)be.GetErrorCode();
-		errMsg = be.GetErrorMessage();
-	}
-
-	// Update the job in the manager
-	JobManager::GetInstance().CompleteJob(localArgs.backend, localArgs.jobID, 
-										  localArgs.fp.bProgressReport, (int)err, errMsg);
 }
 
 ErrorCode JobManager::StartFitJob(LocalBackend *backend, JobPtr job, const ParameterTree& tree,
@@ -99,75 +76,7 @@ ErrorCode JobManager::StartFitJob(LocalBackend *backend, JobPtr job, const Param
 								  const std::vector<double>& y, 
 								  const std::vector<int>& mask, 
 							 	  const FittingProperties& fp) {
-	Job j = GetJobInformation(job);
-	if(!j.uid)
-		return ERROR_JOBNOTFOUND;
-	
-	// Validate the param/model tree. If incorrect, return ERROR_INVALIDPARAMTREE
-	if(!ValidateParamTree(job, tree))
-		return ERROR_INVALIDPARAMTREE;	
-	
-	{
-		lock_guard<mutex> joblock (*j.jobMutex);
-
-		if(j.state != JS_IDLE)
-			return ERROR_JOBRUNNING;
-
-		// Reset parameters
-		j.type = JT_FIT;
-		j.progress = 0.0;
-		j.resultGraph.clear();
-		j.error = 0;
-		j.errorMsg[0] = L'\0';
-		if(j.pStop)
-			*j.pStop = false;
-
-		//reset job status
-		j.jobStatus.code = -1;
-		j.jobStatus.isRunning = true;
-		j.jobStatus.progress = 0.0;
-
-		// Reset fitter
-		j.ResetFitter();
-
-		// Set model(s) and parameters to fit to
-		if(j.tree)
-			delete j.tree;
-		j.tree = new ParameterTree(tree);
-
-		// Get the root model from the tree
-		IModel *topModel = NULL;
-		ModelPtr mptr = j.tree->GetNodeModel();
-		if(j.uidToModel.find(mptr) != j.uidToModel.end())
-			topModel = j.uidToModel[mptr];
-
-		
-		// Print to log
-		LogMessage(L"%llu: Started fitting of job %d (%ls) by %s.\n",
-				   (unsigned long long)time(NULL), job, j.description, j.instigator);
-
-		// Update job state prior to running it
-		j.state = JS_RUNNING;
-		j.lastAccess = j.beginning = time(NULL);
-		UpdateJob(j);
-	}
-
-	// Create a thread for the job and run it
-	{
-		lock_guard<mutex> lock(jobMutex);
-
-		// This structure is deleted immediately inside the thread (after copy)
-		fitJobArgs *fja = new fitJobArgs;
-		fja->backend = backend;
-		fja->jobID = job;
-		fja->x = x; fja->y = y;
-		fja->mask = mask;
-		fja->fp = fp;
-		
-		jobThreads[job] = new thread(FitJobThread, fja);
-	}
-
-	return OK;
+	return ERROR_JOBNOTFOUND;
 }
 
 static void GenerateJobThread(void *args) {

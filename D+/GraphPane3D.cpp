@@ -1,3 +1,6 @@
+
+#define _USE_MATH_DEFINES
+#include <cmath>
 #include <windows.h> // For OpenGL
 
 #include "GraphPane3D.h"
@@ -17,6 +20,8 @@
 
 #include "PDBReaderLib.h"
 #include "LuaBinding.h"
+
+
 
 class GLUquadric {};
 

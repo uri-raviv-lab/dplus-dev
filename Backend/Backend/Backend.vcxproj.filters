@@ -189,9 +189,6 @@
     <ClCompile Include="liblbfgs\lbfgs.c">
       <Filter>Source Files\Externals\liblbfgs</Filter>
     </ClCompile>
-    <ClCompile Include="CeresOpt.cpp">
-      <Filter>Source Files\Fitting</Filter>
-    </ClCompile>
     <ClCompile Include="CompositeModel.cpp">
       <Filter>Source Files\Models</Filter>
     </ClCompile>
@@ -344,14 +341,8 @@
     <ClInclude Include="Optimizer.h">
       <Filter>Header Files\Fitting</Filter>
     </ClInclude>
-    <ClInclude Include="CeresOpt.h">
-      <Filter>Header Files\Fitting</Filter>
-    </ClInclude>
     <ClInclude Include="simulated_annealing.hpp">
       <Filter>Header Files\Fitting</Filter>
-    </ClInclude>
-    <ClInclude Include="dynamic_adaptive_numeric_diff_cost_function.h">
-      <Filter>Header Files\Models</Filter>
     </ClInclude>
     <ClInclude Include="LocalBackendParameterTree.h">
       <Filter>Header Files</Filter>
@@ -414,9 +405,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="backend_exception.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Residual.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

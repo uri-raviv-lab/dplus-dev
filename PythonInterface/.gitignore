@@ -1,2 +1,9 @@
 # Python
 __pycache__/
+env/
+test-env/
+build/
+dist/
+*egg-info/
+*.cpp
+*.h

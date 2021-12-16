@@ -3,12 +3,12 @@ from libcpp.complex cimport complex
 from libcpp.memory cimport shared_ptr
 
 
-cdef extern from r"../../IncludeFiles/Backend/Backend/backend_exception.cpp":
+cdef extern from r"../../build/include/Backend/Backend/backend_exception.cpp":
     pass
 
 
 # cdef extern from r"../../../Backend/Backend/backend_exception.h" :
-cdef extern from r"../../IncludeFiles/Backend/Backend/backend_exception.h" :
+cdef extern from r"../../build/include/Backend/Backend/backend_exception.h" :
     cdef cppclass backend_exception:
         backend_exception(int error_code, const char *error_message = "") except +
         int GetErrorCode()
@@ -16,12 +16,12 @@ cdef extern from r"../../IncludeFiles/Backend/Backend/backend_exception.h" :
 
 
 # cdef extern from r"../../../Backend/Backend/Grid.cpp":
-cdef extern from r"../../IncludeFiles/Backend/Backend/Grid.cpp":
+cdef extern from r"../../build/include/Backend/Backend/Grid.cpp":
     pass
 
 # Decalre the class with cdef
 # cdef extern from r"../../..Backend/Backend/Grid.h" :
-cdef extern from r"../../IncludeFiles/Backend/Backend/Grid.h" :
+cdef extern from r"../../build/include/Backend/Backend/Grid.h" :
     cdef cppclass JacobianSphereGrid:
         JacobianSphereGrid()except +
         JacobianSphereGrid(unsigned short gridSize, double qMax)except +

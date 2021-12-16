@@ -21,6 +21,7 @@
 /ipch
 /obj
 /x64
+.vs/
 
 # /WebApplication/
 WebApplication/env
@@ -517,3 +518,6 @@ Creating Installer/*.pdf
 Creating Installer/document.synctex.gz
 
 *_fixed.state
+
+# Visual Studio Files
+v15/

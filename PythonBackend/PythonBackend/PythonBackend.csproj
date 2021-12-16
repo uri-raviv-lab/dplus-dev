@@ -8,7 +8,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>PythonBackend</RootNamespace>
     <AssemblyName>PythonBackend</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
@@ -88,12 +88,12 @@
     <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Python.Runtime, Version=2.3.0.0, Culture=neutral, processorArchitecture=x86">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Python.Runtime.dll</HintPath>
+    <Reference Include="Python.Runtime, Version=2.5.2.0, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\..\packages\pythonnet_py39_win.2.5.2\lib\net40\Python.Runtime.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.IO.Compression" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -106,11 +106,7 @@
     <Compile Include="PythonBackendCaller.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config">
-      <SubType>Designer</SubType>
-    </None>
+    <Compile Include="PythonInstaller.cs" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
@@ -126,13 +122,25 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="CSharpPython\CSharpPythonEntry.py" />
+    <EmbeddedResource Include="Resources\PythonSources\CSharpPythonEntry.py" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+    <EmbeddedResource Include="Resources\EmbeddedPython\python-3.9.9-embed-amd64.zip" />
+    <EmbeddedResource Include="Resources\Wheels\numpy-1.21.4-cp39-cp39-win_amd64.whl" />
+    <EmbeddedResource Include="Resources\Wheels\pyceres-0.1.0-cp39-cp39-win_amd64.whl" />
+    <EmbeddedResource Include="Resources\Wheels\certifi-2021.10.8-py2.py3-none-any.whl" />
+    <EmbeddedResource Include="Resources\Wheels\charset_normalizer-2.0.8-py3-none-any.whl" />
+    <EmbeddedResource Include="Resources\Wheels\dplus_api-4.4-cp39-cp39-win_amd64.whl" />
+    <EmbeddedResource Include="Resources\Wheels\idna-3.3-py3-none-any.whl" />
+    <EmbeddedResource Include="Resources\Wheels\psutil-5.8.0-cp39-cp39-win_amd64.whl" />
+    <EmbeddedResource Include="Resources\Wheels\requests-2.26.0-py2.py3-none-any.whl" />
+    <EmbeddedResource Include="Resources\Wheels\urllib3-1.26.7-py2.py3-none-any.whl" />
+  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PreBuildEvent>mkdir  $(SolutionDir)\Python35\lib\dplus
-xcopy $(SolutionDir)PythonInterface\dplus\*.py $(SolutionDir)\Python35\lib\dplus /y
-xcopy $(SolutionDir)PythonInterface\*.pyd $(SolutionDir)\Python35 /y
-</PreBuildEvent>
+    <PreBuildEvent>
+    </PreBuildEvent>
   </PropertyGroup>
 </Project>

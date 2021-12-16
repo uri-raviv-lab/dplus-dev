@@ -10,7 +10,6 @@ aux_source_directory(${dplus_SOURCE_DIR}/Common/ZipLib/Source zip2)
 aux_source_directory(DefaultModels models)
 aux_source_directory(GPU gpumodels)
 aux_source_directory(${dplus_SOURCE_DIR}/Conversions backend_files_conv)
-#aux_source_directory(${dplus_SOURCE_DIR}/Externals/ceres-for-windows/ceres-solver-1.12.0/internal/glog backend_files_miniglog)
 aux_source_directory(Backend/liblbfgs backend_files_lbfgs)
 
 
@@ -50,7 +49,7 @@ add_library(backend SHARED ${dplus_SOURCE_DIR}/Common/mathfuncs.cpp
             ${backend_files} ${models} ${gpumodels} ${backend_files2} ${backend_files4} ${backend_files_conv} 
 ${backend_files_pdb} ${backend_files_miniglog} ${backend_files_lbfgs})
 #add_dependencies(backend gitrev)
-target_link_libraries(backend lua zlib ZipLib ${Boost_LIBRARIES} pthread dl ceres ${CUDA_CUDART_LIBRARY} ${CUDA_curand_LIBRARY})
+target_link_libraries(backend lua zlib ZipLib ${Boost_LIBRARIES} pthread dl ${CUDA_CUDART_LIBRARY} ${CUDA_curand_LIBRARY})
 
 #cuda_add_library(gpubackend SHARED ${gpu_source_files})
 #target_link_libraries(gpubackend ${Boost_LIBRARIES} dl pthread ${CUDA_CUDART_LIBRARY} ${CUDA_curand_LIBRARY})

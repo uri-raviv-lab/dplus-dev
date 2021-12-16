@@ -43,7 +43,7 @@ class TestFitRun(DplusProps):
         else:
             api=LocalRunner(exe_directory, session_folder)
         
-        test_python_ceres = False
+        test_python_ceres = True
         if test_python_ceres:
             python_fit = PyCeresOptimizer(input, api)
             python_fit.solve()
@@ -78,7 +78,7 @@ class TestFitCorrect(DplusProps):
                 e_val=expected_param.value
                 r_val=result_param.value
                 passed=True
-                estr_whole, e_str_dec = str(e_val).split(".")
+                estr_whole, e_str_dec = str(e_val.split("."))
                 prec = 1 * pow(10, -len(e_str_dec))
                 diff = abs (e_val - r_val)
                 if diff > prec:

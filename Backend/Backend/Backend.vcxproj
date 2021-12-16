@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -21,34 +21,34 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{F7448326-C3A1-44BC-99EE-8CC6E1B4B5EB}</ProjectGuid>
     <RootNamespace>Backend</RootNamespace>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.18362.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
-    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 11.3.props" />
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 11.5.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -154,6 +154,7 @@ copy "$(CudaToolkitBinDir)\curand64_*.dll" "$(TargetDir)"</Command>
       <AdditionalDependencies>$(OutDir)\lua51-backend.lib;$(OutDir)\PDBReaderLib.lib;$(OutDir)\zlib.lib;$(OutDir)\ZipLib.lib;cudart.lib;curand.lib</AdditionalDependencies>
       <GenerateMapFile>true</GenerateMapFile>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <LinkStatus>true</LinkStatus>
     </Link>
     <CudaCompile>
       <CodeGeneration>compute_35,sm_35;compute_50,sm_50;compute_52,sm_52;compute_53,sm_53</CodeGeneration>
@@ -250,7 +251,6 @@ copy "$(CudaToolkitBinDir)\curand64_*.dll" "$(TargetDir)"</Command>
     <ClCompile Include="AmplitudeCache.cpp" />
     <ClCompile Include="BackendWrapper.cpp" />
     <ClCompile Include="backend_exception.cpp" />
-    <ClCompile Include="CeresOpt.cpp" />
     <ClCompile Include="CommandLineBackendWrapper.cpp" />
     <ClCompile Include="CompositeModel.cpp" />
     <ClCompile Include="declarations.cpp" />
@@ -303,7 +303,6 @@ copy "$(CudaToolkitBinDir)\curand64_*.dll" "$(TargetDir)"</Command>
     <ClInclude Include="..\DefaultModels\Symmetries.h" />
     <ClInclude Include="..\DefaultModels\TRAModel.h" />
     <ClInclude Include="backend_exception.h" />
-    <ClInclude Include="Residual.h" />
     <ClInclude Include="UseGPU.h" />
     <None Include="..\GPU\CalculateJacobianSplines.cuh" />
     <None Include="..\GPU\CommonCUDA.cuh" />
@@ -317,11 +316,9 @@ copy "$(CudaToolkitBinDir)\curand64_*.dll" "$(TargetDir)"</Command>
     <ClInclude Include="..\GPU\InternalGPUHeaders.h" />
     <ClInclude Include="AmplitudeCache.h" />
     <ClInclude Include="BackendWrapper.h" />
-    <ClInclude Include="CeresOpt.h" />
     <ClInclude Include="CommandLineBackendWrapper.h" />
     <ClInclude Include="declarations.h" />
     <ClInclude Include="DllBasedBackendWrapper.h" />
-    <ClInclude Include="dynamic_adaptive_numeric_diff_cost_function.h" />
     <ClInclude Include="Grid.h" />
     <ClInclude Include="BackendInterface.h" />
     <ClInclude Include="..\..\BackendCommunication\LocalCommunication\LocalComm.h" />
@@ -420,9 +417,6 @@ copy "$(CudaToolkitBinDir)\curand64_*.dll" "$(TargetDir)"</Command>
     <ResourceCompile Include="Backend.rc" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Common\ceres\ceres.vcxproj">
-      <Project>{647e8018-9c83-3be9-8c81-e6c831e9e4a2}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\..\Common\lua-5.1.4\src\lua51-backend.vcxproj">
       <Project>{a0ace53d-3215-4907-926e-98a7a80ca63c}</Project>
     </ProjectReference>
@@ -441,6 +435,6 @@ copy "$(CudaToolkitBinDir)\curand64_*.dll" "$(TargetDir)"</Command>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
-    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 11.3.targets" />
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 11.5.targets" />
   </ImportGroup>
 </Project>
