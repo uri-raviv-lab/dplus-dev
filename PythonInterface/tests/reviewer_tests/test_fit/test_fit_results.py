@@ -77,7 +77,6 @@ class TestFitCorrect(DplusProps):
             for expected_param, result_param in zip(expected_model, result_model):
                 e_val=expected_param.value
                 r_val=result_param.value
-
                 passed=True
                 estr_whole, e_str_dec = str(e_val.split("."))
                 prec = 1 * pow(10, -len(e_str_dec))

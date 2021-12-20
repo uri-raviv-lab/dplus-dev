@@ -1,9 +1,9 @@
 import os
 import pytest
 
-from tests.test_settings import test_files_dir
+from tests.test_settings import tests_dir
 
-test_dir=os.path.join(test_files_dir, "unit_tests", "files_for_tests")
+test_dir=os.path.join(tests_dir, "unit_tests", "files_for_tests")
 
 
 

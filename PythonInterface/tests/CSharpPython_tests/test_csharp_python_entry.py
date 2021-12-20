@@ -3,8 +3,8 @@ import os
 from dplus.CalculationRunner import LocalRunner
 from dplus.CalculationInput import CalculationInput
 
-from tests.test_settings import exe_directory, session_dir, python_dir, test_files_dir
-test_dir=os.path.join(test_files_dir, "CSharpPython_tests", "files")
+from tests.test_settings import exe_directory, session_dir, python_dir, tests_dir
+test_dir=os.path.join(tests_dir, "CSharpPython_tests", "files")
 
 calc_runner = LocalRunner(exe_directory, session_dir)
 

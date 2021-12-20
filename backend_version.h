@@ -9,7 +9,7 @@
 
 // The version is used in RC files for resources, so it must be broken into elements
 #define BACKEND_VERSION_MAJOR 4
-#define BACKEND_VERSION_MINOR 5
+#define BACKEND_VERSION_MINOR 6
 #define BACKEND_VERSION_REVISION 0
 // Don't use this field for creating different installer versions as
 // WiX (and MSI) MSI specifically ignore this field when comparing versions.

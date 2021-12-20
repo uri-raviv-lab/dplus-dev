@@ -1,6 +1,6 @@
 import pytest
 import os
-from tests.test_settings import test_files_dir
+from tests.test_settings import tests_dir
 
 
 def pytest_generate_tests(metafunc):
@@ -14,8 +14,8 @@ def pytest_generate_tests(metafunc):
 
 def get_files_dirs(no_cpu, no_gpu):
     #note that the slow directories INCLUDE all the files from the fast directories as well.
-    cpu_files_dir=os.path.join(test_files_dir, 'reviewer_tests', 'files_for_tests', 'qmin', 'cpu')
-    gpu_files_dir = os.path.join(test_files_dir, 'reviewer_tests', 'files_for_tests', 'qmin', 'gpu')
+    cpu_files_dir=os.path.join(tests_dir, 'reviewer_tests', 'files_for_tests', 'qmin', 'cpu')
+    gpu_files_dir = os.path.join(tests_dir, 'reviewer_tests', 'files_for_tests', 'qmin', 'gpu')
     #TODO: finish writing this
     file_dirs = []
     if not no_cpu:

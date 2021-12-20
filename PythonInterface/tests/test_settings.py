@@ -1,6 +1,6 @@
 import os
 
-test_files_dir = os.path.join(os.path.dirname(__file__))  # pretty sure this never needs to change
+tests_dir = os.path.join(os.path.dirname(__file__))  # pretty sure this never needs to change
 _dplus_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 exe_directory = os.path.join(_dplus_dir, "bin")  # defaults to linux option
 session = os.path.join(os.path.dirname(__file__), "test_session")

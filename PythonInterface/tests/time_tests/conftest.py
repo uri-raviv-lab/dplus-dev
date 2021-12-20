@@ -1,18 +1,18 @@
 import pytest
 import os
-from tests.test_settings import test_files_dir
+from tests.test_settings import tests_dir
 
 timer_configuration_file=os.path.join(os.path.dirname(os.path.realpath(__file__)   ), "timer_configfile.txt")
 
 
 def get_files_dirs(no_cpu, no_gpu, slow):
     #note that the slow directories INCLUDE all the files from the fast directories as well.
-    generate_path=os.path.join(test_files_dir, 'reviewer_tests', 'files_for_tests', 'generate')
+    generate_path=os.path.join(tests_dir, 'reviewer_tests', 'files_for_tests', 'generate')
     fast_gpu_files_dir=os.path.join(generate_path, 'gpu', 'short')
     fast_cpu_files_dir = os.path.join(generate_path, 'cpu', 'short')
     slow_gpu_files_dir=os.path.join(generate_path, 'gpu', 'long')
     slow_cpu_files_dir = os.path.join(generate_path, 'cpu', 'long')
-    files_with_cache = os.path.join(test_files_dir, 'time_tests', 'files_for_tests_with_cache','gpu')
+    files_with_cache = os.path.join(tests_dir, 'time_tests', 'files_for_tests_with_cache','gpu')
     file_dirs = []
     #file_dirs.append(files_with_cache)
     if slow:
@@ -56,7 +56,7 @@ def pytest_generate_tests(metafunc):
         metafunc.parametrize("iter, test_folder_path, exp_avg, exp_var, max_per_error", updated_result_params, ids=result_ids)
 
 def specific_tests():
-    generate_path=os.path.join(test_files_dir, 'reviewer_tests', 'files_for_tests', 'generate')
+    generate_path=os.path.join(tests_dir, 'reviewer_tests', 'files_for_tests', 'generate')
     fast_gpu_files_dir=os.path.join(generate_path, 'cpu', 'fast')
     failed_tests=[
         "Single_PDB_Impl_No_Charges_With_Hydr_Ga_Kr",
