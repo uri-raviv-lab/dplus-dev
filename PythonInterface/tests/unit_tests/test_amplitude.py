@@ -236,3 +236,58 @@ def test_use_grid():
     input.Domain.children[0].children[0].children[1].children[0].use_grid = False
     with pytest.raises(ValueError):
         result = runner.generate(input)
+
+
+
+def test_calculate_intensity():
+    from dplus.Amplitudes import Amplitude, sph2cart
+    from math import pi
+    import pytest
+
+    def my_fill_func(q, th, ph):
+        return np.complex64(q + th + ph + q * 1j)
+
+    # amp_file = os.path.join(test_dir, "slab.ampj")
+    # my_amp = Amplitude.load(amp_file)
+
+    state_file = os.path.join(test_dir, r"files_for_resolution_function\Stacked_Slabs.state")
+    input = CalculationInput.load_from_state_file(state_file)
+    input_2 = input
+    runner = LocalRunner(exe_directory, session)
+    result = runner.generate(input)
+
+    res = []
+    for q in np.linspace(0, input_2.DomainPreferences.q_max, 100):
+        res.append(input_2.Domain.calculate_intensity(q))
+        pass
+
+    return result
+
+    my_amp_sph = Amplitude(80, 7.5)  # TODO chenge the constructor params
+    my_amp_sph.fill(my_fill_func)
+
+    my_amp_cart = Amplitude(80, 7.5)  # TODO chenge the constructor params
+    my_amp_cart.fill_cart(my_fill_func)
+
+    total = failed_sph = failed_cart = 0
+    for q in np.linspace(0, 7.5, 20):
+        total += 1
+        try:
+            pass
+            r = my_amp_sph.calculate_intensity(q)
+            print(r)
+            # check_sph(_input, func_to_test=, fill_func=my_fill_func)
+        except ErrorException as e:
+            failed_sph += 1
+        try:
+            r = my_amp_cart.calculate_intensity(q)
+            print(r)
+            # check_cart(_input, func_to_test=my_amp_cart.calculate_intensity, fill_func=my_fill_func)
+        except ErrorException as e:
+            failed_cart += 1
+    print("failed_sph/total =", failed_sph / total)
+    print("failed_cart/total =", failed_cart / total)
+
+
+if __name__ == "__main__":
+    test_calculate_intensity()

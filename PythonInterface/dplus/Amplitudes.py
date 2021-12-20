@@ -1,10 +1,10 @@
 import json
 import math
-
 import numpy as np
 import os
 import zipfile
 import pathlib
+import cmath
 try:
     from CythonGrid import CJacobianSphereGrid
 except:
@@ -448,6 +448,66 @@ class Amplitude():
         for q in q_list:
             interp_list.append(self.__get_interpolation_q1(q, theta, phi))
         return interp_list
+
+    def get_intensity(self, q_list, epsilon=1e-7, seed=0, max_iter=10000):
+        """
+        DomainModel::CalculateIntensityVector
+        :param q_list: list-double list of q's
+        """
+        d = self._values
+        arr_intensity = []
+        for q in q_list:
+            arr_intensity.append(self.calculate_intensity(q, epsilon, seed, max_iter))
+        return arr_intensity
+
+    def calculate_intensity(self, q, epsilon=1e-7, seed=0, max_iter=10000): # max_iter = 'iterations' on c++
+        """
+        DomainModel::DefaultCPUCalculation
+        """
+        # https://www.tutorialspoint.com/complex-numbers-in-python
+        _amps = [1] # TODO
+        min_iter = 20
+        res = complex(0.0, 0.0)
+        if q == 0:
+            amp = complex(0.0, 0.0)
+            for i in _amps:
+                amp +=  self.get_interpolation(q, q, q)
+            return amp.real
+        
+        results = [0.0]*max_iter
+        sins = [0.0]
+        # https://numpy.org/doc/stable/reference/random/bit_generators/mt19937.html
+        # sg = np.random.SeedSequence(seed)
+        rng = np.random.MT19937(seed=seed) # ?
+        ranU2 = np.random.uniform(0.0, 2.0, max_iter) # remove max_iter
+        phase = complex(0.0, 1.0)
+        im = complex(0.0, 1.0)
+        for i in range(len(results)): # NOTE: len(results) == max_iter
+            u2 = ranU2[i]  # ranU2(rng) TODO
+            v2 = ranU2[i]  # ranU2(rng) TODO
+            phi = u2 * np.pi
+            theta = math.acos(v2 - 1.0)
+
+            st = math.sin(theta)
+            sp = math.sin(phi)
+            cp = math.cos(phi)
+            ct = (v2 - 1.0)
+            
+            amp = complex(0.0, 0.0)
+            for j in _amps:
+                # amp += self.get_interpolation(q * st * cp, q * st * sp, q * ct)
+                amp += self.get_interpolation(q, theta, phi)
+            res += (amp * amp.conjugate()).real  # .conjugate() - Conjugate of complex number
+            results[i] = res / complex(i + 1)
+
+            if i > min_iter and epsilon > 0.0:
+                if np.abs(1.0 - (results[i] / results[i >> 1])) < epsilon: # x >> y: Returns x with the bits shifted to the right by y places
+                    if np.abs(1.0 - (results[i] / results[int(np.round((i << 1) / 3))])) < epsilon:
+                        if np.abs(1.0 - (results[i] / results[(3 * i) >> 2])) < epsilon:
+                            return results[i]
+
+        return results[-1]
+
 
     @staticmethod
     def _legacy_load(filename):
