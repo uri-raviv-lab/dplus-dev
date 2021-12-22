@@ -1,7 +1,6 @@
 from pyceres import *
 from dplus.CalculationInput import CalculationInput
 from dplus.Residuals import XRayResiduals, XRayLogResiduals, XRayRatioResiduals
-from dplus.CalculationRunner import LocalRunner
 import numpy as np
 import os
 import json
@@ -14,6 +13,7 @@ class PyCeresOptimizer:
         self.calc_input = calc_input
         self.calc_runner = calc_runner
         if not self.calc_runner:
+            from dplus.CalculationRunner import LocalRunner
             self.calc_runner = LocalRunner()
 
         self.problem = PyProblem()

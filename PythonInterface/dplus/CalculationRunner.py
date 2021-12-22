@@ -19,6 +19,7 @@ import uuid
 from dplus.FileReaders import _handle_infinity_for_json, NumpyHandlingEncoder
 from dplus.CalculationResult import GenerateResult, FitResult
 
+from dplus.PyCeresOptimizer import PyCeresOptimizer
 
 # from .Fit import Fitter
 
@@ -385,7 +386,7 @@ class LocalRunner(Runner):
         if not os.path.isdir(self._exe_directory):
             raise NotADirectoryError("%s is not a directory" % self._exe_directory)
 
-        programs = ['generate', 'getallmetadata', 'checkCapabilities']
+        programs = ['generate']#, 'getallmetadata', 'checkCapabilities'] #neither of those are needed...
         paths = [self._get_program_path(program) for program in programs]
         valid = [os.path.isfile(path) for path in paths]
 
@@ -424,6 +425,9 @@ class LocalRunner(Runner):
         :param  calc_data: an instance of a CalculationInput class
         :rtype: an instance of a CalculationResult class"""
         job = self._run(calc_data, calculation_type="fit", save_amp=save_amp)
+        python_fit = PyCeresOptimizer(calc_data, self)
+        python_fit.solve()
+        python_fit.save_dplus_arrays(python_fit.best_results, os.path.join(self.session_directory, "data.json"))
         calc_result = FitResult(calc_data, job._get_result(), job)
         return calc_result
 
@@ -433,8 +437,7 @@ class LocalRunner(Runner):
 
         :param  calc_data: an instance of a CalculationInput class
         :rtype: an instance of a RunningJob class"""
-        job = self._run(calc_data, calculation_type="fit", is_async=True, save_amp=save_amp)
-        return job
+        raise NotImplementedError("async for fit has not yet been implemented")
 
     def check_capabilities(self, check_tdr=True):
         """
