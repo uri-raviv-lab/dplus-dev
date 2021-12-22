@@ -238,55 +238,133 @@ def test_use_grid():
         result = runner.generate(input)
 
 
+def save_to_out_file(filename, grid):
+    '''
+    receives file name, and saves the results to the file.
+    :param filename: string of filename/path
+    '''
+    with open(filename, 'w') as out_file:
+        # out_file.write("# Integration parameters:\n")
+        # out_file.write("#\tqmax\t{}\n".format(grid.q_max))
+        # out_file.write("#\tOrientation Method\t{}\n".format(grid.orientation_method))
+        # out_file.write("#\tOrientation Iterations\t{}\n".format(grid.orientation_iterations))
+        # out_file.write("#\tConvergence\t{}\n\n".format(grid.convergence))
+
+        # for value in self.headers.values():
+        #     out_file.write(value)
+        for key, value in grid.graph.items():
+            out_file.write('{:.5f}\t{:.20f}\n'.format(key, value))
+        out_file.close()
+
+
+def get_expected_signal(out_filename):
+    sigma_chi_square = chi_square = None
+    Q = []
+    intensity = []
+    sigma = []
+    with open(out_filename, 'r') as file:
+        for line in file:
+            if len(line.strip()) < 1:
+                continue
+            if line[0] == '#':
+                if "Average Chi square" in line:
+                    chi_square = float(line.split()[-1])
+                if "Sigma Chi square" in line:
+                    sigma_chi_square = float(line.split()[-1])
+            elif line[0] == 'q':
+                continue
+            else:
+                try:
+                    q, i, s = line.split()
+                except ValueError:  # for curves I generated for testing Fit before they sent files
+                    q, i = line.split()
+                    s = 0
+                Q.append(float(q))
+                intensity.append(float(i))
+                sigma.append(float(s))
+    return {
+        'q': Q,
+        'intensity': intensity,
+        'sigma': sigma,
+        'sigma_chi_square': sigma_chi_square,
+        'chi_square': chi_square
+    }
+
+
+def _chi_a_squ(result, expected):
+    # chi_a^2 = 1/N \sum_i^N [(I^expected_i - I_calculated_i)/\sigam_i]^2
+    N = len(expected.get('q'))
+    sum_i_to_N = 0
+    for i in range(N):
+        expected_i = expected.get('intensity')[i]
+        calculated_i = result[i]
+        sigma_i = expected.get('sigma')[i]
+        if sigma_i < 10e-4:
+            sum_i_to_N += math.pow((expected_i - calculated_i), 2)
+        else:
+            sum_i_to_N += math.pow(((expected_i - calculated_i) / sigma_i), 2)
+    chi_a_sq = sum_i_to_N / N
+    return chi_a_sq
+
 
 def test_calculate_intensity():
-    from dplus.Amplitudes import Amplitude, sph2cart
-    from math import pi
-    import pytest
+    # compare 2 signals from D+
+    # path_signal_1 = r"C:\Users\chana\Source\DPlus\dplus\PythonInterface\tests\unit_tests\files_for_tests\intensity\signal-d-plus.out"
+    # path_signal_1 = r"C:\Users\chana\Source\DPlus\dplus\PythonInterface\tests\unit_tests\files_for_tests\intensity\signal-d-plus-generate-again.out"
+    # signal1 = get_expected_signal(path_signal_1)
+    # signal2 = get_expected_signal(path_signal_1)
+    # result = [val for val in signal2.get('intensity')]
+    # chi_a_sq_val = _chi_a_squ(result, signal1)
 
-    def my_fill_func(q, th, ph):
-        return np.complex64(q + th + ph + q * 1j)
+    amp_filename = r"C:\Users\chana\Source\DPlus\dplus\PythonInterface\tests\unit_tests\files_for_tests\intensity\myamp.ampj"
+    out_filename = r"C:\Users\chana\Source\DPlus\dplus\PythonInterface\tests\unit_tests\files_for_tests\intensity\signal-python-myamp-size200.out"
+    excepted_signal_filename = r"C:\Users\chana\Source\DPlus\dplus\PythonInterface\tests\unit_tests\files_for_tests\intensity\signal-d-plus-size200.out"
+    result_1 = send_calculate_intensity(amp_filename, excepted_signal_filename, out_filename)
 
-    # amp_file = os.path.join(test_dir, "slab.ampj")
-    # my_amp = Amplitude.load(amp_file)
+    amp_filename = r"C:\Users\chana\Source\DPlus\dplus\PythonInterface\tests\unit_tests\files_for_tests\intensity\myamp-2.ampj"
+    out_filename = r"C:\Users\chana\Source\DPlus\dplus\PythonInterface\tests\unit_tests\files_for_tests\intensity\signal-python-myamp-2.out"
+    excepted_signal_filename = r"C:\Users\chana\Source\DPlus\dplus\PythonInterface\tests\unit_tests\files_for_tests\intensity\signal-d-plus-2.out"
+    result_2 = send_calculate_intensity(amp_filename, excepted_signal_filename, out_filename)
 
-    state_file = os.path.join(test_dir, r"files_for_resolution_function\Stacked_Slabs.state")
-    input = CalculationInput.load_from_state_file(state_file)
-    input_2 = input
-    runner = LocalRunner(exe_directory, session)
-    result = runner.generate(input)
+    amp_filename = r"C:\Users\chana\Source\DPlus\dplus\PythonInterface\tests\unit_tests\files_for_tests\intensity\myamp_helix2layrers.ampj"
+    out_filename = r"C:\Users\chana\Source\DPlus\dplus\PythonInterface\tests\unit_tests\files_for_tests\intensity\signal-python-myamp_helix2layrers.out"
+    excepted_signal_filename = r"C:\Users\chana\Source\DPlus\dplus\PythonInterface\tests\unit_tests\files_for_tests\intensity\signal-d-plus-helix2layrers.out"
+    result_3 = send_calculate_intensity(amp_filename, excepted_signal_filename, out_filename)
+    
+    print("result 1:", result_1)
+    print("result 2:", result_2)
+    print("result 3:", result_3)
 
-    res = []
-    for q in np.linspace(0, input_2.DomainPreferences.q_max, 100):
-        res.append(input_2.Domain.calculate_intensity(q))
-        pass
 
-    return result
 
-    my_amp_sph = Amplitude(80, 7.5)  # TODO chenge the constructor params
-    my_amp_sph.fill(my_fill_func)
+def send_calculate_intensity(amp_filename, excepted_signal_filename, out_filename):
+    expected_signal = get_expected_signal(excepted_signal_filename)
+    amp = Amplitude.load(amp_filename)
+    q_size = len(expected_signal.get('q'))
+    result = []
+    seeds = []
+    # for q in np.linspace(0, amp.grid.q_max, q_size)
+    #     seeds.append()
+    with open(out_filename, 'w') as out_file:
+        for q in np.linspace(0, amp.grid.q_max, q_size):
+            res = amp.calculate_intensity(q)
+            result.append(res)
+            out_file.write('{:.5f}\t{:.20f}\n'.format(q, res))
+    chi_a_sq_val = _chi_a_squ(result, expected_signal)
+    # from scipy.spatial import distance
+    # from scipy.signal import correlate
+    # from scipy import spatial
 
-    my_amp_cart = Amplitude(80, 7.5)  # TODO chenge the constructor params
-    my_amp_cart.fill_cart(my_fill_func)
+    # euclid_distance_a_to_b = distance.euclidean(expected_signal.get('intensity'), result)
+    # sqeuclidean = distance.sqeuclidean(expected_signal.get('intensity'), result)
+    # # seuclidean = distance.seuclidean(expected_signal.get('intensity'), result)
 
-    total = failed_sph = failed_cart = 0
-    for q in np.linspace(0, 7.5, 20):
-        total += 1
-        try:
-            pass
-            r = my_amp_sph.calculate_intensity(q)
-            print(r)
-            # check_sph(_input, func_to_test=, fill_func=my_fill_func)
-        except ErrorException as e:
-            failed_sph += 1
-        try:
-            r = my_amp_cart.calculate_intensity(q)
-            print(r)
-            # check_cart(_input, func_to_test=my_amp_cart.calculate_intensity, fill_func=my_fill_func)
-        except ErrorException as e:
-            failed_cart += 1
-    print("failed_sph/total =", failed_sph / total)
-    print("failed_cart/total =", failed_cart / total)
+    # # Find cross-correlation
+    # xcorr = correlate(expected_signal.get('intensity'), result)
+
+    # cosine = 1 - spatial.distance.cosine(expected_signal.get('intensity'), result)
+
+    return chi_a_sq_val
 
 
 if __name__ == "__main__":

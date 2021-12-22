@@ -449,30 +449,29 @@ class Amplitude():
             interp_list.append(self.__get_interpolation_q1(q, theta, phi))
         return interp_list
 
-    def get_intensity(self, q_list, epsilon=1e-7, seed=0, max_iter=10000):
+    def get_intensity(self, q_list, epsilon=1e-3, seed=0, max_iter=1000000):
         """
         DomainModel::CalculateIntensityVector
         :param q_list: list-double list of q's
         """
-        d = self._values
         arr_intensity = []
         for q in q_list:
             arr_intensity.append(self.calculate_intensity(q, epsilon, seed, max_iter))
         return arr_intensity
 
-    def calculate_intensity(self, q, epsilon=1e-7, seed=0, max_iter=10000): # max_iter = 'iterations' on c++
+    def calculate_intensity(self, q, epsilon=1e-3, seed=0, max_iter=1000000): # max_iter = 'iterations' on c++
         """
         DomainModel::DefaultCPUCalculation
         """
         # https://www.tutorialspoint.com/complex-numbers-in-python
         _amps = [1] # TODO
         min_iter = 20
-        res = complex(0.0, 0.0)
+        res = 0.0
         if q == 0:
             amp = complex(0.0, 0.0)
             for i in _amps:
                 amp +=  self.get_interpolation(q, q, q)
-            return amp.real
+            return (amp * amp.conjugate()).real
         
         results = [0.0]*max_iter
         sins = [0.0]
@@ -498,7 +497,7 @@ class Amplitude():
                 # amp += self.get_interpolation(q * st * cp, q * st * sp, q * ct)
                 amp += self.get_interpolation(q, theta, phi)
             res += (amp * amp.conjugate()).real  # .conjugate() - Conjugate of complex number
-            results[i] = res / complex(i + 1)
+            results[i] = res / (i + 1)
 
             if i > min_iter and epsilon > 0.0:
                 if np.abs(1.0 - (results[i] / results[i >> 1])) < epsilon: # x >> y: Returns x with the bits shifted to the right by y places
