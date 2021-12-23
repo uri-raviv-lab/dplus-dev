@@ -359,7 +359,17 @@ def send_calculate_intensity(amp_filename, excepted_signal_filename, out_filenam
     # from scipy.spatial import distance
     # from scipy.signal import correlate
     # from scipy import spatial
+    from scipy import stats
 
+    f_oneway = stats.f_oneway(expected_signal.get('intensity'), result)
+    spearmanr = stats.spearmanr(expected_signal.get('intensity'), result)
+    ttest_ind = stats.ttest_ind(expected_signal.get('intensity'), result)
+    # chisquare = stats.chisquare(expected_signal.get('intensity'), result)
+    
+    # print("chisquare", chisquare)
+    print("spearmanr", spearmanr)
+    print("ttest_ind", ttest_ind)
+    print("f_oneway", f_oneway)
     # euclid_distance_a_to_b = distance.euclidean(expected_signal.get('intensity'), result)
     # sqeuclidean = distance.sqeuclidean(expected_signal.get('intensity'), result)
     # # seuclidean = distance.seuclidean(expected_signal.get('intensity'), result)
