@@ -18,6 +18,7 @@
 
 #include <iostream>
 using std::ios;
+using Eigen::Matrix3d;
 
 //namespace fs = boost::filesystem;
 #define _USE_MATH_DEFINES
@@ -26,6 +27,10 @@ using std::ios;
 #ifndef M_2PI
 #define M_2PI 6.28318530717958647692528676656
 #endif
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+#include <random>
 
 typedef uint32_t U32;
 typedef uint64_t U64;
@@ -384,6 +389,83 @@ std::complex<double> JacobianSphereGrid::GetCart( double x, double y, double z )
 		ph += M_2PI;
 	return GetSphr(r, th, ph);
 }
+
+FACC JacobianSphereGrid::CalculateIntensity(FACC q, FACC epsi, unsigned int seed, uint64_t iterations) {
+	FACC res = 0.0;
+
+	if (q == 0.0) {
+		std::complex<FACC> amp(0.0, 0.0);
+		amp += GetSphr(0, 0, 0);
+		return real(amp * conj(amp));
+	}
+
+	unsigned long long minIter = /*iterations / */20;
+	std::vector<FACC> results;
+	results.resize(std::min(iterations, results.max_size()), 0.0);
+
+	std::mt19937 rng;
+	rng.seed(seed);
+
+	std::uniform_real_distribution<FACC> ranU2(0.0, 2.0);
+	std::complex<FACC> phase, im(0.0, 1.0);
+
+	for (uint64_t i = 0; i < iterations; i++) {
+		FACC theta, phi, st, sp, cp, ct, u2, v2;
+
+		// See http://mathworld.wolfram.com/SpherePointPicking.html
+		u2 = ranU2(rng);
+		v2 = ranU2(rng);
+		phi = u2 * M_PI;
+		theta = acos(v2 - 1.0);
+
+		st = sin(theta);
+		sp = sin(phi);
+		cp = cos(phi);
+		ct = cos(theta);
+
+		std::complex<FACC> amp(0.0, 0.0);
+		std::complex<FACC> Im(0.0, 1.0);
+
+		FACC qx = q * st * cp;
+		FACC qy = q * st * sp;
+		FACC qz = q * ct;
+		Eigen::Vector3d Q(qx, qy, qz), Qt;
+		Eigen::Vector3d R(0, 0 ,0);
+		Eigen::Matrix<FACC, 3, 3, 0, 3, 3> RotMat;
+		RotMat << 1, 0, 0,
+				0, 1, 0,
+				0, 0, 1;
+		Qt = Q.transpose() *RotMat;
+		qx = Qt.x();
+		qy = Qt.y();
+		qz = Qt.z();
+		double r = sqrt(qx * qx + qy * qy + qz * qz);
+		if (fabs(qz) > r) r = fabs(qz);	// Correct if (z/r) is greater than 1.0 by a few bits
+		double th = acos(qz / r);
+		double ph = atan2(qy, qx);
+		if (ph < 0.0)
+			ph += M_2PI;
+		amp += exp(Im * (Q.dot(R))) * GetSphr(r, th, ph);
+		//	_amps[j]->getAmplitude(q * st * cp, q * st * sp, q * ct);
+		res += real(amp * conj(amp));
+
+		// Convergence Place
+		results[i] = res / FACC(i + 1);
+
+		if (i >= minIter && epsi > 0.0) {
+			if (fabs(1.0 - (results[i] / results[i >> 1])) < epsi) {
+				if (fabs(1.0 - (results[i] / results[(i << 1) / 3])) < epsi) {
+					if (fabs(1.0 - (results[i] / results[(3 * i) >> 2])) < epsi) {
+						return results[i];
+					}
+				}
+			}
+		}
+	}
+
+	return results[results.size() - 1];
+}
+
 
 std::complex<double> JacobianSphereGrid::GetSphr( double rr, double th, double ph ) const {
 

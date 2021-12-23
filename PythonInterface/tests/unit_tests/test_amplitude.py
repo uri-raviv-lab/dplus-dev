@@ -320,20 +320,20 @@ def test_calculate_intensity():
     out_filename = r"C:\Users\chana\Source\DPlus\dplus\PythonInterface\tests\unit_tests\files_for_tests\intensity\signal-python-myamp-size200.out"
     excepted_signal_filename = r"C:\Users\chana\Source\DPlus\dplus\PythonInterface\tests\unit_tests\files_for_tests\intensity\signal-d-plus-size200.out"
     result_1 = send_calculate_intensity(amp_filename, excepted_signal_filename, out_filename)
+    #
+    # amp_filename = r"C:\Users\chana\Source\DPlus\dplus\PythonInterface\tests\unit_tests\files_for_tests\intensity\myamp-2.ampj"
+    # out_filename = r"C:\Users\chana\Source\DPlus\dplus\PythonInterface\tests\unit_tests\files_for_tests\intensity\signal-python-myamp-2.out"
+    # excepted_signal_filename = r"C:\Users\chana\Source\DPlus\dplus\PythonInterface\tests\unit_tests\files_for_tests\intensity\signal-d-plus-2.out"
+    # result_2 = send_calculate_intensity(amp_filename, excepted_signal_filename, out_filename)
 
-    amp_filename = r"C:\Users\chana\Source\DPlus\dplus\PythonInterface\tests\unit_tests\files_for_tests\intensity\myamp-2.ampj"
-    out_filename = r"C:\Users\chana\Source\DPlus\dplus\PythonInterface\tests\unit_tests\files_for_tests\intensity\signal-python-myamp-2.out"
-    excepted_signal_filename = r"C:\Users\chana\Source\DPlus\dplus\PythonInterface\tests\unit_tests\files_for_tests\intensity\signal-d-plus-2.out"
-    result_2 = send_calculate_intensity(amp_filename, excepted_signal_filename, out_filename)
-
-    amp_filename = r"C:\Users\chana\Source\DPlus\dplus\PythonInterface\tests\unit_tests\files_for_tests\intensity\myamp_helix2layrers.ampj"
-    out_filename = r"C:\Users\chana\Source\DPlus\dplus\PythonInterface\tests\unit_tests\files_for_tests\intensity\signal-python-myamp_helix2layrers.out"
-    excepted_signal_filename = r"C:\Users\chana\Source\DPlus\dplus\PythonInterface\tests\unit_tests\files_for_tests\intensity\signal-d-plus-helix2layrers.out"
-    result_3 = send_calculate_intensity(amp_filename, excepted_signal_filename, out_filename)
+    # amp_filename = r"C:\Users\chana\Source\DPlus\dplus\PythonInterface\tests\unit_tests\files_for_tests\intensity\myamp_helix2layrers.ampj"
+    # out_filename = r"C:\Users\chana\Source\DPlus\dplus\PythonInterface\tests\unit_tests\files_for_tests\intensity\signal-python-myamp_helix2layrers.out"
+    # excepted_signal_filename = r"C:\Users\chana\Source\DPlus\dplus\PythonInterface\tests\unit_tests\files_for_tests\intensity\signal-d-plus-helix2layrers.out"
+    # result_3 = send_calculate_intensity(amp_filename, excepted_signal_filename, out_filename)
     
     print("result 1:", result_1)
-    print("result 2:", result_2)
-    print("result 3:", result_3)
+    # print("result 2:", result_2)
+    # print("result 3:", result_3)
 
 
 
@@ -342,14 +342,19 @@ def send_calculate_intensity(amp_filename, excepted_signal_filename, out_filenam
     amp = Amplitude.load(amp_filename)
     q_size = len(expected_signal.get('q'))
     result = []
-    seeds = []
+    # seeds = []
     # for q in np.linspace(0, amp.grid.q_max, q_size)
     #     seeds.append()
+
     with open(out_filename, 'w') as out_file:
         for q in np.linspace(0, amp.grid.q_max, q_size):
             res = amp.calculate_intensity(q)
             result.append(res)
             out_file.write('{:.5f}\t{:.20f}\n'.format(q, res))
+
+    # for q in np.linspace(0, amp.grid.q_max, q_size):
+    #     res = amp.calculate_intensity(q)
+    #     result.append(res)
     chi_a_sq_val = _chi_a_squ(result, expected_signal)
     # from scipy.spatial import distance
     # from scipy.signal import correlate
@@ -363,7 +368,7 @@ def send_calculate_intensity(amp_filename, excepted_signal_filename, out_filenam
     # xcorr = correlate(expected_signal.get('intensity'), result)
 
     # cosine = 1 - spatial.distance.cosine(expected_signal.get('intensity'), result)
-
+    print("chi_a_sq_val", chi_a_sq_val)
     return chi_a_sq_val
 
 

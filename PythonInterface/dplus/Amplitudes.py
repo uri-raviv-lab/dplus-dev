@@ -456,46 +456,46 @@ class Amplitude():
         """
         arr_intensity = []
         for q in q_list:
-            arr_intensity.append(self.calculate_intensity(q, epsilon, seed, max_iter))
+            arr_intensity.append(self.grid.get_intensity(q, epsilon, seed, max_iter))
         return arr_intensity
 
     def calculate_intensity(self, q, epsilon=1e-3, seed=0, max_iter=1000000): # max_iter = 'iterations' on c++
+        return self.grid.get_intensity(q, epsilon, seed, max_iter)
         """
         DomainModel::DefaultCPUCalculation
         """
         # https://www.tutorialspoint.com/complex-numbers-in-python
-        _amps = [1] # TODO
         min_iter = 20
         res = 0.0
         if q == 0:
             amp = complex(0.0, 0.0)
-            for i in _amps:
-                amp +=  self.get_interpolation(q, q, q)
+            amp += self.grid.get_sphr(0, 0, 0)
+            # self.get_interpolation(q, q, q)
             return (amp * amp.conjugate()).real
         
         results = [0.0]*max_iter
-        sins = [0.0]
+        # sins = [0.0]
         # https://numpy.org/doc/stable/reference/random/bit_generators/mt19937.html
         # sg = np.random.SeedSequence(seed)
-        rng = np.random.MT19937(seed=seed) # ?
+        # rng = np.random.MT19937(seed=seed) # ?
         ranU2 = np.random.uniform(0.0, 2.0, max_iter) # remove max_iter
-        phase = complex(0.0, 1.0)
-        im = complex(0.0, 1.0)
+        # phase = complex(0.0, 1.0)
+        # im = complex(0.0, 1.0)
         for i in range(len(results)): # NOTE: len(results) == max_iter
-            u2 = ranU2[i]  # ranU2(rng) TODO
-            v2 = ranU2[i]  # ranU2(rng) TODO
-            phi = u2 * np.pi
-            theta = math.acos(v2 - 1.0)
+            # u2 = ranU2[i]  # ranU2(rng) TODO
+            # v2 = ranU2[i]  # ranU2(rng) TODO
+            phi = ranU2[i] * np.pi
+            theta = math.acos(ranU2[i] - 1.0)
 
-            st = math.sin(theta)
-            sp = math.sin(phi)
-            cp = math.cos(phi)
-            ct = (v2 - 1.0)
+            # st = math.sin(theta)
+            # sp = math.sin(phi)
+            # cp = math.cos(phi)
+            # ct = (v2 - 1.0)
             
             amp = complex(0.0, 0.0)
-            for j in _amps:
-                # amp += self.get_interpolation(q * st * cp, q * st * sp, q * ct)
-                amp += self.get_interpolation(q, theta, phi)
+            # amp += self.get_interpolation(q * st * cp, q * st * sp, q * ct)
+            amp += self.grid.get_sphr(float(q), float(theta), float(phi))
+            # amp += self.get_interpolation(q, theta, phi)
             res += (amp * amp.conjugate()).real  # .conjugate() - Conjugate of complex number
             results[i] = res / (i + 1)
 
@@ -504,7 +504,7 @@ class Amplitude():
                     if np.abs(1.0 - (results[i] / results[int(np.round((i << 1) / 3))])) < epsilon:
                         if np.abs(1.0 - (results[i] / results[(3 * i) >> 2])) < epsilon:
                             return results[i]
-
+        print("max iter")
         return results[-1]
 
 

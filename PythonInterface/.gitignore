@@ -7,3 +7,4 @@ dist/
 *egg-info/
 *.cpp
 *.h
+local_test_settings.py

@@ -44,3 +44,4 @@ cdef extern from r"../../build/include/Backend/Backend/Grid.h" :
         unsigned short GetDimY(unsigned short x) except +
         unsigned short GetDimZ(unsigned short x, unsigned short z) except +
         complex[double] GetSphr( double rr, double th, double ph ) except +
+        double CalculateIntensity(double q, double epsi, unsigned int seed, unsigned long long iterations) except +

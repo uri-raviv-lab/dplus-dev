@@ -160,9 +160,15 @@ cdef class CJacobianSphereGrid:
         result =  self.c_grid.GetSphr(q, th, ph)
         return result
 
+    
+    def get_intensity(self, _q, _epsi, _seed, _iterations):
+        cdef double q = _q
+        cdef double epsi = _epsi
+        cdef unsigned int seed = _seed
+        cdef  long long iterations = _iterations
 
-
-
+        result = self.c_grid.CalculateIntensity(q, epsi, seed, iterations)
+        return result
 
 
 
