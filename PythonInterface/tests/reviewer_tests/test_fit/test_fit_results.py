@@ -42,15 +42,8 @@ class TestFitRun(DplusProps):
             api = WebRunner("http://192.168.18.100/", token)
         else:
             api=LocalRunner(exe_directory, session_folder)
-        
-        test_python_ceres = True
-        if test_python_ceres:
-            python_fit = PyCeresOptimizer(input, api)
-            python_fit.solve()
-            result = python_fit.save_dplus_arrays(python_fit.best_results, os.path.join(session_folder, "data.json"))
 
-        else:
-            result = api.fit(input)
+        result = api.fit(input)
 
         if web:
             self.save_for_web_tests(result, session_folder)
@@ -78,7 +71,7 @@ class TestFitCorrect(DplusProps):
                 e_val=expected_param.value
                 r_val=result_param.value
                 passed=True
-                estr_whole, e_str_dec = str(e_val.split("."))
+                estr_whole, e_str_dec = str(e_val).split(".")
                 prec = 1 * pow(10, -len(e_str_dec))
                 diff = abs (e_val - r_val)
                 if diff > prec:
