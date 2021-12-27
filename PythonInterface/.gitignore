@@ -8,3 +8,5 @@ dist/
 *.cpp
 *.h
 local_test_settings.py
+*test_session*
+CythonGrid*.pyd
