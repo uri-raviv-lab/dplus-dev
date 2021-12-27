@@ -24,11 +24,17 @@ You should also set the BOOST_ROOT environment variable to c:\boost\1.77 (or wha
 ### 5. Python
 You must have Python 3.9 64 bit installed
 
-### 6. WIX Toolset
-From Visual Studio 2019, open the Tools menu and choose "Extensions and Updates". Search for "wix" and install WiX Toolset Build Tools and Wix Toolset Visual 2019 Extension. On Windows 11 you may need to enable .NET 3.5.1 from the control panel (Win-S and search Turn Windows Features On and Off)
+### 6. WIX Toolset - only relevant if you are building an installer for D+
+From Visual Studio 2017, open the Tools menu and choose "Extensions and Updates". Search for "wix" and install WiX Toolset Build Tools *and* Wix Toolset Visual 2017 Extension. 
+From Visual Studio 2019, open the Extensions menu, choose "Manage Extensions". Search for "wix" and install WiX Toolset Build Tools *and* Wix Toolset Visual 2019 Extension. 
+
+You will need to enable .NET 3.5.1 from the control panel. (Win-S and search Turn Windows Features On and Off). If it is not installed, you will need to install it first (https://www.microsoft.com/en-us/download/details.aspx?id=22).
 
 ## IMPORTANT
-At this point, the entire D+ project is in one solution. This is about to change, as you will clearly see - the backend and frontend require two different builds.
+D+ consists of three parts- the backend, the python API, and the frontend. 
+(We may be making some changes in the future, to consolidate the backend with the python API.)
+For now, both the API and the frontend depend on the backend having been built in Release mode.
+The frontend depends on the API, but it comes with a prebuild version of it, so you do not need to rebuild the API unless you are using it yourself, or have made changes to it you want reflected in the API. 
 
 ## Compiling the Backend
 To compile the backend, open the DPlus2017.sln solution, choose x64 as the platform and build. This will build the C++ backend.
@@ -47,10 +53,8 @@ You will have the wheel in the dist folder.
 The dplus-api is also built automatically for Windows and Linux if you push a tag starting with `v` to github.
 
 ## Compiling the Frontend
-The Frontend project PythonBackend has embedded resources, one of them is the dplus-api wheel. If you create a new wheel, you should change the embedded resource in this project. Then build the solution.
+The Frontend project PythonBackend has embedded resources, one of them is the dplus-api wheel. If you have created a new wheel, you should change the embedded resource in this project. Then build the solution.
 
-## Things to do next:
-We want to split the solution into two solutions - one for the backend, another for the frontend. Since both use the /Common directory, we may not split DPlus into two different repositories.
 
 
 
