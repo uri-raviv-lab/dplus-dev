@@ -21,8 +21,8 @@ extra_compile_args = []
 extra_link_args = []
 if sys.platform == 'win32':
     extra_compile_args = ['/Ox'] if not DEBUG else []
-    LIBRARY_DIRS = [os.path.join(ROOT_DIR, "x64", "Debug")]  # TODO - detect the --debug flag, and choose Debug or Release accordingly.
-    LIBRARIES = [] # ['xplusbackend.lib']
+    LIBRARY_DIRS = [os.path.join(ROOT_DIR, "x64", "Debug" if DEBUG else "Release")]
+    LIBRARIES = ['xplusbackend']
     # extra_link_args = ['/debug']
 elif sys.platform in ['linux', 'linux2']:
     extra_compile_args = ['-fPIC', '-std=c++14']
