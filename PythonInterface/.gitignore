@@ -8,3 +8,8 @@ dist/
 *.cpp
 *.h
 *.pdb
+
+dplus/*.dll
+local_test_settings.py
+*test_session*
+CythonGrid.*.pyd
