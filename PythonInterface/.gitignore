@@ -8,9 +8,9 @@ dist/
 *.cpp
 *.h
 *.pdb
+env*
 
-
-dplus/dlls/*.dll
+dplus/*.dll
 local_test_settings.py
 *test_session*
 CythonGrid.*.pyd

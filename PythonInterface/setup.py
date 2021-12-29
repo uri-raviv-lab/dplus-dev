@@ -31,11 +31,14 @@ elif sys.platform in ['linux', 'linux2']:
 
 # allow setup.py to be run from any path
 os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
+
 class PrepareCommand(setuptools.Command):
     description = "Convert the pyx files to cpp so there's no cython dependence in installation"
+    # user_options = [('debug', None, 'debug')]
     user_options = []
 
     def initialize_options(self):
+        # self.debug = None
         pass
 
     def finalize_options(self):
@@ -49,8 +52,7 @@ class PrepareCommand(setuptools.Command):
         for filename in os.listdir(LIBRARY_DIRS[0]):
             file_path = os.path.join(LIBRARY_DIRS[0], filename)
             if os.path.isfile(file_path) and file_path.endswith(".dll"):
-                os.makedirs(os.path.join('dplus', 'dlls'), exist_ok=True)
-                shutil.copy(file_path, os.path.join('dplus', 'dlls'))
+                shutil.copy(file_path, 'dplus')
 
 
     def convert_to_c(self, pyx):
@@ -75,7 +77,7 @@ setup(
     name='dplus-api',
     version='4.6',
     packages=['dplus'],
-    package_data= { 'dplus': ['dlls/*.dll', 'dlls/*.so' ]},
+    package_data= { 'dplus': ['*.dll', '*.so' ]},
 	install_requires=['numpy>=1.10', 'psutil>=5.6.3', 'requests>=2.10.0', 'pyceres>=0.1.0'],
     # include_package_data=True, # If True - ignores the package_data property.
     license=LICENSE,  # example license
