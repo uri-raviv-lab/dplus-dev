@@ -16,12 +16,12 @@ with open(os.path.join(os.path.dirname(__file__), 'LICENSE.txt')) as license:
 DEBUG = '--debug' in sys.argv
 ROOT_DIR = os.path.dirname(os.path.dirname(__file__))  # This is the project's root dir
 INCLUDE_DIRS = [ROOT_DIR, os.path.join(ROOT_DIR, 'Common')]
+LIBRARY_DIRS = [os.path.join(ROOT_DIR, "x64", "Debug" if DEBUG else "Release")]
 
 extra_compile_args = []
 extra_link_args = []
 if sys.platform == 'win32':
     extra_compile_args = ['/Ox'] if not DEBUG else []
-    LIBRARY_DIRS = [os.path.join(ROOT_DIR, "x64", "Debug" if DEBUG else "Release")]
     LIBRARIES = ['xplusbackend']
     # extra_link_args = ['/debug']
 elif sys.platform in ['linux', 'linux2']:
@@ -31,11 +31,14 @@ elif sys.platform in ['linux', 'linux2']:
 
 # allow setup.py to be run from any path
 os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
+
 class PrepareCommand(setuptools.Command):
     description = "Convert the pyx files to cpp so there's no cython dependence in installation"
+    # user_options = [('debug', None, 'debug')]
     user_options = []
 
     def initialize_options(self):
+        # self.debug = None
         pass
 
     def finalize_options(self):
@@ -43,9 +46,13 @@ class PrepareCommand(setuptools.Command):
 
     def run(self):
         print("running prepare command")
-        # self.copy_source_files()
-        first_pyx = './dplus/wrappers/wrapper.pyx'
+        first_pyx = os.path.join('dplus', 'wrappers', 'wrapper.pyx')
         self.convert_to_c(first_pyx)
+        # Copy the DLLs
+        for filename in os.listdir(LIBRARY_DIRS[0]):
+            file_path = os.path.join(LIBRARY_DIRS[0], filename)
+            if os.path.isfile(file_path) and file_path.endswith(".dll"):
+                shutil.copy(file_path, 'dplus')
 
 
     def convert_to_c(self, pyx):
@@ -70,8 +77,9 @@ setup(
     name='dplus-api',
     version='4.6',
     packages=['dplus'],
+    package_data= { 'dplus': ['*.dll', '*.so' ]},
 	install_requires=['numpy>=1.10', 'psutil>=5.6.3', 'requests>=2.10.0', 'pyceres>=0.1.0'],
-    include_package_data=True,
+    # include_package_data=True, # If True - ignores the package_data property.
     license=LICENSE,  # example license
     description='Call the DPlus Calculation Backend',
     url='https://scholars.huji.ac.il/uriraviv',
