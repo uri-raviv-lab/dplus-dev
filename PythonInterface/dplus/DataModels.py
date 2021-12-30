@@ -1,11 +1,26 @@
 import math
 import sys
+import csv
 from pathlib import Path
 from collections import UserDict, MutableSequence
 from copy import deepcopy
 from dplus.FileReaders import _handle_infinity_for_json
 from dplus.metadata import meta_models, hardcode_models, _type_to_int, _models_with_files_index_dict, _int_to_type
 
+
+def make_name_pythonic(name, is_cls=False):
+    if is_cls:
+        join_char = ""
+    else:
+        join_char = "_"
+        
+    no_space_name = join_char.join(name.split())
+    no_space_name = no_space_name.replace("-", join_char)
+    no_space_name = no_space_name.replace(".", join_char)
+    if is_cls:
+        return no_space_name
+    
+    return no_space_name.lower()
 
 class Constraints:
     '''
@@ -129,7 +144,10 @@ class Parameter:
 
 class ParameterContainer(UserDict):
     def __init__(self, data):
-        self.data=deepcopy(data)
+        self.__dict__.update(deepcopy(data))
+    @property
+    def data(self):
+        return self.__dict__
     def __setitem__(self, key, item):
         if key not in self.data:
             raise KeyError("The parameter {} is not defined.".format(key))
@@ -236,8 +254,9 @@ class Model:
             return
         extra_params_dict = {}
         for index, param in enumerate(e_params):
-            self._extra_param_index_map.append(param["name"])
-            extra_params_dict[param["name"]] = Parameter(value=param["defaultValue"], name=param["name"])
+            p_name = make_name_pythonic(param["name"])
+            self._extra_param_index_map.append(p_name)
+            extra_params_dict[p_name] = Parameter(value=param["defaultValue"], name=p_name)
         self.extra_params = ParameterContainer(extra_params_dict)
 
     def serialize(self):
@@ -357,8 +376,8 @@ class Model:
                 self.extra_params[param_name].value = mut_arr[param_index]
                 param_index += 1
         if type(self) == Domain:
-            self.constant = self.extra_params['Constant'].value
-            self.scale = self.extra_params['Scale'].value
+            self.constant = self.extra_params['constant'].value
+            self.scale = self.extra_params['scale'].value
             # location params
 
     def _basic_json_params(self):
@@ -400,9 +419,9 @@ class Model:
 
         # add useGrid
         if self.use_grid:
-            params.append(Parameter(1, name="UseGrid").serialize())
+            params.append(Parameter(1, name="use_grid").serialize())
         else:
-            params.append(Parameter(0, name="UseGrid").serialize())
+            params.append(Parameter(0, name="use_grid").serialize())
 
         # add number of layers
         params.append(Parameter(1, name="numlayers").serialize())
@@ -486,7 +505,10 @@ class ModelWithLayers(Model):
         super()._init_from_metadata()
         # layer params:
         layerinfo = self._metadata["layers"]["layerInfo"]
-        self._layer_param_index_map = self._metadata["layers"]["params"]
+        self._layer_param_index_map = []
+        for p_name in self._metadata["layers"]["params"]:
+            self._layer_param_index_map.append(make_name_pythonic(p_name))
+
         self.layer_params = Layers(min_length=self._metadata["layers"]["min"],
                                    max_length=self._metadata["layers"]["max"])
         for layer in layerinfo:
@@ -920,8 +942,7 @@ class ModelFactory:
 
     @classmethod
     def add_model(cls, metadata):
-        no_space_name = "".join(metadata["name"].split())
-        no_space_name = no_space_name.replace("-", "")
+        no_space_name=make_name_pythonic(metadata["name"], is_cls=True)
         modeltuple = _get_model_tuple(metadata)
 
         # replace name with type_name
@@ -956,7 +977,7 @@ class ModelFactory:
 
     @classmethod
     def create_model(cls, name_or_index):
-        no_space_name = "_".join(name_or_index.split())
+        no_space_name = make_name_pythonic(name_or_index, is_cls=True)
         for model in ModelFactory.models_arr:
             if model.type_index == name_or_index or model.type_name == name_or_index or model.type_name == no_space_name:
                 return model
@@ -974,10 +995,10 @@ class Population(ModelWithChildren):
         super().__init__()
         self.population_size = 1
         self.population_size_mut = False
-        self.extra_param_index_map = ["Population Size"]
-        self.extra_params["Population Size"] = Parameter(value=self.population_size,
+        self.extra_param_index_map = ["population_size"]
+        self.extra_params["population_size"] = Parameter(value=self.population_size,
                                                          mutable=self.population_size_mut,
-                                                         name="PopulationSize")
+                                                         name="population_size")
 
     @property
     def models(self):
@@ -1024,9 +1045,9 @@ class Population(ModelWithChildren):
             self.children.append(ModelFactory.create_model_from_dictionary(model))
         self.population_size = json["PopulationSize"]
         self.population_size_mut = json["PopulationSizeMut"]
-        self.extra_params["Population Size"] = Parameter(value=self.population_size,
+        self.extra_params["population_size"] = Parameter(value=self.population_size,
                                                          mutable=self.population_size_mut,
-                                                         name="PopulationSize")
+                                                         name="population_size")
 
     def _basic_json_params(self):
         '''
@@ -1056,9 +1077,9 @@ class Domain(ModelWithChildren):
         self.constant_mut = False
         self.geometry = "Domains"
         self.populations.append(Population())
-        self.extra_param_index_map = ["Scale", "Constant"]
-        self.extra_params["Constant"] = Parameter(value=self.constant, mutable=self.constant_mut, name="Constant")
-        self.extra_params["Scale"] = Parameter(value=self.scale, mutable=self.scale_mut, name="Domain Scale")
+        self.extra_param_index_map = ["scale", "constant"]
+        self.extra_params["constant"] = Parameter(value=self.constant, mutable=self.constant_mut, name="constant")
+        self.extra_params["scale"] = Parameter(value=self.scale, mutable=self.scale_mut, name="scale")
 
     @property
     def populations(self):
@@ -1114,8 +1135,8 @@ class Domain(ModelWithChildren):
             print(e)  # is probably an old model without constant
         self.geometry = json["Geometry"]
         self.model_ptr = json["ModelPtr"]
-        self.extra_params["Constant"] = Parameter(value=self.constant, mutable=self.constant_mut, name="Constant")
-        self.extra_params["Scale"] = Parameter(value=self.scale, mutable=self.scale_mut, name="Domain Scale")
+        self.extra_params["constant"] = Parameter(value=self.constant, mutable=self.constant_mut, name="constant")
+        self.extra_params["scale"] = Parameter(value=self.scale, mutable=self.scale_mut, name="scale")
 
     def _basic_json_params(self, useGrid):
         '''
@@ -1127,9 +1148,137 @@ class Domain(ModelWithChildren):
         basic_dict = super()._basic_json_params()
         # we need to add in parameters to the domain
         for population in self.children:
-            basic_dict["Parameters"].append(population.extra_params["Population Size"].serialize())
+            basic_dict["Parameters"].append(population.extra_params["population_size"].serialize())
 
         return basic_dict
+
+
+class ManualSymmetry(ModelWithChildren, ModelWithLayers):
+    '''
+    A class for D+ ManualSymmetry
+    '''
+    _metadata = {
+                "index": 26,
+                "type_name": "Manual Symmetry",
+                "category": 9,
+                "gpuCompatible": False,
+                "slow": False,
+                "ffImplemented": False,
+                "isLayerBased": True,
+                "layers": {
+                    "min": 0,
+                    "max": -1,
+                    "layerInfo": [
+                        {
+                            "index": -1,
+                            "name": "Instance %d",
+                            "applicability": [
+                                1,
+                                1,
+                                1,
+                                1,
+                                1,
+                                1
+                            ],
+                            "defaultValues": [
+                                0.0,
+                                0.0,
+                                0.0,
+                                0.0,
+                                0.0,
+                                0.0
+                            ]
+                        }
+                    ],
+                    "params": [
+                        "X",
+                        "Y",
+                        "Z",
+                        "Alpha",
+                        "Beta",
+                        "Gamma"
+                    ]
+                },
+                "extraParams": [
+                    {
+                        "name": "Scale",
+                        "defaultValue": 1.0,
+                        "isIntegral": False,
+                        "decimalPoints": 12,
+                        "isAbsolute": False,
+                        "canBeInfinite": False
+                    }
+                ],
+        "modelCategories": {
+                "name": "Symmetries",
+                "index": 9,
+                "type": 8,
+                "models": [
+                    25,
+                    26
+                ]
+            }
+            }
+
+    def __init__(self):
+        self._default_layer = {}
+        super().__init__()
+        self.scale = 1
+        self.scale_mut = False
+        self.extra_param_index_map = ["scale"]
+        self.extra_params["scale"] = Parameter(value=self.scale, mutable=self.scale_mut, name="scale")
+
+    def read_from_dol(self, filename):
+        with open(filename, encoding = 'utf-16') as file:
+            my_dol = csv.reader(file, delimiter = '\t', quoting = csv.QUOTE_NONNUMERIC)
+            for row in my_dol:
+                self.add_layer()
+                self.layer_params[-1]['x'].value = row[1]
+                self.layer_params[-1]['y'].value = row[2]
+                self.layer_params[-1]['z'].value = row[3]
+                self.layer_params[-1]['alpha'].value = row[4]
+                self.layer_params[-1]['beta'].value = row[5]
+                self.layer_params[-1]['gamma'].value = row[6]
+
+    def write_to_dol(self):
+        '''For now works only with states built inside the API'''
+        if len(self.get_models_by_type('Manual Symmetry')) == 0:
+            raise ValueError('Your state has no Manual Symmetries')
+        else:
+            for ManSym in self.get_models_by_type('Manual Symmetry'):
+                if ManSym.name == '':
+                    dol_name = '%08d.dol' % (ManSym.model_ptr)
+                else:
+                    dol_name = ManSym.name + '.dol'
+
+                with open(dol_name, 'w+', encoding='utf-16', newline='') as file:
+                    dol = csv.writer(file, delimiter='\t', quoting=csv.QUOTE_NONNUMERIC)
+                    layer_num = 0
+                    for layer in ManSym.serialize()['Parameters']:
+                        dol.writerow([layer_num, *layer])
+                        layer_num += 1
+
+    def get_models_by_type(self, type):
+        """
+          returns a list of `Models` from the 'Manual Symmetry' field with a given `type_name`.
+
+          :param type: a string of model type , e.g. UniformHollowCylinder.
+          :rtype: list of instances of 'Model'
+          """
+        models = []
+        self.get_model_by_type_recursive(self, type, models)
+        return models
+
+    def get_model_by_type_recursive(self, model, type, models_list):
+        if hasattr(model, '_metadata') and model._metadata["type_name"] == type:
+            models_list.append(model)
+        if not hasattr(model, 'children'):
+            return
+        if len(model.children) == 0:
+            return
+        for child in model.children:
+            self.get_model_by_type_recursive(child, type, models_list)
+        return
 
 
 for model in hardcode_models:
@@ -1137,3 +1286,4 @@ for model in hardcode_models:
 
 for model in meta_models:
     ModelFactory.add_model(model)
+

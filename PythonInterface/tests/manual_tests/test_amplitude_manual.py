@@ -53,7 +53,7 @@ def test_amplitude_headers():
     result = runner.generate(input)
     assert len(result.y)
 
-def test_amplitude_interpolation():
+def test_amplitude_interpolation_1():
     from dplus.Amplitudes import Amplitude
 
     def my_func(q, theta, phi):
@@ -65,9 +65,6 @@ def test_amplitude_interpolation():
     output_intrp = a.get_interpolation(5, 3, 6)
     expected = my_func(5, 3, 6)
     assert (output_intrp.real, output_intrp.imag) == pytest.approx((expected.real, expected.imag), abs=1e-2)
-
-    output_intrp_arr = a.get_interpolation([1, 2, 3], 3, 6)
-
 
 class UniformSphere:
     def __init__(self):

@@ -318,7 +318,7 @@ An example of code that will raise an error:
 ```python
 from dplus.DataModels.models import UniformHollowCylinder
 uhc=UniformHollowCylinder()
-uhc.layer_params[1]["Radius"]=2.0 #will raise error "Radius can only be set to an instance of Parameter
+uhc.layer_params[1]["radius"]=2.0 #will raise error "radius can only be set to an instance of Parameter
 ```
 
 
@@ -328,8 +328,8 @@ Example:
 from dplus.DataModels.models import UniformHollowCylinder
 
 uhc=UniformHollowCylinder()
-uhc.layer_params[1]["Radius"].value=2.0
-uhc.extra_params["Height"].value=3.0
+uhc.layer_params[1]["radius"].value=2.0
+uhc.extra_params["height"].value=3.0
 uhc.location_params["x"].value=2
 ```
 
