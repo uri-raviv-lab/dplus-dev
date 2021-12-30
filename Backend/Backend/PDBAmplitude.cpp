@@ -561,7 +561,7 @@ std::complex<FACC> PDBAmplitude::calcAmplitude(int indqx, int indqy, int indqz) 
 			gi *= exp(-sq((*this->pdb.rad)[pdb.atmInd[i]] * q / 2.0));
 #else
 			gi = 4.1887902047863909846 * (*pdb.rad)[pdb.atmInd[i]] * (*pdb.rad)[pdb.atmInd[i]] * (*pdb.rad)[pdb.atmInd[i]]
-				* exp(-(0.20678349696647 * sq((*pdb.rad)[pdb.atmInd[i]] * q)));
+				* exp(-(0.20678349696647 * sq((*pdb.rad)[pdb.atmInd[i]] * q))); // 0.206... = (4pi/3)^(2/3) / (4pi)
 #endif
 			solI += gi * sin(phase);
 			solR += gi * cos(phase);
@@ -608,7 +608,7 @@ std::complex<FACC> PDBAmplitude::calcAmplitude(int indqx, int indqy, int indqz) 
 FACC PDBAmplitude::atomicFF(FACC q, int elem) {
 	// NOTE: Units are (inverse) Angstroms
 	FACC res = 0.0;
-	FACC sqq = q * q / (157.913670417429737901351855998);
+	FACC sqq = q * q / (157.913670417429737901351855998); 
 	// Should the number be 100*pi/2 = 157.07963267948966192313216916397514420985846996876
 
 	for(int i = 0; i < 4; i++)
@@ -617,6 +617,81 @@ FACC PDBAmplitude::atomicFF(FACC q, int elem) {
 	return res;
 }
 
+/* This part is supposed to show the changes that will have to be made for electron diffraction (at least the mathematical part of it):
+
+// Not sure what is better or easier but, we can either change both the x-ray and elec to be a 5-Gaussian (as shown underneath) and change the atomic form factors so that for x-ray the 10th col is 0, or instead build two separate options for calculations that will be chosen depending on what the user wants.
+
+// In the direct method we will want to solve the integral:
+m_0 = 9.1093837015e-31 // kg
+e = 1.602176634e-19 // C
+h = 6.62607015e-34 //in kg*m^2/s (Js), will probably have to change to A^2 or nm^2 (but not sure)
+f(q) = (8*pi^2*m_0*e)/(h^2) Integral{r^2 * phi(r) * sinc(4*pi*q*r)dr, bounds = [0, infty] } // Not sure we'll want to have this as an option...
+// sinc(x) = sin(x)/x
+
+
+FACC PDBAmplitude::atomicFF(FACC q, int elem) {
+	// NOTE: Units are (inverse) Angstroms
+	FACC res = 0.0;
+	FACC sqq = q * q // According to Doyle & Turner (1967) the exp was defined without the 1/(4pi)^2
+
+	for(int i = 0; i < 5; i++)
+		res += (atmFFcoefs(elem, 2*i)) * exp(-atmFFcoefs(elem, (2*i) + 1) * sqq);
+	return res;
+
+void PDBAmplitude::initialize() {
+	bCentered = false;
+	this->bUseGrid = true;	// As default
+	this->bSolventLoaded = false;
+	this->voxelStep = 15.4e99;
+	this->solventED = 0.0;
+	this->outerSolventED = 0.0;
+	atmFFcoefs.resize(NUMBER_OF_ATOMIC_FORM_FACTORS, 10);
+	atmFFcoefs << 0.0349, 0.5347, 0.1201, 3.5867, 0.1970, 12.3471, 0.057, 18.9525, 0.1195, 38.6269 //H
+		0.0317, 0.2507, 0.0838, 1.4751, 0.1526, 4.4938, 0.1334, 12.6646, 0.0164, 31.1653 //He
+		0.0750, 0.3864, 0.2249, 2.9383, 0.5548, 15.3829, 1.4954, 53.5545, 0.9354, 138.7337 //Li
+		0.0780, 0.3131, 0.2210, 2.2381, 0.6740, 10.1517, 1.3867, 30.9061, 0.6925, 78.3273 //Be
+		0.0909, 0.2995, 0.2551, 2.1155, 0.7738, 8.3816, 1.2136, 24.1292, 0.4606, 63.1314 //B		
+		0.0893, 0.2465, 0.2563, 1.7100, 0.5770, 6.4094, 1.0487, 18.6113, 0.3575, 50.2523 //C
+		0.1022, 0.2451, 0.3219, 1.7481, 0.7982, 6.1925, 0.8197, 17.3894, 0.1715 ,48.1431 //N
+		0.0974, 0.2067, 0.2921, 1.3815, 0.6910, 4.643, 0.6990, 12.7105, 0.2039, 32.4726 //O
+		;
+
+*/
+
+/* This part is supposed to show the changes that will have to be made for neutron diffraction (at least the mathematical part of it):
+
+// Since in this case we do noth have a Gaussian, maybe it is better to build each independently of the other.
+// Do we want to put a resolution function here as shown in Pedersen, Posselt, Mortesen (1990)?
+
+
+FACC PDBAmplitude::atomicFF(int elem) {
+	// NOTE: Units are (inverse) Angstroms
+	FACC res = 0.0;
+	
+	// It might be interesting to enter a weighted sum of all the isotopes i.e. res = sum(p_i * b_i)
+	// Also, put a default (default abundance in nature) and a possibility for the user to enter it's own abundance (maybe like with anomalous scattering for x-ray).
+	
+	res = atmFFcoefs(elem);
+	return res;
+
+void PDBAmplitude::initialize() {
+	bCentered = false;
+	this->bUseGrid = true;	// As default
+	this->bSolventLoaded = false;
+	this->voxelStep = 15.4e99;
+	this->solventED = 0.0;
+	this->outerSolventED = 0.0;
+	atmFFcoefs.resize(NUMBER_OF_ATOMIC_FORM_FACTORS, 1);
+	// 'i' is the imaginary number
+	atmFFcoefs << -3.7406 //H1
+				, 6.671 //H2
+				, 5.74 - i * 1.483 //He3
+				, 3.26 //He4
+				, 2 - 0.261 * i //Li6
+				, -2.22 //Li7
+		;
+
+*/
 
 void PDBAmplitude::initialize() {
 	bCentered = false;

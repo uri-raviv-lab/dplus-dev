@@ -279,11 +279,12 @@ class LocalRunner(Runner):
                 return file_location
             raise FileNotFoundError
 
-        def _get_amp(self, model_ptr, destination_folder=None):
+        def _get_amp(self, model_ptr, model_name, destination_folder=None):
             '''
             :param model_ptr:
             :return:
             '''
+
             ptr_string_amp = '%08d.amp' % (int(model_ptr))
             file_location_amp = os.path.join(self.session_directory, 'cache', ptr_string_amp)
 
@@ -293,11 +294,19 @@ class LocalRunner(Runner):
             if os.path.isfile(file_location_amp):
                 if destination_folder:
                     shutil.copy2(file_location_amp, destination_folder)
+                    if model_name == '':
+                        new_name = '%s.amp' %(model_name)
+                        os.replace(os.path.join(destination_folder, ptr_string_amp), os.path.join(destination_folder, new_name))
+                        return os.path.join(destination_folder, new_name)
                     return os.path.join(destination_folder, ptr_string_amp)
                 return file_location_amp
             elif os.path.isfile(file_location_ampj):
                 if destination_folder:
                     shutil.copy2(file_location_ampj, destination_folder)
+                    if model_name != '':
+                        new_name = '%s.ampj' %(model_name)
+                        os.replace(os.path.join(destination_folder, ptr_string_ampj), os.path.join(destination_folder, new_name))
+                        return os.path.join(destination_folder, new_name)
                     return os.path.join(destination_folder, ptr_string_ampj)
                 return file_location_ampj
             raise FileNotFoundError
