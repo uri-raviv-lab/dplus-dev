@@ -162,9 +162,9 @@ def test_example_two_generate_model():
     sess_directory = r"session"
     runner = LocalRunner(exe_directory,sess_directory)
     uhc = UniformHollowCylinder()
-    uhc.layer_params[1]["Radius"].value = 2.0
-    uhc.extra_params["Height"].value = 3.0
-    uhc.location_params["x"].value = 2
+    uhc.layer_params[1]["radius"].value = 2.0
+    uhc.extra_params.height.value = 3.0
+    uhc.location_params.x.value = 2
 
     caldata = CalculationInput()
     caldata.Domain.populations[0].add_model(uhc)
@@ -186,8 +186,8 @@ def test_example_four_fit_UniformHollowCylinder():
     result = API.generate(input)
     input.signal = result.signal
     cylinder = input.get_model("test_cylinder")
-    cylinder.layer_params[1]['Radius'].value = 2
-    cylinder.layer_params[1]['Radius'].mutable = True
+    cylinder.layer_params[1].radius.value = 2
+    cylinder.layer_params[1].radius.mutable = True
     input.FittingPreferences.convergence = 0.5
     input.use_gpu = True
     fit_result = API.fit(input)

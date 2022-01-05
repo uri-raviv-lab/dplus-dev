@@ -2,6 +2,7 @@ from __future__ import print_function
 
 import json
 import warnings
+import csv
 from dplus.Signal import Signal
 from dplus.State import State
 
@@ -201,3 +202,23 @@ class CalculationInput(State):
         c.use_gpu = True
 
         return c
+
+    def write_to_dol(self):
+        '''For now works only with states built inside the API'''
+        if len(self.get_models_by_type('Manual Symmetry')) == 0:
+            raise ValueError('Your state has no Manual Symmetries')
+        else:
+            for ManSym in self.get_models_by_type('Manual Symmetry'):
+                if ManSym.name == '':
+                    dol_name = '%08d.dol' % (ManSym.model_ptr)
+                    # raise ValueError(
+                    #     "Please give an understandable name to your Manual Symmetry with code: Man_Sym.name = 'good_name' ")
+                else:
+                    dol_name = ManSym.name + '.dol'
+
+                with open(dol_name, 'w+', encoding='utf-16', newline='') as file:
+                    dol = csv.writer(file, delimiter='\t', quoting=csv.QUOTE_NONNUMERIC)
+                    layer_num = 0
+                    for layer in ManSym.serialize()['Parameters']:
+                        dol.writerow([layer_num, *layer])
+                        layer_num += 1
