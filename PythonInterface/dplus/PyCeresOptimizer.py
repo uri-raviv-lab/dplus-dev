@@ -135,6 +135,7 @@ class PyCeresOptimizer:
     def fit(calc_input, calc_runner=None, save_amp=False):
 
         if not calc_runner:
+            from dplus.CalculationRunner import LocalRunner
             calc_runner = LocalRunner()
         session_dir = calc_runner.session_directory
         PyCeresOptimizer.save_status(session_dir, error=False, is_running=True)

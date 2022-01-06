@@ -22,15 +22,15 @@ class Residual:
         self.calc_input.set_mutable_parameter_values(params)
         calc_result = self.calc_runner.generate(self.calc_input, self.save_amp)
         end_time = time.time()
-        print("generate time: {}".format(end_time - start_time))
+        #print("generate time: {}".format(end_time - start_time))
         residual = np.asanyarray(calc_result.y, dtype=np.double)
         res = self.calc_residual(residual, num_residual) #note that residual changes within this function
         if res < self.best_eval:
             self.best_eval = res
             if self.best_params.size != 0:
                 self.best_params = params
-        print("p: {}".format(params))
-        print("cost: {}".format(res))
+        #print("p: {}".format(params))
+        #print("cost: {}".format(res))
         return residual
 
     @property
