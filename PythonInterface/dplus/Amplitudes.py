@@ -5,10 +5,7 @@ import numpy as np
 import os
 import zipfile
 import pathlib
-try:
-    from dplus.wrapper import CJacobianSphereGrid
-except:
-    print("could not import from dplus_backend_wrapper")
+from dplus.wrappers import CJacobianSphereGrid
     
 from math import pi
 

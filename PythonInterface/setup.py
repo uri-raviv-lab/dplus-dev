@@ -46,7 +46,7 @@ class PrepareCommand(setuptools.Command):
 
     def run(self):
         print("running prepare command")
-        first_pyx = os.path.join('dplus', 'wrappers', 'wrapper.pyx')
+        first_pyx = os.path.join('dplus', 'wrappers', 'wrappers.pyx')
         self.convert_to_c(first_pyx)
         # Copy the DLLs
         for filename in os.listdir(LIBRARY_DIRS[0]):
@@ -100,8 +100,8 @@ setup(
     },
     ext_modules=[
         Extension(
-            "dplus.wrapper",
-            ["dplus/wrappers/wrapper.cpp"],
+            "dplus.wrappers",
+            ["dplus/wrappers/wrappers.cpp"],
             language='c++',
             include_dirs=INCLUDE_DIRS + [numpy.get_include()],
             library_dirs=LIBRARY_DIRS,
