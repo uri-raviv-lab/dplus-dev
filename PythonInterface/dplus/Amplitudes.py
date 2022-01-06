@@ -46,7 +46,7 @@ def cart2sph(x, y, z):
 
 class Grid:
     '''
-    This class is described in pages 12-15 of the paper
+    This class is described in pages 223-224 of the paper (Ginsburg et al., 2019)
 
     The class Grid is initialized with `q_max` and `grid_size`.
     It is used to create/describe a grid of `q`, `theta`, `phi` angle values.
@@ -69,7 +69,7 @@ class Grid:
         '''
         The difference between q's in the grid.
 
-        :return: double q_max/N
+        :return: double q_max/N (in the paper step_size is called eta_q)
         '''
         return npDouble(self.q_max / (self.N))
 
@@ -86,9 +86,8 @@ class Grid:
         i=self.actual_size
         return (6 * i * (i + 1) * (3 + 3 + 2 * 3 * i)) / 6 #+1 for origin?
 
-
-
     def _G_i_q(self, i):
+        '''based on eq 14 in paper'''
         return 6 * i + 12 * i ** 2 + 6 * i ** 3
 
     def create_grid(self):
@@ -561,7 +560,7 @@ class Amplitude():
         q_max = info_dict["qmax"]
         grid_size = info_dict["gridSize"]
         step_size = info_dict["stepSize"]
-        assert (q_max == step_size * (grid_size / 2.0))
+        assert math.isclose(q_max, step_size * grid_size / 2.0, abs_tol=1e-12)
         extra_shells = 3
         actualGridSize = grid_size / 2 + extra_shells  # I
         i = actualGridSize

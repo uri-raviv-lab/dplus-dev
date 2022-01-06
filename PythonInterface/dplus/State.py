@@ -696,7 +696,7 @@ class State:
         if hasattr(model, 'Name') and hasattr(model, 'ModelPtr'):
             if model.Name == name_or_ptr or model.ModelPtr == name_or_ptr:
                 return model
-        if not hasattr(model, 'Children'):
+        if not hasattr(model, 'Children') and not hasattr(model, 'children'):
             return None
         if len(model.children) == 0:
             return None

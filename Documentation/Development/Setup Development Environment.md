@@ -37,7 +37,7 @@ For now, both the API and the frontend depend on the backend having been built i
 The frontend depends on the API, but it comes with a prebuild version of it, so you do not need to rebuild the API unless you are using it yourself, or have made changes to it you want reflected in the API. 
 
 ## Compiling the Backend
-To compile the backend, open the DPlus2017.sln solution, choose x64 as the platform and build. This will build the C++ backend.
+To compile the backend, open the DPlus solution, choose x64 as the platform and build. This will build the C++ backend.
 
 ### Compiling the Python API
 You should also compile the Python dplus API. Do so by creating a Python 3.9 virtual environment. Activate it and
