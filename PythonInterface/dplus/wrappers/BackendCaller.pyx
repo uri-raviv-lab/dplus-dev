@@ -1,12 +1,12 @@
-# This file calls the backend using the CommandLineBackendWrapper
+# This file calls the backend using the PythonBackendWrapper
 
-from CommandLineBackendWrapper cimport CommandLineBackendWrapper
+from PythonBackendWrapper cimport PythonBackendWrapper
 
 cdef class BackendWrapper:
-    cdef CommandLineBackendWrapper _wrapper
+    cdef PythonBackendWrapper _wrapper
 
     def __cinit__(self):
-        self._wrapper = CommandLineBackendWrapper()
+        self._wrapper = PythonBackendWrapper()
 
     def check_capabilities(self, tdrLevel):
         self._wrapper.CheckCapabilities(tdrLevel)

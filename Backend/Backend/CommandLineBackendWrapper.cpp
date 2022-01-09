@@ -60,12 +60,16 @@ std::vector<ModelPtr> CommandLineBackendWrapper::GetModelPtrs()
 CommandLineBackendWrapper::~CommandLineBackendWrapper()
 {
 	if (_info.Converter)
+	{
 		delete _info.Converter;
+		_info.Converter = nullptr;
+	}
 
 	if (_info.local_backend)
 	{
 		_info.local_backend->HandleDestroyJob(_info.job);
 		delete _info.local_backend;
+		_info.local_backend = nullptr;
 	}
 }
 

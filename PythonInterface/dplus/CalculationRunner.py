@@ -20,9 +20,13 @@ from dplus.FileReaders import _handle_infinity_for_json, NumpyHandlingEncoder
 from dplus.CalculationResult import GenerateResult, FitResult
 
 from dplus.PyCeresOptimizer import PyCeresOptimizer
+from dplus.wrappers import BackendWrapper
 
 # from .Fit import Fitter
 
+def check_capabilities(check_tdr=True):
+    wrapper = BackendWrapper()
+    return wrapper.check_capabilities(check_tdr)
 
 class JobRunningException(Exception):
     def __init__(self):

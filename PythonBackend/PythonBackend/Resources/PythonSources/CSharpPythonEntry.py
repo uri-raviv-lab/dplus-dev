@@ -3,7 +3,7 @@ import subprocess
 from dplus.metadata import program_metadata
 import signal
 cur_meta = json.dumps(program_metadata)
-from dplus.CalculationRunner import LocalRunner
+from dplus.CalculationRunner import LocalRunner, check_capabilities
 from dplus.CalculationInput import CalculationInput
 from dplus.FileReaders import _handle_infinity_for_json, NumpyHandlingEncoder
 import os
@@ -252,8 +252,8 @@ class CSharpPython:
                 self.cur_job = None
                 self.cur_results = None
                 use_gpu = bool(json2run["options"]["useGPU"])
-                self.calc_runner.check_capabilities(use_gpu)
-                result = self.process_result()
+                # self.calc_runner.check_capabilities(use_gpu)
+                result = check_capabilities(use_gpu)
         except Exception as e:
             if len(e.args) > 1:
                 if isinstance(e.args[0], int): # python exceptions

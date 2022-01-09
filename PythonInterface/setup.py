@@ -13,10 +13,10 @@ with open(os.path.join(os.path.dirname(__file__), 'README.md')) as readme:
 with open(os.path.join(os.path.dirname(__file__), 'LICENSE.txt')) as license:
     LICENSE = license.read()
 
-DEBUG = '--debug' in sys.argv
+DEBUG = True # '--with-debug' in sys.argv
 ROOT_DIR = os.path.dirname(os.path.dirname(__file__))  # This is the project's root dir
 INCLUDE_DIRS = [ROOT_DIR, os.path.join(ROOT_DIR, 'Common')]
-LIBRARY_DIRS = [os.path.join(ROOT_DIR, "x64", "Debug" if DEBUG else "Release")]
+LIBRARY_DIRS = [os.path.join(ROOT_DIR, "x64", "ReleaseWithDebugInfo" if DEBUG else "Release")]
 
 extra_compile_args = []
 extra_link_args = []
