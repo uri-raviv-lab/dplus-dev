@@ -18,6 +18,7 @@ PythonBackendWrapper::~PythonBackendWrapper()
 
 void PythonBackendWrapper::CheckCapabilities(bool checkTdr)
 {
+	cout << "PythonBackendWrapper:CheckCapabilities called" << endl;
 	BackendWrapper::CheckCapabilities(checkTdr);
 }
 
@@ -30,7 +31,7 @@ void PythonBackendWrapper::InitializeInfo()
 		return;
 	}
 
-	cout << "Initializing PythonBackendWrapper::Info";
+	cout << "Initializing PythonBackendWrapper::Info" << endl;
 
 	_info.local_backend = new LocalBackend();
 	_info.job = _info.local_backend->HandleCreateJob(L"Single job");

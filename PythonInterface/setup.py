@@ -17,15 +17,18 @@ DEBUG = True # '--with-debug' in sys.argv
 ROOT_DIR = os.path.dirname(os.path.dirname(__file__))  # This is the project's root dir
 INCLUDE_DIRS = [ROOT_DIR, os.path.join(ROOT_DIR, 'Common')]
 LIBRARY_DIRS = [os.path.join(ROOT_DIR, "x64", "ReleaseWithDebugInfo" if DEBUG else "Release")]
+REQUIRED_DLLS = ['cudart64_110', 'curand64_10', 'lua51-backend', 'PDBReaderLib', 'xplusbackend']
 
 extra_compile_args = []
 extra_link_args = []
 if sys.platform == 'win32':
     extra_compile_args = ['/Ox'] if not DEBUG else []
     LIBRARIES = ['xplusbackend']
+    DLL_SUFFIX = '.dll'
     # extra_link_args = ['/debug']
 elif sys.platform in ['linux', 'linux2']:
     extra_compile_args = ['-fPIC', '-std=c++14']
+    DLL_SUFFIX = '.so'
     # TODO: Set LIBRARY_DIRS
     raise NotImplementedError("Please set the LIB_DIR to the right location - look at the CMake file")
 
@@ -48,11 +51,7 @@ class PrepareCommand(setuptools.Command):
         print("running prepare command")
         first_pyx = os.path.join('dplus', 'wrappers', 'wrappers.pyx')
         self.convert_to_c(first_pyx)
-        # Copy the DLLs
-        for filename in os.listdir(LIBRARY_DIRS[0]):
-            file_path = os.path.join(LIBRARY_DIRS[0], filename)
-            if os.path.isfile(file_path) and file_path.endswith(".dll"):
-                shutil.copy(file_path, 'dplus')
+        self.move_dlls()
 
 
     def convert_to_c(self, pyx):
@@ -72,6 +71,15 @@ class PrepareCommand(setuptools.Command):
             print('Errors converting %s to C++' % pyx, file=sys.stderr)
             raise Exception('Errors converting %s to C++' % pyx)
         self.announce('Converted %s to C++' % pyx)
+
+    def move_dlls(self):
+        # Move DLLs (or shared objects) so they can be included in the package.
+        print('Copying necessary DLLs')
+        for dll in REQUIRED_DLLS:
+            dll_filename = dll + DLL_SUFFIX
+            shutil.copy(os.path.join(LIBRARY_DIRS[0], dll_filename), 'dplus')
+
+
 
 setup(
     name='dplus-api',
