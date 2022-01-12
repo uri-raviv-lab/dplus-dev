@@ -19,6 +19,7 @@ public:
 	~PythonBackendWrapper();
 
 	void CheckCapabilities(bool checkTdr);
+	std::string GetAllModelMetadata();
 	const BackendWrapper::LocalBackendInfo GetBackendInfo(const std::string clientId) { return _info; }
 
 private:

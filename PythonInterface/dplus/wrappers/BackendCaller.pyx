@@ -7,3 +7,6 @@ cdef class BackendWrapper:
 
     def check_capabilities(self, tdrLevel):
         self._wrapper.CheckCapabilities(tdrLevel)
+
+    def get_all_model_metadata(self):
+        return self._wrapper.GetAllModelMetadata()

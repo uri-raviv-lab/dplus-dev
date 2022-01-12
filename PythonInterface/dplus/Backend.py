@@ -14,3 +14,12 @@ def check_capabilities(check_tdr=True):
     except RuntimeError as re:
         be = BackendError(re)
     raise be
+
+def get_all_model_metadata():
+    wrapper = BackendWrapper()
+    try:
+        metadata = wrapper.get_all_model_metadata()
+        return json.loads(metadata)
+    except RuntimeError as re:
+        be = BackendError(re)
+    raise be

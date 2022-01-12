@@ -27,6 +27,20 @@ void PythonBackendWrapper::CheckCapabilities(bool checkTdr)
 	}
 }
 
+std::string PythonBackendWrapper::GetAllModelMetadata()
+{
+	JsonWriter writer;
+	try
+	{
+		BackendWrapper::GetAllModelMetadata(writer, _info);
+		return writer.GetString();
+	}
+	catch (backend_exception& be)
+	{
+		throw ConvertException(be);
+	}
+}
+
 // Converts a backend_exception into a runtime_errpr that encodes the code and message in a JSON.
 // This is done because Cython has a hard time handling C++ exceptions
 std::runtime_error PythonBackendWrapper::ConvertException(const backend_exception& be)
