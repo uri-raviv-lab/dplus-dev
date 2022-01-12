@@ -10,6 +10,8 @@
 #include "BackendWrapper.h"
 #include <string>
 
+class backend_exception;
+
 class EXPORTED_BE PythonBackendWrapper : public BackendWrapper
 {
 public:
@@ -23,6 +25,8 @@ private:
 	static LocalBackendInfo _info;
 	static bool _infoInitialized;
 	static void InitializeInfo();
+
+	static std::runtime_error ConvertException(const backend_exception& e);
 };
 
 #endif
