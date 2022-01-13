@@ -20,6 +20,15 @@ public:
 
 	void CheckCapabilities(bool checkTdr);
 	std::string GetAllModelMetadata();
+	void InitializeCache(std::string cacheDir);
+	
+	std::string GetJobStatus();
+	std::string GetGenerateResults();
+	void StartGenerate(const std::string state, bool useGPU);
+
+	std::vector<ModelPtr> GetModelPtrs();
+	void SaveAmplitude(ModelPtr modelPtr, std::string path);
+
 	const BackendWrapper::LocalBackendInfo GetBackendInfo(const std::string clientId) { return _info; }
 
 private:

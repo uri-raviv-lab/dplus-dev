@@ -1,6 +1,8 @@
 #include "PythonBackendWrapper.h"
 #include "LocalBackendParameterTree.h"
 #include "LocalBackend.h"
+#include "AmplitudeCache.h"
+#include "UseGPU.h"
 
 #include <iostream>
 using namespace std;
@@ -68,4 +70,84 @@ void PythonBackendWrapper::InitializeInfo()
 	_info.local_backend = new LocalBackend();
 	_info.job = _info.local_backend->HandleCreateJob(L"Single job");
 	_info.Converter = new LocalBackendParameterTreeConverter(_info.local_backend, _info.job);
+}
+
+void PythonBackendWrapper::InitializeCache(std::string cacheDir)
+{
+	AmplitudeCache::initializeCache(cacheDir, _info.Converter);
+}
+
+void PythonBackendWrapper::StartGenerate(const std::string state, bool useGPU)
+{
+	rapidjson::Document doc;
+
+	try
+	{
+		doc.Parse(state.c_str());
+		if (doc.HasParseError())
+		{
+			throw backend_exception(ERROR_ILLEGAL_JSON);
+		}
+		g_useGPU = useGPU;
+
+		BackendWrapper::StartGenerate(doc, _info);
+	}
+	catch (backend_exception& be)
+	{
+		throw ConvertException(be);
+	}
+}
+
+std::string PythonBackendWrapper::GetJobStatus()
+{
+	JsonWriter writer;
+
+	try
+	{
+		BackendWrapper::GetJobStatus(writer, _info);
+		return writer.GetString();
+	}
+	catch (backend_exception& be)
+	{
+		throw ConvertException(be);
+	}
+}
+
+std::string PythonBackendWrapper::GetGenerateResults()
+{
+	JsonWriter writer;
+
+	try
+	{
+		BackendWrapper::GetGenerateResults(writer, _info);
+		return writer.GetString();
+	}
+	catch (backend_exception& be)
+	{
+		throw ConvertException(be);
+	}
+}
+
+void PythonBackendWrapper::SaveAmplitude(ModelPtr modelPtr, std::string path)
+{
+	try
+	{
+		_info.local_backend->HandleGetAmplitude(_info.job, _info.Converter->StateToInternal(modelPtr), path);
+	}
+	catch (backend_exception& be)
+	{
+		throw ConvertException(be);
+	}
+}
+
+std::vector<ModelPtr> PythonBackendWrapper::GetModelPtrs()
+{
+	try
+	{
+		return _info.Converter->GetStateModels();
+	}
+	catch (backend_exception& be)
+	{
+		throw ConvertException(be);
+	}
 }
