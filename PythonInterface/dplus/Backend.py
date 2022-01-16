@@ -26,4 +26,58 @@ class Backend:
             be = BackendError(re)
         raise be
 
-    # TODO: Add the rest of the functions from BackendWrapper - wrap each one with try/except
+    def initialize_cache(self, cache_dir):
+        try:
+            metadata = self._wrapper.initialize_cache(cache_dir)
+            return json.loads(metadata)
+        except RuntimeError as re:
+            be = BackendError(re)
+        raise be
+
+    def start_generate(self, state, useGPU):
+        try:
+            metadata = self._wrapper.start_generate(state, useGPU)
+            return json.loads(metadata)
+        except RuntimeError as re:
+            be = BackendError(re)
+        raise be
+    
+    def get_job_status(self):
+        try:
+            metadata = self._wrapper.get_job_status()
+            return json.loads(metadata)
+        except RuntimeError as re:
+            be = BackendError(re)
+        raise be
+
+    def get_generate_results(self):
+        try:
+            metadata = self._wrapper.get_generate_results()
+            return json.loads(metadata)
+        except RuntimeError as re:
+            be = BackendError(re)
+        raise be
+
+    def save_amp(self, modelptr, path):
+        try:
+            metadata = self._wrapper.save_amp(modelptr, path)
+            return json.loads(metadata)
+        except RuntimeError as re:
+            be = BackendError(re)
+        raise be
+
+    def get_pdb(self, modelptr):
+        try:
+            metadata = self._wrapper.get_pdb(modelptr)
+            return json.loads(metadata)
+        except RuntimeError as re:
+            be = BackendError(re)
+        raise be
+
+    def get_model_ptrs(self):
+        try:
+            metadata = self._wrapper.get_model_ptrs()
+            return json.loads(metadata)
+        except RuntimeError as re:
+            be = BackendError(re)
+        raise be
