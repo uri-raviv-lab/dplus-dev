@@ -8,7 +8,7 @@ from dplus.CalculationInput import CalculationInput
 from dplus.FileReaders import _handle_infinity_for_json, NumpyHandlingEncoder
 import os
 import time
-from dplus.Backend import check_capabilities, BackendError
+from dplus.Backend import Backend, BackendError
 
 class AsyncFit:
     def __init__(self, exe_dir, session_dir, python_dir,calc_input):
@@ -254,7 +254,8 @@ class CSharpPython:
                 self.cur_results = None
                 use_gpu = bool(json2run["options"]["useGPU"])
                 # self.calc_runner.check_capabilities(use_gpu)
-                check_capabilities(use_gpu)
+                backend = Backend()
+                backend.check_capabilities(use_gpu)
                 result = self.process_result()
         except BackendError as be:
             response_json = {"error": {"code": be.error_code, "message": str(be) }}

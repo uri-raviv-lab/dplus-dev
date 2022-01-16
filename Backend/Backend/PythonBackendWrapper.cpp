@@ -140,6 +140,18 @@ void PythonBackendWrapper::SaveAmplitude(ModelPtr modelPtr, std::string path)
 	}
 }
 
+std::string PythonBackendWrapper::GetPDB(ModelPtr modelPtr)
+{
+	try
+	{
+		return _info.local_backend->HandleGetPDB(_info.job, modelPtr);
+	}
+	catch (backend_exception& be)
+	{
+		throw ConvertException(be);
+	}
+}
+
 std::vector<ModelPtr> PythonBackendWrapper::GetModelPtrs()
 {
 	try
