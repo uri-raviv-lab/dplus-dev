@@ -28,56 +28,54 @@ class Backend:
 
     def initialize_cache(self, cache_dir):
         try:
-            metadata = self._wrapper.initialize_cache(cache_dir)
-            return json.loads(metadata)
+            self._wrapper.initialize_cache(cache_dir)
         except RuntimeError as re:
             be = BackendError(re)
         raise be
 
-    def start_generate(self, state, useGPU):
+    def start_generate(self, state_file_path, useGPU):
         try:
-            metadata = self._wrapper.start_generate(state, useGPU)
-            return json.loads(metadata)
+            state_content = open(state_file_path, 'rb').read()
+            self._wrapper.start_generate(state_content, useGPU)
         except RuntimeError as re:
             be = BackendError(re)
         raise be
     
     def get_job_status(self):
         try:
-            metadata = self._wrapper.get_job_status()
-            return json.loads(metadata)
+            job_status = self._wrapper.get_job_status()
+            return json.loads(job_status)
         except RuntimeError as re:
             be = BackendError(re)
         raise be
 
     def get_generate_results(self):
         try:
-            metadata = self._wrapper.get_generate_results()
-            return json.loads(metadata)
+            results = self._wrapper.get_generate_results()
+            return json.loads(results)
         except RuntimeError as re:
             be = BackendError(re)
         raise be
 
     def save_amp(self, modelptr, path):
         try:
-            metadata = self._wrapper.save_amp(modelptr, path)
-            return json.loads(metadata)
+            self._wrapper.save_amp(modelptr, path)
         except RuntimeError as re:
             be = BackendError(re)
         raise be
 
     def get_pdb(self, modelptr):
         try:
-            metadata = self._wrapper.get_pdb(modelptr)
-            return json.loads(metadata)
+            pdb = self._wrapper.get_pdb(modelptr)
+            return json.loads(pdb)
         except RuntimeError as re:
             be = BackendError(re)
         raise be
 
     def get_model_ptrs(self):
         try:
-            metadata = self._wrapper.get_model_ptrs()
-            return json.loads(metadata)
+            model_ptrs = self._wrapper.get_model_ptrs()
+            return model_ptrs
         except RuntimeError as re:
             be = BackendError(re)
         raise be

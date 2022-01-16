@@ -13,7 +13,7 @@ cdef extern from r"Backend/Backend/PythonBackendWrapper.h" :
 
         string GetJobStatus() except +
         string GetGenerateResults() except +
-        string StartGenerate(string state, bool useGPU) except +
+        void StartGenerate(string state, bool useGPU) except +
 
         void SaveAmplitude(unsigned int modelPtr, string path) except +
         string GetPDB(unsigned int modelPtr) except +

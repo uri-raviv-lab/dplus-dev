@@ -1,5 +1,4 @@
 # This file calls the backend using the PythonBackendWrapper
-
 from PythonBackendWrapper cimport PythonBackendWrapper
 
 cdef class BackendWrapper:

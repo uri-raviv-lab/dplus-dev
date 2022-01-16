@@ -20,7 +20,8 @@ from dplus.FileReaders import _handle_infinity_for_json, NumpyHandlingEncoder
 from dplus.CalculationResult import GenerateResult, FitResult
 
 from dplus.PyCeresOptimizer import PyCeresOptimizer
-# from .Fit import Fitter
+from dplus.Backend import Backend
+
 
 class JobRunningException(Exception):
     def __init__(self):
@@ -699,3 +700,27 @@ class WebRunner(Runner):
     @staticmethod
     def get_running_job(url, token, session):
         return WebRunner.RunningJob(url, token, session)
+
+
+class EmbeddedLocalRunner(Runner):
+
+    def __init__(self):
+        super().__init__()
+        self.wrapper = Backend()
+
+    def generate(self, state, save_amp=True):
+        '''
+        run sync dplus generate.
+
+        :param state: string state
+        :param save_amp: bool , should the system save amp and pdb at the end of calculation
+        :rtype: an instance of a GenerateResult class
+        '''
+        # self.wrapper.check_capabilities()
+        self.wrapper.start_generate(state, useGPU=True)
+        
+    def get_job_status(self):
+        return self.wrapper.get_job_status()
+    
+    def get_generate_results(self):
+        return self.wrapper.get_generate_results()
