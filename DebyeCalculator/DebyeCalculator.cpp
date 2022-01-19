@@ -264,7 +264,7 @@ int main(int argc, char* argv[])
 		if (writeFile.is_open()) {
 			// Header
 			writeFile << "# Program revision: " << BACKEND_VERSION << std::endl;
-			writeFile << "# Debye scattering of " << inFilename << std::endl;
+			writeFile << "# Electron scattering of " << inFilename << std::endl;
 			writeFile << "# Calculated on ";
 			if (useGPU)
 				writeFile << "GPU, kernel version " << kernelVersion << std::endl;

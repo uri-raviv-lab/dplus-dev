@@ -10,18 +10,18 @@ public:
 		const float* coeffs, const int *atomsPerIon)
 			: m_bitCombination(bitCombination), m_numAtoms(numAtoms), m_numUnIons(numUnIons),
 			m_coeffs(coeffs), m_atomsPerIon(atomsPerIon),
-			as(4, numUnIons), bs(4, numUnIons), cs(numUnIons),
+			as(5, numUnIons), bs(5, numUnIons),
 			m_solED(0), m_solventOnly(false)
 	{
 
 		for (size_t i = 0; i < numUnIons; i++)
 		{
-			for (size_t j = 0; j < 4; j++)
+			for (size_t j = 0; j < 5; j++)
 			{
 				as(j, i) = coeffs[i + 2 * j * numUnIons];
 				bs(j, i) = coeffs[i + (2 * j + 1) * numUnIons];
 			}
-			cs(i) = coeffs[i + (9 - 1) * numUnIons];
+		
 		}
 
 	}
@@ -51,7 +51,7 @@ public:
 	void GetAllUniqueAFFs(Eigen::Ref<Eigen::ArrayXf, 0, Eigen::InnerStride<> > mapToAffs, float q)
 	{
 		const float sqq = (q * q / (100.0f * 157.913670417429737901351855998f));
-		Eigen::ArrayXf uniqueAffsArr = ((-sqq * bs).exp() * as).colwise().sum().transpose() + cs;
+		Eigen::ArrayXf uniqueAffsArr = ((-sqq * bs).exp() * as).colwise().sum().transpose();
 		//Eigen::Map<Eigen::ArrayXf> mapToAffs(uniqueAffs, m_numAtoms);
 		Eigen::ArrayXf solventContrast = solventContribution(q);
 
@@ -62,7 +62,7 @@ public:
 	void GetAllAFFs(float* allAffs, float q)
 	{
 		const float sqq = (q * q / (100.0f * 157.913670417429737901351855998f));
-		Eigen::ArrayXf uniqueAffs = ((-sqq * bs).exp() * as).colwise().sum().transpose() + cs;
+		Eigen::ArrayXf uniqueAffs = ((-sqq * bs).exp() * as).colwise().sum().transpose();
 		Eigen::Map<Eigen::ArrayXf> mapToAffs(allAffs, m_numAtoms);
 		Eigen::ArrayXf solventContrast = solventContribution(q);
 
@@ -80,7 +80,7 @@ public:
 	void GetAllAFFs(float2* allAffs, float q)
 	{
 		const float sqq = (q * q / (100.0f * 157.913670417429737901351855998f));
-		Eigen::ArrayXf uniqueAffs = ((-sqq * bs).exp() * as).colwise().sum().transpose() + cs;
+		Eigen::ArrayXf uniqueAffs = ((-sqq * bs).exp() * as).colwise().sum().transpose();
 		Eigen::Map<Eigen::ArrayXcf> mapToAffs((std::complex<float>*)allAffs, m_numAtoms);
 		Eigen::ArrayXf solventContrast = solventContribution(q);
 
