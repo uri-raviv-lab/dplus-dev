@@ -241,7 +241,7 @@ class CSharpPython:
                         print(len(pdb_str))
                         print("args['filepath']", args['filepath'])
                         with open(args["filepath"], 'w', encoding='utf8') as file_pdb_out:
-                            file_pdb_out.write(pdb_str.decode('utf-8'))
+                            file_pdb_out.write(pdb_str)
                         result = self.process_result() # {"result": pre_process_results}
                     except FileNotFoundError:
                         raise Exception("The model was not found within the container or job", 14)
