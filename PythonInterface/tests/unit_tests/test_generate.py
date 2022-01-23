@@ -28,31 +28,18 @@ def test_2():
     calc_input = CalculationInput.load_from_state_file(state_file_path)
     runner = EmbeddedLocalRunner()
     runner.generate(calc_input)
-    # print('result', result)
-    # if result.error["code"] != 0:
-    #     print("Result returned error:", result.error)
-    status = runner.get_job_status()
-    print("status", status)
-    # result = runner.get_generate_results()
-    # print('result', result)
 
-    start_time = datetime.datetime.now()
-    # status = runner.get_job_status()
+    status = runner.get_job_status()
+
     while status and status['isRunning'] and status['code']==-1:
-        # print("status", status)
-        # print('loop')
-        # print(datetime.datetime.now(), "status", status)
         status = runner.get_job_status()
-        # print("again", status)
-        # run_time = datetime.datetime.now() - start_time
-        # if run_time > datetime.timedelta(seconds=50):
-        #     raise TimeoutError("Job took too long")
-        # time.sleep(1)
-        # print("after sleep")
-    print("after while", status)
+        time.sleep(0.1)
+    print("end", status)
     if status['code'] == 0:
         result = runner.get_generate_results(calc_input)
         print(result.processed_result)
+        if result.error["code"] != 0:
+            print("Result returned error:", result.error)
     else:
         print("error", status)
 
@@ -60,9 +47,11 @@ def test_2():
     print('model_ptrs', model_ptrs)
     for ptr in model_ptrs:
         print('ptr:', ptr)
-        runner.save_amp(ptr, "amp-{}.ampj".format(ptr))
-        # pdb = runner.get_pdb(ptr)
-        # print(pdb)
+    ptr = model_ptrs[-1]
+    runner.save_amp(ptr, "amp-{}.ampj".format(ptr))
+    print("the Amp was saved")
+    pdb = runner.get_pdb(ptr)
+    print(pdb)
 
 
 if __name__ == "__main__":

@@ -950,7 +950,9 @@ std::string LocalBackend::HandleGetPDB(JobPtr job, ModelPtr model) {
 	if (j.uidToAmp.find(model) == j.uidToAmp.end())
 	{
 		if (j.uidToModel.find(model) == j.uidToModel.end())
+		{
 			throw(backend_exception(ERROR_MODELNOTFOUND, g_errorStrings[ERROR_MODELNOTFOUND]));
+		}
 		else
 			sym = dynamic_cast<ISymmetry*>(j.uidToModel[model]);
 	}

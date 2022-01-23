@@ -145,7 +145,8 @@ std::string PythonBackendWrapper::GetPDB(ModelPtr modelPtr)
 {
 	try
 	{
-		return _info.local_backend->HandleGetPDB(_info.job, modelPtr);
+		std::string pdb_str = _info.local_backend->HandleGetPDB(_info.job, modelPtr);
+		return pdb_str;
 	}
 	catch (backend_exception& be)
 	{

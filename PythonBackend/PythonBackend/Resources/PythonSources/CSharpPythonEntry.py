@@ -226,7 +226,7 @@ class CSharpPython:
                 if self.cur_results is not None:
                     try:
                         pre_process_results = self.calc_runner_embedded.save_amp(args["model"], args["filepath"])
-                        result = self.process_result({"result": ''})
+                        result = self.process_result()
                     except FileNotFoundError:
                         raise Exception("The model was not found within the container or job", 14)
                 else:
@@ -234,13 +234,20 @@ class CSharpPython:
 
             elif "GetPDB" in json2run["function"]:
                 args = json2run["args"]
-                print('GetPDB', args)
                 if self.cur_results is not None:
                     try:
-                        self.calc_runner_embedded.get_pdb(args["model"])
+                        pdb_str = self.calc_runner_embedded.get_pdb(args["model"])
+                        print("GetPDB CSharpPython")
+                        print(len(pdb_str))
+                        print("args['filepath']", args['filepath'])
+                        with open(args["filepath"], 'w', encoding='utf8') as file_pdb_out:
+                            file_pdb_out.write(pdb_str.decode('utf-8'))
                         result = self.process_result() # {"result": pre_process_results}
                     except FileNotFoundError:
                         raise Exception("The model was not found within the container or job", 14)
+                    except Exception as ex:
+                        print(ex)
+                        raise Exception("Error GetPDB failed " + str(ex))
                 else:
                     raise Exception("The model was not found within the container or job", 8)
 

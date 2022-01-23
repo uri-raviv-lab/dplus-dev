@@ -742,7 +742,8 @@ class EmbeddedLocalRunner(Runner):
         :param model_ptr:
         :return:
         '''
-        return self.wrapper.get_pdb(model_ptr)
+        pdb_str = self.wrapper.get_pdb(model_ptr)
+        return pdb_str
 
     def get_model_ptrs(self):
         return self.wrapper.get_model_ptrs()

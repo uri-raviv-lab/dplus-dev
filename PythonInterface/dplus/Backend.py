@@ -66,7 +66,7 @@ class Backend:
     def get_pdb(self, modelptr):
         try:
             pdb = self._wrapper.get_pdb(modelptr)
-            return json.loads(pdb)
+            return pdb
         except RuntimeError as re:
             be = BackendError(re)
             raise be
