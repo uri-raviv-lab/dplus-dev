@@ -3,7 +3,7 @@ import subprocess
 from dplus.metadata import program_metadata
 import signal
 cur_meta = json.dumps(program_metadata)
-from dplus.CalculationRunner import LocalRunner
+from dplus.CalculationRunner import LocalRunner, EmbeddedLocalRunner
 from dplus.CalculationInput import CalculationInput
 from dplus.FileReaders import _handle_infinity_for_json, NumpyHandlingEncoder
 import os
@@ -137,11 +137,8 @@ class CSharpPython:
         self.session_dir = session_dir
         self.cur_job = None
         self.python_dir = python_dir
-        self.calc_runner = LocalRunner(self.exe_dir, self.session_dir)
-        # create all outputs file
-        self.all_outs_filename = os.path.join(self.session_dir,"all_calculations_outputs.txt")
-        f = open(self.all_outs_filename, 'w')
-        f.close()
+        self.calc_runner = LocalRunner(self.exe_dir, self.session_dir) # TODO delete?
+        self.calc_runner_embedded = EmbeddedLocalRunner()
         self.cur_calc_input = None
         self.cur_job = None
         self.cur_results = None
@@ -157,8 +154,8 @@ class CSharpPython:
                 result = self.process_result(metadeta)
 
             elif "GetJobStatus" in json2run["function"]:
-                if self.cur_job is not None:
-                    status = self.cur_job.get_status()
+                if self.calc_runner_embedded is not None:
+                    status = self.calc_runner_embedded.get_job_status()
                     result = self.process_result({"result": status})
                 elif self.async_fit:
                     status = self.async_fit.get_status()
@@ -167,23 +164,20 @@ class CSharpPython:
 
             elif "StartGenerate" in json2run["function"]:
                 self.cur_calc_input = None
-                self.cur_job = None
+                # self.cur_job = None
                 self.cur_results = None
                 calc_input = CalculationInput()
                 calc_input.load_from_dictionary(json2run["args"]["state"])
                 calc_input.use_gpu = bool(json2run["options"]["useGPU"])
                 
-                self.cur_job = self.calc_runner.generate_async(calc_input, save_amp=True)
+                self.calc_runner_embedded.generate(calc_input, save_amp=True) # generate_async
                 self.cur_calc_input = calc_input
-                result = self.process_result({"result": self.cur_job.get_status()})
+                result = self.process_result({"result": self.calc_runner_embedded.get_job_status()})
 
             elif "GetGenerateResults" in json2run["function"]:
-                self.cur_results = self.cur_job.get_result(self.cur_calc_input)
+                self.cur_results = self.calc_runner_embedded.get_generate_results(self.cur_calc_input)
                 state = self.cur_results.processed_result
                 result = self.process_result({"result": state})
-
-                # self.cur_job.abort() # must abort the job otherwise- continue running (even if generate was finished)
-                self.add_output()
 
             elif "StartFit" in json2run["function"]:
                 self.cur_calc_input = None
@@ -205,7 +199,7 @@ class CSharpPython:
                 if not self.async_fit:
                     self.cur_results = self.cur_job.get_result(self.cur_calc_input)
                     result = self.process_result({"result": self.cur_results._raw_result})
-                    self.add_output()
+                    # self.add_output()
 
                 else:
                     result = self.process_result({"result": self.async_fit.get_results()})
@@ -228,10 +222,11 @@ class CSharpPython:
 
             elif "GetAmplitude" in json2run["function"]:
                 args = json2run["args"]
+                print('GetAmplitude', args)
                 if self.cur_results is not None:
                     try:
-                        pre_process_results = self.cur_results.get_amp(args["model"], args["filepath"])
-                        result = self.process_result({"result": pre_process_results})
+                        pre_process_results = self.calc_runner_embedded.save_amp(args["model"], args["filepath"])
+                        result = self.process_result({"result": ''})
                     except FileNotFoundError:
                         raise Exception("The model was not found within the container or job", 14)
                 else:
@@ -239,10 +234,11 @@ class CSharpPython:
 
             elif "GetPDB" in json2run["function"]:
                 args = json2run["args"]
+                print('GetPDB', args)
                 if self.cur_results is not None:
                     try:
-                        pre_process_results = self.cur_results.get_pdb(args["model"], args["filepath"])
-                        result = self.process_result({"result": pre_process_results})
+                        self.calc_runner_embedded.get_pdb(args["model"])
+                        result = self.process_result() # {"result": pre_process_results}
                     except FileNotFoundError:
                         raise Exception("The model was not found within the container or job", 14)
                 else:
@@ -253,9 +249,9 @@ class CSharpPython:
                 self.cur_job = None
                 self.cur_results = None
                 use_gpu = bool(json2run["options"]["useGPU"])
-                # self.calc_runner.check_capabilities(use_gpu)
-                backend = Backend()
-                backend.check_capabilities(use_gpu)
+                # backend = Backend()
+                # backend.check_capabilities(use_gpu)
+                self.calc_runner_embedded.check_capabilities(use_gpu)
                 result = self.process_result()
         except BackendError as be:
             response_json = {"error": {"code": be.error_code, "message": str(be) }}

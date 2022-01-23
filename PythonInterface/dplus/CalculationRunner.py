@@ -707,8 +707,13 @@ class EmbeddedLocalRunner(Runner):
     def __init__(self):
         super().__init__()
         self.wrapper = Backend()
+        # self.save_amp = False
+        self.calc_data = None
 
-    def generate(self, state, save_amp=True):
+    def check_capabilities(self, check_tdr=True):
+        self.wrapper.check_capabilities(check_tdr)
+
+    def generate(self, calc_data, save_amp=True):
         '''
         run sync dplus generate.
 
@@ -716,11 +721,28 @@ class EmbeddedLocalRunner(Runner):
         :param save_amp: bool , should the system save amp and pdb at the end of calculation
         :rtype: an instance of a GenerateResult class
         '''
-        # self.wrapper.check_capabilities()
-        self.wrapper.start_generate(state, useGPU=True)
-        
+        self.calc_data = calc_data
+        # self.save_amp = save_amp
+        data = json.dumps(calc_data.args['args'])
+        self.wrapper.start_generate(data, useGPU=True)
+
     def get_job_status(self):
         return self.wrapper.get_job_status()
     
-    def get_generate_results(self):
-        return self.wrapper.get_generate_results()
+    def get_generate_results(self, calc_data):
+        result = self.wrapper.get_generate_results()
+        calc_result = GenerateResult(calc_data, result, job=None)
+        return calc_result
+
+    def save_amp(self, modelptr, path):
+        self.wrapper.save_amp(modelptr, path)
+
+    def get_pdb(self, model_ptr):
+        '''
+        :param model_ptr:
+        :return:
+        '''
+        return self.wrapper.get_pdb(model_ptr)
+
+    def get_model_ptrs(self):
+        return self.wrapper.get_model_ptrs()

@@ -10,6 +10,7 @@ using namespace std;
 PythonBackendWrapper::PythonBackendWrapper()
 {
 	InitializeInfo();
+	AmplitudeCache::_setConverter(_info.Converter);
 }
 
 PythonBackendWrapper::~PythonBackendWrapper()

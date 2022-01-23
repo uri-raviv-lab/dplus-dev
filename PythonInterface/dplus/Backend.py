@@ -16,7 +16,7 @@ class Backend:
             return self._wrapper.check_capabilities(check_tdr)
         except RuntimeError as re:
             be = BackendError(re)
-        raise be
+            raise be
 
     def get_all_model_metadata(self):
         try:
@@ -24,22 +24,21 @@ class Backend:
             return json.loads(metadata)
         except RuntimeError as re:
             be = BackendError(re)
-        raise be
+            raise be
 
     def initialize_cache(self, cache_dir):
         try:
             self._wrapper.initialize_cache(cache_dir)
         except RuntimeError as re:
             be = BackendError(re)
-        raise be
+            raise be
 
-    def start_generate(self, state_file_path, useGPU):
+    def start_generate(self, data, useGPU):
         try:
-            state_content = open(state_file_path, 'rb').read()
-            self._wrapper.start_generate(state_content, useGPU)
+            self._wrapper.start_generate(data.encode("utf-8"), useGPU)
         except RuntimeError as re:
             be = BackendError(re)
-        raise be
+            raise be
     
     def get_job_status(self):
         try:
@@ -47,7 +46,7 @@ class Backend:
             return json.loads(job_status)
         except RuntimeError as re:
             be = BackendError(re)
-        raise be
+            raise be
 
     def get_generate_results(self):
         try:
@@ -55,14 +54,14 @@ class Backend:
             return json.loads(results)
         except RuntimeError as re:
             be = BackendError(re)
-        raise be
+            raise be
 
     def save_amp(self, modelptr, path):
         try:
-            self._wrapper.save_amp(modelptr, path)
+            self._wrapper.save_amp(modelptr, path.encode("utf-8"))
         except RuntimeError as re:
             be = BackendError(re)
-        raise be
+            raise be
 
     def get_pdb(self, modelptr):
         try:
@@ -70,7 +69,7 @@ class Backend:
             return json.loads(pdb)
         except RuntimeError as re:
             be = BackendError(re)
-        raise be
+            raise be
 
     def get_model_ptrs(self):
         try:
@@ -78,4 +77,4 @@ class Backend:
             return model_ptrs
         except RuntimeError as re:
             be = BackendError(re)
-        raise be
+            raise be
