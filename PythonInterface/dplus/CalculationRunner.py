@@ -707,22 +707,19 @@ class EmbeddedLocalRunner(Runner):
     def __init__(self):
         super().__init__()
         self.wrapper = Backend()
-        # self.save_amp = False
         self.calc_data = None
 
     def check_capabilities(self, check_tdr=True):
         self.wrapper.check_capabilities(check_tdr)
 
-    def generate(self, calc_data, save_amp=True):
+    def generate(self, calc_data):
         '''
         run sync dplus generate.
 
         :param state: string state
-        :param save_amp: bool , should the system save amp and pdb at the end of calculation
         :rtype: an instance of a GenerateResult class
         '''
         self.calc_data = calc_data
-        # self.save_amp = save_amp
         data = json.dumps(calc_data.args['args'])
         self.wrapper.start_generate(data, useGPU=True)
 
@@ -730,17 +727,23 @@ class EmbeddedLocalRunner(Runner):
         return self.wrapper.get_job_status()
     
     def get_generate_results(self, calc_data):
+        """
+        Send to C++ functipon to get the generate result.
+        """
         result = self.wrapper.get_generate_results()
         calc_result = GenerateResult(calc_data, result, job=None)
         return calc_result
 
     def save_amp(self, modelptr, path):
+        '''
+        The function create a ampj file in the 'path' (file path) of the 'modelptr' (int)
+        '''
         self.wrapper.save_amp(modelptr, path)
 
     def get_pdb(self, model_ptr):
         '''
         :param model_ptr:
-        :return:
+        :return: string of the PDB
         '''
         pdb_str = self.wrapper.get_pdb(model_ptr)
         return pdb_str

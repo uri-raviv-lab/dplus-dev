@@ -133,14 +133,21 @@ class AsyncFit:
 
 class CSharpPython:
     def __init__(self, exe_dir, session_dir, python_dir):
-        self.exe_dir = exe_dir
-        self.session_dir = session_dir
-        self.cur_job = None
+        self.runner = "embedded" # "embedded" or "exe
+        self.local_runner = self.runner == "exe"
+        if self.local_runner:
+            self.exe_dir = exe_dir
+            self.session_dir = session_dir
+            self.cur_job = None
+            self.calc_runner = LocalRunner(self.exe_dir, self.session_dir)
+            # create all outputs file
+            self.all_outs_filename = os.path.join(self.session_dir,"all_calculations_outputs.txt")
+            f = open(self.all_outs_filename, 'w')
+            f.close()
+        else:
+            self.calc_runner = EmbeddedLocalRunner()
         self.python_dir = python_dir
-        self.calc_runner = LocalRunner(self.exe_dir, self.session_dir) # TODO delete?
-        self.calc_runner_embedded = EmbeddedLocalRunner()
         self.cur_calc_input = None
-        self.cur_job = None
         self.cur_results = None
         self.async_fit = None
 
@@ -154,30 +161,45 @@ class CSharpPython:
                 result = self.process_result(metadeta)
 
             elif "GetJobStatus" in json2run["function"]:
-                if self.calc_runner_embedded is not None:
-                    status = self.calc_runner_embedded.get_job_status()
-                    result = self.process_result({"result": status})
-                elif self.async_fit:
-                    status = self.async_fit.get_status()
-                    result = self.process_result({"result": status})
+                if self.local_runner:
+                    if self.cur_job is not None:
+                        status = self.cur_job.get_status()
+                else:
+                    status = self.calc_runner.get_job_status()
+                result = self.process_result({"result": status})
+                #elif self.async_fit:
+                #    status = self.async_fit.get_status()
+                #    result = self.process_result({"result": status})
 
 
             elif "StartGenerate" in json2run["function"]:
+                if self.local_runner: 
+                    self.cur_job = None
                 self.cur_calc_input = None
-                # self.cur_job = None
                 self.cur_results = None
                 calc_input = CalculationInput()
                 calc_input.load_from_dictionary(json2run["args"]["state"])
                 calc_input.use_gpu = bool(json2run["options"]["useGPU"])
                 
-                self.calc_runner_embedded.generate(calc_input, save_amp=True) # generate_async
+                if self.local_runner:
+                    self.cur_job = self.calc_runner.generate_async(calc_input, save_amp=True)
+                    result = self.process_result({"result": self.cur_job.get_status()})
+                else:
+                    self.calc_runner.generate(calc_input) # generate_async
+                    result = self.process_result({"result": self.calc_runner.get_job_status()})
                 self.cur_calc_input = calc_input
-                result = self.process_result({"result": self.calc_runner_embedded.get_job_status()})
 
             elif "GetGenerateResults" in json2run["function"]:
-                self.cur_results = self.calc_runner_embedded.get_generate_results(self.cur_calc_input)
+                if self.local_runner:
+                    self.cur_results = self.cur_job.get_result(self.cur_calc_input)
+                else:
+                    self.cur_results = self.calc_runner.get_generate_results(self.cur_calc_input)
                 state = self.cur_results.processed_result
                 result = self.process_result({"result": state})
+
+                if self.local_runner:
+                    # self.cur_job.abort() # must abort the job otherwise- continue running (even if generate was finished)
+                    self.add_output()
 
             elif "StartFit" in json2run["function"]:
                 self.cur_calc_input = None
@@ -222,11 +244,14 @@ class CSharpPython:
 
             elif "GetAmplitude" in json2run["function"]:
                 args = json2run["args"]
-                print('GetAmplitude', args)
                 if self.cur_results is not None:
                     try:
-                        pre_process_results = self.calc_runner_embedded.save_amp(args["model"], args["filepath"])
-                        result = self.process_result()
+                        if self.local_runner:
+                            pre_process_results = self.cur_results.get_amp(args["model"], args["filepath"])
+                            result = self.process_result({"result": pre_process_results})
+                        else:
+                            self.calc_runner.save_amp(args["model"], args["filepath"])
+                            result = self.process_result()
                     except FileNotFoundError:
                         raise Exception("The model was not found within the container or job", 14)
                 else:
@@ -236,17 +261,17 @@ class CSharpPython:
                 args = json2run["args"]
                 if self.cur_results is not None:
                     try:
-                        pdb_str = self.calc_runner_embedded.get_pdb(args["model"])
-                        print("GetPDB CSharpPython")
-                        print(len(pdb_str))
-                        print("args['filepath']", args['filepath'])
-                        with open(args["filepath"], 'w', encoding='utf8') as file_pdb_out:
-                            file_pdb_out.write(pdb_str)
-                        result = self.process_result() # {"result": pre_process_results}
+                        if self.local_runner:
+                            pre_process_results = self.cur_results.get_pdb(args["model"], args["filepath"])
+                            result = self.process_result({"result": pre_process_results})
+                        else:
+                            pdb_str = self.calc_runner.get_pdb(args["model"])
+                            with open(args["filepath"], 'w', encoding='utf8') as file_pdb_out:
+                                file_pdb_out.write(pdb_str)
+                            result = self.process_result() # {"result": pre_process_results}
                     except FileNotFoundError:
                         raise Exception("The model was not found within the container or job", 14)
                     except Exception as ex:
-                        print(ex)
                         raise Exception("Error GetPDB failed " + str(ex))
                 else:
                     raise Exception("The model was not found within the container or job", 8)
@@ -256,9 +281,9 @@ class CSharpPython:
                 self.cur_job = None
                 self.cur_results = None
                 use_gpu = bool(json2run["options"]["useGPU"])
-                # backend = Backend()
-                # backend.check_capabilities(use_gpu)
-                self.calc_runner_embedded.check_capabilities(use_gpu)
+                backend = Backend()
+                backend.check_capabilities(use_gpu)
+                # self.calc_runner.check_capabilities(use_gpu)
                 result = self.process_result()
         except BackendError as be:
             response_json = {"error": {"code": be.error_code, "message": str(be) }}
