@@ -180,6 +180,7 @@ class CSharpPython:
                 calc_input = CalculationInput()
                 calc_input.load_from_dictionary(json2run["args"]["state"])
                 calc_input.use_gpu = bool(json2run["options"]["useGPU"])
+                self.cur_calc_input = calc_input
                 
                 if self.local_runner:
                     self.cur_job = self.calc_runner.generate_async(calc_input, save_amp=True)
@@ -187,7 +188,7 @@ class CSharpPython:
                 else:
                     self.calc_runner.generate(calc_input) # generate_async
                     result = self.process_result({"result": self.calc_runner.get_job_status()})
-                self.cur_calc_input = calc_input
+               
 
             elif "GetGenerateResults" in json2run["function"]:
                 if self.local_runner:
@@ -227,20 +228,27 @@ class CSharpPython:
                     result = self.process_result({"result": self.async_fit.get_results()})
                     self.add_python_fit_output()
 
-
-
             elif "Stop" in json2run["function"]:
-                if not self.async_fit:
-                    self.cur_job.abort()
-                    result = self.process_result()
-                    self.cur_calc_input = None
-                    self.cur_job = None
-                    self.cur_results = None
+                if self.local_runner:
+                    if not self.async_fit:
+                        self.cur_job.abort()
+                        result = self.process_result()
+                        self.cur_calc_input = None
+                        self.cur_job = None
+                        self.cur_results = None
+                    else:
+                        self.async_fit.abort()
+                        result = self.async_fit.get_status()
+                        self.async_fit = None
+                    self.add_output()
                 else:
-                    self.async_fit.abort()
-                    result = self.async_fit.get_status()
-                    self.async_fit = None
-                self.add_output()
+                    if not self.async_fit:
+                        self.cur_results = None
+                        self.cur_calc_input = None
+                        self.calc_runner.stop_generate()
+                        result = self.process_result()
+                    else:
+                        self.async_fit = None
 
             elif "GetAmplitude" in json2run["function"]:
                 args = json2run["args"]

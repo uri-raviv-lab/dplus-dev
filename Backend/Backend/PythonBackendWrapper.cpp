@@ -165,3 +165,15 @@ std::vector<ModelPtr> PythonBackendWrapper::GetModelPtrs()
 		throw ConvertException(be);
 	}
 }
+
+void PythonBackendWrapper::Stop() 
+{
+	try
+	{
+		_info.local_backend->HandleStop(_info.job);
+	}
+	catch (backend_exception& be)
+	{
+		throw ConvertException(be);
+	}
+}

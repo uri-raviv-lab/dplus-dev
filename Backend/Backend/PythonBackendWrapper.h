@@ -29,6 +29,7 @@ public:
 	std::vector<ModelPtr> GetModelPtrs();
 	void SaveAmplitude(ModelPtr modelPtr, std::string path);
 	std::string GetPDB(ModelPtr modelPtr);
+	void Stop();
 
 	const BackendWrapper::LocalBackendInfo GetBackendInfo(const std::string clientId) { return _info; }
 

@@ -707,28 +707,29 @@ class EmbeddedLocalRunner(Runner):
     def __init__(self):
         super().__init__()
         self.wrapper = Backend()
-        self.calc_data = None
 
     def check_capabilities(self, check_tdr=True):
         self.wrapper.check_capabilities(check_tdr)
 
     def generate(self, calc_data):
         '''
-        run sync dplus generate.
+        Send to C++ function to run async dplus generate.
 
-        :param state: string state
+        :param calc_data:  CalculationInput
         :rtype: an instance of a GenerateResult class
         '''
-        self.calc_data = calc_data
         data = json.dumps(calc_data.args['args'])
         self.wrapper.start_generate(data, useGPU=True)
 
     def get_job_status(self):
+        """
+        Send to C++ function to get the job status.
+        """
         return self.wrapper.get_job_status()
     
     def get_generate_results(self, calc_data):
         """
-        Send to C++ functipon to get the generate result.
+        Send to C++ function to get the generate result.
         """
         result = self.wrapper.get_generate_results()
         calc_result = GenerateResult(calc_data, result, job=None)
@@ -736,17 +737,27 @@ class EmbeddedLocalRunner(Runner):
 
     def save_amp(self, modelptr, path):
         '''
-        The function create a ampj file in the 'path' (file path) of the 'modelptr' (int)
+        Send to C++ function to create a ampj file in the 'path' (file path) of the 'modelptr' (int)
         '''
         self.wrapper.save_amp(modelptr, path)
 
     def get_pdb(self, model_ptr):
         '''
-        :param model_ptr:
+        Send to C++ function to get the pdb content as string
+        :param model_ptr: int, the model's ptr (like ID)
         :return: string of the PDB
         '''
         pdb_str = self.wrapper.get_pdb(model_ptr)
         return pdb_str
 
     def get_model_ptrs(self):
+        """
+        Send to C++ function to get all the models PTRs
+        """
         return self.wrapper.get_model_ptrs()
+
+    def stop_generate(self):
+        '''
+        Send to C++ function to stop the generate process (C++ process).
+        '''
+        self.wrapper.stop()

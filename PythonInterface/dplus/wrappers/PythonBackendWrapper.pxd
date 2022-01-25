@@ -18,3 +18,4 @@ cdef extern from r"Backend/Backend/PythonBackendWrapper.h" :
         void SaveAmplitude(unsigned int modelPtr, string path) except +
         string GetPDB(unsigned int modelPtr) except +
         vector[unsigned int] GetModelPtrs() except +
+        void Stop() except +

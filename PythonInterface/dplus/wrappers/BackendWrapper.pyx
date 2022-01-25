@@ -23,7 +23,7 @@ cdef class BackendWrapper:
         return self._wrapper.GetGenerateResults();
 
     def save_amp(self, modelptr, path):
-        self._wrapper.SaveAmplitude(modelptr, path)
+        self._wrapper.SaveAmplitude(modelptr, path.encode("utf-8"))
 
     def get_pdb(self, modelptr): 
         bytes_pdb = self._wrapper.GetPDB(modelptr)
@@ -32,4 +32,7 @@ cdef class BackendWrapper:
 
     def get_model_ptrs(self):
         return list(self._wrapper.GetModelPtrs())
+
+    def stop(self):
+        self._wrapper.Stop()
 

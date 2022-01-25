@@ -58,7 +58,7 @@ class Backend:
 
     def save_amp(self, modelptr, path):
         try:
-            self._wrapper.save_amp(modelptr, path.encode("utf-8"))
+            self._wrapper.save_amp(modelptr, path)
         except RuntimeError as re:
             be = BackendError(re)
             raise be
@@ -75,6 +75,16 @@ class Backend:
         try:
             model_ptrs = self._wrapper.get_model_ptrs()
             return model_ptrs
+        except RuntimeError as re:
+            be = BackendError(re)
+            raise be
+
+    def stop(self):
+        '''
+        Send to C++ function to stop the generate process (C++ process).
+        '''
+        try:
+            self._wrapper.stop()
         except RuntimeError as re:
             be = BackendError(re)
             raise be
