@@ -711,15 +711,14 @@ class EmbeddedLocalRunner(Runner):
     def check_capabilities(self, check_tdr=True):
         self.wrapper.check_capabilities(check_tdr)
 
-    def generate(self, calc_data):
+    def generate(self, calc_data, save_amp=True):
         '''
         Send to C++ function to run async dplus generate.
 
         :param calc_data:  CalculationInput
-        :rtype: an instance of a GenerateResult class
         '''
         data = json.dumps(calc_data.args['args'])
-        self.wrapper.start_generate(data, useGPU=True)
+        self.wrapper.start_generate(data, useGPU=calc_data.use_gpu)
 
     def get_job_status(self):
         """
