@@ -23,12 +23,18 @@ extra_compile_args = []
 extra_link_args = []
 if sys.platform == 'win32':
     extra_compile_args = ['/Ox'] if not DEBUG else []
+    LIBRARY_DIRS = [os.path.join(ROOT_DIR, "x64", "ReleaseWithDebugInfo" if DEBUG else "Release")]
+    REQUIRED_DLLS = ['cudart64_110', 'curand64_10', 'lua51-backend', 'PDBReaderLib', 'xplusbackend']
     LIBRARIES = ['xplusbackend']
     DLL_SUFFIX = '.dll'
+    DLL_PREFIX = ''
     # extra_link_args = ['/debug']
 elif sys.platform in ['linux', 'linux2']:
     extra_compile_args = ['-fPIC', '-std=c++14']
+    DLL_PREFIX = 'lib'
     DLL_SUFFIX = '.so'
+    LIBRARY_DIRS = [os.path.join(ROOT_DIR, 'lib')]
+    REQUIRED_DLLS = ['backend']
     # TODO: Set LIBRARY_DIRS
     raise NotImplementedError("Please set the LIB_DIR to the right location - look at the CMake file")
 
@@ -76,7 +82,7 @@ class PrepareCommand(setuptools.Command):
         # Move DLLs (or shared objects) so they can be included in the package.
         print('Copying necessary DLLs')
         for dll in REQUIRED_DLLS:
-            dll_filename = dll + DLL_SUFFIX
+            dll_filename = DLL_PREFIX + dll + DLL_SUFFIX
             shutil.copy(os.path.join(LIBRARY_DIRS[0], dll_filename), 'dplus')
 
 

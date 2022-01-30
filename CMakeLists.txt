@@ -55,25 +55,23 @@ aux_source_directory(${dplus_SOURCE_DIR}/PDBReaderLib backend_files_pdb)
 add_executable(debye DebyeCalculator/DebyeCalculator.cpp ${backend_files_pdb})
 target_link_libraries(debye backend ${Boost_LIBRARIES} dl pthread)
 
-# GetAllMetadata
-aux_source_directory(Backend/CommandLine/GetAllMetadata getallmetadata_files)
-add_executable(getallmetadata ${getallmetadata_files})
-target_link_libraries(getallmetadata backend ${Boost_LIBRARIES} dl pthread)
+# # GetAllMetadata
+# aux_source_directory(Backend/CommandLine/GetAllMetadata getallmetadata_files)
+# add_executable(getallmetadata ${getallmetadata_files})
+# target_link_libraries(getallmetadata backend ${Boost_LIBRARIES} dl pthread)
 
 
-# Generate
-aux_source_directory(Backend/CommandLine/Generate generate_files)
-add_executable(generate ${generate_files})
-target_link_libraries(generate backend ${Boost_LIBRARIES} dl pthread)
+# # Generate
+# aux_source_directory(Backend/CommandLine/Generate generate_files)
+# add_executable(generate ${generate_files})
+# target_link_libraries(generate backend ${Boost_LIBRARIES} dl pthread)
 
 
 
-# CheckCapabilities
-aux_source_directory(Backend/CommandLine/CheckCapabilities checkCapabilities_files)
-add_executable(checkCapabilities ${checkCapabilities_files})
-target_link_libraries(checkCapabilities backend ${Boost_LIBRARIES} dl pthread)
-
-
+# # CheckCapabilities
+# aux_source_directory(Backend/CommandLine/CheckCapabilities checkCapabilities_files)
+# add_executable(checkCapabilities ${checkCapabilities_files})
+# target_link_libraries(checkCapabilities backend ${Boost_LIBRARIES} dl pthread)
 
 target_link_libraries(pdbgen backend dl)
 
