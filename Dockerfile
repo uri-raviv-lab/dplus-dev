@@ -39,7 +39,7 @@ RUN cp /src/build/debye /output
 FROM quay.io/pypa/manylinux_2_24_x86_64 AS python
 WORKDIR /src/PythonInterface
 
-COPY --from=cplusplus /output/* /src/PythonInterface/lib 
+COPY --from=cplusplus /output /src/PythonInterface/lib 
 COPY ./PythonInterface/requirements.txt /src/PythonInterface/requirements.txt
 # Install all requirements for all Python versions
 RUN /opt/python/cp37-cp37m/bin/pip install -r requirements.txt
@@ -64,8 +64,8 @@ RUN /opt/python/cp37-cp37m/bin/pip wheel .
 RUN /opt/python/cp39-cp39/bin/pip wheel .
 RUN /opt/python/cp310-cp310/bin/pip wheel .
 
-RUN mkdir /wheels
-RUN find . -name "dplus_api*whl" -exec auditwheel repair {} -w /wheels \;
+# RUN mkdir /wheels
+# RUN find . -name "dplus_api*whl" -exec auditwheel repair {} -w /wheels \;
 
 # Have an entrypoint that allows further work on the container, until this Docker file is complete
 ENTRYPOINT [ "/bin/bash" ]

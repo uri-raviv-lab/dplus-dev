@@ -15,6 +15,7 @@ with open(os.path.join(os.path.dirname(__file__), 'LICENSE.txt')) as license:
 
 DEBUG = True # '--with-debug' in sys.argv
 ROOT_DIR = os.path.dirname(os.path.dirname(__file__))  # This is the project's root dir
+API_DIR = os.path.dirname(__file__)
 INCLUDE_DIRS = [ROOT_DIR, os.path.join(ROOT_DIR, 'Common')]
 LIBRARY_DIRS = [os.path.join(ROOT_DIR, "x64", "ReleaseWithDebugInfo" if DEBUG else "Release")]
 REQUIRED_DLLS = ['cudart64_110', 'curand64_10', 'lua51-backend', 'PDBReaderLib', 'xplusbackend']
@@ -33,10 +34,9 @@ elif sys.platform in ['linux', 'linux2']:
     extra_compile_args = ['-fPIC', '-std=c++14']
     DLL_PREFIX = 'lib'
     DLL_SUFFIX = '.so'
-    LIBRARY_DIRS = [os.path.join(ROOT_DIR, 'lib')]
+    LIBRARY_DIRS = [os.path.join(API_DIR, 'lib')]
+    LIBRARIES = ['backend']
     REQUIRED_DLLS = ['backend']
-    # TODO: Set LIBRARY_DIRS
-    raise NotImplementedError("Please set the LIB_DIR to the right location - look at the CMake file")
 
 # allow setup.py to be run from any path
 os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
