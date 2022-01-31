@@ -41,7 +41,8 @@ jobs:
       - name: Install boost
         run: |
           Invoke-WebRequest https://boost.teeks99.com/bin/1.77.0/boost_1_77_0-msvc-14.2-64.exe
-          ./boost_1_77_0-msvc-14.2-64.exe /DIR=boost /SILENT
+          dir
+          .\boost_1_77_0-msvc-14.2-64.exe /DIR=boost /SILENT
       - name: Check boost
         env:
           BOOST_ROOT: ${{ github.workspace }}/boost
