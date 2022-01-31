@@ -45,7 +45,11 @@ jobs:
           boost_version: 1.78.0
           boost_install_dir: C:\boost
           platform_version: 2019
-          toolset: msvc          
+          toolset: msvc
+      - name: Check boost
+        run: |
+          dir c:\boost\boost
+          dir c:\boost\boost\boost
       - name: Set up CUDA
         uses: Jimver/cuda-toolkit@v0.2.5
         id: cuda-toolkit
