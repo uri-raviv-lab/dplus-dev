@@ -87,15 +87,9 @@ class FitRunner():
             if self.cur_thread: 
                 is_alive = self.cur_thread.is_alive()
                 stopped = self.cur_thread.is_stopped
-                # if stopped:
-                #     self.cur_thread.join()
-                # if stopped and is_alive:
-                #     self.cur_thread.join()
                 if is_alive and not stopped: # and not :
                     result = {"isRunning": True, "progress": 0.0, "code": -1, "message": ""}
                 else:
-                    # if self.cur_thread.stopped:
-                    #     result = {"isRunning": False, "progress": 0.0, "code": 0, "message": "job stop run"}
                     if stopped:
                         result = {"error": {"code": 22, "message": "job stop run"}}
                     else:
@@ -110,28 +104,3 @@ class FitRunner():
     def stop(self):
         # https://stackoverflow.com/a/36499538/10787867
         self.cur_thread.raise_exception()
-
-        # self.cur_thread.stop_thread = True
-        
-
-"""
-import threading
-import time
- 
-def run(stop):
-    while True:
-        print('thread running')
-        if stop():
-                break
-                 
-def main():
-        stop_threads = False
-        t1 = threading.Thread(target = run, args =(lambda : stop_threads, ))
-        t1.start()
-        time.sleep(1)
-        stop_threads = True
-        t1.join()
-        print('thread killed')
-main()
-
-"""
