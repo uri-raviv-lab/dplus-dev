@@ -40,9 +40,10 @@ jobs:
         uses: actions/checkout@v2
       - name: Install boost
         run: |
-          Invoke-WebRequest https://boost.teeks99.com/bin/1.77.0/boost_1_77_0-msvc-14.2-64.exe
+          Invoke-WebRequest https://boost.teeks99.com/bin/1.77.0/boost_1_77_0-msvc-14.2-64.exe -OutFile boost-setup.exe
           dir
-          .\boost_1_77_0-msvc-14.2-64.exe /DIR=boost /SILENT
+          .\boost-setup.exe /DIR=boost /SILENT | Out-Null
+          move boost\lib64-msvc-14.2 boost\lib64
       - name: Check boost
         env:
           BOOST_ROOT: ${{ github.workspace }}/boost
