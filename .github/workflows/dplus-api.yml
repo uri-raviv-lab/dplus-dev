@@ -41,7 +41,6 @@ jobs:
       - name: Install boost
         run: |
           Invoke-WebRequest https://boost.teeks99.com/bin/1.77.0/boost_1_77_0-msvc-14.2-64.exe -OutFile boost-setup.exe
-          dir
           .\boost-setup.exe /DIR=boost /SILENT | Out-Null
           move boost\lib64-msvc-14.2 boost\lib64
       - name: Check boost
@@ -55,7 +54,6 @@ jobs:
         with:
           cuda: '11.5.1'
           method: 'network'
-          sub-packages: '["nvcc", "visual_studio_integration"]'
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v1.1          
       - name: Compile Backend
