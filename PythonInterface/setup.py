@@ -15,6 +15,7 @@ with open(os.path.join(os.path.dirname(__file__), 'LICENSE.txt')) as license:
 
 DEBUG = True # '--with-debug' in sys.argv
 ROOT_DIR = os.path.dirname(os.path.dirname(__file__))  # This is the project's root dir
+API_DIR = os.path.dirname(__file__)
 INCLUDE_DIRS = [ROOT_DIR, os.path.join(ROOT_DIR, 'Common')]
 LIBRARY_DIRS = [os.path.join(ROOT_DIR, "x64", "ReleaseWithDebugInfo" if DEBUG else "Release")]
 REQUIRED_DLLS = ['cudart64_110', 'curand64_10', 'lua51-backend', 'PDBReaderLib', 'xplusbackend']
@@ -23,14 +24,19 @@ extra_compile_args = []
 extra_link_args = []
 if sys.platform == 'win32':
     extra_compile_args = ['/Ox'] if not DEBUG else []
+    LIBRARY_DIRS = [os.path.join(ROOT_DIR, "x64", "ReleaseWithDebugInfo" if DEBUG else "Release")]
+    REQUIRED_DLLS = ['cudart64_110', 'curand64_10', 'lua51-backend', 'PDBReaderLib', 'xplusbackend']
     LIBRARIES = ['xplusbackend']
     DLL_SUFFIX = '.dll'
+    DLL_PREFIX = ''
     # extra_link_args = ['/debug']
 elif sys.platform in ['linux', 'linux2']:
     extra_compile_args = ['-fPIC', '-std=c++14']
+    DLL_PREFIX = 'lib'
     DLL_SUFFIX = '.so'
-    # TODO: Set LIBRARY_DIRS
-    raise NotImplementedError("Please set the LIB_DIR to the right location - look at the CMake file")
+    LIBRARY_DIRS = [os.path.join(API_DIR, 'lib')]
+    LIBRARIES = ['backend']
+    REQUIRED_DLLS = ['backend']
 
 # allow setup.py to be run from any path
 os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
@@ -76,7 +82,7 @@ class PrepareCommand(setuptools.Command):
         # Move DLLs (or shared objects) so they can be included in the package.
         print('Copying necessary DLLs')
         for dll in REQUIRED_DLLS:
-            dll_filename = dll + DLL_SUFFIX
+            dll_filename = DLL_PREFIX + dll + DLL_SUFFIX
             shutil.copy(os.path.join(LIBRARY_DIRS[0], dll_filename), 'dplus')
 
 
