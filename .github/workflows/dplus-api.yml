@@ -45,9 +45,6 @@ jobs:
           boost_version: 1.78.0
           platform_version: 2019
           toolset: msvc
-      - name: Check boost
-        run: |
-          dir ${{ steps.install-boost.outputs.BOOST_ROOT }}
       - name: Set up CUDA
         uses: Jimver/cuda-toolkit@v0.2.5
         id: cuda-toolkit
@@ -55,6 +52,8 @@ jobs:
           cuda: '11.5.1'
           method: 'network'
           sub-packages: '["nvcc", "visual_studio_integration"]'
+      - name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@v1.1          
       - name: Compile Backend
         env:
           BOOST_ROOT: ${{ steps.install-boost.outputs.BOOST_ROOT }}
