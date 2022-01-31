@@ -6,13 +6,14 @@ project (dplus C CXX CUDA)
 
 find_package(CUDA 11 REQUIRED)
 set (CUDA_NVCC_FLAGS -std=c++14 -lcurand -lcublas -lcudart --generate-code --generate-code arch=compute_52,code=sm_52)
+set (CUDA_RUNTIME_LIBRARY Static)
 
 set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-march=native -fPIC")
 #set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-fopenmp")
 
-set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} "-march=native")
+set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} "-march=native -fPIC")
 
-#set(Boost_USE_STATIC_LIBS   OFF)
+set(Boost_USE_STATIC_LIBS OFF)
 set(Boost_USE_MULTITHREADED ON)
 find_package(Boost COMPONENTS system filesystem thread program_options REQUIRED)
 
@@ -24,6 +25,8 @@ find_package(Boost COMPONENTS system filesystem thread program_options REQUIRED)
 # Since ubuntu 14.04 is stuck at cmake 2.8, we'll just have to ignore these warnings for now.
 # Other option: try and remove the -std=c++11 flag (definition) from C projects (lua)
 # add_definitions(-std=c++14)
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 
 

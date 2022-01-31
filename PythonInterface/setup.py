@@ -13,7 +13,20 @@ with open(os.path.join(os.path.dirname(__file__), 'README.md')) as readme:
 with open(os.path.join(os.path.dirname(__file__), 'LICENSE.txt')) as license:
     LICENSE = license.read()
 
-DEBUG = True # '--with-debug' in sys.argv
+# On Windows, DEBUG means using the ReleaseWithDebugInfo DLLs, which allow debugging of the
+# backend inside Visual Studio. On Linux it has no effect.
+#
+# There is no reasonable way to pass arguments to bdist_wheel, so on Windows, DEBUG is set to
+# True unless the environment variable DPLUS_API_DEBUG is set to NO.
+
+if sys.platform == 'win32':
+    debug_env = os.environ.get('DPLUS_API_DEBUG', 'TRUE')
+    DEBUG = debug_env.upper() != 'NO'
+    print('dplus-api Debug mode: ', DEBUG)
+else:
+    DEBUG = False
+
+
 ROOT_DIR = os.path.dirname(os.path.dirname(__file__))  # This is the project's root dir
 API_DIR = os.path.dirname(__file__)
 INCLUDE_DIRS = [ROOT_DIR, os.path.join(ROOT_DIR, 'Common')]
@@ -24,19 +37,14 @@ extra_compile_args = []
 extra_link_args = []
 if sys.platform == 'win32':
     extra_compile_args = ['/Ox'] if not DEBUG else []
-    LIBRARY_DIRS = [os.path.join(ROOT_DIR, "x64", "ReleaseWithDebugInfo" if DEBUG else "Release")]
+    LIBRARIES_DIR = os.path.join(ROOT_DIR, "x64", "ReleaseWithDebugInfo" if DEBUG else "Release")
     REQUIRED_DLLS = ['cudart64_110', 'curand64_10', 'lua51-backend', 'PDBReaderLib', 'xplusbackend']
     LIBRARIES = ['xplusbackend']
-    DLL_SUFFIX = '.dll'
-    DLL_PREFIX = ''
     # extra_link_args = ['/debug']
-elif sys.platform in ['linux', 'linux2']:
+elif sys.platform == 'linux':
     extra_compile_args = ['-fPIC', '-std=c++14']
-    DLL_PREFIX = 'lib'
-    DLL_SUFFIX = '.so'
-    LIBRARY_DIRS = [os.path.join(API_DIR, 'lib')]
+    LIBRARIES_DIR = os.path.join(API_DIR, 'lib')
     LIBRARIES = ['backend']
-    REQUIRED_DLLS = ['backend']
 
 # allow setup.py to be run from any path
 os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
@@ -57,7 +65,11 @@ class PrepareCommand(setuptools.Command):
         print("running prepare command")
         first_pyx = os.path.join('dplus', 'wrappers', 'wrappers.pyx')
         self.convert_to_c(first_pyx)
-        self.move_dlls()
+
+        if sys.platform == 'win':
+            self.move_dlls()
+        elif sys.platform in ['darwin', 'linux']:
+            self.move_sos()
 
 
     def convert_to_c(self, pyx):
@@ -79,11 +91,21 @@ class PrepareCommand(setuptools.Command):
         self.announce('Converted %s to C++' % pyx)
 
     def move_dlls(self):
-        # Move DLLs (or shared objects) so they can be included in the package.
+        if sys.platform != 'win':
+            raise NotImplemented('move_dlls is Windows specific')
+        # Move DLLs so they can be included in the package.
         print('Copying necessary DLLs')
         for dll in REQUIRED_DLLS:
             dll_filename = DLL_PREFIX + dll + DLL_SUFFIX
             shutil.copy(os.path.join(LIBRARY_DIRS[0], dll_filename), 'dplus')
+
+    def move_sos(self):
+        if sys.platform not in ['linux', 'darwin']:
+            raise NotImplemented('move_sos only works on Linux and Macs')
+        for filename in os.listdir(LIBRARIES_DIR):
+            full_filename = os.path.join(LIBRARIES_DIR, filename)
+            if os.path.isfile(full_filename):
+                shutil.copy(full_filename, 'dplus')
 
 
 
@@ -91,7 +113,7 @@ setup(
     name='dplus-api',
     version='4.6',
     packages=['dplus'],
-    package_data= { 'dplus': ['*.dll', '*.so' ]},
+    package_data= { 'dplus': ['*.dll'] if sys.platform == 'win32' else ['lib*.so*'] },
 	install_requires=['numpy>=1.10', 'psutil>=5.6.3', 'requests>=2.10.0', 'pyceres>=0.1.0'],
     # include_package_data=True, # If True - ignores the package_data property.
     license=LICENSE,  # example license
@@ -118,7 +140,7 @@ setup(
             ["dplus/wrappers/wrappers.cpp"],
             language='c++',
             include_dirs=INCLUDE_DIRS + [numpy.get_include()],
-            library_dirs=LIBRARY_DIRS,
+            library_dirs=[LIBRARIES_DIR],
             libraries=LIBRARIES,
             extra_compile_args=extra_compile_args,
             extra_link_args=extra_link_args),
