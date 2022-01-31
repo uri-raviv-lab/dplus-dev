@@ -5,6 +5,7 @@ import numpy as np
 import os
 import json
 from dplus.FileReaders import _handle_infinity_for_json, NumpyHandlingEncoder
+import threading
 
 class PyCeresOptimizer:
 
@@ -130,10 +131,8 @@ class PyCeresOptimizer:
         return self._best_results
 
 
-
     @staticmethod
     def fit(calc_input, calc_runner=None, save_amp=False):
-
         if not calc_runner:
             from dplus.CalculationRunner import LocalRunner
             calc_runner = LocalRunner()
@@ -164,7 +163,7 @@ class PyCeresOptimizer:
             json.dump(status_dict, file)
 
     @staticmethod
-    def save_dplus_arrays(best_results, outfile):
+    def save_dplus_arrays(best_results, outfile=None):
         '''
         a function for saving fit results in the bizarre special format D+ expects
         :param outfile:
@@ -175,8 +174,9 @@ class PyCeresOptimizer:
             "ParameterTree": param_tree,
             "Graph": list(best_results.y)
         }
-        with open(outfile, 'w') as file:
-            json.dump(_handle_infinity_for_json(result_dict), file, cls=NumpyHandlingEncoder)
+        if outfile:
+            with open(outfile, 'w') as file:
+                json.dump(_handle_infinity_for_json(result_dict), file, cls=NumpyHandlingEncoder)
 
         return result_dict
 

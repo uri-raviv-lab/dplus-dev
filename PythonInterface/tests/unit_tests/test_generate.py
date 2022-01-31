@@ -10,6 +10,7 @@ exe_directory=r"C:\Users\chana\Source\DPlus\dplus\x64\ReleaseWithDebugInfo"
 sys.path.append(r"C:\Users\chana\Source\DPlus\dplus\PythonInterface")
 from dplus.CalculationInput import CalculationInput
 from dplus.CalculationRunner import LocalRunner, EmbeddedLocalRunner
+from dplus.FitRunner import FitRunner
 
 import numpy as np
 
@@ -27,7 +28,7 @@ def test_2():
     state_file_path = r"C:\Users\chana\Source\DPlus\dplus\PythonInterface\tests\unit_tests\files_for_tests\sphere.state"
     calc_input = CalculationInput.load_from_state_file(state_file_path)
     runner = EmbeddedLocalRunner()
-    runner.generate(calc_input)
+    runner.generate_async(calc_input)
 
     status = runner.get_job_status()
 
@@ -54,8 +55,34 @@ def test_2():
     print(pdb)
 
 
+def test_3():
+    state_file_path = r"C:\Users\chana\Source\DPlus\dplus\PythonInterface\tests\unit_tests\files_for_tests\sphere.state"
+    calc_input = CalculationInput.load_from_state_file(state_file_path)
+    # calc_input.use_gpu = False
+    runner = EmbeddedLocalRunner()
+    res = runner.generate(calc_input)
+    print(res)
+
+def test_fit():
+    input=CalculationInput.load_from_state_file(r'C:\Users\chana\Source\DPlus\dplus\PythonInterface\tests\manual_tests\files\sphere_fixed.state')
+    # C:\Users\chana\Source\DPlus\dplus\PythonInterface\tests\manual_tests\files\uhc.state')
+    runner = FitRunner()
+    runner.fit_async(input)
+    status = runner.get_status()
+    while status.get('isRunning'):
+        status = runner.get_status()
+        print("status:", status)
+        time.sleep(0.5)
+
+    result = runner.get_result()
+    print("done")
+    # print(result.graph)
+
+    
 if __name__ == "__main__":
     # _test_1()
-    test_2()
+    # test_2()
+	# test_3()
+    test_fit()
 
 
