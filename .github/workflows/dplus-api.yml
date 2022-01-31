@@ -33,11 +33,19 @@ jobs:
     runs-on: windows-2019  # Required for Visual Studio 2019
     strategy:
       matrix:
-        python-version: [ '3.7', '3.8', '3.9', '3.10' ]
+        python-version: [ '3.9' ] # [ '3.7', '3.8', '3.9', '3.10' ]
     name: Create the Windows Wheel for Python ${{ matrix.python-version }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+      - name: Install boost
+        uses: MarkusJx/install-boost@v2.1.0
+        id: install-boost
+        with:
+          boost_version: 1.78.0
+          boost_install_dir: C:\boost
+          platform_version: 2019
+          toolset: msvc          
       - name: Set up CUDA
         uses: Jimver/cuda-toolkit@v0.2.5
         id: cuda-toolkit
@@ -45,14 +53,6 @@ jobs:
           cuda: '11.5.1'
           method: 'network'
           sub-packages: '["nvcc", "visual_studio_integration"]'
-      - name: Install boost
-        uses: MarkusJx/install-boost@v2.1.0
-        id: install-boost
-        with:
-          boost_version: 1.77.0
-          boost_install_dir: C:\boost
-          platform_version: 2019
-          toolset: msvc          
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
