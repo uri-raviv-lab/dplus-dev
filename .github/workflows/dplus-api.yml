@@ -39,19 +39,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Install boost
-        uses: MarkusJx/install-boost@v2.1.0
-        id: install-boost
-        with:
-          boost_version: 1.78.0
-          platform_version: 2019
-          toolset: msvc
+        run: |
+          Invoke-WebRequest https://boost.teeks99.com/bin/1.77.0/boost_1_77_0-msvc-14.2-64.exe
+          ./boost_1_77_0-msvc-14.2-64.exe /DIR=boost /SILENT
       - name: Check boost
         env:
-          BOOST_ROOT: ${{ steps.install-boost.outputs.BOOST_ROOT }}
+          BOOST_ROOT: ${{ github.workspace }}/boost
         run: |
-          dir $env:BOOST_ROOT
-          dir $env:BOOST_ROOT\boost
-          dir $env:BOOST_ROOT\boost\filesystem
+          dir $env:BOOST_ROOT/boost/filesystem
       - name: Set up CUDA
         uses: Jimver/cuda-toolkit@v0.2.5
         id: cuda-toolkit
@@ -63,7 +58,7 @@ jobs:
         uses: microsoft/setup-msbuild@v1.1          
       - name: Compile Backend
         env:
-          BOOST_ROOT: ${{ steps.install-boost.outputs.BOOST_ROOT }}
+          BOOST_ROOT: ${{ github.workspace }}/boost
         run: |
           msbuild Dplus2019.sln /p:Configuration=Release /p:Platform=x64
       - name: Setup Python
