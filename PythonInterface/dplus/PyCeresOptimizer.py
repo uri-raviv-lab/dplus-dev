@@ -104,8 +104,6 @@ class PyCeresOptimizer:
             self.options.use_inner_iterations = False
 
     def solve(self): #this function is called "iterate" in D+
-        currentThread = threading.currentThread()
-        # if getattr(currentThread, "stop", False):
         self._best_results = None
         summary = PySolverSummary()
         solve(self.options, self.problem, summary)
