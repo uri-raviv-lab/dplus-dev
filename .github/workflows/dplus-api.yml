@@ -45,6 +45,13 @@ jobs:
           boost_version: 1.78.0
           platform_version: 2019
           toolset: msvc
+      - name: Check boost
+        env:
+          BOOST_ROOT: ${{ steps.install-boost.outputs.BOOST_ROOT }}
+        run: |
+          dir $env:BOOST_ROOT
+          dir $env:BOOST_ROOT\boost
+          dir $env:BOOST_ROOT\boost\filesystem
       - name: Set up CUDA
         uses: Jimver/cuda-toolkit@v0.2.5
         id: cuda-toolkit
