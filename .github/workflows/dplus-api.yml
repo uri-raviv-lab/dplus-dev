@@ -58,7 +58,7 @@ jobs:
         env:
           BOOST_ROOT: ${{ steps.install-boost.outputs.BOOST_ROOT }}
         run: |
-          msbuild Dplus2019.sln /p:Configruation: Release
+          msbuild Dplus2019.sln /p:Configruation=Release
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
