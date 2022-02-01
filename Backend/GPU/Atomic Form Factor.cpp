@@ -1,6 +1,7 @@
 #include "Atomic Form Factor.h"
 
 #include <Eigen/Core>
+#include <iostream>
 
 class internalAtomicFF
 {
@@ -62,6 +63,7 @@ public:
 	void GetAllAFFs(float* allAffs, float q)
 	{
 		const float sqq = (q * q / (100.0f * 157.913670417429737901351855998f));
+		std::cout << as << std::endl;
 		Eigen::ArrayXf uniqueAffs = ((-sqq * bs).exp() * as).colwise().sum().transpose();
 		Eigen::Map<Eigen::ArrayXf> mapToAffs(allAffs, m_numAtoms);
 		Eigen::ArrayXf solventContrast = solventContribution(q);
@@ -202,7 +204,7 @@ protected:
 	const int *m_atomsPerIon;
 	int m_bitCombination;
 	Eigen::ArrayXXf as, bs;
-	Eigen::ArrayXf cs;
+	//Eigen::ArrayXf cs;
 	Eigen::ArrayXf m_ionRads;
 	Eigen::ArrayXcf m_anomFactors;
 

@@ -1490,7 +1490,7 @@ bool PDBAmplitude::SetModel(Workspace& workspace) {
 	return gpuSetPDB(workspace, (const float4 *)&pdb.atomLocs[0], &pdb.sortedCoeffIonInd[0],
 					 pdb.atomLocs.size(), &pdb.sortedCoeffs[0], 
 					 &pdb.atomsPerIon[0],
-					 pdb.sortedCoeffs.size() / 9);
+					 pdb.sortedCoeffs.size() / 10);
 }
 
 bool PDBAmplitude::SetParameters(Workspace& workspace, const double *params, unsigned int numParams) {

@@ -11,7 +11,7 @@
 
 #include "Common.h"
 
-#define NUMBER_OF_ATOMIC_FORM_FACTORS (208 + 8)
+#define NUMBER_OF_ATOMIC_FORM_FACTORS 14//(208 + 8)
 
 using std::vector;
 using std::string;
