@@ -61,6 +61,8 @@ jobs:
           BOOST_ROOT: ${{ github.workspace }}/boost
         run: |
           msbuild Dplus2019.sln /p:Configuration=Release /p:Platform=x64 /t:Backend\Backend:Rebuild
+          dir x64
+          dir x64\Release
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
