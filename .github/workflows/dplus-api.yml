@@ -43,11 +43,6 @@ jobs:
           Invoke-WebRequest https://boost.teeks99.com/bin/1.77.0/boost_1_77_0-msvc-14.2-64.exe -OutFile boost-setup.exe
           .\boost-setup.exe /DIR=boost /SILENT | Out-Null
           move boost\lib64-msvc-14.2 boost\lib64
-      - name: Check boost
-        env:
-          BOOST_ROOT: ${{ github.workspace }}/boost
-        run: |
-          dir $env:BOOST_ROOT/boost/filesystem
       - name: Set up CUDA
         uses: Jimver/cuda-toolkit@v0.2.5
         id: cuda-toolkit
