@@ -432,10 +432,10 @@ class LocalRunner(Runner):
 
         :param  calc_data: an instance of a CalculationInput class
         :rtype: an instance of a CalculationResult class"""
-        job = self._run(calc_data, calculation_type="fit", save_amp=save_amp)
+        job = self.RunningJob(self._session_directory, calculation_type="fit")
         python_fit = PyCeresOptimizer(calc_data, self)
         python_fit.solve()
-        python_fit.save_dplus_arrays(python_fit.best_results, os.path.join(self.session_directory, "data.json"))
+        result_dict = python_fit.save_dplus_arrays(python_fit.best_results, os.path.join(self.session_directory, "data.json"))
         calc_result = FitResult(calc_data, job._get_result(), job)
         return calc_result
 

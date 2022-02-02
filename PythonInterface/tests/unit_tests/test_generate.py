@@ -51,8 +51,8 @@ def test_2():
     ptr = model_ptrs[-1]
     runner.save_amp(ptr, "amp-{}.ampj".format(ptr))
     print("the Amp was saved")
-    pdb = runner.get_pdb(ptr)
-    print(pdb)
+    # pdb = runner.get_pdb(ptr)
+    # print(pdb)
 
 
 def test_3():
