@@ -705,7 +705,6 @@ class WebRunner(Runner):
 class EmbeddedLocalRunner(Runner):
 
     def __init__(self):
-        super().__init__()
         self.wrapper = Backend()
 
     def check_capabilities(self, check_tdr=True):
