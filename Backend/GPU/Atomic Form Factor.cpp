@@ -63,7 +63,7 @@ public:
 	void GetAllAFFs(float* allAffs, float q)
 	{
 		const float sqq = (q * q / (100.0f * 157.913670417429737901351855998f));
-		std::cout << as << std::endl;
+		//std::cout << as << std::endl;
 		Eigen::ArrayXf uniqueAffs = ((-sqq * bs).exp() * as).colwise().sum().transpose();
 		Eigen::Map<Eigen::ArrayXf> mapToAffs(allAffs, m_numAtoms);
 		Eigen::ArrayXf solventContrast = solventContribution(q);
