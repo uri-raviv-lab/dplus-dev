@@ -191,7 +191,7 @@ program_metadata = [
                     ],
                     "params": [
                         "Radius",
-                        "E.D."
+                        "ED"
                     ]
                 },
                 "extraParams": [
@@ -273,7 +273,7 @@ program_metadata = [
                     ],
                     "params": [
                         "Radius",
-                        "E.D."
+                        "ED"
                     ]
                 },
                 "extraParams": [
@@ -346,7 +346,7 @@ program_metadata = [
                     ],
                     "params": [
                         "Width",
-                        "E.D."
+                        "ED"
                     ]
                 },
                 "extraParams": [
@@ -435,7 +435,7 @@ program_metadata = [
                     ],
                     "params": [
                         "Width",
-                        "E.D."
+                        "ED"
                     ]
                 },
                 "extraParams": [
@@ -530,7 +530,7 @@ program_metadata = [
                     ],
                     "params": [
                         "Phase",
-                        "E.D.",
+                        "ED",
                         "Cross Section"
                     ]
                 },

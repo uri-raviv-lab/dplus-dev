@@ -430,7 +430,7 @@ bool LocalFrontend::ExportAmplitude(JobPtr job, ModelPtr model, const wchar_t *f
 {
 	GetAmplitudeCall call(model, filename);
 	_backendCaller->CallBackend(call);
-	ErrorCode	retErr;
+	ErrorCode retErr;
 	retErr = call.GetErrorCode();
 	if (OK == retErr)
 	{
@@ -445,7 +445,7 @@ bool LocalFrontend::SavePDB(JobPtr job, ModelPtr model, const wchar_t *filename)
 	GetPDBCall call(model, filename);
 	_backendCaller->CallBackend(call);
 
-	ErrorCode	retErr;
+	ErrorCode retErr;
 	retErr = call.GetErrorCode();
 	if (OK == retErr)
 	{

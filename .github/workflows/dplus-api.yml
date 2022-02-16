@@ -30,14 +30,32 @@ jobs:
           body: "DPlus API Manylinux Wheels"
 
   windows-wheels:
-    runs-on: windows-latest
+    runs-on: windows-2019  # Required for Visual Studio 2019
     strategy:
       matrix:
-        python-version: [ '3.7', '3.8', '3.9', '3.10' ]
+        python-version: [ '3.8', '3.9', '3.10' ]
     name: Create the Windows Wheel for Python ${{ matrix.python-version }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+      - name: Install boost
+        run: |
+          Invoke-WebRequest https://boost.teeks99.com/bin/1.77.0/boost_1_77_0-msvc-14.2-64.exe -OutFile boost-setup.exe
+          .\boost-setup.exe /DIR=boost /SILENT | Out-Null
+          move boost\lib64-msvc-14.2 boost\lib64
+      - name: Set up CUDA
+        uses: Jimver/cuda-toolkit@v0.2.5
+        id: cuda-toolkit
+        with:
+          cuda: '11.5.1'
+          method: 'network'
+      - name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@v1.1          
+      - name: Compile Backend
+        env:
+          BOOST_ROOT: ${{ github.workspace }}/boost
+        run: |
+          msbuild Dplus2019.sln /p:Configuration=Release /p:Platform=x64 /t:Backend\Backend:Rebuild
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
@@ -50,6 +68,8 @@ jobs:
           pip install wheel
       - name: Create the wheel
         working-directory: PythonInterface
+        env:
+          DPLUS_API_DEBUG: NO
         run: |
           python setup.py prepare
           pip wheel .

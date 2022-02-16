@@ -8,7 +8,7 @@ import numpy as np
 import time
 import math
 from tests.time_tests.utils import TestsGenerateTimer
-class TestGenerateTime():
+class _TestGenerateTime():
 
     def test_time(self, iter, test_folder_path, exp_avg, exp_var, max_per_error):
         assert exp_avg >= 0 , "This doesn't have prev timer value"

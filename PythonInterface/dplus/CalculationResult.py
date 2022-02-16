@@ -9,7 +9,7 @@ class CalculationResult(object):
     Stores the various aspects of the result for further manipulation
     """
 
-    def __init__(self, calc_data, result, job):
+    def __init__(self, calc_data, result, job ):
         '''
 
         :param calc_data: an instance of CalculationInput class
@@ -79,7 +79,8 @@ class CalculationResult(object):
           :param destination_folder: location to copy the amplitude file of the given model_ptr
           :return: File location of the amplitude file
           '''
-        return self._job._get_amp(model_ptr, destination_folder)
+        model_name = self._calc_data.get_model(model_ptr).name
+        return self._job._get_amp(model_ptr, model_name, destination_folder)
 
     def get_amps(self, destination_folder=None):
         '''
@@ -154,7 +155,7 @@ class FitResult(CalculationResult):
     A class for fit calculation results
     '''
 
-    def __init__(self, calc_data, result, job):
+    def __init__(self, calc_data, result, job=None):
         super().__init__(calc_data, result, job)
         self._get_parameter_tree()  # right now just returns value from result.
         self.create_state_results()

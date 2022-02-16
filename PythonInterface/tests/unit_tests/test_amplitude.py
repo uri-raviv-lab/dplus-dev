@@ -182,7 +182,7 @@ def test_interpolation():
         try:
             output = amp.get_interpolation(*_input)
             expected = my_func(*_input)
-            assert (output.real, output.imag) == pytest.approx((expected.real, expected.imag), rel=1e-1)
+            assert (output.real, output.imag) == pytest.approx((expected.real, expected.imag), rel=1e-3)
         except:
             raise ErrorException(output, expected)
 
@@ -190,7 +190,7 @@ def test_interpolation():
         try:
             output = amp.get_interpolation(*_input)
             expected = my_func(*sph2cart(*_input))
-            assert (output.real, output.imag) == pytest.approx((expected.real, expected.imag), rel=1e-1)
+            assert (output.real, output.imag) == pytest.approx((expected.real, expected.imag), rel=1e-3)
         except:
             raise ErrorException(output, expected)
 
@@ -227,6 +227,42 @@ def test_interpolation():
     # input4 = [1, 1, 1]
     # check(input4)
 
+def test_interpolation_2():
+    from dplus.Amplitudes import Amplitude
+
+    def my_func(q, theta, phi):
+        return np.complex64(q + 1 + 0.0j)
+
+    a = Amplitude(80, 7.5)
+    a.fill(my_func)
+
+    q_list = [1, 2, 3]
+    theta = 3
+    phi = 6
+    output_intrp_arr = a.get_interpolation(q_list, theta, phi)
+    expected_arr = []
+    for q in q_list:
+        expected_arr.append(my_func(q, theta, phi))
+    assert (output_intrp_arr[0].real,output_intrp_arr[0].imag, output_intrp_arr[1].real, output_intrp_arr[1].imag,
+            output_intrp_arr[2].real, output_intrp_arr[2].imag) == pytest.approx((expected_arr[0].real, expected_arr[0].imag,
+                                                                                  expected_arr[1].real, expected_arr[1].imag,
+                                                                                  expected_arr[2].real, expected_arr[2].imag), abs=1e-2)
+
+def test_interpolation_3():
+    from dplus.Amplitudes import Amplitude
+
+    def my_func(q, theta, phi):
+        return np.complex64(q + 1 + 0.0j)
+
+    a_dense = Amplitude(60, 4)
+    a_dense.fill(my_func)
+    a_sparse = Amplitude(30,4)
+    a_sparse.fill(my_func)
+
+    r = a_dense.helper_grid.angles_from_index(112495)
+    intrp_amp = a_sparse.get_interpolation(*r)
+    expected = a_dense.complex_amplitude_array[112495][0]
+    assert (intrp_amp.real, intrp_amp.imag) == pytest.approx((expected.real, expected.imag), abs=1e-2)
 
 def test_use_grid():
     state_file = os.path.join(test_dir, "check_use_grid.state")

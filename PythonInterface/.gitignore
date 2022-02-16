@@ -7,6 +7,10 @@ dist/
 *egg-info/
 *.cpp
 *.h
+*.pdb
+env*local_test_settings.py
+*test_session*
+CythonGrid*.pyddplus/*.dll
 local_test_settings.py
 *test_session*
-CythonGrid*.pyd
+CythonGrid.*.pyd

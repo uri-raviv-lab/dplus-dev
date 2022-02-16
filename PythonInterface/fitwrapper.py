@@ -2,7 +2,7 @@ import sys
 import os
 from dplus.CalculationRunner import LocalRunner
 from dplus.CalculationInput import FitInput
-from dplus.Fit import FitRunner
+from dplus.FitRunner import FitRunner
 
 if __name__ == '__main__':
     args = sys.argv[1:]
