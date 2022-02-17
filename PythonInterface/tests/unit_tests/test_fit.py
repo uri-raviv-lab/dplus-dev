@@ -9,7 +9,7 @@ import sys
 exe_directory=r"C:\Users\chana\Source\DPlus\dplus\x64\ReleaseWithDebugInfo"
 
 from dplus.CalculationInput import CalculationInput
-from dplus.CalculationRunner import LocalRunner, EmbeddedLocalRunner
+from dplus.CalculationRunner import EmbeddedLocalRunner
 
 import numpy as np
 

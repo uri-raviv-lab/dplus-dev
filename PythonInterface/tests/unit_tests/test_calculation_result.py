@@ -2,10 +2,9 @@ import json
 import pytest
 import struct
 from dplus.CalculationInput import CalculationInput
-from dplus.CalculationRunner import LocalRunner
+from dplus.CalculationRunner import EmbeddedLocalRunner
 from tests.reviewer_tests.utils import Expected
 from tests.unit_tests.conftest import test_dir
-from tests.test_settings import exe_directory, session
 from dplus.DataModels.models import UniformHollowCylinder
 import os
 import tempfile
@@ -19,7 +18,7 @@ class TestGenerateResolution():
     def test_resolution_function(self):
         state_file = os.path.join(test_dir, r"files_for_resolution_function\Stacked_Slabs.state")
         input = CalculationInput.load_from_state_file(state_file)
-        runner = LocalRunner(exe_directory, session)
+        runner = EmbeddedLocalRunner()
         input.DomainPreferences.apply_resolution = True
         input.DomainPreferences.resolution_sigma = 0.02
         result = runner.generate(input)
@@ -28,7 +27,7 @@ class TestGenerateResolution():
     def load_file_with_resolution(self, file_name):
         state_file = os.path.join(test_dir, file_name+ ".state")
         input = CalculationInput.load_from_state_file(state_file)
-        runner = LocalRunner(exe_directory, session)
+        runner = EmbeddedLocalRunner()
 
         result = runner.generate(input)
         expected = Expected(os.path.join(test_dir, file_name + "TestStandard.out"))

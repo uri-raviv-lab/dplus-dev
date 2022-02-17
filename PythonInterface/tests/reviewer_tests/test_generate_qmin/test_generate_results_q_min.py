@@ -6,10 +6,10 @@ import struct
 import pytest
 
 from dplus.CalculationInput import CalculationInput
-from dplus.CalculationRunner import LocalRunner
+from dplus.CalculationRunner import EmbeddedLocalRunner
 from tests.old_stuff.fix_state_files import fix_file
 from tests.reviewer_tests.utils import DplusProps
-from tests.test_settings import session, exe_directory, tests_dir
+from tests.test_settings import tests_dir
 import numpy as np
 
 
@@ -31,7 +31,7 @@ class TestGenerateRun(DplusProps):
         test_file=os.path.join(tests_dir, 'unit_tests', 'files_for_tests', 'sphere_GPU.state')
         input = CalculationInput.load_from_state_file(test_file)
         input.use_gpu = True
-        api = LocalRunner(exe_directory, session_directory=os.path.join(session, "gpu_test"))
+        api = EmbeddedLocalRunner()
         result = api.generate(input)
         assert len(result.graph)>0
 
@@ -43,7 +43,7 @@ class TestGenerateRun(DplusProps):
         input._fix_use_grid()
         #then run the program:
         session_folder=self.get_session_folder(test_folder_path)
-        api = LocalRunner(exe_directory, session_folder)
+        api = EmbeddedLocalRunner()
         result = api.generate(input)
         #and finally, a sanity check on the results
         if result.error["code"]!=0:
