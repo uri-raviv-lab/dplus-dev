@@ -5,6 +5,8 @@ import os
 import zipfile
 import pathlib
 import cmath
+from tqdm import tqdm
+
 try:
     from dplus.wrappers import CJacobianSphereGrid
 except:
@@ -443,25 +445,36 @@ class Amplitude():
                                  .format(q_min=self.helper_grid.q_min, q_max=self.helper_grid.q_max,min_val=min(q_list), max_val=max(q_list)))
         except TypeError:
             raise TypeError("The q values should include only numbers")
-        for q in q_list:
+        for q in tqdm(q_list):
             interp_list.append(self.__get_interpolation_q1(q, theta, phi))
         return interp_list
 
     def get_intensity(self, q_list, epsilon=1e-3, seed=0, max_iter=1000000):
         """
         DomainModel::CalculateIntensityVector
+        calculate the intensity for a vector of q's
         :param q_list: list-double list of q's
+        :param epsilon: the allowed error
+        :param seed: start seed point ( for the randomization)
+        :param max_iter: max iteration for the optimization, for each q.
+        :return: a vector of the intensity each q from the list.
         """
         arr_intensity = []
-        for q in q_list:
+        for q in tqdm(q_list):
             arr_intensity.append(self.grid.get_intensity(q, epsilon, seed, max_iter))
         return arr_intensity
 
     def calculate_intensity(self, q, epsilon=1e-3, seed=0, max_iter=1000000): # max_iter = 'iterations' on c++
+        """
+        calculate the intensity for one q point - DomainModel::DefaultCPUCalculation
+        :param q: the point (x)
+        :param epsilon: the allowed error
+        :param seed: start seed point ( for the randomization)
+        :param max_iter: max iteration for the optimization
+        :return: the intensity for the q point
+        """
         return self.grid.get_intensity(q, epsilon, seed, max_iter)
-        """
-        DomainModel::DefaultCPUCalculation
-        """
+        # you can see below the implementation of the function DomainModel::DefaultCPUCalculation in python. It is much more slower than cython.
         # https://www.tutorialspoint.com/complex-numbers-in-python
         min_iter = 20
         res = 0.0

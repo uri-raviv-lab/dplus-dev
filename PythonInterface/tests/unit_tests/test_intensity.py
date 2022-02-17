@@ -35,8 +35,8 @@ def test_easy_1():
 def test_easy_2():
 
     sp = Sphere()
-    sp.layer_params[1]['Radius'].value = 3
-    sp.layer_params[1]['E.D.'].value = 356
+    sp.layer_params[1]['radius'].value = 3
+    sp.layer_params[1]['ed'].value = 356
     sp.location_params['z'].value = 10.5
     sp.name = 'my_sphere'
 
@@ -63,7 +63,7 @@ def test_hard_1():
 
     my_amp = Amplitude.load(file_dir + r'\intensity\1jff.ampj')
     q = np.linspace(0, my_amp.grid.q_max, calc_in.DomainPreferences.generated_points + 1)
-    result = my_amp.get_intensity(q)
+    result = my_amp.get_intensity(q, epsilon=1e-4)
     plt.semilogy(result, label='result')
     plt.semilogy(calc_res.y, label='calc_res')
     plt.legend()
