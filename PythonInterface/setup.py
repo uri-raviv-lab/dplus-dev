@@ -66,7 +66,7 @@ class PrepareCommand(setuptools.Command):
         first_pyx = os.path.join('dplus', 'wrappers', 'wrappers.pyx')
         self.convert_to_c(first_pyx)
 
-        if sys.platform == 'win':
+        if sys.platform == 'win32':
             self.move_dlls()
         elif sys.platform in ['darwin', 'linux']:
             self.move_sos()
@@ -91,12 +91,12 @@ class PrepareCommand(setuptools.Command):
         self.announce('Converted %s to C++' % pyx)
 
     def move_dlls(self):
-        if sys.platform != 'win':
+        if sys.platform != 'win32':
             raise NotImplemented('move_dlls is Windows specific')
         # Move DLLs so they can be included in the package.
         print('Copying necessary DLLs')
-        for dll in REQUIRED_DLLS:
-            dll_filename = DLL_PREFIX + dll + DLL_SUFFIX
+        for dll_filename in REQUIRED_DLLS:
+            dll_filename = dll_filename + '.dll'
             shutil.copy(os.path.join(LIBRARY_DIRS[0], dll_filename), 'dplus')
 
     def move_sos(self):
