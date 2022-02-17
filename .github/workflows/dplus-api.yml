@@ -6,7 +6,7 @@ on:
 
 jobs:
   manylinux-wheels:
-    runs-on: windows-2019
+    runs-on: ubuntu-latest
     name: Create the manylinux wheels for all supported Python versions
     steps:
       - name: Checkout
