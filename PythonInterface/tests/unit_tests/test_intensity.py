@@ -63,12 +63,12 @@ def test_hard_1():
 
     my_amp = Amplitude.load(file_dir + r'\intensity\1jff.ampj')
     q = np.linspace(0, my_amp.grid.q_max, calc_in.DomainPreferences.generated_points + 1)
-    result = my_amp.get_intensity(q, epsilon=1e-4)
+    result = my_amp.get_intensity(q, epsilon=1e-3)
     plt.semilogy(result, label='result')
     plt.semilogy(calc_res.y, label='calc_res')
     plt.legend()
     plt.show()
-    rel = abs(np.array(result) - np.array(list(calc_res.y)))/np.array(list(calc_res.y))
+    rel = abs(np.array(result) - np.array(list(calc_res.y)))/np.array(result)  # np.array(list(calc_res.y))
     print(max(rel))
     assert result == pytest.approx(calc_res.y, rel=0.08)
 
