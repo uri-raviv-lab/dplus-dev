@@ -46,11 +46,16 @@ You should also compile the Python dplus API. This requires having first built t
     pip install -r requirements.txt
     pip install wheel
     python setup.py prepare
+    python setup.py build
+
+This will create files in the build directory. You will need to copy the file wrappers.pyd from the build/lib/dplus directory into the dplus directory in order to be able to run tests.
+
+if you run
     python setup.py bdist_wheel
 
 You will have the wheel in the dist folder.
 
-The dplus-api is also built automatically for Windows and Linux if you push a tag starting with `v` to github.
+Note: The dplus-api is also built automatically for Windows and Linux if you push a tag starting with `v` to github.
 
 ## Compiling the Frontend
 The Frontend project PythonBackend has embedded resources, one of them is the dplus-api wheel. If you have created a new wheel, you should change the embedded resource in this project. Then build the solution.
