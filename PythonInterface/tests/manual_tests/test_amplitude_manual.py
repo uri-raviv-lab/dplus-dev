@@ -4,9 +4,9 @@ from os.path import abspath
 import numpy as np
 import pytest
 
-
-
-root_path=os.path.dirname(abspath(__file__))
+root_path = os.path.dirname(abspath(__file__))
+process_path = r'..\test_session\files'
+os.makedirs(process_path, exist_ok=True)
 
 def test_conversion():
     from dplus.Amplitudes import sph2cart, cart2sph
@@ -41,7 +41,7 @@ def test_amplitude_headers():
     a = Amplitude(80, 7.5)
     a.description= "An example amplitude"
     a.fill(my_func)
-    # a.save(os.path.join(root_path, "files", "myamp2.ampj"))
+    a.save(os.path.join(process_path, "myamp2.ampj"))
 
     input = CalculationInput()
     amp_model = input.add_amplitude(a)
@@ -58,6 +58,7 @@ def test_amplitude_interpolation_1():
 
     a = Amplitude(80, 7.5)
     a.fill(my_func)
+    a.save(os.path.join(process_path, "myamp2.ampj"))
 
     output_intrp = a.get_interpolation(5, 3, 6)
     expected = my_func(5, 3, 6)
@@ -112,6 +113,7 @@ def test_dplus_models_sphere():
     sphere = UniformSphere()
     a = Amplitude(50, 5)
     a.fill(sphere.calculate)
+    a.save(os.path.join(process_path, "sphere.ampj"))
     input = CalculationInput()
     amp_model = input.add_amplitude(a)
     amp_model.centered = True
@@ -171,6 +173,7 @@ def test_dplus_models_slab():
     symSlab = SymmetricSlab()
     a = Amplitude(80, 7.5)
     a.fill(symSlab.calculate)
+    a.save(os.path.join(process_path, 'slab.ampj'))
 
     input = CalculationInput()
     amp_model = input.add_amplitude(a)
