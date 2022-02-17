@@ -87,6 +87,8 @@ RUN mkdir /wheels
 ENV LD_LIBRARY_PATH=/src/PythonInterface/dplus
 RUN find . -name "dplus_api*whl" -exec auditwheel repair {} -w /wheels \;
 
+ENTRYPOINT [ "cp", "-r", "/wheels", "/external/dplus-api-wheels" ]
+
 # FROM ubuntu:20.04 AS test
 # RUN apt update
 # RUN apt upgrade -y
@@ -100,7 +102,7 @@ RUN find . -name "dplus_api*whl" -exec auditwheel repair {} -w /wheels \;
 
 # COPY --from=python /wheels /wheels
 
-FROM python:3.9-bullseye AS test
-COPY --from=python /wheels /wheels
+# FROM python:3.9-bullseye AS test
+# COPY --from=python /wheels /wheels
 
-ENTRYPOINT [ "/bin/bash" ]
+# ENTRYPOINT [ "/bin/bash" ]
