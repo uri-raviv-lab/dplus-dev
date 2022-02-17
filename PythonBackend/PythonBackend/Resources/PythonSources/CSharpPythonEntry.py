@@ -129,13 +129,13 @@ class CSharpPython:
                         self.async_fit = None
                     self.add_output()
                 else:
-                    if not self.async_fit:
-                        self.cur_results = None
-                        self.cur_calc_input = None
+                    self.cur_results = None
+                    self.cur_calc_input = None
+                    if not run_fit:
                         self.calc_runner.stop_generate()
                         result = self.process_result()
                     else:
-                        self.async_fit = None
+                        self.fit_runner.stop()
 
             elif "GetAmplitude" in json2run["function"]:
                 args = json2run["args"]

@@ -165,7 +165,7 @@
     <EmbeddedResource Include="Resources\Wheels\psutil-5.8.0-cp39-cp39-win_amd64.whl" />
     <EmbeddedResource Include="Resources\Wheels\requests-2.26.0-py2.py3-none-any.whl" />
     <EmbeddedResource Include="Resources\Wheels\urllib3-1.26.7-py2.py3-none-any.whl" />
-    <EmbeddedResource Include="Resources\Wheels\dplus_api-4.6-cp39-cp39-win_amd64.whl" />
+    <EmbeddedResource Include="Resources\Wheels\dplus_api-4.7.0-cp39-cp39-win_amd64.whl" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

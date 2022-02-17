@@ -63,26 +63,8 @@ def test_3():
     res = runner.generate(calc_input)
     print(res)
 
-def test_fit():
-    input=CalculationInput.load_from_state_file(r'C:\Users\chana\Source\DPlus\dplus\PythonInterface\tests\manual_tests\files\sphere_fixed.state')
-    # C:\Users\chana\Source\DPlus\dplus\PythonInterface\tests\manual_tests\files\uhc.state')
-    runner = FitRunner()
-    runner.fit_async(input)
-    status = runner.get_status()
-    while status.get('isRunning'):
-        status = runner.get_status()
-        print("status:", status)
-        time.sleep(0.5)
-
-    result = runner.get_result()
-    print("done")
-    # print(result.graph)
-
     
 if __name__ == "__main__":
     # _test_1()
     # test_2()
 	# test_3()
-    test_fit()
-
-
