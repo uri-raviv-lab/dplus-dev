@@ -6,13 +6,14 @@ from dplus.DataModels.models import Sphere
 from dplus.CalculationRunner import LocalRunner
 import matplotlib.pyplot as plt
 
-file_dir = r'C:\Users\User\Documents\GitHub\dplus-dev\PythonInterface\tests\unit_tests\files_for_tests'
+
+file_dir = r'.\files_for_tests'
 
 def test_easy_1():
 
     sp = Sphere()
-    sp.layer_params[1]['Radius'].value = 3
-    sp.layer_params[1]['E.D.'].value = 356
+    sp.layer_params[1]['radius'].value = 3
+    sp.layer_params[1]['ed'].value = 356
     sp.location_params['z'].value = 10.5
     sp.name = 'my_sphere'
 

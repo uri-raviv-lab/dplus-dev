@@ -5,7 +5,6 @@ import sys
 from setuptools import setup
 from distutils.extension import Extension
 import setuptools
-from setuptools.command.build_ext import build_ext as original_build_ext
 
 with open(os.path.join(os.path.dirname(__file__), 'README.md')) as readme:
     README = readme.read()
@@ -66,7 +65,7 @@ class PrepareCommand(setuptools.Command):
         first_pyx = os.path.join('dplus', 'wrappers', 'wrappers.pyx')
         self.convert_to_c(first_pyx)
 
-        if sys.platform == 'win':
+        if sys.platform == 'win32':
             self.move_dlls()
         elif sys.platform in ['darwin', 'linux']:
             self.move_sos()
