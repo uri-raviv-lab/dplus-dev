@@ -6,10 +6,10 @@ import struct
 import pytest
 
 from dplus.CalculationInput import CalculationInput
-from dplus.CalculationRunner import LocalRunner, WebRunner
+from dplus.CalculationRunner import EmbeddedLocalRunner, WebRunner
 from tests.old_stuff.fix_state_files import fix_file
 from tests.reviewer_tests.utils import DplusProps
-from tests.test_settings import session, exe_directory, tests_dir
+from tests.test_settings import tests_dir
 import numpy as np
 
 web=False
@@ -26,19 +26,18 @@ class TestGenerateRun(DplusProps):
         fixed_state_file = fix_file(state_file)
         input = CalculationInput.load_from_state_file(fixed_state_file)
         input.use_gpu = ("gpu" in test_path)
-        #if input.use_gpu:
-        #    print("gpu")
         return input
 
     def test_GPU(self):
         test_file=os.path.join(tests_dir, 'unit_tests', 'files_for_tests', 'sphere_GPU.state')
         input = CalculationInput.load_from_state_file(test_file)
         input.use_gpu = True
-        api = LocalRunner(exe_directory, session_directory=os.path.join(session, "gpu_test"))
+        api = EmbeddedLocalRunner()
         result = api.generate(input)
         assert len(result.graph)>0
 
-    def save_for_web_tests(self, result, session_folder):
+    def save_result_tests(self, result, test_folder_path):
+        session_folder=self.get_session_folder(test_folder_path)
         os.makedirs(session_folder, exist_ok=True)
         with open(os.path.join(session_folder, "data.json"), 'w') as file:
             json.dump(result._raw_result, file)
@@ -50,14 +49,13 @@ class TestGenerateRun(DplusProps):
         input=self.get_input(test_folder_path)
         input._fix_use_grid()
         #then run the program:
-        session_folder=self.get_session_folder(test_folder_path)
         if web:
             api = WebRunner("http://192.168.18.100/", "06946fe6c6a3acd625dabbc7bdb905940140d8aa")
         else:
-            api=LocalRunner(exe_directory, session_folder)
+            api = EmbeddedLocalRunner()
         result = api.generate(input)
-        if web:
-            self.save_for_web_tests(result, session_folder)
+        
+        self.save_result_tests(result, test_folder_path)
         #and finally, a sanity check on the results
         if result.error["code"]!=0:
             print("Result returned error:", result.error)
