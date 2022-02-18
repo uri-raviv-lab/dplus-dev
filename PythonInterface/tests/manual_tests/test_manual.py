@@ -66,15 +66,15 @@ def test_running_generate_async():
     status=True
     while status:
         try:
-            status_dict = runner.get_status()
+            status_dict = runner.get_job_status()
             status=status_dict['isRunning']
         except:
             status=True
         run_time = datetime.datetime.now() - start_time
-        if run_time > datetime.timedelta(seconds=600):
+        if run_time > datetime.timedelta(seconds=50):
             runner.stop_generate()
             raise TimeoutError("Job took too long")
-    result = runner.get_result(calc_data)
+    result = runner.get_generate_results(calc_data)
     assert len(result.graph) > 0
 
 
