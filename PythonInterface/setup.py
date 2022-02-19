@@ -111,7 +111,7 @@ class PrepareCommand(setuptools.Command):
 
 setup(
     name='dplus-api',
-    version='4.7.0',
+    version='4.7.1',
     packages=['dplus'],
     package_data= { 'dplus': ['*.dll'] if sys.platform == 'win32' else ['lib*.so*'] },
 	install_requires=['numpy>=1.10', 'psutil>=5.6.3', 'requests>=2.10.0', 'pyceres>=0.1.0'],
