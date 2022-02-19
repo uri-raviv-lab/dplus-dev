@@ -16,14 +16,15 @@ jobs:
         run: docker build -f Dockerfile.manylinux .. -t dplus-api-manylinux:latest
       - name: Copy wheels
         working-directory: PythonInterface
-        run: |
-          docker run --rm --name dplus-api-manylinux -v `pwd`:/external dplus-api-manylinux:latest
+        run: docker run --rm --name dplus-api-manylinux -v `pwd`:/external dplus-api-manylinux:latest
+      - name: Check wheel files
+        run: ls -l /external/wheels
       - name: Upload to Release
         id: upload-release-asset
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: PythonInterface/dplus-api-wheels/dplus*.whl
+          file: /external/wheels/dplus*.whl
           file_glob: true
           tag: ${{ github.ref }}
           overwrite: true
