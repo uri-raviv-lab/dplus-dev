@@ -1,5 +1,3 @@
-import json
-import pytest
 import struct
 from dplus.CalculationInput import CalculationInput
 from dplus.CalculationRunner import EmbeddedLocalRunner
