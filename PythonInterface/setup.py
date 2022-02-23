@@ -26,8 +26,7 @@ if sys.platform == 'win32':
 else:
     DEBUG = False
 
-
-ROOT_DIR = os.path.dirname(os.path.dirname(__file__))  # This is the project's root dir
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # This is the project's root dir
 API_DIR = os.path.dirname(__file__)
 INCLUDE_DIRS = [ROOT_DIR, os.path.join(ROOT_DIR, 'Common')]
 LIBRARY_DIRS = [os.path.join(ROOT_DIR, "x64", "ReleaseWithDebugInfo" if DEBUG else "Release")]
