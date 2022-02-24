@@ -20,6 +20,7 @@ public:
 
 	void CheckCapabilities(bool checkTdr);
 	std::string GetAllModelMetadata();
+	void InitializeCache();
 	void InitializeCache(std::string cacheDir);
 	
 	std::string GetJobStatus();

@@ -10,8 +10,7 @@ import tempfile
 
 class TestsGenerateTimer:
 
-    def __init__(self, exe_directory, session):
-        self.exe_directory = exe_directory
+    def __init__(self, session):
         self.session = session
 
     def get_time(self, iterations, fun, *args):

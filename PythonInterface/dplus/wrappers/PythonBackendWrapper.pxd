@@ -9,6 +9,7 @@ cdef extern from r"Backend/Backend/PythonBackendWrapper.h" :
         PythonBackendWrapper()
         void CheckCapabilities(bool checkTdr) except +
         string GetAllModelMetadata() except +
+        void InitializeCache() except +
         void InitializeCache(string cacheDir) except +
 
         string GetJobStatus() except +

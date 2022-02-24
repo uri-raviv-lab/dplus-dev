@@ -3,7 +3,7 @@ import numpy as np
 import time
 import argparse
 import os
-from tests.test_settings import session, exe_directory, tests_dir
+from tests.test_settings import session, tests_dir
 from tests.time_tests.utils import TestsGenerateTimer
 parser = argparse.ArgumentParser(description='create timer configuration file')
 parser.add_argument("--slow", action="store_true", default=False,
@@ -12,8 +12,7 @@ parser.add_argument("--no_gpu", action="store_true", default=False,
                  help="don't run GPU tests")
 parser.add_argument("--no_cpu", action="store_true", default=False,
                  help="don't run CPU tests")
-parser.add_argument('--exe_dir', type=str, default=exe_directory,
-                    help='exe directory ')
+
 parser.add_argument('--session_dir', type=str, default=session,
                     help='sessions directory')
 parser.add_argument('--iter', default=10, type=int,
@@ -54,10 +53,10 @@ def get_files(no_cpu, no_gpu, slow):
 
 run_dirs = get_files(args.no_cpu, args.no_gpu, args.slow)
 
-exe_dir = args.exe_dir
+
 session_dir = args.session_dir
 outfile = os.path.join(os.path.dirname(os.path.realpath(__file__)   ), "timer_configfile.txt")
-timer = TestsGenerateTimer(exe_dir, session_dir)
+timer = TestsGenerateTimer(session_dir)
 with open(outfile, "w") as f:
     for item in run_dirs:
         calc_avg, calc_var = timer.get_time(args.iter, timer.generate_func, item)

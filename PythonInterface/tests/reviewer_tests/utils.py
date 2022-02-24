@@ -4,12 +4,10 @@ import os
 
 from dplus.CalculationInput import CalculationInput
 from dplus.CalculationResult import FitResult, GenerateResult
-from dplus.CalculationRunner import LocalRunner
+from dplus.CalculationRunner import EmbeddedLocalRunner
 from tests.old_stuff.fix_state_files import fix_file
-from tests.test_settings import exe_directory, session
 from dplus.Signal import Signal
-
-LocalAPI = LocalRunner(exe_directory, session)
+from tests.test_settings import session
 
 
 class Expected:
@@ -75,10 +73,11 @@ class DplusProps:
         fixed_state_file = os.path.join(test_path, test_name + "_fixed.state")
         calc_data = CalculationInput.load_from_state_file(fixed_state_file)
         if fit:
+            raise NotImplementedError()
             calc_result = FitResult(calc_data, result, LocalRunner.RunningJob(session_folder))
         else:
             calc_data = self.change_q_min_generate_input(q_min, calc_data)
-            calc_result = GenerateResult(calc_data, result, LocalRunner.RunningJob(session_folder))
+            calc_result = GenerateResult(calc_data, result, job=None)
         return calc_result
 
     def get_expected_state(self, test_path):

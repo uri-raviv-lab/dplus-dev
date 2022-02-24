@@ -10,7 +10,6 @@ from dplus.PyCeresOptimizer import PyCeresOptimizer
 from dplus.CalculationRunner import EmbeddedLocalRunner, WebRunner
 from tests.old_stuff.fix_state_files import fix_file
 from tests.reviewer_tests.utils import DplusProps
-from tests.test_settings import exe_directory
 import numpy as np
 token="7b6b2130920eaa02cd67d346960e6d4819331400"
 

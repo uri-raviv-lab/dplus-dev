@@ -13,6 +13,9 @@ cdef class BackendWrapper:
     def initialize_cache(self, cache_dir):
         self._wrapper.InitializeCache(cache_dir)
 
+    def initialize_cache(self):
+        self._wrapper.InitializeCache()
+
     def start_generate(self, state, useGPU):
         self._wrapper.StartGenerate(state, useGPU)
 

@@ -37,7 +37,7 @@ class TestGenerateRun(DplusProps):
         assert len(result.graph)>0
 
     def save_result_tests(self, result, test_folder_path):
-        session_folder=self.get_session_folder(test_folder_path)
+        session_folder = self.get_session_folder(test_folder_path)
         os.makedirs(session_folder, exist_ok=True)
         with open(os.path.join(session_folder, "data.json"), 'w') as file:
             json.dump(result._raw_result, file)

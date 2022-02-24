@@ -36,21 +36,26 @@ def test_fit_async():
 
 def test_stop():
     input = CalculationInput.load_from_state_file(
-        os.path.join(root_path, "files_for_tests", "sphere.state"))
+        os.path.join(root_path, "files_for_tests", "ampcontaining.state"))
     runner = FitRunner()
     runner.fit_async(input)
     status = runner.get_status()
     t0 = datetime.datetime.now()
+    stopped = False
     while status.get('isRunning', False):
+        if datetime.datetime.now() - t0 > datetime.timedelta(seconds=0.01):
+            runner.stop()
+            stopped = True
+            break
+        time.sleep(0.1)
         status = runner.get_status()
         print("status:", status)
-        if datetime.datetime.now() - t0 > datetime.timedelta(seconds=0.5):
-            runner.stop()
-            print("stop")
-            # break
-        time.sleep(0.1)
 
     status = runner.get_status()
-    result = runner.get_result()
-    print(result.graph)
-    assert not len(result.graph)
+    print("stopped:", stopped)
+    if stopped:
+        print(status)
+        assert status == {"isRunning": False, "progress": 0.0, "code": -1, "message": ""}
+    else:
+        print(status)
+        assert status == {"isRunning": False, "progress": 100.0, "code": 0, "message": ""}
