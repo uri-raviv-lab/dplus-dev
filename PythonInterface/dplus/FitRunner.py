@@ -86,15 +86,15 @@ class FitRunner():
         try:
             if self.cur_thread: 
                 is_alive = self.cur_thread.is_alive()
-                stopped = self.cur_thread.is_stopped
-                if is_alive and not stopped: # and not :
+                # stopped = self.cur_thread.is_stopped
+                if is_alive:  # and not stopped: # and not :
                     result = {"isRunning": True, "progress": 0.0, "code": -1, "message": ""}
                 else:
-                    if stopped:
-                        result = {"error": {"code": 22, "message": "job stop run"}}
-                    else:
-                        result = {"isRunning": False, "progress": 100.0, "code": 0, "message": ""}
-                        self.cur_thread.join()
+                    # if stopped:
+                    #     result = {"error": {"code": 22, "message": "job stop run"}}
+                    # else:
+                    result = {"isRunning": False, "progress": 100.0, "code": 0, "message": ""}
+                    self.cur_thread.join()
             else:
                 result = {"isRunning": False, "progress": 0.0, "code": -1, "message": ""}
         except Exception as ex:
@@ -104,3 +104,6 @@ class FitRunner():
     def stop(self):
         # https://stackoverflow.com/a/36499538/10787867
         self.cur_thread.raise_exception()
+        self.cur_thread.join()
+        if self.cur_thread.is_stopped:
+            self.cur_thread = None
