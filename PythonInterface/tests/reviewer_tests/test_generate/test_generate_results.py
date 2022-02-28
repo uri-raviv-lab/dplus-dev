@@ -59,25 +59,33 @@ class TestGenerateRun(DplusProps):
         #and finally, a sanity check on the results
         if result.error["code"]!=0:
             print("Result returned error:", result.error)
+            assert False
+
+        self.then_test_correct(result, test_folder_path)
+
+    def then_test_correct(self, result, test_folder_path):
+        expected = self.get_expected_signal(test_folder_path)
         assert len(expected.q) == len(result.y)
 
-class TestGenerateCorrect(DplusProps):
-    def _save_out_file(self, test_folder_path):
-        result = self.get_result(test_folder_path)
-        session_folder = self.get_session_folder(test_folder_path)
-        test_name = os.path.basename(os.path.normpath(test_folder_path))
-        result.save_to_out_file(os.path.join(session_folder, test_name + "python_to_out.out"))
-
-    def test_correct(self, test_folder_path):
         try:
-            self._save_out_file(test_folder_path)
+            self._save_out_file(result, test_folder_path)
         except:  # doesn't matter what, we still want the assert
             pass
-        a= self._chi_sq1(test_folder_path)
-        b= self._chi_sq2(test_folder_path)
-        c= self._test_points(test_folder_path)
-        d= self._test_normalized_Rqi(test_folder_path)
-        assert a or b or c or d #the useful information is in the captured stdout call
+
+        a = self._chi_sq1(result, expected)
+        b = self._chi_sq2(result, expected)
+        c = self._test_points(result, expected)
+        d = self._test_normalized_Rqi(result, expected)
+        test_name = self.get_test_name(test_folder_path)
+        if not a:
+            print(test_name, " failed chi sq 1")
+        if not b:
+            print(test_name, " failed chi sq 2")
+        if not c:
+            print(test_name, " failed points test")
+        if not d:
+            print(test_name, " failed normalized Rqi")
+        assert a or b or c or d  # the useful information is in the captured stdout call
 
     def _chi_a_squ(self, result, expected):
         # chi_a^2 = 1/N \sum_i^N [(I^expected_i - I_calculated_i)/\sigam_i]^2
@@ -94,86 +102,66 @@ class TestGenerateCorrect(DplusProps):
         chi_a_sq = sum_i_to_N / N
         return chi_a_sq
 
-    def _chi_sq2(self, test_folder_path):
-        result= self.get_result(test_folder_path)
-        expected= self.get_expected_signal(test_folder_path)
-        chi_a_sq= self._chi_a_squ(result, expected)
-        test= chi_a_sq < expected.chi_square + expected.sigma_chi_square*2
-        if not test:
-            test_name = self.get_test_name(test_folder_path)
-            print(test_name, " failed chi sq 2")
+    def _chi_sq2(self, result, expected):
+
+        chi_a_sq = self._chi_a_squ(result, expected)
+        test = chi_a_sq < expected.chi_square + expected.sigma_chi_square * 2
         return test
 
-
-    def _chi_sq1(self, test_folder_path):
-        result= self.get_result(test_folder_path)
-        expected= self.get_expected_signal(test_folder_path)
-        chi_a_sq= self._chi_a_squ(result, expected)
-        test= chi_a_sq < expected.chi_square + expected.sigma_chi_square*1
-        if not test:
-            test_name = self.get_test_name(test_folder_path)
-            print(test_name, " failed chi sq 1")
+    def _chi_sq1(self, result, expected):
+        chi_a_sq = self._chi_a_squ(result, expected)
+        test = chi_a_sq < expected.chi_square + expected.sigma_chi_square * 1
         return test
 
-    def _test_points(self, test_folder_path):
-        result= self.get_result(test_folder_path)
-        expected= self.get_expected_signal(test_folder_path)
-        failed_sig={
-            1:[],
-            2:[],
-            3:[]
+    def _test_points(self, result, expected):
+        failed_sig = {
+            1: [],
+            2: [],
+            3: []
         }
         for i in range(len(expected.q)):
-            for j in range(1,3):
-                passed= self._check_sigma(result.y[i], expected.intensity[i], j * expected.sigma[i])
+            for j in range(1, 3):
+                passed = self._check_sigma(result.y[i], expected.intensity[i], j * expected.sigma[i])
                 a = struct.pack("<dd", result.y[i], expected.intensity[i])
                 b = struct.unpack("<qq", a)
-                test= b[1] - b[0]
+                test = b[1] - b[0]
                 if not passed:
                     if abs(test) > 256:
                         failed_sig[j].append((result.y[i], expected.intensity[i], expected.sigma[i], expected.q[i]))
 
-        percent_one= len(failed_sig[1])/len(expected.q)
-        percent_two= len(failed_sig[2])/len(expected.q)
-        percent_three= len(failed_sig[3])/len(expected.q)
-        test= percent_one < .5 and  percent_two < .3 and percent_three < .1
-        if result._calc_data.DomainPreferences.orientation_method == "Adaptive (VEGAS) Monte Carlo":
-            if not test:
-                print(self.get_test_name(test_folder_path), "didn't pass initial points test")
-                test = percent_one < .7 and percent_two < .05 and percent_three < .01
+        percent_one = len(failed_sig[1]) / len(expected.q)
+        percent_two = len(failed_sig[2]) / len(expected.q)
+        percent_three = len(failed_sig[3]) / len(expected.q)
 
-        if not test:
-            test_name = self.get_test_name(test_folder_path)
-            print(test_name, "failed points test", percent_one, percent_three, percent_three)
+        test = percent_one < .5 and percent_two < .3 and percent_three < .1
         return test
 
     def _check_sigma(self, obs, exp, sig):
-        lower_limit=exp-sig
-        upper_limit=exp+sig
+        lower_limit = exp - sig
+        upper_limit = exp + sig
         test1 = (obs >= lower_limit)
-        test2= (obs <= upper_limit)
+        test2 = (obs <= upper_limit)
         return test1 and test2
 
-    def _test_normalized_Rqi(self, test_folder_path):
-        result= self.get_result(test_folder_path)
-        expected= self.get_expected_signal(test_folder_path)
-        normalized=[]
+    def _test_normalized_Rqi(self, result, expected):
+        normalized = []
         for i in range(len(expected.q)):
-            R_q_i= result.y[i] - expected.intensity[i]
-            Max_q_i= max(result.y[i], expected.intensity[i])
-            if Max_q_i!=0:
-                Normalized_R_q_i= abs(R_q_i/Max_q_i)
+            R_q_i = result.y[i] - expected.intensity[i]
+            Max_q_i = max(result.y[i], expected.intensity[i])
+            if Max_q_i != 0:
+                Normalized_R_q_i = abs(R_q_i / Max_q_i)
             else:
                 Normalized_R_q_i = 0
             normalized.append(Normalized_R_q_i)
 
         max_n = max(normalized)
         mean_n = np.mean(normalized)
-        test = mean_n < 1e-4 and  max_n < 1e-4
-        if mean_n > 1e-5 or  max_n > 1e-5:
-            test_name = self.get_test_name(test_folder_path)
-            print(test_name, "failed Rqi test", max_n, "\t", mean_n)
+        test = mean_n < 1e-8 and max_n < 1e-8
         return test
 
+    def _save_out_file(self, result, test_folder_path):
+        session_folder = self.get_session_folder(test_folder_path)
+        test_name = os.path.basename(os.path.normpath(test_folder_path))
+        result.save_to_out_file(os.path.join(session_folder, test_name + "python_to_out.out"))
 
 
