@@ -59,3 +59,47 @@ def test_stop():
     else:
         print(status)
         assert status == {"isRunning": False, "progress": 100.0, "code": 0, "message": ""}
+
+def test_example_five_sphere():
+    out_file = os.path.join(root_path, "files_for_tests", 'Sph_r4_ed400.out')
+
+    calc_input = CalculationInput()
+    # calc_input.use_gpu = False
+    calc_input.DomainPreferences.signal_file = out_file
+    calc_input.FittingPreferences.fitting_iterations = 6
+    calc_input.FittingPreferences.convergence = 1e-8
+    sp = Sphere()
+    sp.layer_params[1].radius.value = 4.4
+    sp.layer_params[1].radius.mutable = True
+    sp.layer_params[1].ed.value = 440
+    sp.layer_params[1].ed.mutable = True
+    calc_input.Domain.populations[0].add_model(sp)
+
+    runner = LocalRunner()
+    PyCeresOptimizer.fit(calc_input, runner)
+    assert abs(calc_input.get_mutable_parameter_values()[0] - 4) / 4 < 0.02 and abs(
+        calc_input.get_mutable_parameter_values()[1] - 400) / 400 < 0.02
+
+def test_example_six_sphere_cylinder():
+    out_file = os.path.join(root_path, "files_for_tests", 'Cyl_Sph_End.out')
+
+    calc_input = CalculationInput.load_from_state_file(os.path.join(root_path, "files_for_tests", 'Cyl_Sph_Start.state'))
+    calc_input.DomainPreferences.signal_file = out_file
+    # calc_input.use_gpu = False
+
+    runner = LocalRunner()
+    PyCeresOptimizer.fit(calc_input, runner)
+    assert abs(calc_input.get_mutable_parameter_values()[0] - 5) / 5 < 0.02 and abs(
+        calc_input.get_mutable_parameter_values()[1] - 400) / 400 < 0.02
+
+def test_example_seven_PDB():
+    out_file = os.path.join(root_path, "files_for_tests", '1jff_ED_334_probe_0.14_voxel.out')
+    calc_input = CalculationInput.load_from_state_file(os.path.join(root_path, "files_for_tests", '1jff_ED_350_probe_0.125_voxel.state'))
+    calc_input.DomainPreferences.signal_file = out_file
+    # calc_input.use_gpu = False
+
+    runner = LocalRunner()
+    PyCeresOptimizer.fit(calc_input, runner)
+    print(calc_input.get_mutable_parameter_values())
+    assert abs(calc_input.get_mutable_parameter_values()[0] - 334) / 334 < 0.01 and abs(
+        calc_input.get_mutable_parameter_values()[1] - 0.14) / 0.14 < 0.025
