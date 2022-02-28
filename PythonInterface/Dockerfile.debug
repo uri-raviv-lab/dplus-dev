@@ -3,8 +3,8 @@
 # Then run it to save the generated wheels to d:\temp\pyceres-wheels. Just change the mount point to
 # any other directory you want.
 #
-#    docker build -f Dockerfile.manylinux .. -t dplus-api-manylinux:latest
-#    docker run --rm --name dplus-api-manylinux -v d:\temp:/external dplus-api-manylinux:latest
+#    docker build -f Dockerfile.debug .. -t dplus-api-debug:latest
+#    docker run --rm --name dplus-api-debug -v d:\temp:/external dplus-api-debug:latest
 #
 # Note: DO NOT PUSH THIS TO Dockerhub - it makes no sense
 

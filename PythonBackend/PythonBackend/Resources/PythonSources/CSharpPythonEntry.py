@@ -43,7 +43,6 @@ class CSharpPython:
                 result = self.process_result(metadeta)
 
             elif "GetJobStatus" in json2run["function"]:
-                print("GetJobStatus")
                 if self.local_runner:
                     if self.cur_job is not None:
                         status = self.cur_job.get_status()

@@ -73,8 +73,7 @@ class DplusProps:
         fixed_state_file = os.path.join(test_path, test_name + "_fixed.state")
         calc_data = CalculationInput.load_from_state_file(fixed_state_file)
         if fit:
-            raise NotImplementedError()
-            calc_result = FitResult(calc_data, result, LocalRunner.RunningJob(session_folder))
+            calc_result = FitResult(calc_data, result, None)
         else:
             calc_data = self.change_q_min_generate_input(q_min, calc_data)
             calc_result = GenerateResult(calc_data, result, job=None)
