@@ -42,6 +42,15 @@ class TestGenerateRun(DplusProps):
         with open(os.path.join(session_folder, "data.json"), 'w') as file:
             json.dump(result._raw_result, file)
 
+    def run_calc(self, input, test_folder_path):
+        if web:
+            api = WebRunner("http://192.168.18.100/", "06946fe6c6a3acd625dabbc7bdb905940140d8aa")
+        else:
+            api = EmbeddedLocalRunner()
+        result = api.generate(input)
+        self.save_result_tests(result, test_folder_path)
+        return result
+
     #@pytest.mark.timeout(3000)
     def test_run(self, test_folder_path):
         #first, do basic checks:
@@ -49,27 +58,38 @@ class TestGenerateRun(DplusProps):
         input=self.get_input(test_folder_path)
         input._fix_use_grid()
         #then run the program:
-        if web:
-            api = WebRunner("http://192.168.18.100/", "06946fe6c6a3acd625dabbc7bdb905940140d8aa")
-        else:
-            api = EmbeddedLocalRunner()
-        result = api.generate(input)
+        result = self.run_calc(input, test_folder_path)
         
-        self.save_result_tests(result, test_folder_path)
+
         #and finally, a sanity check on the results
         if result.error["code"]!=0:
             print("Result returned error:", result.error)
             assert False
 
-        self.then_test_correct(result, test_folder_path)
+        test_correct = self.then_test_correct(result, test_folder_path)
+        assert test_correct
+
+    def placeholder(self):
+        """
+                if not test_correct and "short" in test_folder_path:
+            while i<3:
+                i+=1
+                result = api.generate(input)
+                self.save_result_tests(result, test_folder_path)
+                test_correct = self.then_test_correct(result, test_folder_path)
+                if test_correct:
+                    break
+        """
+        pass
+
 
     def then_test_correct(self, result, test_folder_path):
         expected = self.get_expected_signal(test_folder_path)
         assert len(expected.q) == len(result.y)
 
         try:
-            self._save_out_file(result, test_folder_path)
-        except:  # doesn't matter what, we still want the assert
+            self._save_out_file(result, expected, test_folder_path)
+        except Exception as e:  # doesn't matter what, we still want the assert
             pass
 
         a = self._chi_sq1(result, expected)
@@ -85,7 +105,7 @@ class TestGenerateRun(DplusProps):
             print(test_name, " failed points test")
         if not d:
             print(test_name, " failed normalized Rqi")
-        assert a or b or c or d  # the useful information is in the captured stdout call
+        return a or b or c or d  # the useful information is in the captured stdout call
 
     def _chi_a_squ(self, result, expected):
         # chi_a^2 = 1/N \sum_i^N [(I^expected_i - I_calculated_i)/\sigam_i]^2
@@ -103,7 +123,6 @@ class TestGenerateRun(DplusProps):
         return chi_a_sq
 
     def _chi_sq2(self, result, expected):
-
         chi_a_sq = self._chi_a_squ(result, expected)
         test = chi_a_sq < expected.chi_square + expected.sigma_chi_square * 2
         return test
@@ -159,9 +178,10 @@ class TestGenerateRun(DplusProps):
         test = mean_n < 1e-8 and max_n < 1e-8
         return test
 
-    def _save_out_file(self, result, test_folder_path):
+    def _save_out_file(self, result, expected, test_folder_path):
         session_folder = self.get_session_folder(test_folder_path)
         test_name = os.path.basename(os.path.normpath(test_folder_path))
         result.save_to_out_file(os.path.join(session_folder, test_name + "python_to_out.out"))
+        expected.save_to_out_file(os.path.join(session_folder, test_name + "TestStandardCopy.out"))
 
 

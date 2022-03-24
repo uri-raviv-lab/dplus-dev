@@ -36,6 +36,14 @@ class Expected:
                     self.intensity.append(float(i))
                     self.sigma.append(float(s))
 
+        self.signal=Signal(self.q, self.intensity)
+
+    def save_to_out_file(self, filename):
+        with open(filename, 'w') as out_file:
+            out_file.write("#Copy of signal")
+            for key, value in self.signal.graph.items():
+                out_file.write('{:.5f}\t{:.20f}\n'.format(key, value))
+
 
 class DplusProps:
     def get_test_name(self, test_path):
