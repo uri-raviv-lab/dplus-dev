@@ -59,6 +59,22 @@ namespace PythonBackend
             var wheelNames = assembly.GetManifestResourceNames().Where(x => x.EndsWith(".whl"));
             foreach (var wheelName in wheelNames)
             {
+                int hi = 0;
+                //TODO: switch between debug and release
+                if (wheelName.Contains("dplus"))
+                {
+                    hi++;
+                }
+#if DEBUGWITHRELEASE
+                    if (wheelName.Contains("dplus") && !wheelName.Contains("debug")){
+                continue;
+                }
+#else
+                if (wheelName.Contains("debug"))
+                {
+                    continue;
+                }
+#endif
                 var wheelStream = GetEmbeddedResourceStream(assembly, wheelName);
                 UnzipStream(wheelStream, LibFolder);
             }

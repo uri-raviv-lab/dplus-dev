@@ -30,36 +30,27 @@ From Visual Studio 2019, open the Extensions menu, choose "Manage Extensions". S
 
 You will need to enable .NET 3.5.1 from the control panel. (Win-S and search Turn Windows Features On and Off). If it is not installed, you will need to install it first (https://www.microsoft.com/en-us/download/details.aspx?id=22).
 
-## IMPORTANT
-D+ consists of three parts- the backend, the python API, and the frontend. 
-(We may be making some changes in the future, to consolidate the backend with the python API.)
-For now, both the API and the frontend depend on the backend having been built in Release mode.
-The frontend depends on the API, but it comes with a prebuild version of it, so you do not need to rebuild the API unless you are using it yourself, or have made changes to it you want reflected in the API. 
+## HOW TO BUILD
+D+ consists of three parts- the backend, the python API, and the frontend (in order of dependence: the backend is independent, the api depends on the backend, the frontend depends on both the backend and the api)
 
-## Compiling the Backend
-To compile the backend, open the DPlus solution, choose x64 as the platform and build as ReleaseWithDebugInfo. This will build the C++ backend. (If you are creating a Release version you will need to compile as Release, as well)
+#Building the entire project
 
-### Compiling the Python API
-You should also compile the Python dplus API. This requires having first built the backend as ReleaseWithDebugInfo. Do so by creating a Python 3.9 virtual environment. Activate it and
+1. Build the Backend in both Release and ReleaseWithDebugInfo
+2. In PythonInterface, activate your virtual environment and then run rebuild-wheels.bat
+3. In the frontend, **rebuild** PythonBackend in both Release and ReleaseWithDebugInfo (otherwise the embedded resources are not updated)
+4. Build the frontend
 
-    cd PythonInterface
-    pip install -r requirements.txt
-    pip install wheel
-    python setup.py prepare
-    python setup.py build
+# Building after a change in the backend
+Repeat steps 1-3 in the section "Building the entire project"
 
-This will create files in the build directory. You will need to copy the file wrappers.pyd from the build/lib/dplus directory into the dplus directory in order to be able to run tests.
+# Building after a change in the python interface
+Repeat steps 2-3 in the section "Building the entire project"
 
-if you run
-    python setup.py bdist_wheel
+# Building after a change in the frontend
+Simply build the frontend, no other steps needed. 
 
-You will have the wheel in the dist folder.
-
-Note: The dplus-api is also built automatically for Windows and Linux if you push a tag starting with `v` to github.
-
-## Compiling the Frontend
-The Frontend project PythonBackend has embedded resources, one of them is the dplus-api wheel. If you have created a new wheel, you should change the embedded resource in this project. Then build the solution.
-
-
-
+# Release vs ReleaseWithDebugInfo
+The wheel built with ReleaseWithDebugInfo is *significantly* slower than Release. It is meant to be used for debugging **the backend**. If you are debugging the frontend or the python interface, you should be using the Release version. 
+In python, the release version is the pyd file copied into the dplus folder by default when running rebuild-wheels.bat, and should simply work.
+In the frontend, Debug mode still uses the Release wheel for the backend, so debug with a Debug build. ReleaseWithDebugInfo will get you the slower debuggable backend.
 

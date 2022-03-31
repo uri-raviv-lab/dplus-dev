@@ -17,14 +17,16 @@ with open(os.path.join(os.path.dirname(__file__), 'LICENSE.txt')) as license:
 # backend inside Visual Studio. On Linux it has no effect.
 #
 # There is no reasonable way to pass arguments to bdist_wheel, so on Windows, DEBUG is set to
-# True unless the environment variable DPLUS_API_DEBUG is set to NO.
+# False unless the environment variable DPLUS_API_DEBUG is set to DEBUG.
 
 if sys.platform == 'win32':
-    debug_env = os.environ.get('DPLUS_API_DEBUG', 'TRUE')
-    DEBUG = debug_env.upper() != 'NO'
+    debug_env = os.environ.get('DPLUS_API_DEBUG', "")
+    DEBUG = debug_env.upper() =="DEBUG"
+    VERSION_STR = debug_env.lower() #modify wheel name for dplus resources
     print('dplus-api Debug mode: ', DEBUG)
 else:
     DEBUG = False
+    VERSION_STR = ""
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # This is the project's root dir
 API_DIR = os.path.dirname(__file__)
@@ -110,7 +112,7 @@ class PrepareCommand(setuptools.Command):
 
 setup(
     name='dplus-api',
-    version='4.7.1',
+    version=VERSION_STR if VERSION_STR else '4.7.1',
     packages=['dplus'],
     package_data= { 'dplus': ['*.dll'] if sys.platform == 'win32' else ['lib*.so*'] },
 	install_requires=['numpy>=1.10', 'psutil>=5.6.3', 'requests>=2.10.0', 'pyceres>=0.1.0'],

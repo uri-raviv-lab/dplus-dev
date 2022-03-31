@@ -98,7 +98,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'ReleaseWithDebugInfo|x64'">
     <OutputPath>bin\x64\ReleaseWithDebugInfo\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;DEBUGWITHRELEASE</DefineConstants>
     <Optimize>false</Optimize>
     <DebugType>pdbonly</DebugType>
     <PlatformTarget>x64</PlatformTarget>
@@ -165,7 +165,8 @@
     <EmbeddedResource Include="Resources\Wheels\psutil-5.8.0-cp39-cp39-win_amd64.whl" />
     <EmbeddedResource Include="Resources\Wheels\requests-2.26.0-py2.py3-none-any.whl" />
     <EmbeddedResource Include="Resources\Wheels\urllib3-1.26.7-py2.py3-none-any.whl" />
-    <EmbeddedResource Include="Resources\Wheels\dplus_api-4.7.1-cp39-cp39-win_amd64.whl" />
+    <EmbeddedResource Include="Resources\Wheels\dplus_api-debug-cp39-cp39-win_amd64.whl" />
+    <EmbeddedResource Include="Resources\Wheels\dplus_api-release-cp39-cp39-win_amd64.whl" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
