@@ -35,7 +35,7 @@ D+ consists of three parts- the backend, the python API, and the frontend (in or
 
 #Building the entire project
 
-1. Build the Backend in both Release and ReleaseWithDebugInfo
+1. Build only the Backend in both Release and ReleaseWithDebugInfo
 2. In PythonInterface, activate your virtual environment and then run rebuild-wheels.bat
 3. In the frontend, **rebuild** PythonBackend in both Release and ReleaseWithDebugInfo (otherwise the embedded resources are not updated)
 4. Build the frontend
