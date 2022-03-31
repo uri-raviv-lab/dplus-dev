@@ -46,6 +46,10 @@ Repeat steps 1-3 in the section "Building the entire project"
 # Building after a change in the python interface
 Repeat steps 2-3 in the section "Building the entire project"
 
+Note that this is for building the python wheels for the dplus program. 
+
+To build the python wheels for uploading to pypi, you will need to run `python setup.py bdist_wheel` for Windows, and the manylinux docker for linux.
+
 # Building after a change in the frontend
 Simply build the frontend, no other steps needed. 
 
