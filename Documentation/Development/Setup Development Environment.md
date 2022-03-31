@@ -54,7 +54,4 @@ To build the python wheels for uploading to pypi, you will need to run `python s
 Simply build the frontend, no other steps needed. 
 
 # Release vs ReleaseWithDebugInfo
-The wheel built with ReleaseWithDebugInfo is *significantly* slower than Release. It is meant to be used for debugging **the backend**. If you are debugging the frontend or the python interface, you should be using the Release version. 
-In python, the release version is the pyd file copied into the dplus folder by default when running rebuild-wheels.bat, and should simply work.
-In the frontend, Debug mode still uses the Release wheel for the backend, so debug with a Debug build. ReleaseWithDebugInfo will get you the slower debuggable backend.
-
+The wheel built with ReleaseWithDebugInfo is *significantly* slower than Release.
