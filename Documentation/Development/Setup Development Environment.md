@@ -36,7 +36,7 @@ D+ consists of three parts- the backend, the python API, and the frontend (in or
 #Building the entire project
 
 1. Build only the Backend in both Release and ReleaseWithDebugInfo
-2. In PythonInterface, activate your virtual environment and then run rebuild-wheels.bat
+2. In PythonInterface, activate your virtual environment and then run rebuild-wheels.ps1
 3. In the frontend, **rebuild** PythonBackend in both Release and ReleaseWithDebugInfo (otherwise the embedded resources are not updated)
 4. Build the frontend
 
@@ -55,3 +55,8 @@ Simply build the frontend, no other steps needed.
 
 # Release vs ReleaseWithDebugInfo
 The wheel built with ReleaseWithDebugInfo is *significantly* slower than Release.
+
+## Troubleshooting
+
+### Missing standard headers files (such as stdio.h)
+It is possible that the compilation will fail, because standard header files (such as assert.h or stdio.h) can't be found. This is an indication that the wrong Windows SDK is installed. Find out which is the correct version by right clicking on the Backend project and selecting Properties. Use the Visual Studio Installer to install the proper version (you can find it in the Desktop C++ Building Tools section)

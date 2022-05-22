@@ -374,6 +374,9 @@ WebApplication/env
 /Population/PopulationSolver/Win32
 /Population/PopulationSolver/x64
 
+# /PythonBackend
+dplus*.whl
+
 # /StandaloneDebye/
 /StandaloneDebye/Release
 
