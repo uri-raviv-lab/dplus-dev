@@ -5,8 +5,11 @@
     <windowsSettings>
       <dpiAware xmlns=
         "http://schemas.microsoft.com/SMI/2005/WindowsSettings">
-        True/PM
+        false
       </dpiAware>
+	  <dpiAwareness xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSettings">
+		  unaware
+	  </dpiAwareness>
     </windowsSettings>
   </application>
 </assembly>
