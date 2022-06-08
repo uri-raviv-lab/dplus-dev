@@ -2,7 +2,8 @@ import math
 import sys
 import csv
 from pathlib import Path
-from collections import UserDict, MutableSequence
+from collections.abc import MutableSequence
+from collections import UserDict
 from copy import deepcopy
 from dplus.FileReaders import _handle_infinity_for_json
 from dplus.metadata import meta_models, hardcode_models, _type_to_int, _models_with_files_index_dict, _int_to_type
