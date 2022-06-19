@@ -23,7 +23,11 @@ jobs:
           cuda: '11.7.0'
           method: 'network'
       - name: Add msbuild to PATH
-        uses: microsoft/setup-msbuild@v1.1          
+        uses: microsoft/setup-msbuild@v1.1     
+      - name: Setup nuget
+        uses: nuget/setup-nuget@v1
+      - name: Restore nuget packages
+        run: nuget restore Dplus.sln
       - name: Compile Backend
         env:
           BOOST_ROOT: ${{ github.workspace }}/boost
