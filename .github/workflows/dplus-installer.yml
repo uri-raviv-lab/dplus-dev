@@ -1,4 +1,4 @@
-name: Create DPlus API Wheels
+name: Create the DPlus Installer
 on:
   push:
     tags:
@@ -7,7 +7,7 @@ on:
 jobs:
   windows-wheels:
     runs-on: windows-latest  # Required for Visual Studio 2019
-    name: Create the Windows Wheel for Python ${{ matrix.python-version }}
+    name: Build the DPlus Installer
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -50,7 +50,11 @@ jobs:
         run: |
           pip install -r requirements.txt
           ./rebuild-wheels.ps1
-      - name: Compile and build Installer
+      - name: Build DPlus
+        env:
+          BOOST_ROOT: ${{ github.workspace }}/boost
+        run: msbuild dplus.sln /p:Configuration=Release /p:Platform=x64 "/target:User Interface\DPlus"
+      - name: Build Installer
         env:
           BOOST_ROOT: ${{ github.workspace }}/boost
           GITHUB_VERSION: ${{ github.ref }}
