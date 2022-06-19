@@ -19,14 +19,25 @@ with open(os.path.join(os.path.dirname(__file__), 'LICENSE.txt')) as license:
 # There is no reasonable way to pass arguments to bdist_wheel, so on Windows, DEBUG is set to
 # False unless the environment variable DPLUS_API_DEBUG is set to DEBUG.
 
-if sys.platform == 'win32':
-    debug_env = os.environ.get('DPLUS_API_DEBUG', "")
-    DEBUG = debug_env.upper() =="DEBUG"
-    VERSION_STR = debug_env.lower() #modify wheel name for dplus resources
-    print('dplus-api Debug mode: ', DEBUG)
+GITHUB_VERSION = os.environ.get('GITHUB_VERSION')
+DEBUG = False
+
+if GITHUB_VERSION is not None:
+    # When running in a github workflow, take the version from the environment
+    if GITHUB_VERSION.startswith('v'):
+        VERSION_STR = GITHUB_VERSION[1:]
+    else:
+        VERSION_STR = GITHUB_VERSION
 else:
-    DEBUG = False
-    VERSION_STR = ""
+    # On Windows, we need some special treatment when we build the debug version
+    if sys.platform == 'win32':
+        debug_env = os.environ.get('DPLUS_API_DEBUG', "")
+        DEBUG = debug_env.upper() =="DEBUG"
+        VERSION_STR = debug_env.lower() #modify wheel name for dplus resources
+        print('dplus-api Debug mode: ', DEBUG)
+    else:
+        DEBUG = False
+        VERSION_STR = ""
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # This is the project's root dir
 API_DIR = os.path.dirname(__file__)
