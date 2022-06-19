@@ -28,11 +28,18 @@ jobs:
         uses: nuget/setup-nuget@v1
       - name: Restore nuget packages
         run: nuget restore Dplus.sln
-      - name: Compile Backend
+      - name: Compile Backend - Release
         env:
           BOOST_ROOT: ${{ github.workspace }}/boost
         run: |
           msbuild Dplus.sln /p:Configuration=Release /p:Platform=x64 /t:Backend\Backend:Rebuild
+      - name: Compile Backend - Debug
+        # This is required by PythonBackend, we should probably remove this dependency as the intalled D+ is not going
+        # to use it.
+        env:
+          BOOST_ROOT: ${{ github.workspace }}/boost
+        run: |
+          msbuild Dplus.sln /p:Configuration=ReleaseWithDebugInfo /p:Platform=x64 /t:Backend\Backend:Rebuild
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
