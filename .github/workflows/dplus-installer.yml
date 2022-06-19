@@ -43,7 +43,7 @@ jobs:
         env:
           BOOST_ROOT: ${{ github.workspace }}/boost
           GITHUB_VERSION: ${{ github.ref }}
-        run: build-installer.ps1
+        run: ./build-installer.ps1
       - name: Upload to Release
         id: upload-release-asset
         uses: svenstaro/upload-release-action@v2
