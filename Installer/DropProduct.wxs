@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?define ProductVersion="!(bind.FileVersion.DplusEXE)" ?>
+<?ifdef env.DPLUS_VERSION ?>
+  <?define ProductVersion="$(env.DPLUS_VERSION)" ?>
+<?else?>
+  <?define ProductVersion="!(bind.FileVersion.DplusEXE)" ?>
+<?endif?>
 <?define ProductUpgradeCode = "DE98E533-E27A-40E4-AACA-0B0B458F9588"?>
 
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" 
@@ -17,7 +21,7 @@
 <Property Id="ALLUSERS" Value="1" />
 -->
     <Binary Id="AVXAction.CA.dll"
-            SourceFile="..\SetupProject1\CustomActionAVX\bin\$(var.Configuration)\CustomActionAVX.CA.dll" />
+            SourceFile="..\Installer\CustomActionAVX\bin\$(var.Configuration)\CustomActionAVX.CA.dll" />
     <CustomAction Id="checkAVX"
              Return="check"
              Execute="immediate"
@@ -858,7 +862,7 @@
     <!--
     <UIRef Id="WixUI_FeatureTree" />
     -->
-    <WixVariable Id="WixUILicenseRtf" Value="..\SetupProject1\License.rtf" />
+    <WixVariable Id="WixUILicenseRtf" Value="..\Installer\License.rtf" />
   </Fragment>
 
 

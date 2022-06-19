@@ -118,7 +118,7 @@ Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "Installer", "Installer\Inst
 		{FBEF1E8A-9893-4D68-9F8B-0FBD4A100E10} = {FBEF1E8A-9893-4D68-9F8B-0FBD4A100E10}
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomActionAVX", "SetupProject1\CustomActionAVX\CustomActionAVX.csproj", "{8DC3512A-EE14-4831-B2C2-DC605526D200}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomActionAVX", "Installer\CustomActionAVX\CustomActionAVX.csproj", "{8DC3512A-EE14-4831-B2C2-DC605526D200}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PythonBackend", "PythonBackend\PythonBackend\PythonBackend.csproj", "{EAF55267-45BC-4ACC-9447-D6551DAA5E23}"
 EndProject
@@ -216,8 +216,10 @@ Global
 		{7D8E5B3D-4D07-47C6-9242-4A5AA37ECB36}.ReleaseWithDebugInfo|x64.ActiveCfg = Release|Any CPU
 		{7D8E5B3D-4D07-47C6-9242-4A5AA37ECB36}.ReleaseWithDebugInfo|x64.Build.0 = Release|Any CPU
 		{CF908D36-D240-4FEF-B78C-C8AC71831623}.Release|x64.ActiveCfg = Release|x64
+		{CF908D36-D240-4FEF-B78C-C8AC71831623}.Release|x64.Build.0 = Release|x64
 		{CF908D36-D240-4FEF-B78C-C8AC71831623}.ReleaseWithDebugInfo|x64.ActiveCfg = Release|x64
 		{8DC3512A-EE14-4831-B2C2-DC605526D200}.Release|x64.ActiveCfg = Release|x86
+		{8DC3512A-EE14-4831-B2C2-DC605526D200}.Release|x64.Build.0 = Release|x86
 		{8DC3512A-EE14-4831-B2C2-DC605526D200}.ReleaseWithDebugInfo|x64.ActiveCfg = Release|x86
 		{EAF55267-45BC-4ACC-9447-D6551DAA5E23}.Release|x64.ActiveCfg = Release|x64
 		{EAF55267-45BC-4ACC-9447-D6551DAA5E23}.Release|x64.Build.0 = Release|x64
