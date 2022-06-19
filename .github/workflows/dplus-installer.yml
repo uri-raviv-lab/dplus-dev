@@ -1,0 +1,56 @@
+name: Create DPlus API Wheels
+on:
+  push:
+    tags:
+      - dplus-v*
+
+jobs:
+  windows-wheels:
+    runs-on: windows-latest  # Required for Visual Studio 2019
+    name: Create the Windows Wheel for Python ${{ matrix.python-version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install boost
+        run: |
+          Invoke-WebRequest https://boost.teeks99.com/bin/1.79.0/boost_1_79_0-msvc-14.3-64.exe -OutFile boost-setup.exe
+          .\boost-setup.exe /DIR=boost /SILENT | Out-Null
+          move boost\lib64-msvc-14.3 boost\lib64
+      - name: Set up CUDA
+        uses: Jimver/cuda-toolkit@v0.2.7
+        id: cuda-toolkit
+        with:
+          cuda: '11.7.0'
+          method: 'network'
+      - name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@v1.1          
+      - name: Compile Backend
+        env:
+          BOOST_ROOT: ${{ github.workspace }}/boost
+        run: |
+          msbuild Dplus.sln /p:Configuration=Release /p:Platform=x64 /t:Backend\Backend:Rebuild
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+          architecture: x64
+      - name: Build Python wheels
+        working-directory: PythonInterface
+        run: |
+          pip install -r requirements.txt
+          ./rebuild-wheels.ps1
+      - name: Compile and build Installer
+        env:
+          BOOST_ROOT: ${{ github.workspace }}/boost
+          GITHUB_VERSION: ${{ github.ref }}
+        run: build-installer.ps1
+      - name: Upload to Release
+        id: upload-release-asset
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: Installer\bin\x64\release\en-us\*.msi
+          file_glob: true
+          tag: ${{ github.ref }}
+          overwrite: true
+          body: "D+ Installer"
