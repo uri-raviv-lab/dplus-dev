@@ -26,8 +26,8 @@ if GITHUB_VERSION is not None:
     # When running in a github workflow, take the version from the environment
     if GITHUB_VERSION.startswith('v'):
         VERSION_STR = GITHUB_VERSION[1:]
-    elif GITHUB_VERSION.startswith('refs-tags-v'):
-        VERSION_STR = GITHUB_VERSION[11:]
+    elif GITHUB_VERSION.startswith('refs/tags/api-v'):
+        VERSION_STR = GITHUB_VERSION[15:]
     else:
         VERSION_STR = GITHUB_VERSION
 else:
