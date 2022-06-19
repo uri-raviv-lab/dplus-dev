@@ -2,7 +2,7 @@ name: Create DPlus API Wheels
 on:
   push:
     tags:
-      - v*
+      - api-v*
 
 jobs:
   manylinux-wheels:
