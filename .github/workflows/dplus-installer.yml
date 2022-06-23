@@ -14,10 +14,10 @@ jobs:
       - name: Print DLL File hash
         run: |
           echo Hash of Microsoft.WindowsAPICodePack.dll
-          Get-FileHash Get-FileHash .\Common\WindowsAPI\Microsoft.WindowsAPICodePack.dll
+          Get-FileHash Get-FileHash .\Common\WindowsAPI\Microsoft.WindowsAPICodePack.dll SHA256
           echo Expected hash: 7B88388B8367F0D873D0E3B66F533869C24E346FB6F0B2C6C783F931CC9A1631
           echo Hash of Microsoft.WindowsAPICodePack.Shell.dll
-          Get-FileHash .\Common\WindowsAPI\Microsoft.WindowsAPICodePack.dll
+          Get-FileHash .\Common\WindowsAPI\Microsoft.WindowsAPICodePack.dll SHA256
           echo Expected hash: AA5D80CDC0DA52970031309B457E3E3FD505BB1AC13FB79801D15BFBB4A700B2
       - name: Install boost
         run: |
