@@ -13,12 +13,17 @@ jobs:
         uses: actions/checkout@v2
       - name: Print DLL File hash
         run: |
-          echo Hash of Microsoft.WindowsAPICodePack.dll
+          echo Microsoft.WindowsAPICodePack.dll
+          dir .\Common\WindowsAPI\Microsoft.WindowsAPICodePack.dll
           Get-FileHash .\Common\WindowsAPI\Microsoft.WindowsAPICodePack.dll SHA256
           echo Expected hash: 7B88388B8367F0D873D0E3B66F533869C24E346FB6F0B2C6C783F931CC9A1631
-          echo Hash of Microsoft.WindowsAPICodePack.Shell.dll
+          Get-Content .\Common\WindowsAPI\Microsoft.WindowsAPICodePack.dll | Select -First 10
+          
+          echo Microsoft.WindowsAPICodePack.Shell.dll
+          dir .\Common\WindowsAPI\Microsoft.WindowsAPICodePack.Shell.dll
           Get-FileHash .\Common\WindowsAPI\Microsoft.WindowsAPICodePack.Shell.dll SHA256
           echo Expected hash: AA5D80CDC0DA52970031309B457E3E3FD505BB1AC13FB79801D15BFBB4A700B2
+          Get-Content .\Common\WindowsAPI\Microsoft.WindowsAPICodePack.Shell.dll | Select -First 10
       - name: Install boost
         run: |
           Invoke-WebRequest https://boost.teeks99.com/bin/1.79.0/boost_1_79_0-msvc-14.3-64.exe -OutFile boost-setup.exe
