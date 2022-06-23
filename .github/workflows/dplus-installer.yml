@@ -56,10 +56,17 @@ jobs:
         run: |
           pip install -r requirements.txt
           ./rebuild-wheels.ps1
-      - name: Build DPlus and Utilities
+      - name: Build DPlus
         env:
           BOOST_ROOT: ${{ github.workspace }}/boost
         run: msbuild dplus.sln /p:Configuration=Release /p:Platform=x64
+      - name: Build Extra Utilities
+        env:
+          BOOST_ROOT: ${{ github.workspace }}/boost
+        run: |
+          msbuild dplus.sln /p:Configuration=Release /p:Platform=x64 /t:Miscellaneous\PDBUnits
+          msbuild dplus.sln /p:Configuration=Release /p:Platform=x64 /t:Miscellaneous\DebyeCalculator
+          msbuild dplus.sln /p:Configuration=Release /p:Platform=x64 "/t:Miscellaneous\Suggest Parameters"
       - name: Build Installer
         env:
           BOOST_ROOT: ${{ github.workspace }}/boost
