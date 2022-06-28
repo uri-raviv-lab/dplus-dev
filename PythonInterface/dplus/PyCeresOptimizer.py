@@ -28,7 +28,7 @@ class PyCeresOptimizer:
         self.init_problem()
 
     def init_problem(self):
-
+        # Adapted from D+'s CeresOptimizer::InitProblem
         self.bConverged = False
         fit_pref = self.calc_input.FittingPreferences
         # This is the convergence that was writen in dplus
@@ -38,7 +38,7 @@ class PyCeresOptimizer:
         self.options.gradient_tolerance = 1e-4 * self.options.function_tolerance
         mut_param = self.calc_input.get_mutable_params_array()
 
-        paramdata = np.zeros(shape=(1,len(mut_param)))
+        paramdata = np.zeros(shape=(1,len(mut_param))) # D+'s curParams map to the same place
         if len(paramdata[0]) < 1 :
             raise Exception("There must be at least one mutable parameter in order to fit. Mark at least one parameter mutable and try again.",
 						"No mutable parameters selected")
@@ -103,7 +103,19 @@ class PyCeresOptimizer:
             self.options.trust_region_strategy_type = fit_pref.trust_region_strategy_type
             self.options.use_inner_iterations = False
 
-    def solve(self): #this function is called "iterate" in D+
+    def solve(self): #this function is called "CeresOptimizer::Iterate" in D+
+        # TODO: Add the updating of parameters from D+:
+        #
+        # Work directly on paramdata, p is the current problem
+        # for(int N = 0; N < m_numParamBlocks; N++)
+        # {
+        # 	for(int i = start; i < (start + curParams[N].size()); i++)
+        # 	{
+        # 		curParams[N][i - start] = p[i];
+        # 	}
+        # 	start += curParams[N].size();
+        # }
+
         self._best_results = None
         summary = PySolverSummary()
         solve(self.options, self.problem, summary)
@@ -133,6 +145,7 @@ class PyCeresOptimizer:
 
     @staticmethod
     def fit(calc_input, calc_runner=None, save_amp=False):
+        # Adapted from D+'s PerformModelFitting
         if not calc_runner:
             from dplus.CalculationRunner import LocalRunner
             calc_runner = LocalRunner()
