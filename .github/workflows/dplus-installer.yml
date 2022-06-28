@@ -11,6 +11,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+        with:
+          lfs: true
+      - name: Checkout LFS objects
+        run: |
+          git lfs pull
+          git lfs checkout
       - name: Install boost
         run: |
           Invoke-WebRequest https://boost.teeks99.com/bin/1.79.0/boost_1_79_0-msvc-14.3-64.exe -OutFile boost-setup.exe
@@ -54,6 +60,13 @@ jobs:
         env:
           BOOST_ROOT: ${{ github.workspace }}/boost
         run: msbuild dplus.sln /p:Configuration=Release /p:Platform=x64 "/target:User Interface\DPlus"
+      - name: Build Extra Utilities
+        env:
+          BOOST_ROOT: ${{ github.workspace }}/boost
+        run: |
+          msbuild dplus.sln /p:Configuration=Release /p:Platform=x64 /t:Miscellaneous\PDBUnits
+          msbuild dplus.sln /p:Configuration=Release /p:Platform=x64 /t:Miscellaneous\DebyeCalculator
+          msbuild dplus.sln /p:Configuration=Release /p:Platform=x64 "/t:Miscellaneous\Suggest Parameters"
       - name: Build Installer
         env:
           BOOST_ROOT: ${{ github.workspace }}/boost
