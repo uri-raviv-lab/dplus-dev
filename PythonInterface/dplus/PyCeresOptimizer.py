@@ -2,8 +2,8 @@ import numpy as np
 import os
 import json
 
-from pyceres import CallbackReturnType, PyProblem, PySolverOptions, PyResidual, PyTrivialLoss, PySolverSummary
-from pyceres import PyHuberLoss, PySoftLOneLoss, PyCauchyLoss, PyArctanLoss, PyTolerantLoss, solve, SolverTerminationType
+from dplus_ceres import CallbackReturnType, PyProblem, PySolverOptions, PyResidual, PyTrivialLoss, PySolverSummary
+from dplus_ceres import PyHuberLoss, PySoftLOneLoss, PyCauchyLoss, PyArctanLoss, PyTolerantLoss, solve, SolverTerminationType
 from dplus.CalculationInput import CalculationInput
 from dplus.Residuals import XRayResiduals, XRayLogResiduals, XRayRatioResiduals
 from dplus.FileReaders import _handle_infinity_for_json, NumpyHandlingEncoder
