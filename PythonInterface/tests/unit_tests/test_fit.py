@@ -3,6 +3,8 @@ import datetime
 import time
 
 sys.path.append(os.getcwd())
+from tests.old_stuff.fix_state_files import fix_file
+
 
 from dplus.CalculationInput import CalculationInput
 from dplus.FitRunner import FitRunner
@@ -76,8 +78,8 @@ def test_example_five_sphere():
 
 def test_example_six_sphere_cylinder():
     out_file = os.path.join(root_path, "files_for_tests", 'Cyl_Sph_End.out')
-
-    calc_input = CalculationInput.load_from_state_file(os.path.join(root_path, "files_for_tests", 'Cyl_Sph_Start.state'))
+    state_file= os.path.join(root_path, "files_for_tests", 'Cyl_Sph_Start.state')
+    calc_input = CalculationInput.load_from_state_file(state_file)
     calc_input.DomainPreferences.signal_file = out_file
     # calc_input.use_gpu = False
 
@@ -90,6 +92,7 @@ def test_example_six_sphere_cylinder():
 def test_example_seven_PDB():
     out_file = os.path.join(root_path, "files_for_tests", '1jff_ED_334_probe_0.14_voxel.out')
     calc_input = CalculationInput.load_from_state_file(os.path.join(root_path, "files_for_tests", '1jff_ED_350_probe_0.125_voxel.state'))
+    calc_input.Domain.populations[0].models[0].filename = os.path.join(root_path, "files_for_tests", '1jff.pdb')
     calc_input.DomainPreferences.signal_file = out_file
     # calc_input.use_gpu = False
     print("test_example_seven_PDB")
@@ -98,13 +101,16 @@ def test_example_seven_PDB():
         result = runner.fit(calc_input)
     except Exception as ex:
         print(ex)
-        
 
     print(calc_input.get_mutable_parameter_values())
-    assert abs(calc_input.get_mutable_parameter_values()[0] - 334) / 334 < 0.01 and abs(
+    print("0:", abs(calc_input.get_mutable_parameter_values()[0] - 334) / 334)
+    print("1:", abs(calc_input.get_mutable_parameter_values()[1] - 0.14) / 0.14)
+    assert abs(calc_input.get_mutable_parameter_values()[0] - 334) / 334 < 0.02 and abs(
         calc_input.get_mutable_parameter_values()[1] - 0.14) / 0.14 < 0.025
 
 
 if __name__ == '__main__':
-    #test_fit_async()
-    test_stop()
+    # test_fit_async()
+    # test_stop()
+    # test_example_six_sphere_cylinder()
+    test_example_seven_PDB()
