@@ -1,2 +1,0 @@
-from CSharpPythonEntry import CSharpPython
-
