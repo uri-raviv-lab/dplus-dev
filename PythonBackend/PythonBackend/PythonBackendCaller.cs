@@ -56,7 +56,7 @@ namespace PythonBackend
             using (Py.GIL())
             {
                 dynamic csharpModule = Py.Import("CSharpPythonEntry");
-                cSharpPythonEntry = csharpModule.CSharpPython(exeDir, session, PythonInstaller.ActualInstallationFolder);
+                cSharpPythonEntry = csharpModule.get_csharp_python_entry(exeDir, session);
             }
 
             Console.WriteLine("Python Environment Initialized");

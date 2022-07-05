@@ -22,6 +22,8 @@ python setup.py bdist_wheel
 Write-Host -ForegroundColor Cyan "Copying wheels"
 Copy-Item dist\*.whl ..\PythonBackend\PythonBackend\Resources\Wheels
 
+Copy-Item build\lib.win-amd64-3.9\dplus\wrappers.cp39-win_amd64.pyd dplus\
+
 # Left over from the old batch file. We're not sure why this is necessary. Also, note it only
 # copies the Release files, not the ReleaseWithDebugInfo files.
 #ECHO copying pyd files

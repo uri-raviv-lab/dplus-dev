@@ -1,14 +1,30 @@
-import dplus_ceres as ceres
-from dplus.Residuals import XRayResiduals, XRayLogResiduals, XRayRatioResiduals
 import numpy as np
 import os
 import json
+
+import dplus_ceres as ceres
+from dplus.Residuals import XRayResiduals, XRayLogResiduals, XRayRatioResiduals
 from dplus.FileReaders import _handle_infinity_for_json, NumpyHandlingEncoder
+
+stop_flag = dict(stop = 0)
+def my_callback_function(iteration_summary=None):
+    """
+    0: SOLVER_CONTINUE
+    1: SOLVER_ABORT
+    2: SOLVER_TERMINATE_SUCCESSFULLY
+    """
+    if stop_flag["stop"] == 0:
+        return 0
+    elif stop_flag["stop"] == 2:
+        return 2
+    return 1
+
+
 
 class PyCeresOptimizer:
 
     def __init__(self, calc_input, calc_runner=None, save_amp=False):
-
+        stop_flag["stop"] = 0
         self.calc_input = calc_input
         self.calc_runner = calc_runner
         if not self.calc_runner:
@@ -26,7 +42,6 @@ class PyCeresOptimizer:
         self.init_problem()
 
     def init_problem(self):
-        # Adapted from D+'s CeresOptimizer::InitProblem
         self.bConverged = False
         fit_pref = self.calc_input.FittingPreferences
         # This is the convergence that was writen in dplus
@@ -36,7 +51,7 @@ class PyCeresOptimizer:
         self.options.gradient_tolerance = 1e-4 * self.options.function_tolerance
         mut_param = self.calc_input.get_mutable_params_array()
 
-        paramdata = np.zeros(shape=(1,len(mut_param))) # D+'s curParams map to the same place
+        paramdata = np.zeros(shape=(1,len(mut_param)))
         if len(paramdata[0]) < 1 :
             raise Exception("There must be at least one mutable parameter in order to fit. Mark at least one parameter mutable and try again.",
 						"No mutable parameters selected")
@@ -101,7 +116,9 @@ class PyCeresOptimizer:
             self.options.trust_region_strategy_type = fit_pref.trust_region_strategy_type
             self.options.use_inner_iterations = False
 
-    def solve(self): #this function is called "CeresOptimizer::Iterate" in D+
+        self.options.set_callbacks(my_callback_function)
+
+    def solve(self): #this function is called "iterate" in D+
         self._best_results = None
         summary = ceres.PySolverSummary()
         ceres.solve(self.options, self.problem, summary)
@@ -109,7 +126,7 @@ class PyCeresOptimizer:
         print(summary.fullReport().decode("utf-8"))
         print("\n")
         cur_eval = summary.final_cost
-        self.bConverged = (summary.termination_type == ceres.SolverTerminationType.CONVERGENCE)
+        self.bConverged = (summary.termination_type == ceres.SolverTerminationType.CONVERGENCE) # TODO change to not NO_CONVERGENCE?
         flag_valid_constraint = True
         mut_param = self.calc_input.get_mutable_params_array()
         for i in range(len(self.best_params)):
@@ -131,7 +148,6 @@ class PyCeresOptimizer:
 
     @staticmethod
     def fit(calc_input, calc_runner=None, save_amp=False):
-        # Adapted from D+'s PerformModelFitting
         if not calc_runner:
             from dplus.CalculationRunner import LocalRunner
             calc_runner = LocalRunner()
@@ -178,3 +194,4 @@ class PyCeresOptimizer:
                 json.dump(_handle_infinity_for_json(result_dict), file, cls=NumpyHandlingEncoder)
 
         return result_dict
+

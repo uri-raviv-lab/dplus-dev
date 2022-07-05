@@ -64,7 +64,7 @@ def test_fit_2():
     input = CalculationInput()
     s = Sphere()
     s.use_grid = True
-    s.layer_params[1]["radius"].value = 2
+    s.layer_params[1]["radius"].value = 2.0
     s.layer_params[1]["radius"].mutable = True
     input.Domain.populations[0].add_model(s)
     signal_file = os.path.join(root_path, "files", "sphere.out")

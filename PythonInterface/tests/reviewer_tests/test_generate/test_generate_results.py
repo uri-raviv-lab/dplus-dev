@@ -53,7 +53,7 @@ class TestGenerateRun(DplusProps):
 
     #@pytest.mark.timeout(3000)
     def test_run(self, test_folder_path):
-        #first, do basic checks:
+        # first, do basic checks:
         expected=self.get_expected_signal(test_folder_path)
         input=self.get_input(test_folder_path)
         input._fix_use_grid()
@@ -65,6 +65,16 @@ class TestGenerateRun(DplusProps):
         if result.error["code"]!=0:
             print("Result returned error:", result.error)
             assert False
+
+        # with open("result_to_delete.json", 'w') as f:
+        #     json.dump(result._raw_result, f)
+        
+        # from dplus.CalculationResult import GenerateResult
+        # calc_data = self.get_input(test_folder_path)
+        # calc_data._fix_use_grid()
+        # with open("result_to_delete.json") as f:
+        #     result_graph = json.load(f)
+        # result = GenerateResult(calc_data, result_graph, None)
 
         test_correct = self.then_test_correct(result, test_folder_path)
         assert test_correct

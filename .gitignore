@@ -524,3 +524,9 @@ Creating Installer/document.synctex.gz
 
 # Visual Studio Files
 v15/
+/PythonInterface/tests/reviewer_tests/files_for_tests/generate/*.ampj
+PythonInterface/tests/manual_tests/*/myamp2.ampj
+PythonInterface/tests/reviewer_tests/files_for_tests/generate/*/*/*/*.ampj
+PythonInterface/tests/reviewer_tests/files_for_tests/qmin/*/*/*.ampj
+PythonInterface/tests/unit_tests/files_for_tests/*.ampj
+test_session/*
