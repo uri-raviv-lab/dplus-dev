@@ -1230,16 +1230,39 @@ class ManualSymmetry(ModelWithChildren, ModelWithLayers):
         self.extra_params["scale"] = Parameter(value=self.scale, mutable=self.scale_mut, name="scale")
 
     def read_from_dol(self, filename):
-        with open(filename, encoding = 'utf-16') as file:
-            my_dol = csv.reader(file, delimiter = '\t', quoting = csv.QUOTE_NONNUMERIC)
-            for row in my_dol:
-                self.add_layer()
-                self.layer_params[-1]['x'].value = row[1]
-                self.layer_params[-1]['y'].value = row[2]
-                self.layer_params[-1]['z'].value = row[3]
-                self.layer_params[-1]['alpha'].value = row[4]
-                self.layer_params[-1]['beta'].value = row[5]
-                self.layer_params[-1]['gamma'].value = row[6]
+        try:
+            with open(filename, encoding='utf-8') as file:
+                try:
+                    dol = csv.reader(file, delimiter='\t', quoting=csv.QUOTE_NONNUMERIC)
+                    for row in dol:
+                        self.add_layer()
+                        self.layer_params[-1]['x'].value = row[1]
+                        self.layer_params[-1]['y'].value = row[2]
+                        self.layer_params[-1]['z'].value = row[3]
+                        self.layer_params[-1]['alpha'].value = row[4]
+                        self.layer_params[-1]['beta'].value = row[5]
+                        self.layer_params[-1]['gamma'].value = row[6]
+                except:  ## Needed for dol files created with PDB units
+                    dol = csv.reader(file, delimiter=' ', quoting=csv.QUOTE_NONNUMERIC)
+                    for row in dol:
+                        self.add_layer()
+                        self.layer_params[-1]['x'].value = row[1]
+                        self.layer_params[-1]['y'].value = row[2]
+                        self.layer_params[-1]['z'].value = row[3]
+                        self.layer_params[-1]['alpha'].value = row[4]
+                        self.layer_params[-1]['beta'].value = row[5]
+                        self.layer_params[-1]['gamma'].value = row[6]
+        except:
+            with open(filename, encoding='utf-16') as file:
+                dol = csv.reader(file, delimiter='\t', quoting=csv.QUOTE_NONNUMERIC)
+                for row in dol:
+                    self.add_layer()
+                    self.layer_params[-1]['x'].value = row[1]
+                    self.layer_params[-1]['y'].value = row[2]
+                    self.layer_params[-1]['z'].value = row[3]
+                    self.layer_params[-1]['alpha'].value = row[4]
+                    self.layer_params[-1]['beta'].value = row[5]
+                    self.layer_params[-1]['gamma'].value = row[6]
 
     def write_to_dol(self):
         '''For now works only with states built inside the API'''
@@ -1252,7 +1275,7 @@ class ManualSymmetry(ModelWithChildren, ModelWithLayers):
                 else:
                     dol_name = ManSym.name + '.dol'
 
-                with open(dol_name, 'w+', encoding='utf-16', newline='') as file:
+                with open(dol_name, 'w+', encoding='utf-8', newline='') as file:
                     dol = csv.writer(file, delimiter='\t', quoting=csv.QUOTE_NONNUMERIC)
                     layer_num = 0
                     for layer in ManSym.serialize()['Parameters']:
