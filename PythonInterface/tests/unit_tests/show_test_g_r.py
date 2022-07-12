@@ -1,21 +1,18 @@
-"""EmbeddedLocalRunner
+"""
 Created on Wed Feb 16 13:30:34 2022
 
 @author: Eytan Balken
 """
+
 from dplus.CalculationInput import CalculationInput
 from dplus.CalculationRunner import EmbeddedLocalRunner
 from dplus.DataModels.models import Sphere
 from dplus.DataModels import ManualSymmetry
-import os
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 from scipy.integrate import simpson
 import dplus.g_r as g
 import time as t
 import numpy as np
-
-root_path = os.path.dirname(os.path.abspath(__file__))
-
 
 def test_1():
     print('test 1\n')
@@ -28,10 +25,8 @@ def test_1():
     dq = 0.1
     integ_max = [5.2, 8.8]
 
-    filename_single = os.path.join(root_path, "files_for_tests", "DOL", 'cube.dol')
-    # filename_single = r'D:\Eytan\g_r_test\DOL\cube.dol'
-    # filename_triple = r'D:\Eytan\g_r_test\DOL\triple_cube.dol'
-    filename_triple = os.path.join(root_path, "files_for_tests", "DOL", 'triple_cube.dol')
+    filename_single = r'D:\Eytan\g_r_test\DOL\cube.dol'
+    filename_triple = r'D:\Eytan\g_r_test\DOL\triple_cube.dol'
 
     g.build_crystal(a, b, c, rep_a, rep_b, rep_c, filename_single)
 
@@ -66,14 +61,13 @@ def test_1():
     I_sfs.Domain.populations[0].add_model(ms)
     f_sfs.Domain.populations[0].add_model(sp)
 
-    runner = EmbeddedLocalRunner()
+    runner = LocalRunner()
     I_calc = runner.generate(I_sfs)
     print('calculated I')
     I_calc.save_to_out_file(filename_single)
     f_calc = runner.generate(f_sfs)
     print('calculated f')
-    out_file = os.path.join(root_path, "files_for_tests", "OUT", 'sphere_'+str(sp.radius)+r'.out')
-    f_calc.save_to_out_file(out_file)
+    f_calc.save_to_out_file(r'D:\Eytan\g_r_test\OUT\sphere_'+str(sp.radius)+r'.out')
 
     n_sfs = rep_a * rep_b * rep_c
     q = np.array(list(f_calc.graph.keys()))
@@ -91,22 +85,22 @@ def test_1():
     r_mod_s, g_r_mod_s = g.g_r_from_s_q(q_mod, S_Q_mod, rho, r_max=r_max, type='DST')
     print('calculated g(r) from S(q)')
 
-    # plt.figure()
-    # plt.semilogy(q, S_q_sfs, label='From I(q)')
-    # plt.semilogy(q_mod, S_Q_mod, label='From model')
-    # plt.title('S(q)')
-    # plt.xlabel('$q [nm^{-1}]$')
-    # plt.legend()
-    # plt.show()
+    plt.figure()
+    plt.semilogy(q, S_q_sfs, label='From I(q)')
+    plt.semilogy(q_mod, S_Q_mod, label='From model')
+    plt.title('S(q)')
+    plt.xlabel('$q [nm^{-1}]$')
+    plt.legend()
+    plt.show()
 
-    # plt.figure()
-    # plt.plot(r_mod, g_r_mod, label='From Model')
-    # plt.plot(r_sfs, g_r_sfs, label='From I(q) with Simpson')
-    # plt.plot(r_mod_s, g_r_mod_s, label='From I(Q) with DST')
-    # plt.xlabel('r[nm]')
-    # plt.title('g(r)')
-    # plt.legend()
-    # plt.show()
+    plt.figure()
+    plt.plot(r_mod, g_r_mod, label='From Model')
+    plt.plot(r_sfs, g_r_sfs, label='From I(q) with Simpson')
+    plt.plot(r_mod_s, g_r_mod_s, label='From I(Q) with DST')
+    plt.xlabel('r[nm]')
+    plt.title('g(r)')
+    plt.legend()
+    plt.show()
 
     for i in integ_max:
         print('N_mod = ', simpson(rho * g_r_mod[r_mod < i] * 4 * np.pi * r_mod[r_mod < i]**2, r_mod[r_mod < i]))
@@ -118,27 +112,27 @@ def test_1():
     q_back_simps, s_q_back_simps = g.s_q_from_g_r(r_sfs, g_r_sfs, rho, q_max=q_max, type='Simpson')
     q_back_dst, s_q_back_dst = g.s_q_from_g_r(r_mod_s, g_r_mod_s, rho, q_max=q_max, type='DST')
 
-    # plt.figure()
-    # plt.semilogy(q, S_q_sfs, label='From I(q)')
-    # plt.semilogy(q_back_simps, s_q_back_simps, label='Backwards Simpson')
-    # plt.semilogy(q_back_dst, s_q_back_dst, label='Backwards DST')
-    # plt.title('S(q)')
-    # plt.xlabel('$q [nm^{-1}]$')
-    # plt.legend()
-    # plt.show()
+    plt.figure()
+    plt.semilogy(q, S_q_sfs, label='From I(q)')
+    plt.semilogy(q_back_simps, s_q_back_simps, label='Backwards Simpson')
+    plt.semilogy(q_back_dst, s_q_back_dst, label='Backwards DST')
+    plt.title('S(q)')
+    plt.xlabel('$q [nm^{-1}]$')
+    plt.legend()
+    plt.show()
 
     r_back_simps, g_r_back_simps = g.g_r_from_s_q(q_back_simps, s_q_back_simps, rho, r_max=r_max, type='Simpson')
     r_back_dst, g_r_back_dst = g.g_r_from_s_q(q_back_simps, s_q_back_simps, rho, r_max=r_max, type='DST')
 
-    # plt.figure()
-    # plt.plot(r_mod, g_r_mod, label='From Model')
-    # plt.plot(r_back_simps, g_r_back_simps, label='Backwards Backwards Simpson')
-    # plt.plot(r_back_dst, g_r_back_dst, label='Backwards Backwards DST')
-    # plt.title('g(r)')
-    # plt.xlabel('$r [nm]$')
-    # plt.legend()
-    # plt.show()
-    # # k+=1
+    plt.figure()
+    plt.plot(r_mod, g_r_mod, label='From Model')
+    plt.plot(r_back_simps, g_r_back_simps, label='Backwards Backwards Simpson')
+    plt.plot(r_back_dst, g_r_back_dst, label='Backwards Backwards DST')
+    plt.title('g(r)')
+    plt.xlabel('$r [nm]$')
+    plt.legend()
+    plt.show()
+    # k+=1
 
     for i in integ_max:
         print('N_simps',i,' = ', simpson(rho * g_r_back_simps[r_back_simps < i] * 4 * np.pi * r_back_simps[r_back_simps < i]**2, r_back_simps[r_back_simps < i]))
@@ -167,7 +161,7 @@ def test_2():
     runner = EmbeddedLocalRunner()
     I_calc = runner.generate(I_sfs)
 
-    I_sfs.DomainPreferences.signal_file = os.path.join(root_path, "files_for_tests", "OUT", 'cube.out')
+    I_sfs.DomainPreferences.signal_file = r'D:\Eytan\g_r_test\out\cube.out'
 
     s_q_tuple = g.S_Q_from_I(I_sfs.y, I_sfs.y, 1)
     s_q_dict = g.S_Q_from_I(I_calc.graph.values(), I_calc.graph.values(), 1)
@@ -178,13 +172,13 @@ def test_2():
 def test_4():
     print('test 4:')
 
-    Lx, Ly, Lz = 8.4603, 8.4603, 8.4603
-    r_max, dr = 2.5, 1e-2
+    Lx_4, Ly_4, Lz_4 = 8.4603, 8.4603, 8.4603
+    r_max_4, dr_4 = 2.5, 1e-2
     integ_max = np.array(range(40, 51, 1))/100
-    q_max, dq = 25, 25/1e3
+    q_max_4, dq_4 = 25, 25/1e3
 
-    dol_name = os.path.join(root_path, "files_for_tests", "DOL", 'NaCl.dol')
-    dol_name_triple = os.path.join(root_path, "files_for_tests", "DOL", 'NaCl_triple.dol')
+    dol_name = r'\\raviv_backup\raviv_group\public\To_Transfer\Eytan\D+\NaCl\DOL\NaCl.dol'
+    dol_name_triple = r'\\raviv_backup\raviv_group\public\To_Transfer\Eytan\D+\NaCl\DOL\NaCl_triple.dol'
 
     q_mod, S_Q_mod, rho_mod = g.S_Q_from_model(dol_name, q_max=q_max, dq=dq)
     r_mod, g_r_mod, rho_mod, rad_balls = g.g_r_from_model(dol_name, Lx, Ly, Lz, file_triple=dol_name_triple, r_max=r_max
@@ -200,16 +194,16 @@ def test_4():
         print('For DST, The number of NN up to', i, ':',
               simpson(rho_mod * g_r_dst[r_dst < i] * 4 * np.pi * r_dst[r_dst < i] ** 2, r_dst[r_dst < i]))
 
-    # plt.figure()
-    # plt.semilogy(q_mod, S_Q_mod, label='Model')
-    # plt.legend()
-    # plt.show()
-    # plt.figure()
-    # plt.plot(r_mod, g_r_mod, label='Model')
-    # plt.plot(r_simps, g_r_simps, label='Simpson')
-    # plt.plot(r_dst, g_r_dst, label='DST')
-    # plt.legend()
-    # plt.show()
+    plt.figure()
+    plt.semilogy(q_mod, S_Q_mod, label='Model')
+    plt.legend()
+    plt.show()
+    plt.figure()
+    plt.plot(r_mod, g_r_mod, label='Model')
+    plt.plot(r_simps, g_r_simps, label='Simpson')
+    plt.plot(r_dst, g_r_dst, label='DST')
+    plt.legend()
+    plt.show()
 
 def test_6():
     print('test 6: \n')
@@ -218,10 +212,11 @@ def test_6():
     rep_a, rep_b, rep_c = 10, 10, 10
     Lx, Ly, Lz = 50, 50, 50
     r_max, dr = 25, 1e-2
+    integ_max = [5.2, 8.8]
     rand_perc = 0.05
 
-    filename_single_6 = os.path.join(root_path, "files_for_tests", "DOL", 'thermal_cube.dol')
-    filename_triple_6 = os.path.join(root_path, "files_for_tests", "DOL", 'thermal_triple_cube.dol')
+    filename_single_6 = r'D:\Eytan\g_r_test\DOL\thermal_cube.dol'
+    filename_triple_6 = r'D:\Eytan\g_r_test\DOL\thermal_triple_cube.dol'
 
     g.build_crystal(a, b, c, rep_a, rep_b, rep_c, filename_single_6, ran=rand_perc)
 
@@ -234,39 +229,39 @@ def test_6():
     r_dst_6, g_r_dst_6 = g.g_r_from_s_q(q_mod_6, S_Q_mod_6, rho_6, r_max=r_max, type='DST')
     print('calculated g(r) from S(q)')
 
-    # plt.figure()
-    # plt.semilogy(q_mod_6, S_Q_mod_6, label='From model')
-    # plt.title('S(q)')
-    # plt.xlabel('$q [nm^{-1}]$')
-    # plt.legend()
-    # plt.show()
+    plt.figure()
+    plt.semilogy(q_mod_6, S_Q_mod_6, label='From model')
+    plt.title('S(q)')
+    plt.xlabel('$q [nm^{-1}]$')
+    plt.legend()
+    plt.show()
 
-    # plt.figure()
-    # plt.plot(r_mod_6, g_r_mod_6, label='From Model')
-    # plt.plot(r_simps_6, g_r_simps_6, label='From I(q) with Simpson')
-    # plt.plot(r_dst_6, g_r_dst_6, label='From I(Q) with DST')
-    # plt.xlabel('r[nm]')
-    # plt.title('g(r)')
-    # plt.legend()
-    # plt.show()
+    plt.figure()
+    plt.plot(r_mod_6, g_r_mod_6, label='From Model')
+    plt.plot(r_simps_6, g_r_simps_6, label='From I(q) with Simpson')
+    plt.plot(r_dst_6, g_r_dst_6, label='From I(Q) with DST')
+    plt.xlabel('r[nm]')
+    plt.title('g(r)')
+    plt.legend()
+    plt.show()
 
     print('N_mod = ', simpson(rho_6 * g_r_mod_6[r_mod_6 < 8.8] * 4 * np.pi * r_mod_6[r_mod_6 < 8.8]**2, r_mod_6[r_mod_6 < 8.8]))
     print('N_simpson = ', simpson(rho_6 * g_r_simps_6[r_simps_6 < 8.8] * 4 * np.pi * r_simps_6[r_simps_6 < 8.8]**2, r_simps_6[r_simps_6 < 8.8]))
     print('N_dst = ', simpson(rho_6 * g_r_dst_6[r_dst_6 < 8.8] * 4 * np.pi * r_dst_6[r_dst_6 < 8.8]**2, r_dst_6[r_dst_6 < 8.8]))
 
-def test_7():
+def test_7(a, b, c, rep_a, rep_b, rep_c, Lx, Ly, Lz, r_max, dr, q_max, dq, integ_max, rand_perc):
     print('test 7: \n')
 
-    a, b, c = np.array([5, 0, 0]), np.array([0, 5, 0]), np.array([0, 0, 5])
-    rep_a, rep_b, rep_c = 10, 10, 10
-    Lx, Ly, Lz = 50, 50, 50
-    r_max, dr = 20, 1e-2
-    integ_max = [5.7, 9.3]
-    rand_perc = 0.05
-    q_max = 15
-    dq = 15/1e3
+    a_7, b_7, c_7 = np.array([5, 0, 0]), np.array([0, 5, 0]), np.array([0, 0, 5])
+    rep_a_7, rep_b_7, rep_c_7 = 10, 10, 10
+    Lx_7, Ly_7, Lz_7 = 50, 50, 50
+    r_max_7, dr_7 = 20, 1e-2
+    integ_max_7 = [5.7, 9.3]
+    rand_perc_7 = 0.05
+    q_max_7 = 15
+    dq_7 = 15/1e3
 
-    filename_single_7 = os.path.join(root_path, "files_for_tests", "DOL", 'thermal_cube.dol')
+    filename_single_7 = r'D:\Eytan\g_r_test\DOL\thermal_cube.dol'
 
     I_sfs = CalculationInput()
     I_sfs.DomainPreferences.signal_file = r'D:\Eytan\g_r_test\out\cube.out'
@@ -303,22 +298,22 @@ def test_7():
     r_dst_7, g_r_dst_7 = g.g_r_from_s_q(q_mod_7, S_Q_mod_7, rho_mod_7, r_max=r_max, type='DST')
     print('calculated g(r) from S(q)')
 
-    # plt.figure()
-    # plt.semilogy(q, S_q_sfs, label='From I(q) at 0C')
-    # plt.semilogy(q_mod_7, S_Q_mod_7, label='From thermal model')
-    # plt.title('S(q)')
-    # plt.xlabel('$q [nm^{-1}]$')
-    # plt.legend()
-    # plt.show()
+    plt.figure()
+    plt.semilogy(q, S_q_sfs, label='From I(q) at 0C')
+    plt.semilogy(q_mod_7, S_Q_mod_7, label='From thermal model')
+    plt.title('S(q)')
+    plt.xlabel('$q [nm^{-1}]$')
+    plt.legend()
+    plt.show()
 
-    # plt.figure()
-    # plt.plot(r_mod_7, g_r_mod_7, label='From Model')
-    # plt.plot(r_simps_7, g_r_simps_7, label='From I(q) with Simpson')
-    # plt.plot(r_dst_7, g_r_dst_7, label='From I(Q) with DST')
-    # plt.xlabel('r[nm]')
-    # plt.title('g(r)')
-    # plt.legend()
-    # plt.show()
+    plt.figure()
+    plt.plot(r_mod_7, g_r_mod_7, label='From Model')
+    plt.plot(r_simps_7, g_r_simps_7, label='From I(q) with Simpson')
+    plt.plot(r_dst_7, g_r_dst_7, label='From I(Q) with DST')
+    plt.xlabel('r[nm]')
+    plt.title('g(r)')
+    plt.legend()
+    plt.show()
 
     for i in integ_max:
         print('N_mod', i, ' = ', simpson(rho_mod_7 * g_r_mod_7[r_mod_7 < i] * 4 * np.pi * r_mod_7[r_mod_7 < i]**2, r_mod_7[r_mod_7 < i]))

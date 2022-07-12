@@ -56,7 +56,6 @@ class TestGenerateRun(DplusProps):
         # first, do basic checks:
         expected = self.get_expected_signal(test_folder_path)
         input = self.get_input(test_folder_path)
-        # input.use_gpu = False
         input._fix_use_grid()
         #then run the program:
         result = self.run_calc_and_save_result(input, test_folder_path)
@@ -66,16 +65,6 @@ class TestGenerateRun(DplusProps):
         if result.error["code"]!=0:
             print("Result returned error:", result.error)
             assert False
-
-        # with open("result_to_delete.json", 'w') as f:
-        #     json.dump(result._raw_result, f)
-        
-        # from dplus.CalculationResult import GenerateResult
-        # calc_data = self.get_input(test_folder_path)
-        # calc_data._fix_use_grid()
-        # with open("result_to_delete.json") as f:
-        #     result_graph = json.load(f)
-        # result = GenerateResult(calc_data, result_graph, None)
 
         test_correct = self.then_test_correct(result, test_folder_path)
         assert test_correct
@@ -107,6 +96,7 @@ class TestGenerateRun(DplusProps):
         b = self._chi_sq2(result, expected)
         c = self._test_points(result, expected)
         d = self._test_normalized_Rqi(result, expected)
+        e = self._test_div(result, expected)
         test_name = self.get_test_name(test_folder_path)
         if not a:
             print(test_name, " failed chi sq 1")
@@ -116,7 +106,7 @@ class TestGenerateRun(DplusProps):
             print(test_name, " failed points test")
         if not d:
             print(test_name, " failed normalized Rqi")
-        return a or b or c or d  # the useful information is in the captured stdout call
+        return a or b or c or d or e  # the useful information is in the captured stdout call
 
     def _chi_a_squ(self, result, expected):
         # chi_a^2 = 1/N \sum_i^N [(I^expected_i - I_calculated_i)/\ sigma_i]^2
@@ -188,6 +178,12 @@ class TestGenerateRun(DplusProps):
         mean_n = np.mean(normalized)
         test = mean_n < 1e-8 and max_n < 1e-8
         return test
+
+    def _test_div(self, result, expected):
+        for i in range(len(expected.q)):
+            if abs(result.y[i] / expected.intensity[i]) < 0.999999:
+                return False
+        return True
 
     def _save_out_file(self, result, expected, test_folder_path):
         session_folder = self.get_session_folder(test_folder_path)
