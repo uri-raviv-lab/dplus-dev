@@ -42,7 +42,7 @@ class TestGenerateRun(DplusProps):
         with open(os.path.join(session_folder, "data.json"), 'w') as file:
             json.dump(result._raw_result, file)
 
-    def run_calc(self, input, test_folder_path):
+    def run_calc_and_save_result(self, input, test_folder_path):
         if web:
             api = WebRunner("http://192.168.18.100/", "06946fe6c6a3acd625dabbc7bdb905940140d8aa")
         else:
@@ -54,11 +54,12 @@ class TestGenerateRun(DplusProps):
     #@pytest.mark.timeout(3000)
     def test_run(self, test_folder_path):
         # first, do basic checks:
-        expected=self.get_expected_signal(test_folder_path)
-        input=self.get_input(test_folder_path)
+        expected = self.get_expected_signal(test_folder_path)
+        input = self.get_input(test_folder_path)
+        # input.use_gpu = False
         input._fix_use_grid()
         #then run the program:
-        result = self.run_calc(input, test_folder_path)
+        result = self.run_calc_and_save_result(input, test_folder_path)
         
 
         #and finally, a sanity check on the results
@@ -118,7 +119,7 @@ class TestGenerateRun(DplusProps):
         return a or b or c or d  # the useful information is in the captured stdout call
 
     def _chi_a_squ(self, result, expected):
-        # chi_a^2 = 1/N \sum_i^N [(I^expected_i - I_calculated_i)/\sigam_i]^2
+        # chi_a^2 = 1/N \sum_i^N [(I^expected_i - I_calculated_i)/\ sigma_i]^2
         N = len(expected.q)
         sum_i_to_N = 0
         for i in range(N):
