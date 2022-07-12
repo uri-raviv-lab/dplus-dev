@@ -68,7 +68,7 @@ namespace PythonBackend
                         continue;
 #else
                     // Release mode
-                    if (!wheelName.contains("release"))
+                    if (!wheelName.Contains("release"))
                         continue;
 #endif
                 }
