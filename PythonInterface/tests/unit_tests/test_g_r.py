@@ -5,7 +5,7 @@ Created on Wed Feb 16 13:30:34 2022
 """
 
 from dplus.CalculationInput import CalculationInput
-from dplus.CalculationRunner import LocalRunner
+from dplus.CalculationRunner import EmbeddedLocalRunner
 from dplus.DataModels.models import Sphere
 from dplus.DataModels import ManualSymmetry
 import matplotlib.pyplot as plt
@@ -14,8 +14,17 @@ import dplus.g_r as g
 import time as t
 import numpy as np
 
-def Test_1(a, b, c, rep_a, rep_b, rep_c, Lx, Ly, Lz, r_max, dr, q_max, dq, integ_max):
-    print('Test 1\n')
+def test_1():
+    print('test 1\n')
+
+    a, b, c = np.array([5,0,0]), np.array([0,5,0]), np.array([0,0,5])
+    rep_a, rep_b, rep_c = 10, 10, 10
+    Lx, Ly, Lz = 50, 50, 50
+    r_max, dr = 25, 1e-2
+    q_max = 100
+    dq = 0.1
+    integ_max = [5.2, 8.8]
+
     filename_single = r'D:\Eytan\g_r_test\DOL\cube.dol'
     filename_triple = r'D:\Eytan\g_r_test\DOL\triple_cube.dol'
 
@@ -133,8 +142,8 @@ def Test_1(a, b, c, rep_a, rep_b, rep_c, Lx, Ly, Lz, r_max, dr, q_max, dq, integ
     print('N_mod tot', simpson(rho * g_r_mod * 4 * np.pi * r_mod**2, r_mod))
     print('N_mod_s(q) tot', simpson(rho * g_r_mod_s * 4 * np.pi * r_mod_s**2, r_mod_s))
 
-def Test_2():
-    print('Test 2\n')
+def test_2():
+    print('test 2\n')
 
     I_sfs = CalculationInput()
     sp = Sphere()
@@ -149,7 +158,7 @@ def Test_2():
     I_sfs.DomainPreferences.orientation_method = 'Adaptive (VEGAS) Monte Carlo'
     I_sfs.Domain.populations[0].add_model(sp)
 
-    runner = LocalRunner()
+    runner = EmbeddedLocalRunner()
     I_calc = runner.generate(I_sfs)
 
     I_sfs.DomainPreferences.signal_file = r'D:\Eytan\g_r_test\out\cube.out'
@@ -160,8 +169,13 @@ def Test_2():
     # print(all(s_q_tuple == np.ones(len(I_sfs.y))) & all(s_q_dict == np.ones(len(I_calc.graph.values()))))
     assert all(s_q_tuple == np.ones(len(I_sfs.y))) & all(s_q_dict == np.ones(len(I_calc.graph.values())))
 
-def Test_4(Lx, Ly, Lz, r_max, dr, q_max, dq, integ_max):
-    print('Test 4:')
+def test_4():
+    print('test 4:')
+
+    Lx_4, Ly_4, Lz_4 = 8.4603, 8.4603, 8.4603
+    r_max_4, dr_4 = 2.5, 1e-2
+    integ_max = np.array(range(40, 51, 1))/100
+    q_max_4, dq_4 = 25, 25/1e3
 
     dol_name = r'\\raviv_backup\raviv_group\public\To_Transfer\Eytan\D+\NaCl\DOL\NaCl.dol'
     dol_name_triple = r'\\raviv_backup\raviv_group\public\To_Transfer\Eytan\D+\NaCl\DOL\NaCl_triple.dol'
@@ -191,8 +205,17 @@ def Test_4(Lx, Ly, Lz, r_max, dr, q_max, dq, integ_max):
     plt.legend()
     plt.show()
 
-def Test_6(a, b, c, rep_a, rep_b, rep_c, Lx, Ly, Lz, rand_perc, rmax, dr):
-    print('Test 6: \n')
+def test_6():
+    print('test 6: \n')
+
+    a, b, c = np.array([5,0,0]), np.array([0,5,0]), np.array([0,0,5])
+    rep_a, rep_b, rep_c = 10, 10, 10
+    Lx, Ly, Lz = 50, 50, 50
+    r_max, dr = 25, 1e-2
+    q_max = 100
+    dq = 0.1
+    integ_max = [5.2, 8.8]
+    rand_perc = 0.05
 
     filename_single_6 = r'D:\Eytan\g_r_test\DOL\thermal_cube.dol'
     filename_triple_6 = r'D:\Eytan\g_r_test\DOL\thermal_triple_cube.dol'
@@ -202,10 +225,10 @@ def Test_6(a, b, c, rep_a, rep_b, rep_c, Lx, Ly, Lz, rand_perc, rmax, dr):
     q_mod_6, S_Q_mod_6, rho_mod_6 = g.S_Q_from_model(filename_single_6)
     print('calculated S(q) from model')
     r_mod_6, g_r_mod_6, rho_6, rad_balls_6 = g.g_r_from_model(filename_single_6, Lx, Ly, Lz, filename_triple_6, radius=0
-                                                              , r_max=rmax, dr=dr, Number_for_average=10)
+                                                              , r_max=r_max, dr=dr, Number_for_average=10)
     print('calculated g(r) from model')
-    r_simps_6, g_r_simps_6 = g.g_r_from_s_q(q_mod_6, S_Q_mod_6, rho_6, r_max=rmax, type='Simpson')
-    r_dst_6, g_r_dst_6 = g.g_r_from_s_q(q_mod_6, S_Q_mod_6, rho_6, r_max=rmax, type='DST')
+    r_simps_6, g_r_simps_6 = g.g_r_from_s_q(q_mod_6, S_Q_mod_6, rho_6, r_max=r_max, type='Simpson')
+    r_dst_6, g_r_dst_6 = g.g_r_from_s_q(q_mod_6, S_Q_mod_6, rho_6, r_max=r_max, type='DST')
     print('calculated g(r) from S(q)')
 
     plt.figure()
@@ -228,8 +251,8 @@ def Test_6(a, b, c, rep_a, rep_b, rep_c, Lx, Ly, Lz, rand_perc, rmax, dr):
     print('N_simpson = ', simpson(rho_6 * g_r_simps_6[r_simps_6 < 8.8] * 4 * np.pi * r_simps_6[r_simps_6 < 8.8]**2, r_simps_6[r_simps_6 < 8.8]))
     print('N_dst = ', simpson(rho_6 * g_r_dst_6[r_dst_6 < 8.8] * 4 * np.pi * r_dst_6[r_dst_6 < 8.8]**2, r_dst_6[r_dst_6 < 8.8]))
 
-def Test_7(a, b, c, rep_a, rep_b, rep_c, Lx, Ly, Lz, r_max, dr, q_max, dq, integ_max, rand_perc):
-    print('Test 7: \n')
+def test_7(a, b, c, rep_a, rep_b, rep_c, Lx, Ly, Lz, r_max, dr, q_max, dq, integ_max, rand_perc):
+    print('test 7: \n')
 
     filename_single_7 = r'D:\Eytan\g_r_test\DOL\thermal_cube.dol'
 
@@ -302,7 +325,7 @@ def Test_7(a, b, c, rep_a, rep_b, rep_c, Lx, Ly, Lz, r_max, dr, q_max, dq, integ
     print('N_dst = ',
           simpson(rho_mod_7 * g_r_dst_7[r_range_dst] * 4 * np.pi * r_dst_7[r_range_dst] ** 2, r_dst_7[r_range_dst]))
 
-# def Test_8(file, Lx, Ly, Lz, r_max, dr):
+# def test_8(file, Lx, Ly, Lz, r_max, dr):
 #     t_new = t.process_time_ns()
 #     r, g_r, rho = g.new_g_r(file, Lx, Ly, Lz, r_max, dr)
 #     elapsed_t_new = t.process_time() - t_new
@@ -324,25 +347,14 @@ def Test_7(a, b, c, rep_a, rep_b, rep_c, Lx, Ly, Lz, r_max, dr, q_max, dq, integ
 
 
 if __name__ == '__main__':
-    a, b, c = np.array([5,0,0]), np.array([0,5,0]), np.array([0,0,5])
-    rep_a, rep_b, rep_c = 10, 10, 10
-    Lx, Ly, Lz = 50, 50, 50
-    r_max, dr = 25, 1e-2
-    q_max = 100
-    dq = 0.1
-    integ_max = [5.2, 8.8]
-    Test_1(a, b, c, rep_a, rep_b, rep_c, Lx, Ly, Lz, r_max, dr, q_max, dq, integ_max)
+    test_1()
 
-    Test_2()
+    test_2()
+    
+    test_4()
 
-    Lx_4, Ly_4, Lz_4 = 8.4603, 8.4603, 8.4603
-    r_max_4, dr_4 = 2.5, 1e-2
-    integ_max = np.array(range(40, 51, 1))/100
-    q_max_4, dq_4 = 25, 25/1e3
-    Test_4(Lx_4, Ly_4, Lz_4, r_max_4, dr_4, q_max_4, dq_4, integ_max)
-
-    rand_perc_6 = 0.05
-    Test_6(a, b, c, rep_a, rep_b, rep_c, Lx, Ly, Lz, rand_perc_6, r_max, dr)
+    
+    test_6()
 
     a_7, b_7, c_7 = np.array([5, 0, 0]), np.array([0, 5, 0]), np.array([0, 0, 5])
     rep_a_7, rep_b_7, rep_c_7 = 10, 10, 10
@@ -352,10 +364,10 @@ if __name__ == '__main__':
     rand_perc_7 = 0.05
     q_max_7 = 15
     dq_7 = 15/1e3
-    Test_7(a_7, b_7, c_7, rep_a_7, rep_b_7, rep_c_7, Lx_7, Ly_7, Lz_7, r_max_7, dr_7, q_max_7, dq_7, integ_max_7, rand_perc_7)
+    test_7(a_7, b_7, c_7, rep_a_7, rep_b_7, rep_c_7, Lx_7, Ly_7, Lz_7, r_max_7, dr_7, q_max_7, dq_7, integ_max_7, rand_perc_7)
     # filename_8 = r'D:\Eytan\g_r_test\DOL\cube.dol'
     # Lx, Ly, Lz = 50, 50, 50
     # r_max = 22.5
     # dr = 0.01
-    # t_1, t_2 = Test_8(filename_8, Lx, Ly, Lz, r_max, dr)
+    # t_1, t_2 = test_8(filename_8, Lx, Ly, Lz, r_max, dr)
 
