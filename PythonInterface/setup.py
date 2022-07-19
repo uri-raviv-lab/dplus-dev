@@ -45,7 +45,9 @@ ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # This i
 API_DIR = os.path.dirname(__file__)
 INCLUDE_DIRS = [ROOT_DIR, os.path.join(ROOT_DIR, 'Common')]
 LIBRARY_DIRS = [os.path.join(ROOT_DIR, "x64", "ReleaseWithDebugInfo" if DEBUG else "Release")]
-REQUIRED_DLLS = ['cudart64_110', 'curand64_10', 'lua51-backend', 'PDBReaderLib', 'xplusbackend']
+REQUIRED_DLLS = ['cudart64_110', 'curand64_10', 'lua51-backend', 'PDBReaderLib', 'xplusbackend', 
+    # 'vcruntime140', 'msvcp140', 'vcomp140', 'vcruntime140_1'
+    ]
 
 extra_compile_args = []
 extra_link_args = []
