@@ -6,12 +6,12 @@ backend_exception::backend_exception(int error_code, const char *error_message) 
 		_errorMessage = g_errorStrings[error_code];
 }
 
-int backend_exception::GetErrorCode()
+int backend_exception::GetErrorCode() const
 {
 	return _errorCode;
 }
 
-std::string backend_exception::GetErrorMessage()
+std::string backend_exception::GetErrorMessage() const
 {
 	return _errorMessage;
 }

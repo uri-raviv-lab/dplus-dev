@@ -30,31 +30,33 @@ From Visual Studio 2019, open the Extensions menu, choose "Manage Extensions". S
 
 You will need to enable .NET 3.5.1 from the control panel. (Win-S and search Turn Windows Features On and Off). If it is not installed, you will need to install it first (https://www.microsoft.com/en-us/download/details.aspx?id=22).
 
-## IMPORTANT
-D+ consists of three parts- the backend, the python API, and the frontend. 
-(We may be making some changes in the future, to consolidate the backend with the python API.)
-For now, both the API and the frontend depend on the backend having been built in Release mode.
-The frontend depends on the API, but it comes with a prebuild version of it, so you do not need to rebuild the API unless you are using it yourself, or have made changes to it you want reflected in the API. 
+## HOW TO BUILD
+D+ consists of three parts- the backend, the python API, and the frontend (in order of dependence: the backend is independent, the api depends on the backend, the frontend depends on both the backend and the api)
 
-## Compiling the Backend
-To compile the backend, open the DPlus solution, choose x64 as the platform and build. This will build the C++ backend.
+#Building the entire project
 
-### Compiling the Python API
-You should also compile the Python dplus API. Do so by creating a Python 3.9 virtual environment. Activate it and
+1. Build only the Backend in both Release and ReleaseWithDebugInfo
+2. In PythonInterface, activate your virtual environment and then run rebuild-wheels.ps1
+3. In the frontend, **rebuild** PythonBackend in both Release and ReleaseWithDebugInfo (otherwise the embedded resources are not updated)
+4. Build the frontend
 
-    cd PythonInterface
-    pip install -r requirements.txt
-    pip install wheel
-    python setup.py prepare
-    python setup.py bdist_wheel
+# Building after a change in the backend
+Repeat steps 1-3 in the section "Building the entire project"
 
-You will have the wheel in the dist folder.
+# Building after a change in the python interface
+Repeat steps 2-3 in the section "Building the entire project"
 
-The dplus-api is also built automatically for Windows and Linux if you push a tag starting with `v` to github.
+Note that this is for building the python wheels for the dplus program. 
 
-## Compiling the Frontend
-The Frontend project PythonBackend has embedded resources, one of them is the dplus-api wheel. If you have created a new wheel, you should change the embedded resource in this project. Then build the solution.
+To build the python wheels for uploading to pypi, you will need to run `python setup.py bdist_wheel` for Windows, and the manylinux docker for linux.
 
+# Building after a change in the frontend
+Simply build the frontend, no other steps needed. 
 
+# Release vs ReleaseWithDebugInfo
+The wheel built with ReleaseWithDebugInfo is *significantly* slower than Release.
 
+## Troubleshooting
 
+### Missing standard headers files (such as stdio.h)
+It is possible that the compilation will fail, because standard header files (such as assert.h or stdio.h) can't be found. This is an indication that the wrong Windows SDK is installed. Find out which is the correct version by right clicking on the Backend project and selecting Properties. Use the Visual Studio Installer to install the proper version (you can find it in the Desktop C++ Building Tools section)

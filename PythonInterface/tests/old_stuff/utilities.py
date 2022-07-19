@@ -6,15 +6,13 @@ import pytest
 from pytest import approx
 
 from dplus.CalculationInput import CalculationInput
-from dplus.CalculationRunner import LocalRunner
+from dplus.CalculationRunner import EmbeddedLocalRunner
 from tests.old_stuff.fix_state_files import fix_file
 
 
 @pytest.fixture(scope="module")
 def LocalAPI():
-    exe_directory=r"C:\Users\devora.CHELEM\Sources\dplus_master_branch\x64\Release"
-    #session=r"D:\UserData\devora\Sources\dplus\WebApplication\media\testing"
-    return LocalRunner(exe_directory)#, session)
+    return EmbeddedLocalRunner()
 
 
 @pytest.mark.incremental

@@ -7,3 +7,11 @@ dist/
 *egg-info/
 *.cpp
 *.h
+*.pdb
+env*
+
+dplus/*.dll
+local_test_settings.py
+*test_session*
+*.pyd
+test/sessions/*

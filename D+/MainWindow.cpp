@@ -887,6 +887,7 @@ namespace DPlus {
 	}
 
 	void MainWindow::Generate() {
+		stopInProcess = false;
 		if (this->InvokeRequired) {
 			Invoke(gcnew FuncNoParams(this, &MainWindow::Generate));
 			return;
@@ -921,6 +922,7 @@ namespace DPlus {
 	}
 
 	void MainWindow::Fit() {
+		stopInProcess = false;
 		if (this->InvokeRequired) {
 			Invoke(gcnew FuncNoParams(this, &MainWindow::Fit));
 			return;
@@ -1017,7 +1019,8 @@ namespace DPlus {
 	void MainWindow::Stop() {
 		ControlButtonsPane ^gf = (ControlButtonsPane ^)PaneList[CALC_BUTTONS];
 		gf->stopButton->Enabled = false;
-		EnableGenDFitButton(!gf->stopButton->Enabled);
+		EnableGenDFitButton(true);
+		stopInProcess = true;
 		frontend->Stop(job);
 	}
 
@@ -1035,7 +1038,7 @@ namespace DPlus {
 		//	progressBar->Visible = true;		
 
 		ControlButtonsPane ^ gf = (ControlButtonsPane ^)PaneList[CALC_BUTTONS];
-		if (!gf->stopButton->Enabled)
+		if (!gf->stopButton->Enabled && !stopInProcess)
 		{
 			gf->stopButton->Enabled = true;
 			EnableGenDFitButton(!gf->stopButton->Enabled);
@@ -2138,7 +2141,7 @@ namespace DPlus {
 
 		ControlButtonsPane ^gf = (ControlButtonsPane ^)PaneList[CALC_BUTTONS];
 		gf->stopButton->Enabled = true;
-		EnableGenDFitButton(!gf->stopButton->Enabled);
+		EnableGenDFitButton(false);
 
 	}
 	void MainWindow::EnableGenDFitButton(bool newStatus)

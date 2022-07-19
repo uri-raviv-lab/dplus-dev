@@ -785,7 +785,7 @@ class State:
         param_array = []
         for model_params in params:
             for param in model_params:
-                param_array.append(param.value)
+                param_array.append(float(param.value)) # convert to float for ignore case is int32, that make problems later
         return param_array
 
     def get_mutable_parameter_options(self):

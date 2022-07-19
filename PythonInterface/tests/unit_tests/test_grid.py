@@ -1,7 +1,5 @@
-from dplus.Amplitudes import Amplitude, Grid
-from tests.unit_tests.conftest import test_dir
-from tests.test_settings import session
-import os
+from dplus.Amplitudes import Grid
+
 import numpy as np
 import math
 

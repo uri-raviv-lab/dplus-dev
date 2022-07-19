@@ -5,14 +5,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PopulationSolver", "Populat
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|Win32 = Debug|Win32
-		Release|Win32 = Release|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{A06037B7-8EBD-401D-8EEE-1B5B97906E21}.Debug|Win32.ActiveCfg = Debug|Win32
-		{A06037B7-8EBD-401D-8EEE-1B5B97906E21}.Debug|Win32.Build.0 = Debug|Win32
-		{A06037B7-8EBD-401D-8EEE-1B5B97906E21}.Release|Win32.ActiveCfg = Release|Win32
-		{A06037B7-8EBD-401D-8EEE-1B5B97906E21}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

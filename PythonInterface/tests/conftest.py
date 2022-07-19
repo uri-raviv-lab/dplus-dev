@@ -1,4 +1,4 @@
-import pytest
+# import pytest
 print("added the option as necessary")
 def pytest_addoption(parser):
     parser.addoption("--slow", action="store_true", default=False,

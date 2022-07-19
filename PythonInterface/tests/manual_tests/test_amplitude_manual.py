@@ -1,15 +1,12 @@
 import os
 import math
-import tempfile
 from os.path import abspath
-import shutil
 import numpy as np
 import pytest
 
-from tests.test_settings import exe_directory
-
-
-root_path=os.path.dirname(abspath(__file__))
+root_path = os.path.dirname(abspath(__file__))
+process_path = r'..\test_session\files'
+os.makedirs(process_path, exist_ok=True)
 
 def test_conversion():
     from dplus.Amplitudes import sph2cart, cart2sph
@@ -36,7 +33,7 @@ def test_amplitude_load():
 def test_amplitude_headers():
     from dplus.Amplitudes import Amplitude
     from dplus.CalculationInput import CalculationInput
-    from dplus.CalculationRunner import LocalRunner
+    from dplus.CalculationRunner import EmbeddedLocalRunner
 
     def my_func(q, theta, phi):
         return np.complex64(q+1 + 0.0j)
@@ -44,12 +41,12 @@ def test_amplitude_headers():
     a = Amplitude(80, 7.5)
     a.description= "An example amplitude"
     a.fill(my_func)
-    a.save(os.path.join(root_path, "files", "myamp2.ampj"))
+    a.save(os.path.join(process_path, "myamp2.ampj"))
 
     input = CalculationInput()
     amp_model = input.add_amplitude(a)
     amp_model.centered = True
-    runner = LocalRunner(exe_directory)
+    runner = EmbeddedLocalRunner()
     result = runner.generate(input)
     assert len(result.y)
 
@@ -61,6 +58,7 @@ def test_amplitude_interpolation_1():
 
     a = Amplitude(80, 7.5)
     a.fill(my_func)
+    a.save(os.path.join(process_path, "myamp2.ampj"))
 
     output_intrp = a.get_interpolation(5, 3, 6)
     expected = my_func(5, 3, 6)
@@ -109,23 +107,18 @@ class UniformSphere:
 def test_dplus_models_sphere():
     from dplus.Amplitudes import Amplitude
     from dplus.State import State
-    from dplus.CalculationRunner import LocalRunner
+    from dplus.CalculationRunner import EmbeddedLocalRunner
     from dplus.CalculationInput import CalculationInput
 
     sphere = UniformSphere()
     a = Amplitude(50, 5)
     a.fill(sphere.calculate)
-    tmp_directory = tempfile.mkdtemp()
-    new_file_path = os.path.join(tmp_directory, 'sphere.ampj')
-    try:
-        a.save(new_file_path)
-        input = CalculationInput()
-        amp_model = input.add_amplitude(a)
-        amp_model.centered = True
-        runner = LocalRunner(exe_directory)
-        result = runner.generate(input)
-    finally:
-        shutil.rmtree(tmp_directory)
+    a.save(os.path.join(process_path, "sphere.ampj"))
+    input = CalculationInput()
+    amp_model = input.add_amplitude(a)
+    amp_model.centered = True
+    runner = EmbeddedLocalRunner()
+    result = runner.generate(input)
 
 class SymmetricSlab:
     def __init__(self):
@@ -163,7 +156,7 @@ class SymmetricSlab:
             return res * 4. * sinc(qx * self.xDomain) * self.xDomain * sinc(qy * self.yDomain) * self.yDomain
 
         prevSin = np.float64(0.0)
-        currSin=np.float64(0.0)
+        currSin = np.float64(0.0)
         for i in range(1, self.nLayers):
             currSin = sin(self.width[i] * qz)
             res += (self.ED[i] - self.ED[0]) * 2. * (currSin - prevSin) / qz
@@ -175,22 +168,18 @@ class SymmetricSlab:
 def test_dplus_models_slab():
     from dplus.Amplitudes import Amplitude
     from dplus.State import State
-    from dplus.CalculationRunner import LocalRunner
+    from dplus.CalculationRunner import EmbeddedLocalRunner
     from dplus.CalculationInput import CalculationInput
     symSlab = SymmetricSlab()
     a = Amplitude(80, 7.5)
     a.fill(symSlab.calculate)
-    tmp_directory = tempfile.mkdtemp()
-    new_file_path  = os.path.join(tmp_directory, 'slab.ampj')
-    try:
-        a.save(new_file_path)
-        input = CalculationInput()
-        amp_model = input.add_amplitude(a)
-        amp_model.centered = True
-        runner = LocalRunner(exe_directory)
-        result = runner.generate(input)
-    finally:
-        shutil.rmtree(tmp_directory)
+    a.save(os.path.join(process_path, 'slab.ampj'))
+
+    input = CalculationInput()
+    amp_model = input.add_amplitude(a)
+    amp_model.centered = True
+    runner = EmbeddedLocalRunner()
+    result = runner.generate(input)
 
 
 
