@@ -34,6 +34,8 @@
     <SuppressIces>
     </SuppressIces>
     <LinkerAdditionalOptions>-ext WixUIExtension -ext WixNetFxExtension</LinkerAdditionalOptions>
+    <VerboseOutput>True</VerboseOutput>
+    <DefineConstants />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' ">
     <DefineConstants>Debug</DefineConstants>
