@@ -8,20 +8,13 @@ def MoveToGC(Array):
     """Given a certain matrix of (Nx3) with Cartesian coordinates, returns the same array but moved to its geometric
     center."""
 
-    x_tot = 0
-    y_tot = 0
-    z_tot = 0
-    for i in range(0, len(Array)):
-        x_tot += Array[i][0]
-        y_tot += Array[i][1]
-        z_tot += Array[i][2]
-    x_tot = x_tot / len(Array)
-    y_tot = y_tot / len(Array)
-    z_tot = z_tot / len(Array)
-    for i in range(0, len(Array)):
-        Array[i][0] = Array[i][0] - x_tot
-        Array[i][1] = Array[i][1] - y_tot
-        Array[i][2] = Array[i][2] - z_tot
+    r = np.zeros(3)
+    len_array = Array.shape[0]
+    for i in range(len_array):
+        r[:] += Array[i][:]
+    r[:] /= len_array
+    for i in range(len_array):
+        Array[i, :] -= r[:]
 
     return Array
 
@@ -409,177 +402,6 @@ def g_r_from_model(file, Lx, Ly, Lz, file_triple=None, radius=0, r_max = 15, dr 
 #     g_r /= it
 #
 #     return r, g_r, rho
-
-# def g_r_from_model_2(file, box_size, radius=0, r_max = 15, dr = 0.01, Number_for_average = 25):
-#     vec, n = read_from_file(file, radius)
-#     print(n)
-#
-#     bins = np.arange(0, r_max + dr, dr)
-#     m = len(bins)
-#     g_r = np.zeros([Number_for_average, m])
-#     L = box_size[0]
-#     H = box_size[1]
-#     W = box_size[2]
-#
-#     if radius == 0:
-#         it = 0
-#         while it < Number_for_average:
-#             my_rand = np.random.randint(0, n)
-#             x_0 = vec[my_rand][0]
-#             y_0 = vec[my_rand][1]
-#             z_0 = vec[my_rand][2]
-#
-#             for row_j in range(n):
-#                 x = vec[row_j][0]
-#                 y = vec[row_j][1]
-#                 z = vec[row_j][2]
-#
-#                 d1 = np.sqrt((x - x_0)**2 + (y - y_0)**2 + (z - z_0)**2)
-#                 d2p = np.sqrt((x + L - x_0) ** 2 + (y - y_0) ** 2 + (z - z_0) ** 2)
-#                 d2m = np.sqrt((x - L - x_0) ** 2 + (y - y_0) ** 2 + (z - z_0) ** 2)
-#                 d3p = np.sqrt((x - x_0) ** 2 + (y + H - y_0) ** 2 + (z - z_0) ** 2)
-#                 d3m = np.sqrt((x - x_0) ** 2 + (y + H - y_0) ** 2 + (z - z_0) ** 2)
-#                 d4p = np.sqrt((x - x_0) ** 2 + (y - y_0) ** 2 + (z + W - z_0) ** 2)
-#                 d4m = np.sqrt((x - x_0) ** 2 + (y - y_0) ** 2 + (z - W - z_0) ** 2)
-#                 d5pp = np.sqrt((x + L - x_0) ** 2 + (y + H - y_0) ** 2 + (z - z_0) ** 2)
-#                 d5pm = np.sqrt((x + L - x_0) ** 2 + (y - H - y_0) ** 2 + (z - z_0) ** 2)
-#                 d5mp = np.sqrt((x - L - x_0) ** 2 + (y + H - y_0) ** 2 + (z - z_0) ** 2)
-#                 d5mm = np.sqrt((x - L - x_0) ** 2 + (y - H - y_0) ** 2 + (z - z_0) ** 2)
-#                 d6pp = np.sqrt((x + L - x_0) ** 2 + (y - y_0) ** 2 + (z + W - z_0) ** 2)
-#                 d6pm = np.sqrt((x + L - x_0) ** 2 + (y - y_0) ** 2 + (z - W - z_0) ** 2)
-#                 d6mp = np.sqrt((x - L - x_0) ** 2 + (y - y_0) ** 2 + (z + W - z_0) ** 2)
-#                 d6mm = np.sqrt((x - L - x_0) ** 2 + (y - y_0) ** 2 + (z - W - z_0) ** 2)
-#                 d7pp = np.sqrt((x - x_0) ** 2 + (y + H - y_0) ** 2 + (z + W - z_0) ** 2)
-#                 d7pm = np.sqrt((x - x_0) ** 2 + (y + H - y_0) ** 2 + (z - W - z_0) ** 2)
-#                 d7mp = np.sqrt((x - x_0) ** 2 + (y - H - y_0) ** 2 + (z + W - z_0) ** 2)
-#                 d7mm = np.sqrt((x - x_0) ** 2 + (y - H - y_0) ** 2 + (z - W - z_0) ** 2)
-#                 d8ppp = np.sqrt((x + L - x_0) ** 2 + (y + H - y_0) ** 2 + (z + W - z_0) ** 2)
-#                 d8ppm = np.sqrt((x + L - x_0) ** 2 + (y + H - y_0) ** 2 + (z - W - z_0) ** 2)
-#                 d8pmp = np.sqrt((x + L - x_0) ** 2 + (y - H - y_0) ** 2 + (z + W - z_0) ** 2)
-#                 d8mpp = np.sqrt((x - L - x_0) ** 2 + (y + H - y_0) ** 2 + (z + W - z_0) ** 2)
-#                 d8pmm = np.sqrt((x + L - x_0) ** 2 + (y - H - y_0) ** 2 + (z - W - z_0) ** 2)
-#                 d8mpm = np.sqrt((x - L - x_0) ** 2 + (y + H - y_0) ** 2 + (z - W - z_0) ** 2)
-#                 d8mmp = np.sqrt((x - L - x_0) ** 2 + (y - H - y_0) ** 2 + (z + W - z_0) ** 2)
-#                 d8mmm = np.sqrt((x - L - x_0) ** 2 + (y - H - y_0) ** 2 + (z - W - z_0) ** 2)
-#
-#
-#                 # print(np.sort([d1, d2, d3, d4, d5, d6, d7, d8]))
-#
-#                 # if (d1 < 1e-10) | (d2 < 1e-10) | (d3 < 1e-10) | (d4 < 1e-10) | (d5 < 1e-10) | (d6 < 1e-10) | (d7 < 1e-10) \
-#                 #         | (d8 < 1e-10):
-#                 #     continue
-#                 for i in range(m):
-#                     if (bins[i] < d1) & (bins[i] < d2p) & (bins[i] < d2m) & (bins[i] < d3p) & (bins[i] < d3m)\
-#                             & (bins[i] < d4p) & (bins[i] < d4m) & (bins[i] < d5pp) & (bins[i] < d5pm) &\
-#                             (bins[i] < d5mp) & (bins[i] < d5mm) & (bins[i] < d6pp) & (bins[i] < d6pm) & \
-#                             (bins[i] < d6mp) & (bins[i] < d6mm) & (bins[i] < d7pp) & (bins[i] < d7pm)\
-#                             & (bins[i] < d7mp) & (bins[i] < d7mm) & (bins[i] < d8ppp) & (bins[i] < d8mpp)\
-#                             & (bins[i] < d8pmp) & (bins[i] < d8ppm) & (bins[i] < d8pmm) & (bins[i] < d8mpm)\
-#                             & (bins[i] < d8mmp) & (bins[i] < d8mmm):
-#                         continue
-#                     else:
-#                         if (bins[i] == d1) | (bins[i] == d2p) | (bins[i] == d2m) | (bins[i] == d3p) | (bins[i] == d3m)\
-#                             | (bins[i] == d4p) | (bins[i] == d4m) | (bins[i] == d5pp) | (bins[i] == d5pm) |\
-#                             (bins[i] == d5mp) | (bins[i] == d5mm) | (bins[i] == d6pp) | (bins[i] == d6pm) | \
-#                             (bins[i] == d6mp) | (bins[i] == d6mm) | (bins[i] == d7pp) | (bins[i] == d7pm)\
-#                             | (bins[i] == d7mp) | (bins[i] == d7mm) | (bins[i] == d8ppp) | (bins[i] == d8mpp)\
-#                             | (bins[i] == d8pmp) | (bins[i] == d8ppm) | (bins[i] == d8pmm) | (bins[i] == d8mpm)\
-#                             | (bins[i] == d8mmp) | (bins[i] == d8mmm):
-#                             s = sum([(bins[i] == d1), (bins[i] == d2p), (bins[i] == d2m), (bins[i] == d3p), (bins[i] == d3m)\
-#                            , (bins[i] == d4p), (bins[i] == d4m), (bins[i] == d5pp), (bins[i] == d5pm),\
-#                             (bins[i] == d5mp), (bins[i] == d5mm), (bins[i] == d6pp), (bins[i] == d6pm), \
-#                             (bins[i] == d6mp), (bins[i] == d6mm), (bins[i] == d7pp), (bins[i] == d7pm)\
-#                            , (bins[i] == d7mp), (bins[i] == d7mm), (bins[i] == d8ppp), (bins[i] == d8mpp)\
-#                            , (bins[i] == d8pmp), (bins[i] == d8ppm), (bins[i] == d8pmm), (bins[i] == d8mpm)\
-#                            , (bins[i] == d8mmp), (bins[i] == d8mmm)])
-#                             g_r[it][i] += s
-#                             break
-#                         elif(bins[i] > d1) | (bins[i] > d2p) | (bins[i] > d2m) | (bins[i] > d3p) | (bins[i] > d3m)\
-#                             | (bins[i] > d4p) | (bins[i] > d4m) | (bins[i] > d5pp) | (bins[i] > d5pm) |\
-#                             (bins[i] > d5mp) | (bins[i] > d5mm) | (bins[i] > d6pp) | (bins[i] > d6pm) | \
-#                             (bins[i] > d6mp) | (bins[i] > d6mm) | (bins[i] > d7pp) | (bins[i] > d7pm)\
-#                             | (bins[i] > d7mp) | (bins[i] > d7mm) | (bins[i] > d8ppp) | (bins[i] > d8mpp)\
-#                             | (bins[i] > d8pmp) | (bins[i] > d8ppm) | (bins[i] > d8pmm) | (bins[i] > d8mpm)\
-#                             | (bins[i] > d8mmp) | (bins[i] > d8mmm):
-#                             s = sum(
-#                                 [(bins[i]> d1), (bins[i]> d2p), (bins[i]> d2m), (bins[i]> d3p), (bins[i]> d3m) \
-#                                     , (bins[i]> d4p), (bins[i]> d4m), (bins[i]> d5pp), (bins[i]> d5pm), \
-#                                  (bins[i]> d5mp), (bins[i]> d5mm), (bins[i]> d6pp), (bins[i]> d6pm), \
-#                                  (bins[i]> d6mp), (bins[i]> d6mm), (bins[i]> d7pp), (bins[i]> d7pm) \
-#                                     , (bins[i]> d7mp), (bins[i]> d7mm), (bins[i]> d8ppp), (bins[i]> d8mpp) \
-#                                     , (bins[i]> d8pmp), (bins[i]> d8ppm), (bins[i]> d8pmm), (bins[i]> d8mpm) \
-#                                     , (bins[i]> d8mmp), (bins[i]> d8mmm)])
-#                             g_r[it][i+1] += s
-#                             break
-#
-#             it += 1
-#
-#     #
-#     #
-#     #             # if (d > 4.9) & (d < 5.1) & (row_i == 0):
-#     #             #     print(d)
-#     #             if (r_max < d) | (d < 1e-10):
-#     #                 continue
-#     #             # elif row_i ==0:
-#     #             #     num += 1
-#     #             for i in range(m):
-#     #                 if bins[i] < d:
-#     #                     continue
-#     #                 else:
-#     #                     if bins[i] >= d:
-#     #                         g_r[i] += 2
-#     #                         num += 1
-#     #
-#     #                         break
-#     #
-#     # else:
-#     #     for row_i in range(n-1):
-#     #         r_0 = vec[row_i]
-#     #         for row_j in range(row_i, n):
-#     #             d = np.sqrt((vec[row_j][0] - r_0[0]) ** 2 + (vec[row_j][1] - r_0[1]) ** 2 + (vec[row_j][2] - r_0[2]) ** 2)
-#     #             # if (d > 4.9) & (d < 5.1) & (row_i == 0):
-#     #             #     print(d)
-#     #             r = vec[row_j][3]
-#     #             d_min = d - r
-#     #             if (r_max < d_min) | (d < 1e-10):
-#     #                 continue
-#     #             elif row_i == 0:
-#     #                 num += 1
-#     #             d_max = d + r
-#     #             vol_tot = 4 * np.pi * r ** 3 / 3
-#     #             N = N_R(r, dr)
-#     #
-#     #             for i in range(m):
-#     #                 if bins[i] < d_min:
-#     #                     continue
-#     #                 else:
-#     #                     if bins[i] > d_max:
-#     #                         g_r[i] += 2
-#     #                         break
-#     #                     else:
-#     #                         counted_vol = 0
-#     #                         for j in range(N):
-#     #                             if i + j < m:
-#     #                                 if bins[i + j] < d_max:
-#     #                                     Vol = Lens_Vol(bins[i + j], r, d) - counted_vol
-#     #                                     g_r[i + j] += 2 * Vol / vol_tot
-#     #                                     counted_vol += Vol
-#     #                                 else:
-#     #                                     g_r[i + j] += 2 * (1 - counted_vol / vol_tot)
-#     #                             else:
-#     #                                 break
-#     #                         break
-#     G_r = np.sum(g_r, axis=0) / Number_for_average
-#     rho = 3 * sum(G_r) / (4 * np.pi * bins[-1] ** 3)
-#     # if it == 0:
-#     rad = rad_balls(bins, G_r)
-#     G_r[1:] = 3 * G_r[1:] / (rho * 4 * np.pi * (bins[1:] ** 3 - bins[:-1] ** 3))  # g_r[it][1:] /= (rho * 4 / 3 * np.pi * (bins[1:] ** 3 - bins[:-1] ** 3))
-#     # it += 1
-#
-#
-#     # g_r = sum(g_r) / Number_for_average
-#
-#     return bins,G_r, rho, rad
 
 if __name__ == '__main__':
     file_single = r'D:\Eytan\g_r_test\DOL\thermal_cube.dol'

@@ -37,50 +37,50 @@ def test_1():
 
     I_sfs = CalculationInput()
     f_sfs = CalculationInput()
-    # I_sfs.DomainPreferences.signal_file = r'D:\Eytan\g_r_test\out\cube.out'
-    # f_sfs.DomainPreferences.signal_file = r'D:\Eytan\g_r_test\OUT\sphere_2p5.out'
-    sp = Sphere()
-    ms = ManualSymmetry()
-
-    sp.radius = 2.5
-    sp.use_grid = True
-
-    ms.read_from_dol(filename_single)
-    ms.children.append(sp)
-    ms.use_grid = False
-
-    I_sfs.DomainPreferences.grid_size = 50
-    I_sfs.DomainPreferences.generated_points = 1500
-    I_sfs.DomainPreferences.orientation_iterations = 1e6
-    I_sfs.DomainPreferences.convergence = 0.001
-    I_sfs.DomainPreferences.q_max = 15
-    I_sfs.DomainPreferences.orientation_method = 'Adaptive (VEGAS) Monte Carlo'
-
-    f_sfs.DomainPreferences.grid_size = 50
-    f_sfs.DomainPreferences.generated_points = 1500
-    f_sfs.DomainPreferences.orientation_iterations = 1e6
-    f_sfs.DomainPreferences.convergence = 0.001
-    f_sfs.DomainPreferences.q_max = 15
-    f_sfs.DomainPreferences.orientation_method = 'Adaptive (VEGAS) Monte Carlo'
-
-    I_sfs.Domain.populations[0].add_model(ms)
-    f_sfs.Domain.populations[0].add_model(sp)
-
-    runner = EmbeddedLocalRunner()
-    I_calc = runner.generate(I_sfs)
-    print('calculated I')
-    I_calc.save_to_out_file(filename_single)
-    f_calc = runner.generate(f_sfs)
-    print('calculated f')
-    out_file = os.path.join(root_path, "files_for_tests", "OUT", 'sphere_'+str(sp.radius)+r'.out')
-    f_calc.save_to_out_file(out_file)
+    I_sfs.DomainPreferences.signal_file = os.path.join(root_path, "files_for_tests", "OUT", 'cube.out')
+    f_sfs.DomainPreferences.signal_file = os.path.join(root_path, "files_for_tests", "OUT", 'sphere_2p5.out')
+    # sp = Sphere()
+    # ms = ManualSymmetry()
+    #
+    # sp.radius = 2.5
+    # sp.use_grid = True
+    #
+    # ms.read_from_dol(filename_single)
+    # ms.children.append(sp)
+    # ms.use_grid = False
+    #
+    # I_sfs.DomainPreferences.grid_size = 50
+    # I_sfs.DomainPreferences.generated_points = 1500
+    # I_sfs.DomainPreferences.orientation_iterations = 1e6
+    # I_sfs.DomainPreferences.convergence = 0.001
+    # I_sfs.DomainPreferences.q_max = 15
+    # I_sfs.DomainPreferences.orientation_method = 'Adaptive (VEGAS) Monte Carlo'
+    #
+    # f_sfs.DomainPreferences.grid_size = 50
+    # f_sfs.DomainPreferences.generated_points = 1500
+    # f_sfs.DomainPreferences.orientation_iterations = 1e6
+    # f_sfs.DomainPreferences.convergence = 0.001
+    # f_sfs.DomainPreferences.q_max = 15
+    # f_sfs.DomainPreferences.orientation_method = 'Adaptive (VEGAS) Monte Carlo'
+    #
+    # I_sfs.Domain.populations[0].add_model(ms)
+    # f_sfs.Domain.populations[0].add_model(sp)
+    #
+    # runner = EmbeddedLocalRunner()
+    # I_calc = runner.generate(I_sfs)
+    # print('calculated I')
+    # I_calc.save_to_out_file(filename_single)
+    # f_calc = runner.generate(f_sfs)
+    # print('calculated f')
+    # out_file = os.path.join(root_path, "files_for_tests", "OUT", 'sphere_'+str(sp.radius)+r'.out')
+    # f_calc.save_to_out_file(out_file)
 
     n_sfs = rep_a * rep_b * rep_c
-    q = np.array(list(f_calc.graph.keys()))
-    # q = np.array(f_sfs.x)
+    # q = np.array(list(f_calc.graph.keys()))
+    q = np.array(f_sfs.x)
 
-    S_q_sfs = g.S_Q_from_I(np.array(list(I_calc.graph.values())), np.array(list(f_calc.graph.values())), n_sfs)
-    # S_q_sfs = g.S_Q_from_I(np.array(I_sfs.y), np.array(f_sfs.y), n_sfs)
+    # S_q_sfs = g.S_Q_from_I(np.array(list(I_calc.graph.values())), np.array(list(f_calc.graph.values())), n_sfs)
+    S_q_sfs = g.S_Q_from_I(np.array(I_sfs.y), np.array(f_sfs.y), n_sfs)
     print('calculated S(q) from I')
     q_mod, S_Q_mod, rho_mod = g.S_Q_from_model(filename_single, q_max=q_max, dq=dq)
     print('calculated S(q) from model')
