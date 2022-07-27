@@ -20,8 +20,7 @@ from dplus.FileReaders import _handle_infinity_for_json, NumpyHandlingEncoder
 from dplus.CalculationResult import GenerateResult, FitResult
 
 from dplus.PyCeresOptimizer import PyCeresOptimizer
-
-# from .Fit import Fitter
+from dplus.Backend import Backend
 
 
 class JobRunningException(Exception):
@@ -433,10 +432,10 @@ class LocalRunner(Runner):
 
         :param  calc_data: an instance of a CalculationInput class
         :rtype: an instance of a CalculationResult class"""
-        job = self._run(calc_data, calculation_type="fit", save_amp=save_amp)
+        job = self.RunningJob(self._session_directory, calculation_type="fit")
         python_fit = PyCeresOptimizer(calc_data, self)
         python_fit.solve()
-        python_fit.save_dplus_arrays(python_fit.best_results, os.path.join(self.session_directory, "data.json"))
+        result_dict = python_fit.save_dplus_arrays(python_fit.best_results, os.path.join(self.session_directory, "data.json"))
         calc_result = FitResult(calc_data, job._get_result(), job)
         return calc_result
 
@@ -701,3 +700,85 @@ class WebRunner(Runner):
     @staticmethod
     def get_running_job(url, token, session):
         return WebRunner.RunningJob(url, token, session)
+
+
+class EmbeddedLocalRunner(Runner):
+
+    def __init__(self):
+        self.wrapper = Backend()
+
+    def check_capabilities(self, check_tdr=True):
+        self.wrapper.check_capabilities(check_tdr)
+
+    def generate_async(self, calc_data, save_amp=True):
+        '''
+        Send to C++ function to run async dplus generate.
+
+        :param calc_data:  CalculationInput
+        '''
+        data = json.dumps(calc_data.args['args'])
+        self.wrapper.start_generate(data, useGPU=calc_data.use_gpu)
+
+
+    def generate(self, calc_data, save_amp=True):
+        '''
+        Send to C++ function to run async dplus generate.
+
+        :param calc_data:  CalculationInput
+        '''
+        data = json.dumps(calc_data.args['args'])
+        self.wrapper.start_generate(data, useGPU=calc_data.use_gpu)
+
+        status = self.wrapper.get_job_status()
+        while status and status['isRunning'] and status['code']==-1:
+            status = self.wrapper.get_job_status()
+            time.sleep(0.1)
+        result = self.get_generate_results(calc_data)
+        return result
+
+
+    def get_job_status(self):
+        """
+        Send to C++ function to get the job status.
+        """
+        return self.wrapper.get_job_status()
+    
+    def get_generate_results(self, calc_data):
+        """
+        Send to C++ function to get the generate result.
+        """
+        result = self.wrapper.get_generate_results()
+        calc_result = GenerateResult(calc_data, result, job=None)
+        return calc_result
+
+    def save_amp(self, modelptr, path):
+        '''
+        Send to C++ function to create a ampj file in the 'path' (file path) of the 'modelptr' (int)
+        '''
+        self.wrapper.save_amp(modelptr, path)
+
+    def get_pdb(self, model_ptr):
+        '''
+        Send to C++ function to get the pdb content as string
+        :param model_ptr: int, the model's ptr (like ID)
+        :return: string of the PDB
+        '''
+        pdb_str = self.wrapper.get_pdb(model_ptr)
+        return pdb_str
+
+    def get_model_ptrs(self):
+        """
+        Send to C++ function to get all the models PTRs
+        """
+        return self.wrapper.get_model_ptrs()
+
+    def stop_generate(self):
+        '''
+        Send to C++ function to stop the generate process (C++ process).
+        '''
+        self.wrapper.stop()
+
+    def fit(self, calc_data):
+        from dplus.FitRunner import FitRunner
+        fit_runner = FitRunner()
+        return fit_runner.fit(calc_data)

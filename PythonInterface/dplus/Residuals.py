@@ -25,6 +25,10 @@ class Residual:
         #print("generate time: {}".format(end_time - start_time))
         residual = np.asanyarray(calc_result.y, dtype=np.double)
         res = self.calc_residual(residual, num_residual) #note that residual changes within this function
+        
+        # with open("d:\\temp\\dplus\\py_fit_stages.txt", "a") as fp:
+        #     print(params, res, file=fp)
+
         if res < self.best_eval:
             self.best_eval = res
             if self.best_params.size != 0:

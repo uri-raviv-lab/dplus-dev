@@ -1,0 +1,87 @@
+name: Create the DPlus Installer
+on:
+  push:
+    tags:
+      - dplus-v*
+
+jobs:
+  windows-wheels:
+    runs-on: windows-latest  # Required for Visual Studio 2019
+    name: Build the DPlus Installer
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          lfs: true
+      - name: Update Version
+        working-directory: .
+        run: ./version-update.ps1 -version ${{ github.ref }}
+      - name: Checkout LFS objects
+        run: |
+          git lfs pull
+          git lfs checkout
+      - name: Install boost
+        run: |
+          Invoke-WebRequest https://boost.teeks99.com/bin/1.79.0/boost_1_79_0-msvc-14.3-64.exe -OutFile boost-setup.exe
+          .\boost-setup.exe /DIR=boost /SILENT | Out-Null
+          move boost\lib64-msvc-14.3 boost\lib64
+      - name: Set up CUDA
+        uses: Jimver/cuda-toolkit@v0.2.7
+        id: cuda-toolkit
+        with:
+          cuda: '11.7.0'
+          method: 'network'
+      - name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@v1.1     
+      - name: Setup nuget
+        uses: nuget/setup-nuget@v1
+      - name: Restore nuget packages
+        run: nuget restore Dplus.sln
+      - name: Compile Backend - Release
+        env:
+          BOOST_ROOT: ${{ github.workspace }}/boost
+        run: |
+          msbuild Dplus.sln /p:Configuration=Release /p:Platform=x64 /t:Backend\Backend:Rebuild
+      - name: Compile Backend - Debug
+        # This is required by PythonBackend, we should probably remove this dependency as the intalled D+ is not going
+        # to use it.
+        env:
+          BOOST_ROOT: ${{ github.workspace }}/boost
+        run: |
+          msbuild Dplus.sln /p:Configuration=ReleaseWithDebugInfo /p:Platform=x64 /t:Backend\Backend:Rebuild
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+          architecture: x64
+      - name: Build Python wheels
+        working-directory: PythonInterface
+        run: |
+          pip install -r requirements.txt
+          ./rebuild-wheels.ps1
+      - name: Build DPlus
+        env:
+          BOOST_ROOT: ${{ github.workspace }}/boost
+        run: msbuild dplus.sln /p:Configuration=Release /p:Platform=x64 "/target:User Interface\DPlus"
+      - name: Build Extra Utilities
+        env:
+          BOOST_ROOT: ${{ github.workspace }}/boost
+        run: |
+          msbuild dplus.sln /p:Configuration=Release /p:Platform=x64 /t:Miscellaneous\PDBUnits
+          msbuild dplus.sln /p:Configuration=Release /p:Platform=x64 /t:Miscellaneous\DebyeCalculator
+          msbuild dplus.sln /p:Configuration=Release /p:Platform=x64 "/t:Miscellaneous\Suggest Parameters"
+      - name: Build Installer
+        env:
+          BOOST_ROOT: ${{ github.workspace }}/boost
+          GITHUB_VERSION: ${{ github.ref }}
+        run: ./build-installer.ps1
+      - name: Upload to Release
+        id: upload-release-asset
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: Installer\bin\x64\release\en-us\*.msi
+          file_glob: true
+          tag: ${{ github.ref }}
+          overwrite: true
+          body: "D+ Installer"

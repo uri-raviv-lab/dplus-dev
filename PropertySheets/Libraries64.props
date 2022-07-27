@@ -3,7 +3,7 @@
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
-    <LibraryPath>$(CUDA_PATH)\lib\x64;$(BOOST_ROOT)\lib64-msvc-12.0;$(BOOST_ROOT)\lib64;$(BOOST_ROOT)\Teeks\lib64-msvc-12.0;$(BOOST_ROOT)\lib\stage;$(VCInstallDir)lib\amd64;$(VCInstallDir)atlmfc\lib\amd64;$(WindowsSDK_LibraryPath_x64);$(BOOST64)\stage\lib</LibraryPath>
+    <LibraryPath>$(CUDA_PATH)\lib\x64;$(BOOST_ROOT)\lib64;$(BOOST_ROOT)\lib;$(VCInstallDir)lib\amd64;$(VCInstallDir)atlmfc\lib\amd64;$(WindowsSDK_LibraryPath_x64);$(BOOST64)\stage\lib</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup />
   <ItemGroup />

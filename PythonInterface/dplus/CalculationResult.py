@@ -125,7 +125,6 @@ class CalculationResult(object):
                 out_file.write(value)
             for key, value in self.graph.items():
                 out_file.write('{:.5f}\t{:.20f}\n'.format(key, value))
-            out_file.close()
 
 
 class GenerateResult(CalculationResult):
@@ -155,7 +154,7 @@ class FitResult(CalculationResult):
     A class for fit calculation results
     '''
 
-    def __init__(self, calc_data, result, job):
+    def __init__(self, calc_data, result, job=None):
         super().__init__(calc_data, result, job)
         self._get_parameter_tree()  # right now just returns value from result.
         self.create_state_results()

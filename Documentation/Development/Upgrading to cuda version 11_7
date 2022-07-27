@@ -1,0 +1,13 @@
+# Upgrading from cuda 11.5 to cuda 11.7
+Download and install Cuda 11.7 from: 
+https://developer.nvidia.com/cuda-downloads?target_os=Windows&target_arch=x86_64&target_version=11&target_type=exe_local
+
+There are two projects using cuda:
+1) Backend
+2) DebyeCalculator
+
+Open each project vcxproj file.
+find and replace "CUDA 11.5" to "CUDA 11.7"
+
+Rebuild the setup.
+T

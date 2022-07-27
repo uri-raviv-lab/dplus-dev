@@ -211,12 +211,10 @@ class CalculationInput(State):
             for ManSym in self.get_models_by_type('Manual Symmetry'):
                 if ManSym.name == '':
                     dol_name = '%08d.dol' % (ManSym.model_ptr)
-                    # raise ValueError(
-                    #     "Please give an understandable name to your Manual Symmetry with code: Man_Sym.name = 'good_name' ")
                 else:
                     dol_name = ManSym.name + '.dol'
 
-                with open(dol_name, 'w+', encoding='utf-16', newline='') as file:
+                with open(dol_name, 'w+', encoding='utf-8', newline='') as file:
                     dol = csv.writer(file, delimiter='\t', quoting=csv.QUOTE_NONNUMERIC)
                     layer_num = 0
                     for layer in ManSym.serialize()['Parameters']:

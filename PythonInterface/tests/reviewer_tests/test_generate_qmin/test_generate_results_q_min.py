@@ -6,10 +6,10 @@ import struct
 import pytest
 
 from dplus.CalculationInput import CalculationInput
-from dplus.CalculationRunner import LocalRunner
+from dplus.CalculationRunner import EmbeddedLocalRunner
 from tests.old_stuff.fix_state_files import fix_file
 from tests.reviewer_tests.utils import DplusProps
-from tests.test_settings import session, exe_directory, tests_dir
+from tests.test_settings import tests_dir
 import numpy as np
 
 
@@ -31,7 +31,7 @@ class TestGenerateRun(DplusProps):
         test_file=os.path.join(tests_dir, 'unit_tests', 'files_for_tests', 'sphere_GPU.state')
         input = CalculationInput.load_from_state_file(test_file)
         input.use_gpu = True
-        api = LocalRunner(exe_directory, session_directory=os.path.join(session, "gpu_test"))
+        api = EmbeddedLocalRunner()
         result = api.generate(input)
         assert len(result.graph)>0
 
@@ -43,7 +43,7 @@ class TestGenerateRun(DplusProps):
         input._fix_use_grid()
         #then run the program:
         session_folder=self.get_session_folder(test_folder_path)
-        api = LocalRunner(exe_directory, session_folder)
+        api = EmbeddedLocalRunner()
         result = api.generate(input)
         #and finally, a sanity check on the results
         if result.error["code"]!=0:
@@ -51,12 +51,24 @@ class TestGenerateRun(DplusProps):
 
         assert len(expected.q) == len(result.y)
 
-class TestGenerateCorrect(DplusProps):
-    def test_correct(self, test_folder_path):
-        a= self._chi_sq1(test_folder_path)
-        b= self._chi_sq2(test_folder_path)
-        c= self._test_points(test_folder_path)
-        d= self._test_normalized_Rqi(test_folder_path)
+        self.then_test_correct(result, test_folder_path)
+
+
+    def then_test_correct(self, result, test_folder_path):
+        expected = self.get_expected_signal(test_folder_path)
+        a= self._chi_sq1(result, expected)
+        b= self._chi_sq2(result, expected)
+        c= self._test_points(result, expected)
+        d= self._test_normalized_Rqi(result, expected)
+        test_name = self.get_test_name(test_folder_path)
+        if not a:
+            print(test_name, " failed chi sq 1")
+        if not b:
+            print(test_name, " failed chi sq 2")
+        if not c:
+            print(test_name, " failed points test")
+        if not d:
+            print(test_name, " failed normalized Rqi")
         assert a or b or c or d #the useful information is in the captured stdout call
 
     def _chi_a_squ(self, result, expected):
@@ -74,29 +86,18 @@ class TestGenerateCorrect(DplusProps):
         chi_a_sq = sum_i_to_N / N
         return chi_a_sq
 
-    def _chi_sq2(self, test_folder_path):
-        result= self.get_result(test_folder_path)
-        expected= self.get_expected_signal(test_folder_path)
+    def _chi_sq2(self, result, expected):
+
         chi_a_sq= self._chi_a_squ(result, expected)
         test= chi_a_sq < expected.chi_square + expected.sigma_chi_square*2
-        if not test:
-            test_name = self.get_test_name(test_folder_path)
-            print(test_name, " failed chi sq 2")
         return test
 
-    def _chi_sq1(self, test_folder_path):
-        result= self.get_result(test_folder_path)
-        expected= self.get_expected_signal(test_folder_path)
+    def _chi_sq1(self, result, expected):
         chi_a_sq= self._chi_a_squ(result, expected)
         test= chi_a_sq < expected.chi_square + expected.sigma_chi_square*1
-        if not test:
-            test_name = self.get_test_name(test_folder_path)
-            print(test_name, " failed chi sq 1")
         return test
 
-    def _test_points(self, test_folder_path):
-        result= self.get_result(test_folder_path)
-        expected= self.get_expected_signal(test_folder_path)
+    def _test_points(self, result, expected):
         failed_sig={
             1:[],
             2:[],
@@ -117,9 +118,6 @@ class TestGenerateCorrect(DplusProps):
         percent_three= len(failed_sig[3])/len(expected.q)
 
         test= percent_one < .5 and  percent_two < .3 and percent_three < .1
-        if not test:
-            test_name = self.get_test_name(test_folder_path)
-            print(test_name, "failed points test", percent_one, percent_three, percent_three)
         return test
 
     def _check_sigma(self, obs, exp, sig):
@@ -129,9 +127,7 @@ class TestGenerateCorrect(DplusProps):
         test2= (obs <= upper_limit)
         return test1 and test2
 
-    def _test_normalized_Rqi(self, test_folder_path):
-        result= self.get_result(test_folder_path)
-        expected= self.get_expected_signal(test_folder_path)
+    def _test_normalized_Rqi(self, result, expected):
         normalized=[]
         for i in range(len(expected.q)):
             R_q_i= result.y[i] - expected.intensity[i]
@@ -145,9 +141,7 @@ class TestGenerateCorrect(DplusProps):
         max_n = max(normalized)
         mean_n = np.mean(normalized)
         test = mean_n < 1e-8 and  max_n < 1e-8
-        if not test:
-            test_name = self.get_test_name(test_folder_path)
-            print(test_name, "failed Rqi test test", max_n, "\t", mean_n)
+        return test
 
 
 

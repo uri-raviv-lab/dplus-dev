@@ -16,9 +16,6 @@ After setting up the virtual environment, you will also need to build the Cython
 `python setup.py prepare`
 `python setup.py build`
 
-You then need to copy the generated .pyd files from the build directory to the main PythonInterface directory 
-(this used to have a bat script, we should probably remake it)
-
 ## Setup for the tests
 
 In PythonInterface/tests, you can optionally create a file local_test_settings.py
@@ -37,13 +34,24 @@ So if you want to run tests against the Debug compiled versions of the executabl
 The tests have some command line arguments you can set. These are primarily for debugging or setting up longer tests on the test server.
 
 ## Run the tests
+You need to create a new virtual environment, from which you will run the tests
 
-`cd tests`
-`pytest unit_tests`  - tests basic classes from the api
-`pytest manual_tests`  - tests all code examples from the manual
+```
+cd tests
+py -3.9 -m venv d:\temp\dplus-test-env --prompt="D+ Test Env"
+Activate-Virtenv d:\temp\dplus-test-env
+python -m pip install --upgrade pip
+pip install numpy pytest
+pip install ..
+```
+
+Now you can run the test. You must change pytest's importmode to `append`, otherwise it won't find the D+ DLLs.
+
+`pytest unit_tests --import-mode append`  - tests basic classes from the api
+`pytest manual_tests  --import-mode append`  - tests all code examples from the manual
 
 `cd reviewer_tests` (from within the tests folder, otherwise cd tests\reviewer_tests if you want to skip straight to this step)
-`pytest test_generate_qmin` - this tests a subset of generate tests, and is therefore faster than the main generate suite
-`pytest test_generate` - tests generate. takes a while
-`pytest test_fit` - tests 7 cases of fit. 
+`pytest test_generate_qmin  --import-mode append` - this tests a subset of generate tests, and is therefore faster than the main generate suite
+`pytest test_generate  --import-mode append` - tests generate. takes a while
+`pytest test_fit  --import-mode append` - tests 7 cases of fit. 
 
