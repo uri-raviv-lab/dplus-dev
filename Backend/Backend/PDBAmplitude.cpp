@@ -702,6 +702,7 @@ void PDBAmplitude::initialize() {
 	this->solventED = 0.0;
 	this->outerSolventED = 0.0;
 	atmFFcoefs.resize(NUMBER_OF_ATOMIC_FORM_FACTORS, 10);
+	// This list is USELESS!!!!! Go to PDBReaderLib.cpp
 #pragma region Electronic Atomic form factor coefficients
 	atmFFcoefs << 0.0349, 0.5347, 0.1201, 3.5867, 0.1970, 12.3471, 0.057, 18.9525, 0.1195, 38.6269, //H
 		0.0317, 0.2507, 0.0838, 1.4751, 0.1526, 4.4938, 0.1334, 12.6646, 0.0164, 31.1653, //He

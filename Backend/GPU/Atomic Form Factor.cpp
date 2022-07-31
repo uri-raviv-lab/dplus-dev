@@ -2,6 +2,7 @@
 
 #include <Eigen/Core>
 #include <iostream>
+//#include<cmath>
 
 class internalAtomicFF
 {
@@ -58,13 +59,25 @@ public:
 
 		mapToAffs = ((m_bitCombination & CALC_ATOMIC_FORMFACTORS) ? uniqueAffsArr : Eigen::ArrayXf::Constant(uniqueAffsArr.size(), 0.f))
 			- solventContrast;
+
+		/*For Lobato this function would turn into:
+		const float sqq = (q * q / (100.0f * 39.47841760435743f)); // This number is (2*pi)^2 (Lobato defines q differently than Peng and others)
+		Eigen::ArrayXf uniqueAffsArr = (as * (2 + bs * sqq) / pow(1 + bs * sqq, 2)).colwise().sum().transpose();
+		//Eigen::Map<Eigen::ArrayXf> mapToAffs(uniqueAffs, m_numAtoms);
+		Eigen::ArrayXf solventContrast = solventContribution(q);
+
+		mapToAffs = ((m_bitCombination & CALC_ATOMIC_FORMFACTORS) ? uniqueAffsArr : Eigen::ArrayXf::Constant(uniqueAffsArr.size(), 0.f))
+			- solventContrast;
+			*/
 	}
 
 	void GetAllAFFs(float* allAffs, float q)
 	{
 		const float sqq = (q * q / (100.0f * 157.913670417429737901351855998f));
+		//const float sqq = (q * q / (100.0f * 39.47841760435743f));
 		//std::cout << as << std::endl;
 		Eigen::ArrayXf uniqueAffs = ((-sqq * bs).exp() * as).colwise().sum().transpose();
+		//Eigen::ArrayXf uniqueAffs = (as * (2 + bs * sqq) / pow(1 + bs * sqq, 2)).colwise().sum().transpose();
 		Eigen::Map<Eigen::ArrayXf> mapToAffs(allAffs, m_numAtoms);
 		Eigen::ArrayXf solventContrast = solventContribution(q);
 
@@ -83,6 +96,8 @@ public:
 	{
 		const float sqq = (q * q / (100.0f * 157.913670417429737901351855998f));
 		Eigen::ArrayXf uniqueAffs = ((-sqq * bs).exp() * as).colwise().sum().transpose();
+		//const float sqq = (q * q / (100.0f * 39.47841760435743f)); // This number is (2*pi)^2 (Lobato defines q differently than Peng and others)
+		//Eigen::ArrayXf uniqueAffs = (as * (2 + bs * sqq) / pow(1 + bs * sqq, 2)).colwise().sum().transpose();
 		Eigen::Map<Eigen::ArrayXcf> mapToAffs((std::complex<float>*)allAffs, m_numAtoms);
 		Eigen::ArrayXf solventContrast = solventContribution(q);
 
