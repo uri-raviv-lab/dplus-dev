@@ -5,10 +5,9 @@ import struct
 
 from dplus.Amplitudes import Amplitude
 from dplus.DataModels.models import AMP
-from dplus.State import State
 from dplus.CalculationInput import CalculationInput
 from dplus.CalculationRunner import EmbeddedLocalRunner
-from tests.test_settings import session
+from tests.test_settings import USE_GPU, session
 import os
 import numpy as np
 from tests.old_stuff.fix_state_files import fix_file
@@ -61,7 +60,7 @@ def test_save_amp_correct():
     tmp_file_name = os.path.join(session, "tmpAmp.ampj")
     state_file = os.path.join(test_dir, "ampcontaining.state")
     fixed_state_file = fix_file(state_file)
-    input = CalculationInput.load_from_state_file(fixed_state_file)
+    input = CalculationInput.load_from_state_file(fixed_state_file, USE_GPU)
     my_amp = input.get_models_by_type('AMP')[0]
     my_amp.filename = filename
 
@@ -76,7 +75,7 @@ def test_save_amp_correct():
 
 
 def test_save2_amp_correct():
-    input = CalculationInput()
+    input = CalculationInput(USE_GPU)
     a = AMP()
     input.Domain.populations[0].children.append(a)
     input.DomainPreferences.use_grid = True
@@ -98,7 +97,7 @@ def test_create_grid_save_correct():
     a.fill(my_func)
     a.description = "example"
     a.save(os.path.join(session, "artificialgrid.ampj"))
-    input = CalculationInput()
+    input = CalculationInput(USE_GPU)
     input.DomainPreferences.use_grid = True
     input.DomainPreferences.q_max = 7.5
     input.DomainPreferences.grid_size = 50

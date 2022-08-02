@@ -6,6 +6,7 @@ from dplus.CalculationInput import CalculationInput
 from dplus.FitRunner import FitRunner
 from tests.old_stuff.fix_state_files import fix_file
 from tests.reviewer_tests.utils import DplusProps
+from tests.test_settings import USE_GPU
 
 
 class TestFitRun(DplusProps):
@@ -25,6 +26,8 @@ class TestFitRun(DplusProps):
             json.dump(result._raw_result, file)
 
     def test_run(self, test_folder_path):
+        if not USE_GPU:
+            pytest.skip("NO GPU")
         # first, do basic checks:
         # expected_state = self.get_expected_state(test_folder_path)
         input = self.get_input(test_folder_path)
@@ -40,6 +43,8 @@ class TestFitRun(DplusProps):
 
 class TestFitCorrect(DplusProps):
     def test_parameters_correct(self, test_folder_path):
+        if not USE_GPU:
+            pytest.skip("NO GPU")
         # expected params
         expected_state = self.get_expected_state(test_folder_path)
         expected_params = expected_state.get_mutable_params()
