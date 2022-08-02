@@ -20,7 +20,6 @@ SOURCE  10 ORGAN: BRAIN
 KEYWDS    DIMER, GTPASE, STRUCTURAL PROTEIN                                     
 EXPDTA    ELECTRON CRYSTALLOGRAPHY                                              
 AUTHOR    J.LOWE,H.LI,K.H.DOWNING,E.NOGALES                                     
-REVDAT   6   04-OCT-17 1JFF    1       REMARK                                   
 REVDAT   5   11-JUN-14 1JFF    1       DBREF  REMARK SITE   VERSN               
 REVDAT   4   24-FEB-09 1JFF    1       VERSN                                    
 REVDAT   3   01-APR-03 1JFF    1       JRNL                                     
@@ -140,30 +139,30 @@ REMARK   4
 REMARK   4 1JFF COMPLIES WITH FORMAT V. 3.30, 13-JUL-11                         
 REMARK 100                                                                      
 REMARK 100 THIS ENTRY HAS BEEN PROCESSED BY RCSB ON 06-JUL-01.                  
-REMARK 100 THE DEPOSITION ID IS D_1000013707.                                   
+REMARK 100 THE RCSB ID CODE IS RCSB013707.                                      
 REMARK 240                                                                      
 REMARK 240 EXPERIMENTAL DETAILS                                                 
-REMARK 240   RECONSTRUCTION METHOD          : CRYSTALLOGRAPHY                   
-REMARK 240   SAMPLE TYPE                    : 2D ARRAY                          
+REMARK 240   RECONSTRUCTION METHOD          : NULL                              
+REMARK 240   SAMPLE TYPE                    : NULL                              
 REMARK 240   SPECIMEN TYPE                  : NULL                              
 REMARK 240 DATA ACQUISITION                                                     
-REMARK 240   DATE OF DATA COLLECTION        : 01-JAN-94; NULL                   
-REMARK 240   TEMPERATURE           (KELVIN) : 93; NULL                          
-REMARK 240   PH                             : 5.80                              
+REMARK 240   DATE OF DATA COLLECTION        : NULL                              
+REMARK 240   TEMPERATURE           (KELVIN) : NULL                              
+REMARK 240   PH                             : NULL                              
 REMARK 240   NUMBER OF CRYSTALS USED        : 200                               
-REMARK 240   MICROSCOPE MODEL               : JEOL 4000                         
-REMARK 240   DETECTOR TYPE                  : GENERIC FILM                      
+REMARK 240   MICROSCOPE MODEL               : NULL                              
+REMARK 240   DETECTOR TYPE                  : NULL                              
 REMARK 240   ACCELERATION VOLTAGE (KV)      : NULL                              
-REMARK 240   NUMBER OF UNIQUE REFLECTIONS   : 12422                             
-REMARK 240   RESOLUTION RANGE HIGH      (A) : 3.500                             
-REMARK 240   RESOLUTION RANGE LOW       (A) : 20.000                            
-REMARK 240   DATA SCALING SOFTWARE          : MRC IMAGE PROCESSING PROGRAMS     
-REMARK 240   COMPLETENESS FOR RANGE     (%) : 73.0                              
-REMARK 240   DATA REDUNDANCY                : 6.000                             
+REMARK 240   NUMBER OF UNIQUE REFLECTIONS   : NULL                              
+REMARK 240   RESOLUTION RANGE HIGH      (A) : NULL                              
+REMARK 240   RESOLUTION RANGE LOW       (A) : NULL                              
+REMARK 240   DATA SCALING SOFTWARE          : NULL                              
+REMARK 240   COMPLETENESS FOR RANGE     (%) : NULL                              
+REMARK 240   DATA REDUNDANCY                : NULL                              
 REMARK 240 IN THE HIGHEST RESOLUTION SHELL                                      
-REMARK 240   HIGHEST RESOLUTION SHELL, RANGE HIGH (A) :3.50                     
-REMARK 240   HIGHEST RESOLUTION SHELL, RANGE LOW  (A) :3.70                     
-REMARK 240   COMPLETENESS FOR SHELL     (%) : 73.0                              
+REMARK 240   HIGHEST RESOLUTION SHELL, RANGE HIGH (A) :NULL                     
+REMARK 240   HIGHEST RESOLUTION SHELL, RANGE LOW  (A) :NULL                     
+REMARK 240   COMPLETENESS FOR SHELL     (%) : NULL                              
 REMARK 240   DATA REDUNDANCY IN SHELL       : NULL                              
 REMARK 240   R MERGE FOR SHELL          (I) : NULL                              
 REMARK 240   METHOD USED TO DETERMINE THE STRUCTURE: MOLECULAR REPLACEMENT      
@@ -311,7 +310,7 @@ REMARK 500 EXPECTED VALUES NUCLEIC ACID: CLOWNEY ET AL 1996
 REMARK 500                                                                      
 REMARK 500  M RES CSSEQI ATM1   ATM2   ATM3                                     
 REMARK 500    PRO A 173   C   -  N   -  CA  ANGL. DEV. =  13.9 DEGREES          
-REMARK 500    MET B 235   CG  -  SD  -  CE  ANGL. DEV. =   9.8 DEGREES          
+REMARK 500    MET B 235   CG  -  SD  -  CE  ANGL. DEV. =   9.7 DEGREES          
 REMARK 500    PRO B 263   C   -  N   -  CA  ANGL. DEV. =  13.0 DEGREES          
 REMARK 500    PRO B 263   C   -  N   -  CD  ANGL. DEV. = -13.7 DEGREES          
 REMARK 500                                                                      
@@ -409,8 +408,8 @@ REMARK 800 SITE_DESCRIPTION: BINDING SITE FOR RESIDUE TA1 B 601
 REMARK 900                                                                      
 REMARK 900 RELATED ENTRIES                                                      
 REMARK 900 RELATED ID: 1TUB   RELATED DB: PDB                                   
-REMARK 900 UNREFINED CRYSTALLOGRAPHIC MODEL OF ALPHA-BETA TUBULIN BY ELECTRON   
-REMARK 900 CRYSTALLOGRAPHY                                                      
+REMARK 900 UNREFINED CRYSTALLOGRAPHIC MODEL OF ALPHA-BETA TUBULIN BY            
+REMARK 900 ELECTRON CRYSTALLOGRAPHY                                             
 REMARK 999                                                                      
 REMARK 999 SEQUENCE                                                             
 REMARK 999 THE SAMPLE WAS BOVINE, BUT THE MODELED PROTEIN SEQUENCES ARE FROM    

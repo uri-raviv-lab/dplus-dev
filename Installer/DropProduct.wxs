@@ -1,0 +1,848 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?ifdef env.DPLUS_VERSION ?>
+<?define ProductVersion="$(env.DPLUS_VERSION)" ?>
+<?else?>
+<?define ProductVersion="!(bind.FileVersion.DplusEXE)" ?>
+<?endif?>
+<?define ProductUpgradeCode = "DE98E533-E27A-40E4-AACA-0B0B458F9588"?>
+
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
+  xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
+  <Product Id="*" Name="D+ (v$(var.ProductVersion))" Language="1033" Version="$(var.ProductVersion)" Manufacturer="HUJI" UpgradeCode="$(var.ProductUpgradeCode)">
+
+    <Package Id='*' Keywords='Installer' InstallerVersion="405" Compressed="yes" InstallScope="perMachine" />
+    <!--
+<Property Id="ALLUSERS" Value="1" />
+-->
+    <Binary Id="AVXAction.CA.dll" SourceFile="..\Installer\CustomActionAVX\bin\$(var.Configuration)\CustomActionAVX.CA.dll" />
+    <CustomAction Id="checkAVX" Return="check" Execute="immediate" BinaryKey="AVXAction.CA.dll" DllEntry="CustomActionCheckAVX" />
+    <InstallExecuteSequence>
+      <Custom Action="checkAVX" Before="InstallFinalize"></Custom>
+    </InstallExecuteSequence>
+
+    <Media Id='1' Cabinet='DPlus.cab' EmbedCab='yes' />
+
+
+    <PropertyRef Id="WIX_IS_NETFRAMEWORK_40_OR_LATER_INSTALLED"/>
+    <Condition Message='This setup requires the .NET Framework 4.0 be installed.'>
+      <![CDATA[Installed OR (WIX_IS_NETFRAMEWORK_40_OR_LATER_INSTALLED AND WIX_IS_NETFRAMEWORK_40_OR_LATER_INSTALLED = "1")]]>
+    </Condition>
+
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." Disallow="yes" DisallowUpgradeErrorMessage="A previous version of [ProductName] is already installed. Please remove it before continuing with the installation"/>
+
+    <Condition Message="D+ only supports 64-bit operating systems">
+      <![CDATA[(VersionNT64)]]>
+    </Condition>
+
+    <DirectoryRef Id="TARGETDIR">
+      <Merge Id="VCRedist2017" SourceFile="Microsoft_VC143_CRT_x64.msm" DiskId="1" Language="0"/>
+      <Merge Id="VCRedist2017OMP" SourceFile="Microsoft_VC143_OpenMP_x64.msm" DiskId="1" Language="0"/>
+    </DirectoryRef>
+
+    <Feature Id="VCRedist2017Feature" Title="Visual C++ 2017 Runtime" AllowAdvertise="no" Display="hidden" Level="1">
+      <MergeRef Id="VCRedist2017"/>
+      <MergeRef Id="VCRedist2017OMP"/>
+    </Feature>
+
+    <Feature Id="ProductFeature" Title="Setup D+ (full)" Level="1">
+      <ComponentGroupRef Id="DPlusComponents" />
+    </Feature>
+
+    <Feature Id="LuaFilesFeature" Title="Setup D+ Lua Files (full)" Level="1">
+      <ComponentGroupRef Id="LuaFilesGroup" />
+    </Feature>
+
+    <Feature Id="ExampleFilesFeature" Title="Setup D+ Example Files (full)" Level="1">
+      <ComponentGroupRef Id="ExampleFilesGroup" />
+    </Feature>
+
+    <Feature Id="StartMenuShortcuts" Title="Shortcuts (full)" Level="1">
+      <ComponentRef Id="CMP_Shortcuts" />
+    </Feature>
+    <Feature Id="DescktopShortcuts" Title="Shortcuts" Level="1">
+      <ComponentRef Id="CMP2_Shortcuts" />
+    </Feature>
+    <!---->
+    <Feature Id="featureforregistrypathofbindir" Title="Binary directory (full)" Level="1">
+      <Component Id="Idforregistrypathofbindir" Directory="BIN_DIR" Guid="*">
+        <RegistryValue Root="HKLM" Key="Software\[Manufacturer]\[ProductName]" Name="binDir" Type="string" Value="[BIN_DIR]" KeyPath="yes" />
+      </Component>
+    </Feature>
+
+    <UI>
+      <!-- Define the installer UI -->
+      <UIRef Id="WixUI_HK" />
+    </UI>
+
+
+  </Product>
+
+  <Fragment>
+    <Directory Id="TARGETDIR" Name="SourceDir">
+
+      <Directory Id="ProgramFiles64Folder">
+        <Directory Id="INSTALLFOLDER" Name="D+">
+          <Directory Id="BIN_DIR" Name="bin">
+            <Directory Id="ResourcesDirectory" Name="Resources">
+            </Directory>
+          </Directory>
+          <Directory Id="LuaScriptsDirectoryID" Name="LuaScripts"/>
+          <Directory Id="ExampleFilesDirectoryID" Name="Example Files">
+            <Directory Id="TutorialsID" Name="Tutorials">
+              <Directory Id="DebyeCalculatorID" Name="DebyeCalculator_Files" />
+              <Directory Id="PDB5SymmetryFilesID" Name="5_PDB_Symmetry_Files" />
+              <Directory Id="Symmetry4FilesID" Name="4_Symmetry_Files" />
+              <Directory Id="Singal3SmallPDBandFitFilesID" Name="3_Singal_Small_PDB_and_Fit_Files" />
+              <Directory Id="Install1CylinderandSuggestParametersFilesID" Name="1_Install_Cylinder_and_Suggest_Parameters_Files" />
+            </Directory>
+            <Directory Id="Examples" Name="Examples">
+              <Directory Id="CPUID" Name="CPU">
+                <Directory Id="Fast_CPUID" Name="Fast_CPU">
+                  <Directory Id="Fast_CPU_Cylinde1ID" Name="1_Cylinder" />
+                  <Directory Id="Fast_CPU_Slab2ID" Name="2_Slab" />
+                  <Directory Id="Fast_CPU_Sphere3ID" Name="3_Sphere" />
+                  <Directory Id="Fast_CPU_CCl45ID" Name="5_CCl4" />
+                  <Directory Id="Fast_CPU_Lysozyme6ID" Name="6_Lysozyme" />
+                  <Directory Id="Fast_CPU_7_Rev7ID" Name="7_Rev7-R124A_Rev3-RBM2_Complex" />
+                  <Directory Id="Fast_CPU_8_Human_MitochondrialID" Name="8_Human_Mitochondrial_Cysteine_Desulfurase" />
+                  <Directory Id="Fast_CPU9_Calcium_loaded" Name="9_Calcium_loaded_Calbindin-D28K" />
+                </Directory>
+                <Directory Id="Slow_CPUID" Name="Slow_CPU">
+                  <Directory Id="Slow_CPU_Microtubule4ID" Name="4_Microtubule" />
+                </Directory>
+              </Directory>
+              <Directory Id="GPUID" Name="GPU">
+                <Directory Id="Fast_GPUID" Name="Fast_GPU">
+                  <Directory Id="Fast_GPU_Cylinde1ID" Name="1_Cylinder" />
+                  <Directory Id="Fast_GPU_Slab2ID" Name="2_Slab" />
+                  <Directory Id="Fast_GPU_Sphere3ID" Name="3_Sphere" />
+                  <Directory Id="Fast_GPU_CCl45ID" Name="5_CCl4" />
+                  <Directory Id="Fast_GPU_Lysozyme6ID" Name="6_Lysozyme" />
+                  <Directory Id="Fast_GPU_7_Rev7ID" Name="7_Rev7-R124A_Rev3-RBM2_Complex" />
+                  <Directory Id="Fast_GPU_8_Human_MitochondrialID" Name="8_Human_Mitochondrial_Cysteine_Desulfurase" />
+                  <Directory Id="Fast_GPU9_Calcium_loaded" Name="9_Calcium_loaded_Calbindin-D28K" />
+                </Directory>
+                <Directory Id="Slow_GPUID" Name="Slow_GPU">
+                  <Directory Id="Slow_GPU_Microtubule4ID" Name="4_Microtubule" />
+                </Directory>
+                <Directory Id="Very_Slow_GPUID" Name="Very_Slow_GPU">
+                  <Directory Id="Very_Slow_GPU_7_Hydration_Correction" Name="7_Hydration_Correction" />
+                </Directory>
+              </Directory>
+            </Directory>
+          </Directory>
+        </Directory>
+      </Directory>
+
+      <Directory Id="ProgramMenuFolder">
+        <Directory Id="DIR_Shortcuts" Name="D+" />
+      </Directory>
+      <Directory Id="DesktopFolder">
+        <Directory Id="DesktopDIR_Shortcuts" Name="D+" />
+      </Directory>
+    </Directory>
+  </Fragment>
+
+
+  <Fragment>
+    <DirectoryRef Id="DesktopDIR_Shortcuts">
+      <!-- Shortcuts -->
+      <Component Id="CMP2_Shortcuts">
+        <RemoveFolder Id="REMOVE_DeskShortcuts" On="uninstall" />
+        <RegistryValue Root="HKCU" Key="Software\[Manufacturer]\[ProductName]" Name="installedShortcutDesk" Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+    </DirectoryRef>
+  </Fragment>
+
+
+
+  <Fragment>
+    <ComponentGroup Id="ExampleFilesGroup">
+      <Component Id="cmp32A0C5A79B3A1E2ED5E3AB0ABA68592F" Directory="ExampleFilesDirectoryID" Guid="*">
+        <File Id="filA74B1DF288BD10902237816CEB5A9A9B" KeyPath="yes" Source="..\Example Files\READ_ME.txt" />
+      </Component>
+      <Component Id="cmp11EA3ECBCF03A732249AC95A4203D508" Directory="ExampleFilesDirectoryID" Guid="*">
+        <File Id="fil9EE80C8436F406E53D92B1315AC4B062" KeyPath="yes" Source="..\Example Files\AnomalousInputExample.txt" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE932" Directory="Install1CylinderandSuggestParametersFilesID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34A8" KeyPath="yes" Source="..\Example Files\Tutorials\1_Install_Cylinder_and_Suggest_Parameters_Files\X+Cylinder.out" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE933" Directory="Singal3SmallPDBandFitFilesID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34A9" KeyPath="yes" Source="..\Example Files\Tutorials\3_Singal_Small_PDB_and_Fit_Files\1lyz.pdb" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE934" Directory="Singal3SmallPDBandFitFilesID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34B1" KeyPath="yes" Source="..\Example Files\Tutorials\3_Singal_Small_PDB_and_Fit_Files\SASDA96.dat" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE935" Directory="Symmetry4FilesID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34B2" KeyPath="yes" Source="..\Example Files\Tutorials\4_Symmetry_Files\Hex.dol" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE936" Directory="Symmetry4FilesID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34B3" KeyPath="yes" Source="..\Example Files\Tutorials\4_Symmetry_Files\space filling.state" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE937" Directory="PDB5SymmetryFilesID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34B4" KeyPath="yes" Source="..\Example Files\Tutorials\5_PDB_Symmetry_Files\3j6f_Dimer_2_2_Added_H_GCentered.pdb" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE938" Directory="PDB5SymmetryFilesID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34B5" KeyPath="yes" Source="..\Example Files\Tutorials\5_PDB_Symmetry_Files\Left_Hand_Helix.lua" />
+      </Component>
+      <Component Id="cmp84829923A85BB8C104BDF24B1EAAE939" Directory="DebyeCalculatorID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34B6" KeyPath="yes" Source="..\Example Files\Tutorials\DebyeCalculator_Files\1lyz.pdb" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE941" Directory="DebyeCalculatorID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34B7" KeyPath="yes" Source="..\Example Files\Tutorials\DebyeCalculator_Files\SASDA96.dat" />
+      </Component>
+
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE942" Directory="Fast_CPU_Cylinde1ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34B8" KeyPath="yes" Source="..\Example Files\Examples\CPU\Fast_CPU\1_Cylinder\Cylinder_space filling symmetry.out" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE943" Directory="Fast_CPU_Cylinde1ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34B9" KeyPath="yes" Source="..\Example Files\Examples\CPU\Fast_CPU\1_Cylinder\Cylinder_space filling symmetry.state" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE944" Directory="Fast_CPU_Slab2ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34C0" KeyPath="yes" Source="..\Example Files\Examples\CPU\Fast_CPU\2_Slab\Grid_in_XY.lua" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE945" Directory="Fast_CPU_Slab2ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34C1" KeyPath="yes" Source="..\Example Files\Examples\CPU\Fast_CPU\2_Slab\Slab_Scripted_symmetry.out" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE946" Directory="Fast_CPU_Slab2ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34C2" KeyPath="yes" Source="..\Example Files\Examples\CPU\Fast_CPU\2_Slab\Slab_Scripted_symmetry.state" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE947" Directory="Fast_CPU_Sphere3ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34C3" KeyPath="yes" Source="..\Example Files\Examples\CPU\Fast_CPU\3_Sphere\5spheres.dol" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE948" Directory="Fast_CPU_Sphere3ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34C4" KeyPath="yes" Source="..\Example Files\Examples\CPU\Fast_CPU\3_Sphere\5spheres.out" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE949" Directory="Fast_CPU_Sphere3ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34C5" KeyPath="yes" Source="..\Example Files\Examples\CPU\Fast_CPU\3_Sphere\5spheres_dol.state" />
+      </Component>
+
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE957" Directory="Fast_CPU_CCl45ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34D3" KeyPath="yes" Source="..\Example Files\Examples\CPU\Fast_CPU\5_CCl4\C.pdb" />
+
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE958" Directory="Fast_CPU_CCl45ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34D4" KeyPath="yes" Source="..\Example Files\Examples\CPU\Fast_CPU\5_CCl4\CCl4.pdb" />
+
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE959" Directory="Fast_CPU_CCl45ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34D5" KeyPath="yes" Source="..\Example Files\Examples\CPU\Fast_CPU\5_CCl4\CCl4_PDB.out" />
+
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE960" Directory="Fast_CPU_CCl45ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34D6" KeyPath="yes" Source="..\Example Files\Examples\CPU\Fast_CPU\5_CCl4\CCl4_PDB.state" />
+
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE961" Directory="Fast_CPU_CCl45ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34D7" KeyPath="yes" Source="..\Example Files\Examples\CPU\Fast_CPU\5_CCl4\CCl4_Symmetry.out" />
+      </Component>
+
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE962" Directory="Fast_CPU_CCl45ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34D8" KeyPath="yes" Source="..\Example Files\Examples\CPU\Fast_CPU\5_CCl4\CCl4_Symmetry.state" />
+      </Component>
+
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE963" Directory="Fast_CPU_CCl45ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34D9" KeyPath="yes" Source="..\Example Files\Examples\CPU\Fast_CPU\5_CCl4\Cl.pdb" />
+      </Component>
+
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE964" Directory="Fast_CPU_CCl45ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34E0" KeyPath="yes" Source="..\\Example Files\Examples\CPU\Fast_CPU\5_CCl4\Cl4.dol" />
+      </Component>
+
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE965" Directory="Fast_CPU_Lysozyme6ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34E1" KeyPath="yes" Source="..\Example Files\Examples\CPU\Fast_CPU\6_Lysozyme\1lyz.pdb" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE966" Directory="Fast_CPU_Lysozyme6ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34E2" KeyPath="yes" Source="..\Example Files\Examples\CPU\Fast_CPU\6_Lysozyme\1lyz_Hydration_Only.amp" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE967" Directory="Fast_CPU_Lysozyme6ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34E3" KeyPath="yes" Source="..\Example Files\Examples\CPU\Fast_CPU\6_Lysozyme\1lyz_No_Hydration.amp" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE990" Directory="Fast_CPU_Lysozyme6ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34E4" KeyPath="yes" Source="..\Example Files\Examples\CPU\Fast_CPU\6_Lysozyme\1lyzDebye.out" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE968" Directory="Fast_CPU_Lysozyme6ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34E5" KeyPath="yes" Source="..\Example Files\Examples\CPU\Fast_CPU\6_Lysozyme\Fitted_Outer_Solvent_ED_Constant_and_Scale.out" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE969" Directory="Fast_CPU_Lysozyme6ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34E6" KeyPath="yes" Source="..\Example Files\Examples\CPU\Fast_CPU\6_Lysozyme\Fitted_Outer_Solvent_ED_Constant_and_Scale.state" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE970" Directory="Fast_CPU_Lysozyme6ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34E7" KeyPath="yes" Source="..\Example Files\Examples\CPU\Fast_CPU\6_Lysozyme\Fitted_Scale_and_Constant.out" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE971" Directory="Fast_CPU_Lysozyme6ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34E8" KeyPath="yes" Source="..\Example Files\Examples\CPU\Fast_CPU\6_Lysozyme\Pre_Fit_Constant_and_Scale.state" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE972" Directory="Fast_CPU_Lysozyme6ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34E9" KeyPath="yes" Source="..\Example Files\Examples\CPU\Fast_CPU\6_Lysozyme\Pre_Fit_Outer_Solvent_ED_Constant_and_Scale.state" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE973" Directory="Fast_CPU_Lysozyme6ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34F0" KeyPath="yes" Source="..\Example Files\Examples\CPU\Fast_CPU\6_Lysozyme\Pre_Fit_Outer_Solvent_ED_Constant_and_Scale_From_Amp.state" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE974" Directory="Fast_CPU_Lysozyme6ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34F1" KeyPath="yes" Source="..\Example Files\Examples\CPU\Fast_CPU\6_Lysozyme\SASDA96.dat" />
+      </Component>
+
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE975" Directory="Fast_CPU_7_Rev7ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34F2" KeyPath="yes" Source="..\Example Files\Examples\CPU\Fast_CPU\7_Rev7-R124A_Rev3-RBM2_Complex\6bc8.pdb" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE976" Directory="Fast_CPU_7_Rev7ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34F3" KeyPath="yes" Source="..\Example Files\Examples\CPU\Fast_CPU\7_Rev7-R124A_Rev3-RBM2_Complex\Fit.out" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE977" Directory="Fast_CPU_7_Rev7ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34F4" KeyPath="yes" Source="..\Example Files\Examples\CPU\Fast_CPU\7_Rev7-R124A_Rev3-RBM2_Complex\Fitted_State.state" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE978" Directory="Fast_CPU_7_Rev7ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34F5" KeyPath="yes" Source="..\Example Files\Examples\CPU\Fast_CPU\7_Rev7-R124A_Rev3-RBM2_Complex\Initial_State.state" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE979" Directory="Fast_CPU_7_Rev7ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34F6" KeyPath="yes" Source="..\Example Files\Examples\CPU\Fast_CPU\7_Rev7-R124A_Rev3-RBM2_Complex\SASDCW8.dat" />
+      </Component>
+
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE980" Directory="Fast_CPU_8_Human_MitochondrialID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34F7" KeyPath="yes" Source="..\Example Files\Examples\CPU\Fast_CPU\8_Human_Mitochondrial_Cysteine_Desulfurase\5wlw.pdb" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE981" Directory="Fast_CPU_8_Human_MitochondrialID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34F8" KeyPath="yes" Source="..\Example Files\Examples\CPU\Fast_CPU\8_Human_Mitochondrial_Cysteine_Desulfurase\Fit.out" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE982" Directory="Fast_CPU_8_Human_MitochondrialID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34F9" KeyPath="yes" Source="..\Example Files\Examples\CPU\Fast_CPU\8_Human_Mitochondrial_Cysteine_Desulfurase\Fitted_State.state" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE983" Directory="Fast_CPU_8_Human_MitochondrialID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34G0" KeyPath="yes" Source="..\Example Files\Examples\CPU\Fast_CPU\8_Human_Mitochondrial_Cysteine_Desulfurase\Initial_State.state" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE984" Directory="Fast_CPU_8_Human_MitochondrialID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34G1" KeyPath="yes" Source="..\Example Files\Examples\CPU\Fast_CPU\8_Human_Mitochondrial_Cysteine_Desulfurase\SASDDC3.dat" />
+      </Component>
+
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE985" Directory="Fast_CPU9_Calcium_loaded" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34G2" KeyPath="yes" Source="..\Example Files\Examples\CPU\Fast_CPU\9_Calcium_loaded_Calbindin-D28K\6fie.pdb" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE986" Directory="Fast_CPU9_Calcium_loaded" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34G3" KeyPath="yes" Source="..\Example Files\Examples\CPU\Fast_CPU\9_Calcium_loaded_Calbindin-D28K\Fit.out" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE987" Directory="Fast_CPU9_Calcium_loaded" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34G4" KeyPath="yes" Source="..\Example Files\Examples\CPU\Fast_CPU\9_Calcium_loaded_Calbindin-D28K\Fitted_State.state" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE988" Directory="Fast_CPU9_Calcium_loaded" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34G5" KeyPath="yes" Source="..\Example Files\Examples\CPU\Fast_CPU\9_Calcium_loaded_Calbindin-D28K\Initial_State.state" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE989" Directory="Fast_CPU9_Calcium_loaded" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34G6" KeyPath="yes" Source="..\Example Files\Examples\CPU\Fast_CPU\9_Calcium_loaded_Calbindin-D28K\SASDDL6.dat" />
+      </Component>
+
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE950" Directory="Slow_CPU_Microtubule4ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34C6" KeyPath="yes" Source="..\Example Files\Examples\CPU\Slow_CPU\4_Microtubule\3j6f_Dimer_2_2_Added_H_GCentered.pdb" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE951" Directory="Slow_CPU_Microtubule4ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34C7" KeyPath="yes" Source="..\Example Files\Examples\CPU\Slow_CPU\4_Microtubule\Left_Hand_Helix.lua" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE952" Directory="Slow_CPU_Microtubule4ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34C8" KeyPath="yes" Source="..\Example Files\Examples\CPU\Slow_CPU\4_Microtubule\MT_Model.out" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE953" Directory="Slow_CPU_Microtubule4ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34C9" KeyPath="yes" Source="..\Example Files\Examples\CPU\Slow_CPU\4_Microtubule\MT_Signal.out" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE954" Directory="Slow_CPU_Microtubule4ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34D0" KeyPath="yes" Source="..\Example Files\Examples\CPU\Slow_CPU\4_Microtubule\MT_State.state" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE955" Directory="Slow_CPU_Microtubule4ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34D1" KeyPath="yes" Source="..\Example Files\Examples\CPU\Slow_CPU\4_Microtubule\MT_State_Amp.state" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE956" Directory="Slow_CPU_Microtubule4ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34D2" KeyPath="yes" Source="..\Example Files\Examples\CPU\Slow_CPU\4_Microtubule\Tubulin_Dimer_Rotated_for_MT.amp" />
+      </Component>
+
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE991" Directory="Fast_GPU_Cylinde1ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34G7" KeyPath="yes" Source="..\Example Files\Examples\GPU\Fast_GPU\1_Cylinder\Cylinder_space filling symmetry.out" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE992" Directory="Fast_GPU_Cylinde1ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34G8" KeyPath="yes" Source="..\Example Files\Examples\GPU\Fast_GPU\1_Cylinder\Cylinder_space filling symmetry.state" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE993" Directory="Fast_GPU_Slab2ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34G9" KeyPath="yes" Source="..\Example Files\Examples\GPU\Fast_GPU\2_Slab\Grid_in_XY.lua" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE994" Directory="Fast_GPU_Slab2ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34H0" KeyPath="yes" Source="..\Example Files\Examples\GPU\Fast_GPU\2_Slab\Slab_Scripted_symmetry.out" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAF041" Directory="Fast_GPU_Slab2ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34H1" KeyPath="yes" Source="..\Example Files\Examples\GPU\Fast_GPU\2_Slab\Slab_Scripted_symmetry.state" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE996" Directory="Fast_GPU_Sphere3ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34H2" KeyPath="yes" Source="..\Example Files\Examples\GPU\Fast_GPU\3_Sphere\5spheres.dol" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE997" Directory="Fast_GPU_Sphere3ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34H3" KeyPath="yes" Source="..\Example Files\Examples\GPU\Fast_GPU\3_Sphere\5spheres.out" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE998" Directory="Fast_GPU_Sphere3ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34H4" KeyPath="yes" Source="..\Example Files\Examples\GPU\Fast_GPU\3_Sphere\5spheres_dol.state" />
+      </Component>
+
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAE999" Directory="Fast_GPU_CCl45ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34H5" KeyPath="yes" Source="..\Example Files\Examples\GPU\Fast_GPU\5_CCl4\C.pdb" />
+
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAF001" Directory="Fast_GPU_CCl45ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34H6" KeyPath="yes" Source="..\Example Files\Examples\GPU\Fast_GPU\5_CCl4\CCl4.pdb" />
+
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAF002" Directory="Fast_GPU_CCl45ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34H7" KeyPath="yes" Source="..\Example Files\Examples\GPU\Fast_GPU\5_CCl4\CCl4_PDB.out" />
+
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAF003" Directory="Fast_GPU_CCl45ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34H8" KeyPath="yes" Source="..\Example Files\Examples\GPU\Fast_GPU\5_CCl4\CCl4_PDB.state" />
+
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAF004" Directory="Fast_GPU_CCl45ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34H9" KeyPath="yes" Source="..\Example Files\Examples\GPU\Fast_GPU\5_CCl4\CCl4_Symmetry.out" />
+      </Component>
+
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAF005" Directory="Fast_GPU_CCl45ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34I0" KeyPath="yes" Source="..\Example Files\Examples\GPU\Fast_GPU\5_CCl4\CCl4_Symmetry.state" />
+      </Component>
+
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAF006" Directory="Fast_GPU_CCl45ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34I1" KeyPath="yes" Source="..\Example Files\Examples\GPU\Fast_GPU\5_CCl4\Cl.pdb" />
+      </Component>
+
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAF007" Directory="Fast_GPU_CCl45ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34I2" KeyPath="yes" Source="..\\Example Files\Examples\GPU\Fast_GPU\5_CCl4\Cl4.dol" />
+      </Component>
+
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAF008" Directory="Fast_GPU_Lysozyme6ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34I3" KeyPath="yes" Source="..\Example Files\Examples\GPU\Fast_GPU\6_Lysozyme\1lyz.pdb" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAF009" Directory="Fast_GPU_Lysozyme6ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34I4" KeyPath="yes" Source="..\Example Files\Examples\GPU\Fast_GPU\6_Lysozyme\1lyz_Hydration_Only.amp" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAF010" Directory="Fast_GPU_Lysozyme6ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34I5" KeyPath="yes" Source="..\Example Files\Examples\GPU\Fast_GPU\6_Lysozyme\1lyz_No_Hydration.amp" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAF011" Directory="Fast_GPU_Lysozyme6ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34I6" KeyPath="yes" Source="..\Example Files\Examples\GPU\Fast_GPU\6_Lysozyme\1lyzDebye.out" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAF012" Directory="Fast_GPU_Lysozyme6ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34I7" KeyPath="yes" Source="..\Example Files\Examples\GPU\Fast_GPU\6_Lysozyme\Fitted_Outer_Solvent_ED_Constant_and_Scale.out" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAF013" Directory="Fast_GPU_Lysozyme6ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34I8" KeyPath="yes" Source="..\Example Files\Examples\GPU\Fast_GPU\6_Lysozyme\Fitted_Outer_Solvent_ED_Constant_and_Scale.state" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAF014" Directory="Fast_GPU_Lysozyme6ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34I9" KeyPath="yes" Source="..\Example Files\Examples\GPU\Fast_GPU\6_Lysozyme\Fitted_Scale_and_Constant.out" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAF015" Directory="Fast_GPU_Lysozyme6ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34J0" KeyPath="yes" Source="..\Example Files\Examples\GPU\Fast_GPU\6_Lysozyme\Pre_Fit_Constant_and_Scale.state" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAF016" Directory="Fast_GPU_Lysozyme6ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34J1" KeyPath="yes" Source="..\Example Files\Examples\GPU\Fast_GPU\6_Lysozyme\Pre_Fit_Outer_Solvent_ED_Constant_and_Scale.state" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAF017" Directory="Fast_GPU_Lysozyme6ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34J2" KeyPath="yes" Source="..\Example Files\Examples\GPU\Fast_GPU\6_Lysozyme\Pre_Fit_Outer_Solvent_ED_Constant_and_Scale_From_Amp.state" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAF018" Directory="Fast_GPU_Lysozyme6ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34J3" KeyPath="yes" Source="..\Example Files\Examples\GPU\Fast_GPU\6_Lysozyme\SASDA96.dat" />
+      </Component>
+
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAF019" Directory="Fast_GPU_7_Rev7ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34J4" KeyPath="yes" Source="..\Example Files\Examples\GPU\Fast_GPU\7_Rev7-R124A_Rev3-RBM2_Complex\6bc8.pdb" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAF020" Directory="Fast_GPU_7_Rev7ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34J5" KeyPath="yes" Source="..\Example Files\Examples\GPU\Fast_GPU\7_Rev7-R124A_Rev3-RBM2_Complex\Fit.out" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAF021" Directory="Fast_GPU_7_Rev7ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34J6" KeyPath="yes" Source="..\Example Files\Examples\GPU\Fast_GPU\7_Rev7-R124A_Rev3-RBM2_Complex\Fitted_State.state" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAF022" Directory="Fast_GPU_7_Rev7ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34J7" KeyPath="yes" Source="..\Example Files\Examples\GPU\Fast_GPU\7_Rev7-R124A_Rev3-RBM2_Complex\Initial_State.state" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAF023" Directory="Fast_GPU_7_Rev7ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34J8" KeyPath="yes" Source="..\Example Files\Examples\GPU\Fast_GPU\7_Rev7-R124A_Rev3-RBM2_Complex\SASDCW8.dat" />
+      </Component>
+
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAF024" Directory="Fast_GPU_8_Human_MitochondrialID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34J9" KeyPath="yes" Source="..\Example Files\Examples\GPU\Fast_GPU\8_Human_Mitochondrial_Cysteine_Desulfurase\5wlw.pdb" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAF025" Directory="Fast_GPU_8_Human_MitochondrialID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34K0" KeyPath="yes" Source="..\Example Files\Examples\GPU\Fast_GPU\8_Human_Mitochondrial_Cysteine_Desulfurase\Fit.out" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAF026" Directory="Fast_GPU_8_Human_MitochondrialID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34K1" KeyPath="yes" Source="..\Example Files\Examples\GPU\Fast_GPU\8_Human_Mitochondrial_Cysteine_Desulfurase\Fitted_State.state" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAF027" Directory="Fast_GPU_8_Human_MitochondrialID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34K2" KeyPath="yes" Source="..\Example Files\Examples\GPU\Fast_GPU\8_Human_Mitochondrial_Cysteine_Desulfurase\Initial_State.state" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAF028" Directory="Fast_GPU_8_Human_MitochondrialID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34K3" KeyPath="yes" Source="..\Example Files\Examples\GPU\Fast_GPU\8_Human_Mitochondrial_Cysteine_Desulfurase\SASDDC3.dat" />
+      </Component>
+
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAF029" Directory="Fast_GPU9_Calcium_loaded" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34K4" KeyPath="yes" Source="..\Example Files\Examples\GPU\Fast_GPU\9_Calcium_loaded_Calbindin-D28K\6fie.pdb" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAF030" Directory="Fast_GPU9_Calcium_loaded" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34K5" KeyPath="yes" Source="..\Example Files\Examples\GPU\Fast_GPU\9_Calcium_loaded_Calbindin-D28K\Fit.out" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAF031" Directory="Fast_GPU9_Calcium_loaded" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34K6" KeyPath="yes" Source="..\Example Files\Examples\GPU\Fast_GPU\9_Calcium_loaded_Calbindin-D28K\Fitted_State.state" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAF032" Directory="Fast_GPU9_Calcium_loaded" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34K7" KeyPath="yes" Source="..\Example Files\Examples\GPU\Fast_GPU\9_Calcium_loaded_Calbindin-D28K\Initial_State.state" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAEF033" Directory="Fast_GPU9_Calcium_loaded" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34K8" KeyPath="yes" Source="..\Example Files\Examples\GPU\Fast_GPU\9_Calcium_loaded_Calbindin-D28K\SASDDL6.dat" />
+      </Component>
+
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAF034" Directory="Slow_GPU_Microtubule4ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34K9" KeyPath="yes" Source="..\Example Files\Examples\GPU\Slow_GPU\4_Microtubule\3j6f_Dimer_2_2_Added_H_GCentered.pdb" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAF035" Directory="Slow_GPU_Microtubule4ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34L0" KeyPath="yes" Source="..\Example Files\Examples\GPU\Slow_GPU\4_Microtubule\Left_Hand_Helix.lua" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAF036" Directory="Slow_GPU_Microtubule4ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34L1" KeyPath="yes" Source="..\Example Files\Examples\GPU\Slow_GPU\4_Microtubule\MT_Model.out" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAF037" Directory="Slow_GPU_Microtubule4ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34L2" KeyPath="yes" Source="..\Example Files\Examples\GPU\Slow_GPU\4_Microtubule\MT_Signal.out" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAF038" Directory="Slow_GPU_Microtubule4ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34L3" KeyPath="yes" Source="..\Example Files\Examples\GPU\Slow_GPU\4_Microtubule\MT_State.state" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAF039" Directory="Slow_GPU_Microtubule4ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34L4" KeyPath="yes" Source="..\Example Files\Examples\GPU\Slow_GPU\4_Microtubule\MT_State_Amp.state" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAF040" Directory="Slow_GPU_Microtubule4ID" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34L5" KeyPath="yes" Source="..\Example Files\Examples\GPU\Slow_GPU\4_Microtubule\Tubulin_Dimer_Rotated_for_MT.amp" />
+      </Component>
+
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAF056" Directory="Very_Slow_GPU_7_Hydration_Correction" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34L6" KeyPath="yes" Source="..\Example Files\Examples\GPU\Very_Slow_GPU\7_Hydration_Correction\3j6f_Dimer_2_2_Added_H_GCentered.pdb" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAF042" Directory="Very_Slow_GPU_7_Hydration_Correction" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34L7" KeyPath="yes" Source="..\Example Files\Examples\GPU\Very_Slow_GPU\7_Hydration_Correction\14PFs_Side.pdb" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAF043" Directory="Very_Slow_GPU_7_Hydration_Correction" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34L8" KeyPath="yes" Source="..\Example Files\Examples\GPU\Very_Slow_GPU\7_Hydration_Correction\14PFs_Side_R.pdb" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAF044" Directory="Very_Slow_GPU_7_Hydration_Correction" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34L9" KeyPath="yes" Source="..\Example Files\Examples\GPU\Very_Slow_GPU\7_Hydration_Correction\14PFs_Top.pdb" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAF045" Directory="Very_Slow_GPU_7_Hydration_Correction" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34M0" KeyPath="yes" Source="..\Example Files\Examples\GPU\Very_Slow_GPU\7_Hydration_Correction\14PFs_Top_H.pdb" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAF046" Directory="Very_Slow_GPU_7_Hydration_Correction" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34M1" KeyPath="yes" Source="..\Example Files\Examples\GPU\Very_Slow_GPU\7_Hydration_Correction\MT_Helix.lua" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAF047" Directory="Very_Slow_GPU_7_Hydration_Correction" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34M2" KeyPath="yes" Source="..\Example Files\Examples\GPU\Very_Slow_GPU\7_Hydration_Correction\MT_Model.out" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAF048" Directory="Very_Slow_GPU_7_Hydration_Correction" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34M3" KeyPath="yes" Source="..\Example Files\Examples\GPU\Very_Slow_GPU\7_Hydration_Correction\MT_Signal.out" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAF049" Directory="Very_Slow_GPU_7_Hydration_Correction" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34M4" KeyPath="yes" Source="..\Example Files\Examples\GPU\Very_Slow_GPU\7_Hydration_Correction\MT_With_Hydration_Correction.state" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAF050" Directory="Very_Slow_GPU_7_Hydration_Correction" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34M5" KeyPath="yes" Source="..\Example Files\Examples\GPU\Very_Slow_GPU\7_Hydration_Correction\Seam_14PFs_high.pdb" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAF051" Directory="Very_Slow_GPU_7_Hydration_Correction" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34M6" KeyPath="yes" Source="..\Example Files\Examples\GPU\Very_Slow_GPU\7_Hydration_Correction\Seam_14PFs_high_L.pdb" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAF04052" Directory="Very_Slow_GPU_7_Hydration_Correction" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34M7" KeyPath="yes" Source="..\Example Files\Examples\GPU\Very_Slow_GPU\7_Hydration_Correction\Seam_14PFs_high_R.pdb" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAF053" Directory="Very_Slow_GPU_7_Hydration_Correction" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34M8" KeyPath="yes" Source="..\Example Files\Examples\GPU\Very_Slow_GPU\7_Hydration_Correction\Seam_14PFs_low.pdb" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAF054" Directory="Very_Slow_GPU_7_Hydration_Correction" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34M9" KeyPath="yes" Source="..\Example Files\Examples\GPU\Very_Slow_GPU\7_Hydration_Correction\Seam_14PFs_low_L.pdb" />
+      </Component>
+      <Component Id="cmp74829923A85BB8C104BDF24B1EAAF055" Directory="Very_Slow_GPU_7_Hydration_Correction" Guid="*">
+        <File Id="fil657A7D81D30C33DB08C59E2A934D34N0" KeyPath="yes" Source="..\Example Files\Examples\GPU\Very_Slow_GPU\7_Hydration_Correction\Seam_14PFs_low_R.pdb" />
+      </Component>
+
+    </ComponentGroup>
+  </Fragment>
+
+  <Fragment>
+    <ComponentGroup Id="LuaFilesGroup">
+      <Component Id="cmp14F65641290C78E1343BFC5525E69776" Directory="LuaScriptsDirectoryID" Guid="*">
+        <File Id="fil8E918DB7D2A780E6234BB6C03CD4229D" KeyPath="yes" Source="..\LuaScripts\Grid_in_XY.lua" />
+      </Component>
+      <Component Id="cmp0C253AD41A3A99A21150989D0760A982" Directory="LuaScriptsDirectoryID" Guid="*">
+        <File Id="filDDE81B67B63CCEA4BD5B52894C2EF2F5" KeyPath="yes" Source="..\LuaScripts\Left_Hand_Helix.lua" />
+      </Component>
+      <Component Id="cmp306766F56174114172614A003FD8D426" Directory="LuaScriptsDirectoryID" Guid="*">
+        <File Id="filD59F2F3B0B8F69C5345051723F1A6429" KeyPath="yes" Source="..\LuaScripts\Manual_Chapter5.lua" />
+      </Component>
+      <Component Id="cmpEE7E940A0E3254E5EF8F5B4C065B7471" Directory="LuaScriptsDirectoryID" Guid="*">
+        <File Id="fil9097E7FECDAF9603CFD88C42B880DA26" KeyPath="yes" Source="..\LuaScripts\MT_Helix.lua" />
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+
+
+  <Fragment>
+    <ComponentGroup Id="DPlusComponents">
+
+      <Component Id="INSTALLDIR_comp" Directory="INSTALLFOLDER" Guid="{531473E4-2EA3-4D9D-94FE-D26037BF6511}">
+        <CreateFolder />
+        <RemoveFile Id="RemoveFilesFromAppDirectory" Name="*.*" On="uninstall" />
+      </Component>
+
+      <!-- Frontend and Backend -->
+
+      <Component Id="cmpCB820C6B5DB1DA46C27EEFCE5815EB9D" Directory="BIN_DIR" Guid="*">
+        <File Id="PDBReaderLibDLL" KeyPath="yes" Source="..\x64\Release\PDBReaderLib.dll" />
+      </Component>
+
+      <!-- Frontend -->
+
+      <Component Id="DebyeCalculatorExecutable" Directory="BIN_DIR" Guid="*">
+        <File Id="DebyeCalculatorEXE" KeyPath="yes" Source="..\x64\Release\DebyeCalculator.exe" />
+      </Component>
+
+      <Component Id="MainExecutable" Directory="BIN_DIR" Guid="*">
+        <File Id="DplusEXE" KeyPath="yes" Source="..\x64\Release\DPlus.exe">
+        </File>
+      </Component>
+      <Component Id="PDBUnitsExecutable" Directory="BIN_DIR" Guid="*">
+        <File Id="PDBUnitsEXE" KeyPath="yes" Source="..\x64\Release\PDBUnits.exe"></File>
+      </Component>
+      <Component Id="SuggestParametersExecutable" Directory="BIN_DIR" Guid="*">
+        <File Id="SuggestParametersEXE" KeyPath="yes" Source="..\x64\Release\Suggest Parameters.exe"></File>
+      </Component>
+
+
+      <Component Id="CMP_Shortcuts" Directory="DIR_Shortcuts" Guid="*">
+
+        <!-- Uninstall shortcut -->
+        <Shortcut Id="SCUT_Shortcuts_Uninstall" Name="Uninstall D+" Target="[System64Folder]msiexec.exe" Arguments="/x [ProductCode]"/>
+        <Shortcut Id="startApplicationShortcut" Name="D+" Directory="DIR_Shortcuts" Target="[#DplusEXE]" WorkingDirectory="BIN_DIR"/>
+        <Shortcut Id="startRemoteApplicationShortcut" Name="D+ Remote" Directory="DIR_Shortcuts" Target="[#DplusEXE]" WorkingDirectory="BIN_DIR" Arguments="--remote"/>
+        <Shortcut Id="startmenuPDBUnitsshortcut" Directory="DIR_Shortcuts" Name="PDBUnits" WorkingDirectory="BIN_DIR" IconIndex="0" Target="[#PDBUnitsEXE]" />
+        <Shortcut Id="startmenuSuggestParametersshortcut" Directory="DIR_Shortcuts" Name="Suggest Parameters" WorkingDirectory="BIN_DIR" IconIndex="0" Target="[#SuggestParametersEXE]" />
+        <RemoveFolder Id="REMOVE_Shortcuts" On="uninstall" />
+        <!-- I would like to change this to HKMU, but I get a ICE57 error -->
+        <RegistryValue Root="HKCU" Key="Software\[Manufacturer]\[ProductName]" Name="installedShortcut" Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+
+      <Component Id="CMP_ShortcutsDesktop" Directory="DesktopDIR_Shortcuts" Guid="*">
+        <Condition>INSTALLDESKTOPSHORTCUT</Condition>
+        <!-- Shortcuts -->
+        <Shortcut Id="desktopApplicationShortcut" Name="D+" Directory="DesktopDIR_Shortcuts" Target="[#DplusEXE]" WorkingDirectory="BIN_DIR"/>
+        <Shortcut Id="desktopREMOTEApplicationShortcut" Name="D+ Remote" Directory="DesktopDIR_Shortcuts" Target="[#DplusEXE]" WorkingDirectory="BIN_DIR" Arguments="--remote"/>
+        <Shortcut Id="desktopSuggestParametersshortcut" Directory="DesktopDIR_Shortcuts" Name="Suggest Parameters" WorkingDirectory="BIN_DIR" IconIndex="0" Target="[#SuggestParametersEXE]"/>
+        <Shortcut Id="desktopPDBUnitsshortcut" Directory="DesktopDIR_Shortcuts" Name="PDBUnits" WorkingDirectory="BIN_DIR" IconIndex="0" Target="[#PDBUnitsEXE]"/>
+        <util:InternetShortcut Id="OnlineDocumentationDesktopShortcut" Name="D+ Manual" Target="https://scholars.huji.ac.il/sites/default/files/uriraviv/files/dmanual.pdf" Type="url"/>
+        <RemoveFolder Id="REMOVE_desktop_Shortcuts" On="uninstall" />
+        <!-- I would like to change this to HKMU, but I get a ICE57 error -->
+        <RegistryValue Root="HKCU" Key="Software\[Manufacturer]\[ProductName]" Name="DesktopShortcut" Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+
+      <Component Id="cmpB420235D9FF093FABDE68BBB33659CBA" Directory="BIN_DIR" Guid="*">
+        <File Id="fil27B59D28FC0EA089CF77AE9889E4C0CC" KeyPath="yes" Source="..\x64\Release\Aga.Controls.dll" />
+      </Component>
+      <Component Id="cmp68F223B1DD699EAF4746067A159905B0" Directory="BIN_DIR" Guid="*">
+        <File Id="fil96AC1CA26FC6151C04020C5BCE207B5C" KeyPath="yes" Source="..\x64\Release\GLView.dll" />
+      </Component>
+      <Component Id="cmp22127675B6C19B2148F62878F3D42E22" Directory="BIN_DIR" Guid="*">
+        <File Id="filE4FBA3464C6CA13F3EA23A32CA65F7E3" KeyPath="yes" Source="..\x64\Release\GraphToolkit.dll" />
+      </Component>
+
+      <Component Id="cmp68C1028E8841DAD395FFE6063DB49324" Directory="BIN_DIR" Guid="*">
+        <File Id="fil82B399C9D10E8B9C439F75410CBB455B" KeyPath="yes" Source="..\x64\Release\lua51.dll" />
+      </Component>
+      <Component Id="cmp36DA6B87D1ED199CB7E622332525D1EA" Directory="BIN_DIR" Guid="*">
+        <File Id="fil0313DE687FCAC025C293FB81010584C9" KeyPath="yes" Source="..\x64\Release\LuaInterface.dll" />
+      </Component>
+      <Component Id="cmp623A195B84B85D56E48F33D48F40D4CE" Directory="BIN_DIR" Guid="*">
+        <File Id="fil39560F5E18E998FF459C752AC9D75908" KeyPath="yes" Source="..\x64\Release\Microsoft.WindowsAPICodePack.dll" />
+      </Component>
+      <Component Id="cmp18B91008DC94339DA5DE42F4DCEE6FBF" Directory="BIN_DIR" Guid="*">
+        <Class Id="{5C48FE32-E0D7-37AB-9D22-92BF1AC56C10}" Context="InprocServer32" Description="MS.WindowsAPICodePack.Internal.ExplorerBrowserViewEvents" ThreadingModel="both" ForeignServer="mscoree.dll">
+          <ProgId Id="MS.WindowsAPICodePack.Internal.ExplorerBrowserViewEvents" Description="MS.WindowsAPICodePack.Internal.ExplorerBrowserViewEvents" />
+        </Class>
+        <File Id="filB9BD91BE2CD34FDD559587B3408AE763" KeyPath="yes" Source="..\x64\Release\Microsoft.WindowsAPICodePack.Shell.dll" />
+        <RegistryValue Root="HKCR" Key="CLSID\{5C48FE32-E0D7-37AB-9D22-92BF1AC56C10}\Implemented Categories\{62C8FE65-4EBB-45e7-B440-6E39B2CDBF29}" Value="" Type="string" Action="write" />
+        <RegistryValue Root="HKCR" Key="CLSID\{5C48FE32-E0D7-37AB-9D22-92BF1AC56C10}\InprocServer32\1.1.0.0" Name="Class" Value="MS.WindowsAPICodePack.Internal.ExplorerBrowserViewEvents" Type="string" Action="write" />
+        <RegistryValue Root="HKCR" Key="CLSID\{5C48FE32-E0D7-37AB-9D22-92BF1AC56C10}\InprocServer32\1.1.0.0" Name="Assembly" Value="Microsoft.WindowsAPICodePack.Shell, Version=1.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35" Type="string" Action="write" />
+        <RegistryValue Root="HKCR" Key="CLSID\{5C48FE32-E0D7-37AB-9D22-92BF1AC56C10}\InprocServer32\1.1.0.0" Name="RuntimeVersion" Value="v2.0.50727" Type="string" Action="write" />
+        <RegistryValue Root="HKCR" Key="CLSID\{5C48FE32-E0D7-37AB-9D22-92BF1AC56C10}\InprocServer32\1.1.0.0" Name="CodeBase" Value="file:///[#filB9BD91BE2CD34FDD559587B3408AE763]" Type="string" Action="write" />
+        <RegistryValue Root="HKCR" Key="CLSID\{5C48FE32-E0D7-37AB-9D22-92BF1AC56C10}\InprocServer32" Name="Class" Value="MS.WindowsAPICodePack.Internal.ExplorerBrowserViewEvents" Type="string" Action="write" />
+        <RegistryValue Root="HKCR" Key="CLSID\{5C48FE32-E0D7-37AB-9D22-92BF1AC56C10}\InprocServer32" Name="Assembly" Value="Microsoft.WindowsAPICodePack.Shell, Version=1.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35" Type="string" Action="write" />
+        <RegistryValue Root="HKCR" Key="CLSID\{5C48FE32-E0D7-37AB-9D22-92BF1AC56C10}\InprocServer32" Name="RuntimeVersion" Value="v2.0.50727" Type="string" Action="write" />
+        <RegistryValue Root="HKCR" Key="CLSID\{5C48FE32-E0D7-37AB-9D22-92BF1AC56C10}\InprocServer32" Name="CodeBase" Value="file:///[#filB9BD91BE2CD34FDD559587B3408AE763]" Type="string" Action="write" />
+      </Component>
+      <Component Id="cmp1F628E6E1F2340F1B045287895BA90F8" Directory="BIN_DIR" Guid="*">
+        <File Id="fil94F47DD4629D87B8878BF727BE5F7853" KeyPath="yes" Source="..\x64\Release\Newtonsoft.Json.dll" />
+      </Component>
+
+      <Component Id="cmp998B1E58EC44C7F121C685AF8BEB997B" Directory="BIN_DIR" Guid="*">
+        <File Id="fil431F7A5F5B6D65BE321EF463A63F1F22" KeyPath="yes" Source="..\x64\Release\SciLexer.dll" />
+      </Component>
+      <Component Id="cmp2807E7C58B490A3E7A7DD9DBA5BAD1BA" Directory="BIN_DIR" Guid="*">
+        <File Id="filFA0E058748C10F20EC56C3E4506F6002" KeyPath="yes" Source="..\x64\Release\SciLexer64.dll" />
+      </Component>
+      <Component Id="cmpA52CAB69D4A46CD6D7B916ABE52B3525" Directory="BIN_DIR" Guid="*">
+        <File Id="fil1AFC0E0C92B66D8B3623EB211933551E" KeyPath="yes" Source="..\x64\Release\ScintillaNET.dll" />
+      </Component>
+
+      <Component Id="cmp55C413B5E03939DB4C34FF236B3AC170" Directory="BIN_DIR" Guid="*">
+        <File Id="fil9BC6A473CEBC54D759EBEE72E23C9EA1" KeyPath="yes" Source="..\x64\Release\WeifenLuo.WinFormsUI.Docking.dll" />
+      </Component>
+      <Component Id="cmp7DAB9A8A60704E9EBD9613BF6071E2D6" Directory="BIN_DIR" Guid="*">
+        <File Id="fil6AFFA49A36F76DCD1CC210D20036EF61" KeyPath="yes" Source="..\x64\Release\xplusfrontend.dll" />
+      </Component>
+      <Component Id="cmpFA44E76CA3BD04EE23837BFEEE74BFD5" Directory="BIN_DIR" Guid="*">
+        <File Id="fil9B2555B2A0B0BB54AD9E5B0D838A94C6" KeyPath="yes" Source="..\x64\Release\xplusmodels.xrn" />
+      </Component>
+      <Component Id="cmpA80B4AD020AF2751F84E074C35601BE5" Directory="ResourcesDirectory" Guid="*">
+        <File Id="fil40E4E6C2D265F33AB2C929D6A9DE31D7" KeyPath="yes" Source="..\x64\Release\Resources\atomicData.txt" />
+      </Component>
+      <Component Id="cmpA80B4AD020AF2751F84E074C35601BE6" Directory="ResourcesDirectory" Guid="*">
+        <File Id="batfile" KeyPath="yes" Source="..\x64\Release\Resources\restartdplus.bat" />
+      </Component>
+
+
+      <!-- Backend -->
+
+      <Component Id="cmpB516684B5F59B2615F87F6EC589AC915" Directory="BIN_DIR" Guid="*">
+        <File Id="fil690C52429319C30060CC6D1FC47B8F23" KeyPath="yes" Source="..\x64\Release\xplusbackend.dll" />
+      </Component>
+      <Component Id="cmpAD1143F15FE009B5CE4EB9C13E94B5AA" Directory="BIN_DIR" Guid="*">
+        <File Id="filE0CAD4BC2A915C78C88C7B3E070CBA38" KeyPath="yes" Source="..\x64\Release\JSON.lua" />
+      </Component>
+      <Component Id="cmp31B1399A6FEAFEB989AAD4E2C597D9F8" Directory="BIN_DIR" Guid="*">
+        <File Id="filA5233125D850EF90CEDBCC60E715520A" KeyPath="yes" Source="..\x64\Release\lua51-backend.dll" />
+      </Component>
+
+      <Component Id="cmp31B1399A6FEAFEB989AAD4E2C597D123" Directory="BIN_DIR" Guid="*">
+        <File Id="filA5233125D850EF90CEDBCC60E7155123" KeyPath="yes" Source="..\x64\Release\cudart64_110.dll" />
+      </Component>
+      <Component Id="cmp31B1399A6FEAFEB989AAD4E2C597456" Directory="BIN_DIR" Guid="*">
+        <File Id="filA5233125D850EF90CEDBCC60E7155456" KeyPath="yes" Source="..\x64\Release\curand64_10.dll" />
+      </Component>
+
+      <Component Id="cmp31B1399A6FEAFEB989AAD4E2C597D9F9" Directory="BIN_DIR" Guid="*">
+        <File Id="filA5233125D850EF90CEDBCC60E715520C" KeyPath="yes" Source="..\x64\Release\Python.Runtime.dll" />
+      </Component>
+      <Component Id="Python" Directory="BIN_DIR" Guid="*">
+        <File Id="Pythondll" KeyPath="yes" Source="..\x64\Release\PythonBackend.dll"></File>
+      </Component>
+
+      <!-- Misc. -->
+
+      <Component Id="cmp69529E09DC6BD380BAE23396532A6F64" Directory="BIN_DIR" Guid="*">
+        <File Id="fil0134436A358E8556C362AF5DB85DA6AB" KeyPath="yes" Source="..\x64\Release\License.txt" />
+      </Component>
+
+      <!-- Comment the following component if/when creating an installer without the manual in the relevant path -->
+      <!-- The manual repository should sit in the same directory as the D+ repository -->
+      <!-- From here... -->
+
+
+      <!-- ...to here -->
+
+      <!--   <Component Id="cmp46F488742976E8F3F69B230D401690B2" Directory="BIN_DIR" Guid="*">
+                <File Id="fil3ECDD361F5C33D1CB8836EB69CEFA0A4" KeyPath="yes" Source="..\x64\Release\PDBManipulator.exe" />
+            </Component>-->
+
+      <!--  <Component Id="cmpDplusManualPDF" Directory="INSTALLFOLDER" Guid="*">
+              <File Id="DplusManualPDF" KeyPath="yes" Source="..\..\Manual\D+Manual.pdf">
+                <Shortcut Id="startmenuDplusManualPDFShortcut" Directory="DIR_Shortcuts" Name="Manual" Advertise="yes" />
+              </File>
+            </Component>-->
+
+    </ComponentGroup>
+  </Fragment>
+
+
+  <!--
+    ======================================================================
+    UI
+-->
+
+  <Fragment>
+
+    <UI Id="WixUI_HK">
+      <TextStyle Id="WixUI_Font_Normal" FaceName="Tahoma" Size="8" />
+      <TextStyle Id="WixUI_Font_Bigger" FaceName="Tahoma" Size="12" />
+      <TextStyle Id="WixUI_Font_Title" FaceName="Tahoma" Size="9" Bold="yes" />
+      <Property Id="DefaultUIFont" Value="WixUI_Font_Normal" />
+      <Property Id="WixUI_Mode" Value="INSTALLFOLDER" />
+
+      <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
+      <Property Id="INSTALLDESKTOPSHORTCUT" />
+
+      <DialogRef Id="BrowseDlg" />
+      <DialogRef Id="DiskCostDlg" />
+      <DialogRef Id="ErrorDlg" />
+      <DialogRef Id="FatalError" />
+      <DialogRef Id="FilesInUse" />
+      <DialogRef Id="MsiRMFilesInUse" />
+      <DialogRef Id="PrepareDlg" />
+      <DialogRef Id="ProgressDlg" />
+      <DialogRef Id="ResumeDlg" />
+      <DialogRef Id="UserExit" />
+      <DialogRef Id="LicenseAgreementDlg"/>
+      <!--   Make sure to include custom dialogs in the installer database via a DialogRef command, 
+               especially if they are not included explicitly in the publish chain below -->
+
+
+      <!--    <DialogRef Id="ServerDlg" />
+-->
+
+      <Publish Dialog="BrowseDlg" Control="OK" Event="DoAction" Value="WixUIValidatePath" Order="3">1</Publish>
+      <Publish Dialog="BrowseDlg" Control="OK" Event="SpawnDialog" Value="InvalidDirDlg" Order="4"><![CDATA[WIXUI_INSTALLDIR_VALID<>"1"]]></Publish>
+
+      <Publish Dialog="ExitDialog" Control="Finish" Event="EndDialog" Value="Return" Order="999">1</Publish>
+
+      <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="LicenseAgreementDlg">NOT Installed</Publish>
+
+      <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg">Installed AND PATCH</Publish>
+
+
+      <Publish Dialog="LicenseAgreementDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg">1</Publish>
+      <Publish Dialog="LicenseAgreementDlg" Control="Next" Event="NewDialog" Value="InstallDirAndOptionalShortcutDlg">LicenseAccepted = "1"</Publish>
+
+
+      <Publish Dialog="InstallDirAndOptionalShortcutDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg">1</Publish>
+      <Publish Dialog="InstallDirAndOptionalShortcutDlg" Control="Next" Event="SetTargetPath" Value="[WIXUI_INSTALLDIR]" Order="1">1</Publish>
+      <Publish Dialog="InstallDirAndOptionalShortcutDlg" Control="Next" Event="DoAction" Value="WixUIValidatePath" Order="2">NOT WIXUI_DONTVALIDATEPATH</Publish>
+      <Publish Dialog="InstallDirAndOptionalShortcutDlg" Control="Next" Event="SpawnDialog" Value="InvalidDirDlg" Order="3"><![CDATA[NOT WIXUI_DONTVALIDATEPATH AND WIXUI_INSTALLDIR_VALID<>"1"]]></Publish>
+      <!--
+      <Publish Dialog="InstallDirDlg" Control="Next" Event="NewDialog" Value="ServerDlg" Order="4">WIXUI_DONTVALIDATEPATH OR WIXUI_INSTALLDIR_VALID="1"</Publish>
+-->
+      <Publish Dialog="InstallDirAndOptionalShortcutDlg" Control="ChangeFolder" Property="_BrowseProperty" Value="[WIXUI_INSTALLDIR]" Order="1">1</Publish>
+      <Publish Dialog="InstallDirAndOptionalShortcutDlg" Control="ChangeFolder" Event="SpawnDialog" Value="BrowseDlg" Order="2">1</Publish>
+
+      <Publish Dialog="InstallDirAndOptionalShortcutDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg" Order="4">WIXUI_DONTVALIDATEPATH OR WIXUI_INSTALLDIR_VALID="1"</Publish>
+
+      <!--
+      <Publish Dialog="ServerDlg" Control="Back" Event="NewDialog" Value="InstallDirDlg">1</Publish>
+      <Publish Dialog="ServerDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg">1</Publish>
+-->
+
+      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="InstallDirAndOptionalShortcutDlg" Order="1">NOT Installed</Publish>
+      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="MaintenanceTypeDlg" Order="2">Installed</Publish>
+
+      <Publish Dialog="MaintenanceWelcomeDlg" Control="Next" Event="NewDialog" Value="MaintenanceTypeDlg">1</Publish>
+
+      <Publish Dialog="MaintenanceTypeDlg" Control="RepairButton" Event="NewDialog" Value="VerifyReadyDlg">1</Publish>
+      <Publish Dialog="MaintenanceTypeDlg" Control="RemoveButton" Event="NewDialog" Value="VerifyReadyDlg">1</Publish>
+      <Publish Dialog="MaintenanceTypeDlg" Control="Back" Event="NewDialog" Value="MaintenanceWelcomeDlg">1</Publish>
+
+    </UI>
+
+    <UIRef Id="WixUI_Common" />
+    <!--
+    <UIRef Id="WixUI_FeatureTree" />
+    -->
+    <WixVariable Id="WixUILicenseRtf" Value="..\Installer\License.rtf" />
+  </Fragment>
+
+
+
+
+</Wix>

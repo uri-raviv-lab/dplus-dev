@@ -10,7 +10,7 @@ using namespace std;
 PythonBackendWrapper::PythonBackendWrapper()
 {
 	InitializeInfo();
-	AmplitudeCache::_setConverter(_info.Converter);
+	InitializeCache();
 }
 
 PythonBackendWrapper::~PythonBackendWrapper()
@@ -73,10 +73,16 @@ void PythonBackendWrapper::InitializeInfo()
 	_info.Converter = new LocalBackendParameterTreeConverter(_info.local_backend, _info.job);
 }
 
+void PythonBackendWrapper::InitializeCache()
+{
+	AmplitudeCache::initializeCache(_info.Converter);
+}
+
 void PythonBackendWrapper::InitializeCache(std::string cacheDir)
 {
 	AmplitudeCache::initializeCache(cacheDir, _info.Converter);
 }
+
 
 void PythonBackendWrapper::StartGenerate(const std::string state, bool useGPU)
 {

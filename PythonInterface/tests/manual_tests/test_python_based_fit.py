@@ -6,9 +6,8 @@ import numpy as np
 import os
 from scipy import optimize
 from dplus.CalculationInput import CalculationInput
-from dplus.CalculationRunner import LocalRunner
+from dplus.CalculationRunner import EmbeddedLocalRunner
 from tests.old_stuff.fix_state_files import fix_file
-from tests.test_settings import exe_directory, session
 
 root_path = os.path.dirname(abspath(__file__))
 
@@ -20,7 +19,7 @@ def close_enough(x1, x2):
 
 
 def run_fit(input):
-    generate_runner = LocalRunner(exe_directory, session)
+    generate_runner = EmbeddedLocalRunner()
 
     def run_generate(xdata, *params):
         '''
@@ -65,7 +64,7 @@ def test_fit_2():
     input = CalculationInput()
     s = Sphere()
     s.use_grid = True
-    s.layer_params[1]["radius"].value = 2
+    s.layer_params[1]["radius"].value = 2.0
     s.layer_params[1]["radius"].mutable = True
     input.Domain.populations[0].add_model(s)
     signal_file = os.path.join(root_path, "files", "sphere.out")
@@ -80,7 +79,7 @@ def test_fit_2():
 
 def test_fit_manual():
     input = CalculationInput.load_from_state_file(os.path.join(root_path, "files", "2_pops_fixed.state"))
-    generate_runner = LocalRunner(exe_directory)
+    generate_runner = EmbeddedLocalRunner()
 
     def run_generate(xdata, *params):
         '''

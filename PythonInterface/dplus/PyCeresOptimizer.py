@@ -1,24 +1,38 @@
-from pyceres import *
-from dplus.CalculationInput import CalculationInput
-from dplus.Residuals import XRayResiduals, XRayLogResiduals, XRayRatioResiduals
 import numpy as np
 import os
 import json
+
+import dplus_ceres as ceres
+from dplus.Residuals import XRayResiduals, XRayLogResiduals, XRayRatioResiduals
 from dplus.FileReaders import _handle_infinity_for_json, NumpyHandlingEncoder
-import threading
+
+stop_flag = dict(stop = 0)
+def my_callback_function(iteration_summary=None):
+    """
+    0: SOLVER_CONTINUE
+    1: SOLVER_ABORT
+    2: SOLVER_TERMINATE_SUCCESSFULLY
+    """
+    if stop_flag["stop"] == 0:
+        return 0
+    elif stop_flag["stop"] == 2:
+        return 2
+    return 1
+
+
 
 class PyCeresOptimizer:
 
     def __init__(self, calc_input, calc_runner=None, save_amp=False):
-
+        stop_flag["stop"] = 0
         self.calc_input = calc_input
         self.calc_runner = calc_runner
         if not self.calc_runner:
             from dplus.CalculationRunner import LocalRunner
             self.calc_runner = LocalRunner()
 
-        self.problem = PyProblem()
-        self.options = PySolverOptions()
+        self.problem = ceres.PyProblem()
+        self.options = ceres.PySolverOptions()
         self.options.linear_solver_type=1
         self.best_params = None
         self.best_val = np.array([np.inf])
@@ -28,7 +42,6 @@ class PyCeresOptimizer:
         self.init_problem()
 
     def init_problem(self):
-
         self.bConverged = False
         fit_pref = self.calc_input.FittingPreferences
         # This is the convergence that was writen in dplus
@@ -60,7 +73,7 @@ class PyCeresOptimizer:
             raise Exception("residual type does not exists")
 
         y = np.asarray(self.calc_input.y)
-        self.cost_function = PyResidual(np.asarray(self.calc_input.x), np.asarray(self.calc_input.y),
+        self.cost_function = ceres.PyResidual(np.asarray(self.calc_input.x), np.asarray(self.calc_input.y),
                                         len(mut_param_values), len(y), cost_class.run_generate, fit_pref.step_size, fit_pref.der_eps,
                                         self.best_params, self.best_val)
         self.params_value = paramdata[0]
@@ -69,18 +82,18 @@ class PyCeresOptimizer:
         # ["Trivial Loss", "Huber Loss", "Soft L One Loss",
         #                              "Cauchy Loss", "Arctan Loss", "Tolerant Loss"]
         if loss_type == "Trivial Loss":
-            self.problem.add_residual_block(self.cost_function, PyTrivialLoss(), paramdata)
+            self.problem.add_residual_block(self.cost_function, ceres.PyTrivialLoss(), paramdata)
         elif loss_type == "Huber Loss":
-            self.problem.add_residual_block(self.cost_function, PyHuberLoss(fit_pref.loss_func_param_one), paramdata)
+            self.problem.add_residual_block(self.cost_function, ceres.PyHuberLoss(fit_pref.loss_func_param_one), paramdata)
         elif loss_type == "Soft L One Loss":
-            self.problem.add_residual_block(self.cost_function, PySoftLOneLoss(fit_pref.loss_func_param_one), paramdata)
+            self.problem.add_residual_block(self.cost_function, ceres.PySoftLOneLoss(fit_pref.loss_func_param_one), paramdata)
         elif loss_type == "Cauchy Loss":
-            self.problem.add_residual_block(self.cost_function, PyCauchyLoss(fit_pref.loss_func_param_one), paramdata)
+            self.problem.add_residual_block(self.cost_function, ceres.PyCauchyLoss(fit_pref.loss_func_param_one), paramdata)
         elif loss_type == "Arctan Loss":
-            self.problem.add_residual_block(self.cost_function, PyArctanLoss(fit_pref.loss_func_param_one), paramdata)
+            self.problem.add_residual_block(self.cost_function, ceres.PyArctanLoss(fit_pref.loss_func_param_one), paramdata)
         elif loss_type == "Tolerant Loss":
             self.problem.add_residual_block(self.cost_function,
-                                            PyTolerantLoss(fit_pref.loss_func_param_one, fit_pref.loss_func_param_two),
+                                            ceres.PyTolerantLoss(fit_pref.loss_func_param_one, fit_pref.loss_func_param_two),
                                             paramdata)
 
         if fit_pref.minimizer_type == "Trust Region":
@@ -103,15 +116,17 @@ class PyCeresOptimizer:
             self.options.trust_region_strategy_type = fit_pref.trust_region_strategy_type
             self.options.use_inner_iterations = False
 
+        self.options.set_callbacks(my_callback_function)
+
     def solve(self): #this function is called "iterate" in D+
         self._best_results = None
-        summary = PySolverSummary()
-        solve(self.options, self.problem, summary)
+        summary = ceres.PySolverSummary()
+        ceres.solve(self.options, self.problem, summary)
 
         print(summary.fullReport().decode("utf-8"))
         print("\n")
         cur_eval = summary.final_cost
-        self.bConverged = (summary.termination_type == SolverTerminationType.CONVERGENCE)
+        self.bConverged = (summary.termination_type == ceres.SolverTerminationType.CONVERGENCE) # TODO change to not NO_CONVERGENCE?
         flag_valid_constraint = True
         mut_param = self.calc_input.get_mutable_params_array()
         for i in range(len(self.best_params)):
@@ -179,5 +194,4 @@ class PyCeresOptimizer:
                 json.dump(_handle_infinity_for_json(result_dict), file, cls=NumpyHandlingEncoder)
 
         return result_dict
-
 

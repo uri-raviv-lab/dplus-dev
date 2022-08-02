@@ -5,28 +5,12 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "prepare",
+            "name": "Python: test",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}//setup.py",
-            "args": ["prepare"],
-            "console": "integratedTerminal"
-        },
-        {
-            "name": "build_ext",
-            "type": "python",
-            "request": "launch",
-            "program": "${workspaceFolder}//setup.py",
-            "args": ["build_ext"],
-            "console": "integratedTerminal"
-        },
-        {
-            "name": "generate",
-            "type": "python",
-            "request": "launch",
-            "program": "${workspaceFolder}//tests//unit_tests//test_generate.py",
-            // "args": ["build_ext"],
-            "console": "integratedTerminal"
+            "program": "${workspaceFolder}\\tests\\unit_tests\\test_generate.py",
+            "console": "integratedTerminal",
+            "justMyCode": true
         }
     ]
 }

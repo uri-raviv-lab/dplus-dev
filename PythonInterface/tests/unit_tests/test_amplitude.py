@@ -7,8 +7,8 @@ from dplus.Amplitudes import Amplitude
 from dplus.DataModels.models import AMP
 from dplus.State import State
 from dplus.CalculationInput import CalculationInput
-from dplus.CalculationRunner import LocalRunner
-from tests.test_settings import exe_directory, session
+from dplus.CalculationRunner import EmbeddedLocalRunner
+from tests.test_settings import session
 import os
 import numpy as np
 from tests.old_stuff.fix_state_files import fix_file
@@ -56,7 +56,7 @@ def test_save_amp_correct():
         test = percent_one < .5 and percent_two < .3 and percent_three < .1
         return test
 
-    runner = LocalRunner(exe_directory, session)
+    runner = EmbeddedLocalRunner()
     filename = os.path.join(test_dir, "tinyAmp.ampj")
     tmp_file_name = os.path.join(session, "tmpAmp.ampj")
     state_file = os.path.join(test_dir, "ampcontaining.state")
@@ -85,7 +85,7 @@ def test_save2_amp_correct():
     a = input.get_models_by_type('AMP')[0]
     a.filename = os.path.join(test_dir, "tinyAmp.ampj")
     a.centered = True
-    runner = LocalRunner(exe_directory, session)
+    runner = EmbeddedLocalRunner()
     result = runner.generate(input)
     assert len(result.graph)
 
@@ -106,7 +106,7 @@ def test_create_grid_save_correct():
     a.filename = os.path.join(session, "artificialgrid.ampj")
     a.centered = True
     input.Domain.populations[0].children.append(a)
-    runner = LocalRunner(exe_directory, session)
+    runner = EmbeddedLocalRunner()
     result = runner.generate(input)
 
 
@@ -267,7 +267,7 @@ def test_interpolation_3():
 def test_use_grid():
     state_file = os.path.join(test_dir, "check_use_grid.state")
     input = CalculationInput.load_from_state_file(state_file)
-    runner = LocalRunner(exe_directory, session)
+    runner = EmbeddedLocalRunner()
     input.use_gpu = False
     input.Domain.children[0].children[0].children[1].children[0].use_grid = False
     with pytest.raises(ValueError):

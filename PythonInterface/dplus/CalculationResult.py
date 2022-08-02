@@ -125,7 +125,6 @@ class CalculationResult(object):
                 out_file.write(value)
             for key, value in self.graph.items():
                 out_file.write('{:.5f}\t{:.20f}\n'.format(key, value))
-            out_file.close()
 
 
 class GenerateResult(CalculationResult):

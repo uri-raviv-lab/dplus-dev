@@ -777,3 +777,8 @@ class EmbeddedLocalRunner(Runner):
         Send to C++ function to stop the generate process (C++ process).
         '''
         self.wrapper.stop()
+
+    def fit(self, calc_data):
+        from dplus.FitRunner import FitRunner
+        fit_runner = FitRunner()
+        return fit_runner.fit(calc_data)

@@ -98,7 +98,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'ReleaseWithDebugInfo|x64'">
     <OutputPath>bin\x64\ReleaseWithDebugInfo\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;DEBUGWITHRELEASE</DefineConstants>
     <Optimize>false</Optimize>
     <DebugType>pdbonly</DebugType>
     <PlatformTarget>x64</PlatformTarget>
@@ -119,6 +119,9 @@
     <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Newtonsoft.Json.13.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="Python.Runtime, Version=2.5.2.0, Culture=neutral, processorArchitecture=AMD64">
       <HintPath>..\..\packages\pythonnet_py39_win.2.5.2\lib\net40\Python.Runtime.dll</HintPath>
     </Reference>
@@ -146,26 +149,21 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Common\Newtonsoft.Json\Src\Newtonsoft.Json\Newtonsoft.Json.Net40.csproj">
-      <Project>{a9ae40ff-1a21-414a-9fe7-3be13644cc6d}</Project>
-      <Name>Newtonsoft.Json.Net40</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="Resources\PythonSources\CSharpPythonEntry.py" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
     <EmbeddedResource Include="Resources\EmbeddedPython\python-3.9.9-embed-amd64.zip" />
-    <EmbeddedResource Include="Resources\Wheels\numpy-1.21.4-cp39-cp39-win_amd64.whl" />
-    <EmbeddedResource Include="Resources\Wheels\pyceres-0.1.0-cp39-cp39-win_amd64.whl" />
     <EmbeddedResource Include="Resources\Wheels\certifi-2021.10.8-py2.py3-none-any.whl" />
     <EmbeddedResource Include="Resources\Wheels\charset_normalizer-2.0.8-py3-none-any.whl" />
     <EmbeddedResource Include="Resources\Wheels\idna-3.3-py3-none-any.whl" />
     <EmbeddedResource Include="Resources\Wheels\psutil-5.8.0-cp39-cp39-win_amd64.whl" />
     <EmbeddedResource Include="Resources\Wheels\requests-2.26.0-py2.py3-none-any.whl" />
     <EmbeddedResource Include="Resources\Wheels\urllib3-1.26.7-py2.py3-none-any.whl" />
-    <EmbeddedResource Include="Resources\Wheels\dplus_api-4.6-cp39-cp39-win_amd64.whl" />
+    <EmbeddedResource Include="Resources\Wheels\dplus_api-debug-cp39-cp39-win_amd64.whl" />
+    <EmbeddedResource Include="Resources\Wheels\dplus_api-release-cp39-cp39-win_amd64.whl" />
+    <EmbeddedResource Include="Resources\Wheels\dplus_ceres-0.4.0-cp39-cp39-win_amd64.whl" />
+    <EmbeddedResource Include="Resources\Wheels\numpy-1.23.0-cp39-cp39-win_amd64.whl" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -65,7 +65,7 @@ namespace DPlus {
 		String ^staticQMaxString;
 		String ^staticQMinString;
 		String ^rootWriteDir;
-
+	private: bool stopInProcess = false;
 	public: System::Collections::Generic::List<DockContent^>^ PaneList;
 	private: System::Windows::Forms::ToolStripMenuItem^  quitToolStripMenuItem;
 	private: System::Windows::Forms::ToolStripMenuItem^  controls3DToolStripMenuItem;
@@ -1059,4 +1059,3 @@ protected:
 };
 
 }
-

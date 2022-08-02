@@ -14,3 +14,5 @@ CythonGrid*.pyddplus/*.dll
 local_test_settings.py
 *test_session*
 CythonGrid.*.pyd
+*.pyd
+test/sessions/*
