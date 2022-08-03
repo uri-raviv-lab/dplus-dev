@@ -1,4 +1,4 @@
-﻿This document was last updated on April 2 2018, for version 4.3.7
+﻿This document was last updated on August 3 2022, for version dplus-v4.6.1.0
 
 # The Dplus Python API
 
@@ -65,10 +65,24 @@ A detailed explanation of the class types and their usage follows.
 ## CalculationRunner
 
 The class `Runner` implemented in package `CalculationRunner` is a base abstract class.  
-There are two kinds of `Runners`: `EmbeddedLocalRunner` and `WebRunner`.
+There are two kinds of `Runners`: `EmbeddedLocalRunner` and `WebRunner`. 
+The Runner `LocalRunner` is deprecated
+
+it can run generate and fit on calculationInput and get the result
 
 ### EmbeddedLocalRunner
-The `EmbeddedLocalRunner` is intended for users who have the D+ executable files installed on their system. It takes two optional
+The `EmbeddedLocalRunner` class can be used without D+ compiled or installed.
+
+To use `EmbeddedLocalRunner`, create an an instance using the default constructor:
+```python
+from dplus.CalculationRunner import EmbeddedLocalRunner
+
+runner = EmbeddedLocalRunner()
+```
+
+### LocalRunner
+The `LocalRunner` runner class is not supported anymore, but can still be used.
+It is intended for users who have the D+ executable files installed on their system. It takes two optional
 initialization arguments:
 
 * `exe_directory` is the folder location of the D+ executables. 
@@ -79,19 +93,6 @@ directory *must* be specified.
 Amplitude files, and protein data bank (PDB) files, from the C++ executable. 
 By default, its value is `None`, and an automatically generated 
 temporary folder will be used. 
-
-```python
-from dplus.CalculationRunner import EmbeddedLocalRunner
-
-exe_dir = r"C:\Program Files\D+\bin"
-sess_dir = r"sessions"
-runner = EmbeddedLocalRunner(exe_dir, sess_dir)
-# also possible:
-# runner = EmbeddedLocalRunner()
-# runner = EmbeddedLocalRunner(exe_dir)
-# runner = EmbeddedLocalRunner(session_directory=sess_dir)
-```
-
 
 ### WebRunner
 
@@ -110,33 +111,74 @@ url = r'http://localhost:8000/'
 token = '4bb25edc45acd905775443f44eae'
 runner = WebRunner(url, token)
 ```
+</s>
 
-Both runner classes have the same four methods: 
 
-`generate(calc_data)`, `generate_async(calc_data)`, `fit(calc_data)`, and `fit_async(calc_data)`.
+All runner classes have the same four methods: 
+
+* `generate(calc_data)` 
+* `generate_async(calc_data)` 
+* `fit(calc_data)`
+* `fit_async(calc_data)` (Not implemented for all classes)
+
+> Notice that `fit_async` is currently implemented only for the deprecated class `WebRunner`,  
+meaning, it is not in use.
 
 All four methods take the same single argument, `calc_data` - an instance of a `CalculationData` class.
 
-`generate` and `fit` return a `CalculationResult`.
-
-`generate_async` and `fit_async` return a `RunningJob`.
+## Synchronous Functions
+The synchronous functions: `generate` and `fit` - return a `CalculationResult`.
 
 When using `generate` or `fit` the program will wait until the call has finished and returned a result, before continuing. 
-Their asynchronous counterparts (`generate_async` and `fit_async`) allow D+ calculations to be run in the background 
+
+## Asynchronous Functions
+
+The asynchronous functions (`generate_async` and `fit_async`) allow D+ calculations to be run in the background 
 (for example, the user can call `generate_async`, tell the program to do other things, 
-and then return and check if the computation is finished).</s>
+and then return and check if the computation is finished).
 
-## RunningJob
+### How to use async function for `EmbeddedLocalRunner`
 
-The user should not be initializing this class. When returned from an async function
- (`generate_async` or `fit_async`) in `Runner`, the user can 
-use the following methods to interact with the `RunningJob` instance:
+> The classes `WebRunner` and `LocalRunner` implement async functions different than `EmbeddedLocalRunner`.  
+These classes are currently out of use. This documentation focuses on the mainly used `EmbeddedLocalRunner`.   
+However, a short explanation and example about `WebRunner` and `LocalRunner` async functions following.
 
-* `get_status()`: get a JSON dictionary reporting the job's current status
-* `get_result(calc_data)`: get a `CalculationResult`. Requires a copy of the `CalculationInput` used to create the job. 
-Should only be called when the job is completed. It is the user's responsibility to verify job completion with `get_status` 
-before calling. 
-* `abort()`: end a currently running job
+
+When an async function is called, generate or fit procedure is started, and the function returns.  
+In order to get the results, the job can be polled for the status, using `get_job_status()` until it is done.
+
+Once the job is done, call `get_generate_results(calc_data)` to get the result.  
+This returns a `CalculationResult`.
+
+```python
+import datetime
+from dplus.CalculationInput import CalculationInput
+from dplus.CalculationRunner import EmbeddedLocalRunner
+
+state_file=os.path.join(root_path, "files", "mystate.state")
+calc_data = CalculationInput.load_from_state_file(state_file, USE_GPU)
+runner = EmbeddedLocalRunner()
+runner.generate_async(calc_data)
+start_time = datetime.datetime.now()
+status=True
+while status:
+    try:
+        status_dict = runner.get_job_status()
+        status=status_dict['isRunning']
+    except:
+        status=True
+    run_time = datetime.datetime.now() - start_time
+    if run_time > datetime.timedelta(seconds=50):
+        runner.stop_generate()
+        raise TimeoutError("Job took too long")
+result = runner.get_generate_results(calc_data)
+```
+
+### How to use async function for `WebRunner` and `LocalRunner`
+
+The async functions return an instance of `RunningJob`.
+Call the `RunningJob.get_status` function to check if the job is done.
+Once the job is done. get the result using the `RunningJob.get_result` function.
 
 ```python
 import datetime
@@ -144,7 +186,7 @@ from dplus.CalculationInput import CalculationInput
 from dplus.CalculationRunner import EmbeddedLocalRunner
 
  calc_data = CalculationInput.load_from_state_file("mystate.state")
- runner = EmbeddedLocalRunner()
+ runner = LocalRunner()
  job = runner.generate_async(calc_data)
  start_time = datetime.datetime.now()
  status = job.get_status()
@@ -347,7 +389,7 @@ An example of code that will raise an error:
 ```python
 from dplus.DataModels.models import UniformHollowCylinder
 uhc=UniformHollowCylinder()
-uhc.layer_params[1]["radius"]=2.0 #will raise error "radius can only be set to an instance of Parameter
+uhc.layer_params[1]["radius"]=2.0 #will raise error "2.0 can only be set to an instance of Parameter"
 ```
 
 
@@ -528,7 +570,8 @@ q must be between q_min and q_max. Theta must be between 0 and pi. Phi must be b
 ```python
 #loading an existing amplitude and viewing the values it contains
 from dplus.Amplitudes import Amplitude
-my_amp = Amplitude.load("myamp.ampj")
+root_path=os.path.dirname(abspath(__file__))
+my_amp = Amplitude.load(os.path.join(root_path, "files", "myamp.ampj"))
 for c in my_amp.complex_amplitude_array:
     print(c)
 ```
@@ -648,36 +691,35 @@ The module contains the class NumpyHandlingEncoder.
 from dplus.CalculationInput import CalculationInput
 from dplus.CalculationRunner import EmbeddedLocalRunner
 
-exe_directory = r"C:\Program Files\D+\bin"
-sess_directory = r"session"
-runner= EmbeddedLocalRunner(exe_directory, sess_directory)
+root_path=os.path.dirname(abspath(__file__))
 
-input=CalculationInput.load_from_state_file('spherefit.state')
-result=runner.fit(input)
-print(result.graph)
+runner = EmbeddedLocalRunner()
+state_file = os.path.join(root_path, "files", "sphere.state")
+fixed_state_file = fix_file(state_file)
+input = CalculationInput.load_from_state_file(fixed_state_file, USE_GPU)
+result = runner.fit(input)
 ```
 
 Comments:
-This program loads a state file from `spherefit.state`, runs fitting with the local runner, and print the graph of the result.
+This program loads a state file from `sphere.state` and runs fitting with the local runner.
 
 ***Example Two***
 
 ```python
+# Create CalculationInput, load UniformHollowCylinder and generate.
 from dplus.CalculationInput import CalculationInput
 from dplus.CalculationRunner import EmbeddedLocalRunner
-from dplus.DataModels import ModelFactory, Population
-from dplus.State import State
 from dplus.DataModels.models import UniformHollowCylinder
 
-sess_directory = r"session"
-runner= EmbeddedLocalRunner(session_directory=sess_directory)
+runner = EmbeddedLocalRunner()
+uhc = UniformHollowCylinder()
+uhc.layer_params[1]["radius"].value = 2.0
+uhc.extra_params.height.value = 3.0
+uhc.location_params.x.value = 2
 
-uhc=UniformHollowCylinder()
-caldata = CalculationInput()
+caldata = CalculationInput(USE_GPU)
 caldata.Domain.populations[0].add_model(uhc)
-
-result=runner.generate(caldata)
-print(result.graph)
+result = runner.generate(caldata)
 ```
 
 ***Example Three***
@@ -686,9 +728,12 @@ print(result.graph)
 from dplus.CalculationRunner import EmbeddedLocalRunner
 from dplus.CalculationInput import CalculationInput
 
-runner=EmbeddedLocalRunner()
-caldata=CalculationInput.load_from_PDB('1JFF.pdb', 5)
-result=runner.generate(caldata)
+pdb_file = os.path.join(root_path, "files", "1JFF.pdb")
+caldata = CalculationInput.load_from_PDB(pdb_file, 5)
+caldata.use_gpu = USE_GPU
+runner = EmbeddedLocalRunner()
+result = runner.generate(caldata)
+assert len(result.graph) > 0
 print(result.graph)
 ```
 
@@ -697,25 +742,21 @@ print(result.graph)
 ```python
 from dplus.CalculationRunner import EmbeddedLocalRunner
 from dplus.CalculationInput import CalculationInput
-runner=EmbeddedLocalRunner()
-input = CalculationInput.load_from_state_file("uhc.state")
+if not USE_GPU:
+        pytest.skip("NO GPU")
+API = EmbeddedLocalRunner()
+state_file = os.path.join(root_path, "files", "uhc.state")
+input = CalculationInput.load_from_state_file(state_file)
 cylinder = input.get_model("test_cylinder")
-
-print("Original radius is ", cylinder.layer_params[1]['Radius'].value)
-result = runner.generate(input)
-
+result = API.generate(input)
 input.signal = result.signal
 cylinder = input.get_model("test_cylinder")
-cylinder.layer_params[1]['Radius'].value = 2
-cylinder.layer_params[1]['Radius'].mutable = True
+cylinder.layer_params[1].radius.value = 2
+cylinder.layer_params[1].radius.mutable = True
 input.FittingPreferences.convergence = 0.5
 input.use_gpu = True
-fit_result = runner.fit(input)
-optimized_input= fit_result.result_state
-result_cylinder=optimized_input.get_model("test_cylinder")
-print(fit_result.parameter_tree)
-print("Result radius is ", result_cylinder.layer_params[1]['Radius'].value)
-
+fit_result = API.fit(input)
+assert len(fit_result.graph) > 0
 ```
 
 Comments: 
