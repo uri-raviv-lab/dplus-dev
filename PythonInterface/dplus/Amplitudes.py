@@ -461,7 +461,7 @@ class Amplitude():
         :return: If theta_list is None: a vector of the intensity each q from the list.
                  else: a 2 dimensional matrix of intensity for each q, theta from the lists.
         """
-        if not theta_list:
+        if theta_list is None:
             arr_intensity = []
             for q in tqdm(q_list):
                 arr_intensity.append(self.grid.get_intensity(q, None, epsilon, seed, max_iter))

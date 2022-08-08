@@ -168,3 +168,30 @@ def test_2d_intentsity_hard_1():
     aspect = len(theta) / len(q)
     plt.imshow(result, origin='lower', aspect=aspect, norm=colors.LogNorm(vmin=0, vmax=np.max(np.max(result))))
     plt.show()
+
+def test_2d_intensity_hard_2():
+    calc_in = CalculationInput.load_from_PDB(join(file_dir, "1jff.pdb"), 7.5)
+    calc_in.use_gpu = False
+    calc_in.DomainPreferences.grid_size = 50
+    calc_in.DomainPreferences.generated_points = 300
+    runner = EmbeddedLocalRunner()
+    calc_res = runner.generate(calc_in)
+
+    my_amp = Amplitude.load(join(file_dir, "intensity", "1jff.ampj"))
+    q_min=0
+    q_list = np.linspace(q_min, my_amp.grid.q_max, calc_in.DomainPreferences.generated_points + 1)
+    theta_list = np.linspace(0, math.pi, 33)#calc_in.DomainPreferences.generated_points + 1)
+
+    result = [[0 for t in range(len(theta_list))] for q in range(len(q_list))] 
+
+    q_idx = 0
+    for q in q_list:
+        t_idx = 0
+        for t in theta_list:
+            result[q_idx][t_idx] = my_amp.calculate_intensity(q, t)
+            t_idx = t_idx + 1
+        q_idx = q_idx + 1
+    
+    aspect = len(theta_list) / len(q_list)
+    plt.imshow(result, origin='lower', aspect=aspect, norm=colors.LogNorm(vmin=0, vmax=np.max(np.max(result))))
+    plt.show()
