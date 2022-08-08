@@ -389,8 +389,13 @@ std::complex<double> JacobianSphereGrid::GetCart( double x, double y, double z )
 		ph += M_2PI;
 	return GetSphr(r, th, ph);
 }
-
-FACC JacobianSphereGrid::CalculateIntensity(FACC q, FACC epsi, unsigned int seed, uint64_t iterations) {
+FACC JacobianSphereGrid::CalculateIntensity(FACC q, FACC epsi, unsigned int seed, uint64_t iterations)
+{
+	// if there is no theta, pass theta=-1
+	return CalculateIntensity(q, -1, epsi, seed, iterations);
+}
+// theta is optional
+FACC JacobianSphereGrid::CalculateIntensity(FACC q, FACC theta, FACC epsi, unsigned int seed, uint64_t iterations) {
 	FACC res = 0.0;
 
 	if (q == 0.0) {
@@ -410,13 +415,17 @@ FACC JacobianSphereGrid::CalculateIntensity(FACC q, FACC epsi, unsigned int seed
 	std::complex<FACC> phase, im(0.0, 1.0);
 
 	for (uint64_t i = 0; i < iterations; i++) {
-		FACC theta, phi, st, sp, cp, ct, u2, v2;
+		FACC phi, st, sp, cp, ct, u2;
 
 		// See http://mathworld.wolfram.com/SpherePointPicking.html
 		u2 = ranU2(rng);
-		v2 = ranU2(rng);
 		phi = u2 * M_PI;
-		theta = acos(v2 - 1.0);
+
+		if (theta < 0)
+		{
+			FACC v2 = ranU2(rng);
+			theta = acos(v2 - 1.0);
+		}
 
 		st = sin(theta);
 		sp = sin(phi);

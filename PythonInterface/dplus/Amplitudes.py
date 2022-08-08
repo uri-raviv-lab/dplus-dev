@@ -448,22 +448,38 @@ class Amplitude():
             interp_list.append(self.__get_interpolation_q1(q, theta, phi))
         return interp_list
 
-    def get_intensity(self, q_list, epsilon=1e-3, seed=0, max_iter=1000000):
+    def get_intensity(self, q_list, theta_list=None, epsilon=1e-3, seed=0, max_iter=1000000):
         """
         replace DomainModel::CalculateIntensityVector
-        calculate the intensity for a vector of q's, by send to JacobianSphereGrid::CalculateIntensity
+        calculate the 2D intensity for a vector of q's and theta's by send to JacobianSphereGrid::CalculateIntensity
+        If theta_list is None, calculate 1D intensity using q only.
         :param q_list: list-double list of q's
+        :param theta_list: optional param list-double list of q's
         :param epsilon: the allowed error
         :param seed: start seed point ( for the randomization)
         :param max_iter: max iteration for the optimization, for each q.
-        :return: a vector of the intensity each q from the list.
+        :return: If theta_list is None: a vector of the intensity each q from the list.
+                 else: a 2 dimensional matrix of intensity for each q, theta from the lists.
         """
-        arr_intensity = []
+        if not theta_list:
+            arr_intensity = []
+            for q in tqdm(q_list):
+                arr_intensity.append(self.grid.get_intensity(q, None, epsilon, seed, max_iter))
+            return arr_intensity
+
+        
+        arr_intensity = [[0 for t in range(len(theta_list))] for q in range(len(q_list))] 
+        q_idx = 0
         for q in tqdm(q_list):
-            arr_intensity.append(self.grid.get_intensity(q, epsilon, seed, max_iter))
+            t_idx = 0
+            for t in theta_list:
+                arr_intensity[q_idx][t_idx] = self.grid.get_intensity(q, t, epsilon, seed, max_iter)
+                t_idx = t_idx + 1
+            q_idx = q_idx + 1
+            
         return arr_intensity
 
-    def calculate_intensity(self, q, epsilon=1e-3, seed=0, max_iter=1000000): # max_iter = 'iterations' on c++
+    def calculate_intensity(self, q, theta=None, epsilon=1e-3, seed=0, max_iter=1000000): # max_iter = 'iterations' on c++
         """
         calculate the intensity for one q point - DomainModel::DefaultCPUCalculation, JacobianSphereGrid::CalculateIntensity
         :param q: the point (x)
@@ -472,7 +488,7 @@ class Amplitude():
         :param max_iter: max iteration for the optimization
         :return: the intensity for the q point
         """
-        return self.grid.get_intensity(q, epsilon, seed, max_iter)
+        return self.grid.get_intensity(q, theta, epsilon, seed, max_iter)
 
 
     @staticmethod

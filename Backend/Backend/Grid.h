@@ -137,6 +137,7 @@ public:
 	virtual unsigned short GetDimZ(unsigned short x, unsigned short y) const; // DimTheta
 
 	virtual std::complex<double> GetCart(double x, double y, double z) const;
+	FACC CalculateIntensity(FACC q, FACC theta, FACC epsi, unsigned int seed, uint64_t iterations);
 	FACC CalculateIntensity(FACC q, FACC epsi, unsigned int seed, uint64_t iterations);
 	virtual std::complex<double> GetSphr(double r, double th, double ph) const;	
 
