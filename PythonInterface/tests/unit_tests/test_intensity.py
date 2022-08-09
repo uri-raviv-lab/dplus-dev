@@ -2,7 +2,8 @@ from cProfile import label
 import numpy as np
 import pytest
 from dplus.CalculationInput import CalculationInput
-from dplus.Amplitudes import Amplitude  # calculate_intensity, get_intensity
+from dplus.Amplitudes import Amplitude
+from dplus.CalculationResult import CalculationResult
 from dplus.DataModels.models import Sphere, UniformHollowCylinder
 from dplus.CalculationRunner import EmbeddedLocalRunner
 
@@ -13,6 +14,7 @@ import math
 from os.path import join, dirname
 from tests.test_settings import session
 from pylab import *
+from tests.test_settings import session
 
 file_dir = join(dirname( __file__ ), "files_for_tests")
 
@@ -24,7 +26,7 @@ def test_easy_1():
     sp.location_params['z'].value = 10.5
     sp.name = 'my_sphere'
 
-    calc_in = CalculationInput()  # .load_from_PDB(r'C:\Users\owner\Desktop\Eytan\For_Daniel\IMCMonomer.pdb', 7.5)
+    calc_in = CalculationInput()
     calc_in.use_gpu = False
     calc_in.Domain.populations[0].add_model(sp)
 
@@ -141,8 +143,8 @@ def test_2d_intensity_easy_2():
     calc_in.DomainPreferences.generated_points = 300
 
     my_amp = Amplitude.load(join(file_dir, "intensity", "my_sphere.ampj"))
-    q = np.linspace(0, my_amp.grid.q_max, 301)#calc_in.DomainPreferences.generated_points + 1)
-    theta = np.linspace(0, math.pi, 33)#calc_in.DomainPreferences.generated_points + 1)
+    q = np.linspace(0, my_amp.grid.q_max, calc_in.DomainPreferences.generated_points + 1)
+    theta = np.linspace(0, math.pi, 33)
 
     result = my_amp.get_intensity(q, theta)
 
@@ -195,3 +197,34 @@ def test_2d_intensity_hard_2():
     aspect = len(theta_list) / len(q_list)
     plt.imshow(result, origin='lower', aspect=aspect, norm=colors.LogNorm(vmin=0, vmax=np.max(np.max(result))))
     plt.show()
+
+
+def test_read_write_2D():
+    sp = UniformHollowCylinder()
+    sp.layer_params[1]['radius'].value = 3
+    sp.layer_params[1]['ed'].value = 356
+    sp.location_params['z'].value = 10.5
+    my_amp = Amplitude.load(join(file_dir, "intensity", "my_sphere.ampj"))
+    q = np.linspace(0, my_amp.grid.q_max, 50)
+    theta = np.linspace(0, math.pi, 5)
+    result = my_amp.get_intensity(q, theta)
+
+    filename1 = join(session, "file1")
+    filename1 = CalculationResult.save_to_2D_out_file(q,theta,result,filename1)
+    r_q, r_t, r_res = CalculationResult.read_2D_out_file(filename1)
+
+    assert all(q == r_q)
+    assert all(r_t == theta)
+    assert all(r_res == result)
+
+    filename2 = join(session, "file2")
+    filename2 = CalculationResult.save_to_2D_out_file(r_q,r_t,r_res,filename2)
+
+    with open(filename1) as file_1, open(filename2) as file_2:
+        file_1_text = file_1.readlines()
+        file_2_text = file_2.readlines()
+        for line_1, line_2 in zip(file_1_text, file_2_text):
+            assert line_1 == line_2
+
+
+#test_easy_2()

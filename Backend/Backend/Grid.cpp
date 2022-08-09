@@ -395,7 +395,7 @@ FACC JacobianSphereGrid::CalculateIntensity(FACC q, FACC epsi, unsigned int seed
 	return CalculateIntensity(q, -1, epsi, seed, iterations);
 }
 // theta is optional
-FACC JacobianSphereGrid::CalculateIntensity(FACC q, FACC theta, FACC epsi, unsigned int seed, uint64_t iterations) {
+FACC JacobianSphereGrid::CalculateIntensity(FACC q, FACC _theta, FACC epsi, unsigned int seed, uint64_t iterations) {
 	FACC res = 0.0;
 
 	if (q == 0.0) {
@@ -415,16 +415,20 @@ FACC JacobianSphereGrid::CalculateIntensity(FACC q, FACC theta, FACC epsi, unsig
 	std::complex<FACC> phase, im(0.0, 1.0);
 
 	for (uint64_t i = 0; i < iterations; i++) {
-		FACC phi, st, sp, cp, ct, u2;
+		FACC theta, phi, st, sp, cp, ct, u2, v2;
 
 		// See http://mathworld.wolfram.com/SpherePointPicking.html
 		u2 = ranU2(rng);
+		v2 = ranU2(rng);
 		phi = u2 * M_PI;
 
-		if (theta < 0)
+		if (_theta < 0)
 		{
-			FACC v2 = ranU2(rng);
 			theta = acos(v2 - 1.0);
+		}
+		else
+		{
+			theta = _theta;
 		}
 
 		st = sin(theta);
