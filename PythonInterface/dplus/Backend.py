@@ -63,6 +63,13 @@ class Backend:
             be = BackendError(re)
             raise be
 
+    def get_amp(self, modelptr):
+        try:
+            return self._wrapper.get_amp(modelptr)
+        except RuntimeError as re:
+            be = BackendError(re)
+            raise be
+
     def get_pdb(self, modelptr):
         try:
             pdb = self._wrapper.get_pdb(modelptr)

@@ -1,4 +1,5 @@
 from cProfile import label
+import os
 import numpy as np
 import pytest
 from dplus.CalculationInput import CalculationInput
@@ -12,6 +13,7 @@ import matplotlib.pyplot as plt
 
 import math
 from os.path import join, dirname
+from tests.manual_tests.test_amplitude_manual import UniformSphere
 from tests.test_settings import session
 from pylab import *
 from tests.test_settings import session
@@ -42,7 +44,6 @@ def test_easy_1():
     assert calc_res.y == pytest.approx(result)
 
 def test_easy_2():
-
     sp = Sphere()
     sp.layer_params[1]['radius'].value = 3
     sp.layer_params[1]['ed'].value = 356
@@ -56,13 +57,36 @@ def test_easy_2():
     runner = EmbeddedLocalRunner()
     calc_res = runner.generate(calc_in)
 
-
     my_amp = Amplitude.load(join(file_dir, "intensity", "my_sphere.ampj"))
     q = np.linspace(0, my_amp.grid.q_max, calc_in.DomainPreferences.generated_points + 1)
 
     result = my_amp.get_intensity(q)
     print(calc_res.y == pytest.approx(result))
     assert calc_res.y == pytest.approx(result)
+
+def test_easy_without_ampj_file():
+    # GENERATE: ------------------------
+    sp = Sphere()
+    sp.layer_params[1]['radius'].value = 3
+    sp.layer_params[1]['ed'].value = 356
+    sp.location_params['z'].value = 10.5
+    sp.name = 'my_sphere'
+
+    calc_in = CalculationInput() 
+    calc_in.use_gpu = False
+    calc_in.Domain.populations[0].add_model(sp)
+    runner = EmbeddedLocalRunner()
+    calc_res = runner.generate(calc_in)
+
+    # INTENSITY: ------------------------
+    amp = runner.get_amp(sp.model_ptr)
+
+    q = np.linspace(0, amp.grid.q_max, calc_in.DomainPreferences.generated_points + 1)
+    result = amp.get_intensity(q)
+
+    # COMPARE: --------------------------
+    assert calc_res.y == pytest.approx(result)
+
 
 def test_hard_1():
     calc_in = CalculationInput.load_from_PDB(join(file_dir, "1jff.pdb"), 7.5)
@@ -228,3 +252,4 @@ def test_read_write_2D():
 
 
 #test_easy_2()
+#test_easy_without_ampj_file()

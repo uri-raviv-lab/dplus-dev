@@ -1,3 +1,5 @@
+from ctypes import sizeof
+import io
 import json
 import math
 import numpy as np
@@ -492,93 +494,110 @@ class Amplitude():
 
 
     @staticmethod
-    def _legacy_load(filename):
+    def _legacy_load_bytes(filestream):
         def _peek(File, length):
             pos = File.tell()
             data = File.read(length)
             File.seek(pos)
             return data
-
+        
         has_headers = False
         headers = []
-        with open(filename, "rb+") as f:
-            if _peek(f, 1).decode('ascii') == '#':
-                desc = f.read(2)
-                tempdesc = desc.decode('ascii')
-                if (tempdesc[1] == '@'):
-                    has_headers = True
-                else:
-                    tmphead = f.readline()
-                    headers.append(desc + tmphead)
 
-            if has_headers:
-                offset = np.fromfile(f, dtype=np.uint32, count=1, sep="")
-                del_aka_newline = f.readline()  # b"\n"
+        if _peek(filestream, 1).decode('ascii') == '#':
+            desc = filestream.read(2)
+            tempdesc = desc.decode('ascii')
+            if (tempdesc[1] == '@'):
+                has_headers = True
+            else:
+                tmphead = filestream.readline()
+                headers.append(desc + tmphead)
 
-                while _peek(f, 1).decode('ascii') == '#':
-                    headers.append(f.readline())
-                if offset > 0:
-                    f.seek(offset[0], 0)
+        if has_headers:
+            offset_bytes = filestream.read(np.dtype(np.uint32).itemsize)
+            offset = np.fromstring(offset_bytes, dtype=np.uint32)
+            del_aka_newline = filestream.readline()  # b"\n"
 
-            version_r = f.readline().rstrip()
-            version = int(version_r.decode('ascii'))
-            size_element_r = f.readline().rstrip()
-            size_element = int(size_element_r.decode('ascii'))
+            while _peek(filestream, 1).decode('ascii') == '#':
+                headers.append(filestream.readline())
+            if offset > 0:
+                filestream.seek(offset[0], 0)
 
-            if size_element != int(2 * np.dtype(np.float64).itemsize):
-                raise ValueError("error in file: " + filename + "dtype is not float64\n")
+        version_r = filestream.readline().rstrip()
+        version = int(version_r.decode('ascii'))
+        size_element_r = filestream.readline().rstrip()
+        size_element = int(size_element_r.decode('ascii'))
 
-            tmpGridsize_r = f.readline().rstrip()
-            tmpGridsize = int(tmpGridsize_r.decode('ascii'))  # I
+        if size_element != int(2 * np.dtype(np.float64).itemsize):
+            raise ValueError("dtype is not float64\n")
 
-            tmpExtras_r = f.readline().rstrip()
-            extra_shells = int(tmpExtras_r.decode('ascii'))  # extra shells
-            grid_size = (tmpGridsize - extra_shells) * 2  # grid_size
+        tmpGridsize_r = filestream.readline().rstrip()
+        tmpGridsize = int(tmpGridsize_r.decode('ascii'))  # I
 
-            actualGridSize = grid_size / 2 + extra_shells  # I
+        tmpExtras_r = filestream.readline().rstrip()
+        extra_shells = int(tmpExtras_r.decode('ascii'))  # extra shells
+        grid_size = (tmpGridsize - extra_shells) * 2  # grid_size
 
-            i = actualGridSize
-            totalsz = int((6 * i * (i + 1) * (3 + 3 + 2 * 3 * i)) / 6)
-            totalsz = totalsz + 1
-            totalsz = totalsz * 2
-            step_size = np.fromfile(f, dtype=np.float64, count=1, sep="")
-            q_max = np.float64(step_size * (grid_size / 2.0))
+        actualGridSize = grid_size / 2 + extra_shells  # I
 
-            amp_values = np.fromfile(f, dtype=np.float64, count=totalsz, sep="")
+        i = actualGridSize
+        totalsz = int((6 * i * (i + 1) * (3 + 3 + 2 * 3 * i)) / 6)
+        totalsz = totalsz + 1
+        totalsz = totalsz * 2
 
-            header_List = []
-            if has_headers:
-                pos = 0
-                header_List.append(desc)
-                pos = pos + len(desc)
+        step_size_bytes = filestream.read(np.dtype(np.float64).itemsize)
+        step_size = np.fromstring(step_size_bytes, dtype=np.float64)
 
-                header_List.append(offset[0].tobytes())
-                pos = pos + len(offset[0].tobytes())
-                header_List.append(del_aka_newline)
-                pos = pos + len(del_aka_newline)
+        q_max = np.float64(step_size * (grid_size / 2.0))
 
-                for i in headers:
-                    header_List.append(i)
-                    pos = pos + len(i)
-                header_List.append(del_aka_newline)
-                header_List.append(del_aka_newline)
-                pos = pos + 2 * len(del_aka_newline)
+        amp_values_bytes = filestream.read(np.dtype(np.float64).itemsize * totalsz)
+        amp_values = np.fromstring(amp_values_bytes, dtype=np.float64)
 
-                pos = np.int32(pos)
-                if pos != offset[0]:
-                    header_List[1] = pos.tobytes()
+        header_List = []
+        if has_headers:
+            pos = 0
+            header_List.append(desc)
+            pos = pos + len(desc)
 
-                header_List.append(version_r + b"\n")
-                header_List.append(size_element_r + b"\n")
-                header_List.append(tmpGridsize_r + b"\n")
-                header_List.append(tmpExtras_r + b"\n")
-                header_List.append(step_size.tobytes())
+            header_List.append(offset[0].tobytes())
+            pos = pos + len(offset[0].tobytes())
+            header_List.append(del_aka_newline)
+            pos = pos + len(del_aka_newline)
 
-            amp = Amplitude(grid_size, q_max)
-            amp.extra_shells = extra_shells
-            amp._values = amp_values
-            amp.external_headers = header_List
-            return amp
+            for i in headers:
+                header_List.append(i)
+                pos = pos + len(i)
+            header_List.append(del_aka_newline)
+            header_List.append(del_aka_newline)
+            pos = pos + 2 * len(del_aka_newline)
+
+            pos = np.int32(pos)
+            if pos != offset[0]:
+                header_List[1] = pos.tobytes()
+
+            header_List.append(version_r + b"\n")
+            header_List.append(size_element_r + b"\n")
+            header_List.append(tmpGridsize_r + b"\n")
+            header_List.append(tmpExtras_r + b"\n")
+            header_List.append(step_size.tobytes())
+
+        amp = Amplitude(grid_size, q_max)
+        amp.extra_shells = extra_shells
+        amp._values = amp_values
+        amp.external_headers = header_List
+        return amp
+
+    @staticmethod
+    def _legacy_load(filename):
+        with open(filename, "rb") as f:
+            try:
+                f_bytes = f.read()
+                f_bytes_io = io.BytesIO(f_bytes)
+                amp = Amplitude._legacy_load_bytes(f_bytes_io)
+            except ValueError as ve:
+                raise ValueError("error in file: " + filename + " " + ve)
+
+        return amp
 
     @staticmethod
     def load(filename):

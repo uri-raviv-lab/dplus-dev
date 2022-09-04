@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+import io
 
 import json
 import platform
@@ -15,6 +16,7 @@ import requests
 import shutil
 import tempfile
 import uuid
+from dplus.Amplitudes import Amplitude
 
 from dplus.FileReaders import _handle_infinity_for_json, NumpyHandlingEncoder
 from dplus.CalculationResult import GenerateResult, FitResult
@@ -756,6 +758,16 @@ class EmbeddedLocalRunner(Runner):
         Send to C++ function to create a ampj file in the 'path' (file path) of the 'modelptr' (int)
         '''
         self.wrapper.save_amp(modelptr, path)
+
+    def get_amp(self, modelptr):
+        '''
+        Send to C++ function to create a amp and return the string
+        '''
+        amp_bytes = self.wrapper.get_amp(modelptr)
+        f = io.BytesIO(amp_bytes)
+        amp = Amplitude._legacy_load_bytes(f)
+        amp._calculate_splines()
+        return amp
 
     def get_pdb(self, model_ptr):
         '''

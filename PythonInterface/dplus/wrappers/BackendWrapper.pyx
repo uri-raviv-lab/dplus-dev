@@ -28,6 +28,9 @@ cdef class BackendWrapper:
     def save_amp(self, modelptr, path):
         self._wrapper.SaveAmplitude(modelptr, path.encode("utf-8"))
 
+    def get_amp(self, modelptr):
+        return self._wrapper.GetAmplitude(modelptr)
+
     def get_pdb(self, modelptr): 
         bytes_pdb = self._wrapper.GetPDB(modelptr)
         str_pdb = bytes_pdb.decode('utf-8')
