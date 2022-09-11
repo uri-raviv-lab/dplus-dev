@@ -27,10 +27,24 @@ def rad_balls(r, g_r):
     rad_n = rad.reshape([int(len(rad)/2), 2])
     return rad_n
 
-def build_crystal(a, b, c, rep_a, rep_b, rep_c, dol_out, ran=0):
+def build_crystal(lattice, rep_a, rep_b, rep_c, dol_out, ran=0):
     """Given lattice vectors a, b, c and the number of repetitions of each vector, builds a .dol file at location
      dol_out (dol_out must contain both the location and the file name)."""
 
+    m = lattice.shape
+    if m[0] == 6:
+        a1, b1, c1, alpha, beta, gamma = lattice
+        t = np.cos(beta) - np.cos(alpha) * np.cos(gamma)
+        B = np.sqrt(np.sin(gamma)**2 - np.sin(gamma)**2 * np.cos(alpha)**2 - t**2)
+
+        a = np.array([a1, 0, 0])
+        b = np.array([b1 * np.cos(gamma), b1 * np.sin(gamma), 0])
+        c = np.array([c1 * np.cos(alpha), c1 * t / np.sin(gamma), c1 * B / np.sin(gamma)])
+    elif m[0] == 3:
+        a, b, c = lattice
+    else:
+        raise ValueError('Your lattice has to be either 3X3 or 1X6 i.e. X, Y, Z vectors, or a, b, c, alpha, beta, '
+                         'gamma.')
     places = np.zeros([rep_a * rep_b * rep_c, 3])
 
     l = 0
