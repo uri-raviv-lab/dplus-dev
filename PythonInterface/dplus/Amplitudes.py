@@ -1,13 +1,11 @@
-from ctypes import sizeof
 import io
 import json
 import math
-import struct
 import numpy as np
 import os
 import zipfile
 import pathlib
-from tqdm import tqdm
+
 
 try:
     from dplus.wrappers import CJacobianSphereGrid
@@ -447,7 +445,7 @@ class Amplitude():
                                  .format(q_min=self.helper_grid.q_min, q_max=self.helper_grid.q_max,min_val=min(q_list), max_val=max(q_list)))
         except TypeError:
             raise TypeError("The q values should include only numbers")
-        for q in tqdm(q_list):
+        for q in q_list:
             interp_list.append(self.__get_interpolation_q1(q, theta, phi))
         return interp_list
 
@@ -511,14 +509,14 @@ class Amplitude():
         """
         if theta_list is None:
             arr_intensity = []
-            for q in tqdm(q_list):
+            for q in q_list:
                 arr_intensity.append(self.grid.get_intensity(q, None, epsilon, seed, max_iter))
             return arr_intensity
 
         
         arr_intensity = [[0 for t in range(len(theta_list))] for q in range(len(q_list))] 
         q_idx = 0
-        for q in tqdm(q_list):
+        for q in q_list:
             t_idx = 0
             for t in theta_list:
                 arr_intensity[q_idx][t_idx] = self.grid.get_intensity(q, t, epsilon, seed, max_iter)
