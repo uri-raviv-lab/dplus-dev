@@ -2,11 +2,12 @@ from ctypes import sizeof
 import io
 import json
 import math
+import struct
 import numpy as np
 import os
 import zipfile
 import pathlib
-from tqdm import tqdm
+#from tqdm import tqdm
 
 try:
     from dplus.wrappers import CJacobianSphereGrid
@@ -450,7 +451,52 @@ class Amplitude():
             interp_list.append(self.__get_interpolation_q1(q, theta, phi))
         return interp_list
 
-    def get_intensity(self, q_list, theta_list=None, epsilon=1e-3, seed=0, max_iter=1000000):
+    @staticmethod
+    def q_theta_to_qZ_qPerp(q, theta):
+        qZ = q * math.cos(theta)
+        qPerp = q * math.sin(theta)
+        res = {'qZ' : qZ, 'qPerp' : qPerp}
+        return res
+
+    def qZ_qPerp_to_q_theta(qZ, qPerp):
+        q = math.sqrt( math.pow(qZ,2) + math.pow(qPerp,2) )
+        
+        # NOTICE THAT Q_PREP SHOULD BE THE FIRST ARGUMENT IN ATAN2 !!!
+        theta = math.atan2(qPerp, qZ)
+
+        res = {'q' : q, 'theta' : theta}
+        return res
+
+    def get_intensity(
+                    self, 
+                    q_min,
+                    phi_min=0, phi_max=360,
+                    epsilon=1e-3, seed=0, max_iter=1000000):
+
+        qZ_list = np.linspace(q_min, self.grid.q_max, self.grid.grid_size)
+        qPerp_list = np.linspace(q_min, self.grid.q_max, self.grid.grid_size)
+
+        arr_intensity = [[float('-inf') for qPerp in range(self.grid.grid_size)] for qZ in range(self.grid.grid_size)] 
+        
+        qZ_idx = 0
+        for qZ in qZ_list:
+            qPerp_idx = 0
+            for qPerp in qPerp_list:
+                q_theta_dict = Amplitude.qZ_qPerp_to_q_theta(qZ, qPerp)
+                q = q_theta_dict['q']
+                theta = q_theta_dict['theta']
+                if (q_min <= q <= self.grid.q_max):
+                    res = self.grid.get_intensity(q, theta, epsilon, seed, max_iter)
+                    arr_intensity[qZ_idx][qPerp_idx] = res
+                else:
+                    print(qZ,qPerp)
+                qPerp_idx += 1
+            qZ_idx += 1
+
+        return arr_intensity
+                
+
+    def get_intensity_q_theta(self, q_list, theta_list=None, epsilon=1e-3, seed=0, max_iter=1000000):
         """
         replace DomainModel::CalculateIntensityVector
         calculate the 2D intensity for a vector of q's and theta's by send to JacobianSphereGrid::CalculateIntensity
@@ -465,14 +511,14 @@ class Amplitude():
         """
         if theta_list is None:
             arr_intensity = []
-            for q in tqdm(q_list):
+            for q in q_list:
                 arr_intensity.append(self.grid.get_intensity(q, None, epsilon, seed, max_iter))
             return arr_intensity
 
         
         arr_intensity = [[0 for t in range(len(theta_list))] for q in range(len(q_list))] 
         q_idx = 0
-        for q in tqdm(q_list):
+        for q in q_list:
             t_idx = 0
             for t in theta_list:
                 arr_intensity[q_idx][t_idx] = self.grid.get_intensity(q, t, epsilon, seed, max_iter)

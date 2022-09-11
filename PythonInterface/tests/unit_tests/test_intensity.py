@@ -60,7 +60,7 @@ def test_easy_2():
     my_amp = Amplitude.load(join(file_dir, "intensity", "my_sphere.ampj"))
     q = np.linspace(0, my_amp.grid.q_max, calc_in.DomainPreferences.generated_points + 1)
 
-    result = my_amp.get_intensity(q)
+    result = my_amp.get_intensity_q_theta(q)
     print(calc_res.y == pytest.approx(result))
     assert calc_res.y == pytest.approx(result)
 
@@ -82,10 +82,48 @@ def test_easy_without_ampj_file():
     amp = runner.get_amp(sp.model_ptr)
 
     q = np.linspace(0, amp.grid.q_max, calc_in.DomainPreferences.generated_points + 1)
-    result = amp.get_intensity(q)
+    result = amp.get_intensity_q_theta(q)
 
     # COMPARE: --------------------------
     assert calc_res.y == pytest.approx(result)
+
+def test_qZ_qPerp():
+    q = 0.1
+    theta = 0.2
+
+    qz_qPerp = Amplitude.q_theta_to_qZ_qPerp(q, theta)
+    qZ = qz_qPerp['qZ']
+    qPerp = qz_qPerp['qPerp']
+
+    q_theta = Amplitude.qZ_qPerp_to_q_theta(qZ, qPerp)
+    q_res = q_theta['q']
+    theta_res = q_theta['theta']
+
+    assert(q ==  pytest.approx(q_res))
+    assert(theta ==  pytest.approx(theta_res))
+
+def test_intensity_qZ_qPerp():
+    # GENERATE: ------------------------
+    sp = Sphere()
+    sp.layer_params[1]['radius'].value = 3
+    sp.layer_params[1]['ed'].value = 356
+    sp.location_params['z'].value = 10.5
+    sp.name = 'my_sphere'
+
+    calc_in = CalculationInput() 
+    calc_in.use_gpu = False
+    calc_in.Domain.populations[0].add_model(sp)
+    runner = EmbeddedLocalRunner()
+    calc_res = runner.generate(calc_in)
+
+    # INTENSITY: ------------------------
+    amp = runner.get_amp(sp.model_ptr)
+    
+    result = amp.get_intensity(q_min=0)
+    
+
+    plt.imshow(result, origin='lower', aspect=1, norm=colors.LogNorm(vmin=0, vmax=np.max(np.max(result))))
+    #plt.show()
 
 
 def test_hard_1():
@@ -99,7 +137,7 @@ def test_hard_1():
 
     my_amp = Amplitude.load(join(file_dir, "intensity", "1jff.ampj"))
     q = np.linspace(0, my_amp.grid.q_max, calc_in.DomainPreferences.generated_points + 1)
-    result = my_amp.get_intensity(q, epsilon=1e-3)
+    result = my_amp.get_intensity_q_theta(q, epsilon=1e-3)
     # plt.semilogy(result, label='result')
     # plt.semilogy(calc_res.y, label='calc_res')
     # plt.legend()
@@ -170,7 +208,7 @@ def test_2d_intensity_easy_2():
     q = np.linspace(0, my_amp.grid.q_max, calc_in.DomainPreferences.generated_points + 1)
     theta = np.linspace(0, math.pi, 33)
 
-    result = my_amp.get_intensity(q, theta)
+    result = my_amp.get_intensity_q_theta(q, theta)
 
     aspect = len(theta) / len(q)
     plt.imshow(result, origin='lower', aspect=aspect, norm=colors.LogNorm(vmin=0, vmax=np.max(np.max(result))))
@@ -189,7 +227,7 @@ def test_2d_intentsity_hard_1():
     q = np.linspace(0, my_amp.grid.q_max, calc_in.DomainPreferences.generated_points + 1)
     theta = np.linspace(0, math.pi, 33)#calc_in.DomainPreferences.generated_points + 1)
     
-    result = my_amp.get_intensity(q, theta, epsilon=1e-3)
+    result = my_amp.get_intensity_q_theta(q, theta, epsilon=1e-3)
    
     aspect = len(theta) / len(q)
     plt.imshow(result, origin='lower', aspect=aspect, norm=colors.LogNorm(vmin=0, vmax=np.max(np.max(result))))
@@ -231,7 +269,7 @@ def test_read_write_2D():
     my_amp = Amplitude.load(join(file_dir, "intensity", "my_sphere.ampj"))
     q = np.linspace(0, my_amp.grid.q_max, 50)
     theta = np.linspace(0, math.pi, 5)
-    result = my_amp.get_intensity(q, theta)
+    result = my_amp.get_intensity_q_theta(q, theta)
 
     filename1 = join(session, "file1")
     filename1 = CalculationResult.save_to_2D_out_file(q,theta,result,filename1)
@@ -250,6 +288,6 @@ def test_read_write_2D():
         for line_1, line_2 in zip(file_1_text, file_2_text):
             assert line_1 == line_2
 
-
+#test_intensity_qZ_qPerp()
 #test_easy_2()
 #test_easy_without_ampj_file()
