@@ -7,7 +7,7 @@ import numpy as np
 import os
 import zipfile
 import pathlib
-#from tqdm import tqdm
+from tqdm import tqdm
 
 try:
     from dplus.wrappers import CJacobianSphereGrid
@@ -511,14 +511,14 @@ class Amplitude():
         """
         if theta_list is None:
             arr_intensity = []
-            for q in q_list:
+            for q in tqdm(q_list):
                 arr_intensity.append(self.grid.get_intensity(q, None, epsilon, seed, max_iter))
             return arr_intensity
 
         
         arr_intensity = [[0 for t in range(len(theta_list))] for q in range(len(q_list))] 
         q_idx = 0
-        for q in q_list:
+        for q in tqdm(q_list):
             t_idx = 0
             for t in theta_list:
                 arr_intensity[q_idx][t_idx] = self.grid.get_intensity(q, t, epsilon, seed, max_iter)
