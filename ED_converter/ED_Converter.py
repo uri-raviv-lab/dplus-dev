@@ -85,11 +85,11 @@ def different_atoms(file):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Conversion of ED to scattering length of electrons.')
-    parser.add_argument('ED', type=float, default=333, help='The electron density of the what you wish to convert.')
-    parser.add_argument('--A', type=str, default=['H', 'O'], nargs='+', help='The atoms inside the molecule.')
-    parser.add_argument('--N', type=int, default=[2, 1], nargs='+', help='Number of occurrences of each atom inside '
-                                                                         'the molecule (in the same order as the '
-                                                                         'atoms were given).')
+    parser.add_argument('--ED', type=float, default=333, help='The electron density of the what you wish to convert.')
+    parser.add_argument('--A', type=str, default=['H', 'O'], nargs='+', help='The atoms in the molecular formula.')
+    parser.add_argument('--N', type=int, default=[2, 1], nargs='+', help='Number of occurrences of each atom in '
+                                                                         'the molecular formula (in the same order as '
+                                                                         'the atoms were given).')
     parser.add_argument('--PDB', type=str, default='', help='The .pdb file of the molecule you want to convert. If a '
                                                             '.pdb file is given, A and N do not need to be given.')
 
