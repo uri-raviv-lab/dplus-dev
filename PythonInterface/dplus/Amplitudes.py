@@ -468,13 +468,23 @@ class Amplitude():
     def get_intensity(
                     self, 
                     q_min,
+                    q_max=None,
                     phi_min=0, phi_max=360,
                     epsilon=1e-3, seed=0, max_iter=1000000):
 
-        qZ_list = np.linspace(q_min, self.grid.q_max, self.grid.grid_size)
-        qPerp_list = np.linspace(q_min, self.grid.q_max, self.grid.grid_size)
+        if not q_max:
+            q_max = self.grid.q_max
+        
+        if q_max > self.grid.q_max:
+            raise ValueError('q_max > grid.q_max !')
+        
+        if q_min > q_max:
+            raise ValueError('q_min > q_max !')
 
-        arr_intensity = [[float('-inf') for qPerp in range(self.grid.grid_size)] for qZ in range(self.grid.grid_size)] 
+        qZ_list = np.linspace(0-q_max, q_max, self.grid.grid_size*2)
+        qPerp_list = np.linspace(0-q_max, q_max, self.grid.grid_size*2)
+
+        arr_intensity = [[0 for qPerp in range(self.grid.grid_size*2)] for qZ in range(self.grid.grid_size*2)] 
         
         qZ_idx = 0
         for qZ in qZ_list:
@@ -483,11 +493,9 @@ class Amplitude():
                 q_theta_dict = Amplitude.qZ_qPerp_to_q_theta(qZ, qPerp)
                 q = q_theta_dict['q']
                 theta = q_theta_dict['theta']
-                if (q_min <= q <= self.grid.q_max):
+                if q_min <= q <= q_max: # q is always positive
                     res = self.grid.get_intensity(q, theta, epsilon, seed, max_iter)
                     arr_intensity[qZ_idx][qPerp_idx] = res
-                else:
-                    print(qZ,qPerp)
                 qPerp_idx += 1
             qZ_idx += 1
 

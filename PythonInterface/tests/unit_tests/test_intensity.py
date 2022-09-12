@@ -102,8 +102,6 @@ def test_qZ_qPerp():
     assert(q ==  pytest.approx(q_res))
     assert(theta ==  pytest.approx(theta_res))
 
-import time
-
 def test_intensity_qZ_qPerp():
     # GENERATE: ------------------------
     sp = Sphere()
@@ -121,11 +119,10 @@ def test_intensity_qZ_qPerp():
     # INTENSITY: ------------------------
     amp = runner.get_amp(sp.model_ptr)
     
-    start_time = time.time()
-    result = amp.get_intensity(q_min=0)
-    get_intensity_time = time.time() - start_time
-    print(get_intensity_time)
-
+    q_min = 1
+    q_max = 7.5  
+    result = amp.get_intensity(q_min=q_min, q_max=q_max)
+    
     plt.imshow(result, origin='lower', aspect=1, norm=colors.LogNorm(vmin=0, vmax=np.max(np.max(result))))
     plt.show()
 
