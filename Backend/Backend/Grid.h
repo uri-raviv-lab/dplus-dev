@@ -8,6 +8,8 @@
 #include "Eigen/Core"
 #include <omp.h>
 #include <functional>
+#define _USE_MATH_DEFINES
+#include <math.h>
 #include "../../Common/ZipLib/Source/streams/memstream.h"
 #include "../../Common/ZipLib/Source/ZipFile.h"
 
@@ -137,8 +139,8 @@ public:
 	virtual unsigned short GetDimZ(unsigned short x, unsigned short y) const; // DimTheta
 
 	virtual std::complex<double> GetCart(double x, double y, double z) const;
-	FACC CalculateIntensity(FACC q, FACC theta, FACC epsi, unsigned int seed, uint64_t iterations);
-	FACC CalculateIntensity(FACC q, FACC epsi, unsigned int seed, uint64_t iterations);
+	FACC CalculateIntensity(FACC q, FACC theta, FACC epsi, unsigned int seed, uint64_t iterations, FACC phi_min = 0.0, FACC phi_max = 2.0 * M_PI);
+	FACC CalculateIntensity(FACC q, FACC epsi, unsigned int seed, uint64_t iterations, FACC phi_min = 0.0, FACC phi_max = 2.0 * M_PI);
 	virtual std::complex<double> GetSphr(double r, double th, double ph) const;	
 
 	virtual int GetSplineBetweenPlanes(FACC q, FACC theta, FACC phi, OUT std::complex<double>& pl1, OUT std::complex<double>& pl2, OUT std::complex<double>& d1, OUT std::complex<double>& d2);

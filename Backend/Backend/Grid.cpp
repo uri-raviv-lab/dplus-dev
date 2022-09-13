@@ -21,8 +21,7 @@ using std::ios;
 using Eigen::Matrix3d;
 
 //namespace fs = boost::filesystem;
-#define _USE_MATH_DEFINES
-#include <math.h>
+
 
 #ifndef M_2PI
 #define M_2PI 6.28318530717958647692528676656
@@ -389,14 +388,17 @@ std::complex<double> JacobianSphereGrid::GetCart( double x, double y, double z )
 		ph += M_2PI;
 	return GetSphr(r, th, ph);
 }
-FACC JacobianSphereGrid::CalculateIntensity(FACC q, FACC epsi, unsigned int seed, uint64_t iterations)
+FACC JacobianSphereGrid::CalculateIntensity(FACC q, FACC epsi, unsigned int seed, uint64_t iterations, FACC phi_min, FACC phi_max)
 {
 	// if there is no theta, pass theta=-1
 	return CalculateIntensity(q, -1, epsi, seed, iterations);
 }
 // theta is optional
-FACC JacobianSphereGrid::CalculateIntensity(FACC q, FACC _theta, FACC epsi, unsigned int seed, uint64_t iterations) {
+FACC JacobianSphereGrid::CalculateIntensity(FACC q, FACC _theta, FACC epsi, unsigned int seed, uint64_t iterations, FACC phi_min, FACC phi_max) {
 	FACC res = 0.0;
+
+	if ( (phi_min < 0) || (phi_max > M_2PI) || (phi_min > phi_max))
+		throw backend_exception(ERROR_GENERAL, "phi_min or phi_max are invalid");
 
 	if (q == 0.0) {
 		std::complex<FACC> amp(0.0, 0.0);
@@ -412,15 +414,15 @@ FACC JacobianSphereGrid::CalculateIntensity(FACC q, FACC _theta, FACC epsi, unsi
 	rng.seed(seed);
 
 	std::uniform_real_distribution<FACC> ranU2(0.0, 2.0);
+	std::uniform_real_distribution<FACC> ranPHI(phi_min, phi_max);
 	std::complex<FACC> phase, im(0.0, 1.0);
 
 	for (uint64_t i = 0; i < iterations; i++) {
 		FACC theta, phi, st, sp, cp, ct, u2, v2;
 
 		// See http://mathworld.wolfram.com/SpherePointPicking.html
-		u2 = ranU2(rng);
+		phi = ranPHI(rng);
 		v2 = ranU2(rng);
-		phi = u2 * M_PI;
 
 		if (_theta < 0)
 		{

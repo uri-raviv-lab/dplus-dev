@@ -119,11 +119,16 @@ def test_intensity_qZ_qPerp():
     # INTENSITY: ------------------------
     amp = runner.get_amp(sp.model_ptr)
     
-    q_min = 1
-    q_max = 7.5  
-    result = amp.get_intensity(q_min=q_min, q_max=q_max)
+    q_min = 4
+    q_max = 7.5
+    phi_min=0
+    phi_max = 2 * math.pi
+    result = amp.get_intensity(q_min=q_min, q_max=q_max, phi_min=phi_min, phi_max=phi_max)
     
-    plt.imshow(result, origin='lower', aspect=1, norm=colors.LogNorm(vmin=0, vmax=np.max(np.max(result))))
+    extent = [0-q_max, q_max, 0-q_max, q_max]
+    plt.xlabel('q_Z')
+    plt.ylabel('q_Perp')
+    plt.imshow(result, origin='lower', extent=extent, aspect=1, norm=colors.LogNorm(vmin=0, vmax=np.max(np.max(result))))
     plt.show()
 
 

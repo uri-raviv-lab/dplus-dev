@@ -161,18 +161,20 @@ cdef class CJacobianSphereGrid:
         return result
 
     
-    def get_intensity(self, _q, _theta, _epsi, _seed, _iterations):
+    def get_intensity(self, _q, _theta, _epsi, _seed, _iterations, _phi_min, _phi_max):
         cdef double q = _q
         cdef double epsi = _epsi
         cdef unsigned int seed = _seed
         cdef  long long iterations = _iterations
         cdef double theta
+        cdef double phi_min = _phi_min
+        cdef double phi_max = _phi_max
 
         if _theta is None:
-            result = self.c_grid.CalculateIntensity(q, epsi, seed, iterations)
+            result = self.c_grid.CalculateIntensity(q, epsi, seed, iterations, phi_min, phi_max)
         else:
             theta = _theta
-            result = self.c_grid.CalculateIntensity(q, theta, epsi, seed, iterations)
+            result = self.c_grid.CalculateIntensity(q, theta, epsi, seed, iterations, phi_min, phi_max)
         
         return result
 
