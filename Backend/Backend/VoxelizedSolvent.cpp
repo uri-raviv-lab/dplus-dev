@@ -1,7 +1,7 @@
 #include "Amplitude.h"
 #include <queue>
 
-void PDBAmplitude::CalculateSolventSpace()
+void electronPDBAmplitude::CalculateSolventSpace()
 {
 #define BLUE  0		  // Blue, uninitialized
 #define GREEN 1		  // Green, atoms
@@ -193,7 +193,7 @@ void PDBAmplitude::CalculateSolventSpace()
 	_solvent_space.deallocate();
 }
 
-void PDBAmplitude::MarkLayerOfSolvent(FACC radius, SolventSpace::ScalarType type, SolventSpace::ScalarType neighbor, SolventSpace::ScalarType totype, SolventSpace::ScalarType fromType)
+void electronPDBAmplitude::MarkLayerOfSolvent(FACC radius, SolventSpace::ScalarType type, SolventSpace::ScalarType neighbor, SolventSpace::ScalarType totype, SolventSpace::ScalarType fromType)
 {
 	std::vector< idx > inds;
 	int discRad = int(0.5 + (radius) / voxelStep);
@@ -260,7 +260,7 @@ void PDBAmplitude::MarkLayerOfSolvent(FACC radius, SolventSpace::ScalarType type
 }
 
 
-void PDBAmplitude::ReduceSolventSpaceToIrregularBoxes(std::vector<fIdx>& boxCOM, std::vector<idx>& boxDims, int designation, int mark_used_as)
+void electronPDBAmplitude::ReduceSolventSpaceToIrregularBoxes(std::vector<fIdx>& boxCOM, std::vector<idx>& boxDims, int designation, int mark_used_as)
 {
 	size_t current_zero_based_x_length, current_zero_based_y_length, current_zero_based_z_length;
 	bool xDone = false, yDone = false, zDone = false;
@@ -362,7 +362,7 @@ void PDBAmplitude::ReduceSolventSpaceToIrregularBoxes(std::vector<fIdx>& boxCOM,
 
 }
 
-void PDBAmplitude::MarkVoxelsNeighboringAtoms(FACC rSol, SolventSpace::ScalarType from, SolventSpace::ScalarType to, int ignoreIndex)
+void electronPDBAmplitude::MarkVoxelsNeighboringAtoms(FACC rSol, SolventSpace::ScalarType from, SolventSpace::ScalarType to, int ignoreIndex)
 {
 	int xSz = (int)pdb.x.size();
 	for (int i = 0; i < xSz; i++) {
@@ -396,7 +396,7 @@ void PDBAmplitude::MarkVoxelsNeighboringAtoms(FACC rSol, SolventSpace::ScalarTyp
 	} // for i
 }
 
-void PDBAmplitude::Floodfill3D(int i, int j, int k, int from, int to)
+void electronPDBAmplitude::Floodfill3D(int i, int j, int k, int from, int to)
 {
 	std::queue<sIdx> qu;
 

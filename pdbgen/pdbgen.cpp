@@ -44,7 +44,7 @@ int main(int argc, char **argv) {
   }
 
   starttm = clock();
-  Amplitude *amp = new PDBAmplitude(argv[1], true);
+  Amplitude *amp = new electronPDBAmplitude(argv[1], true);
   if(amp->getError() != PDB_OK) {
     printf("ERROR loading PDB\n");
     return 2;

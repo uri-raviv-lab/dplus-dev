@@ -316,7 +316,7 @@ ModelPtr LocalBackend::HandleCreateFileAmplitude(JobPtr job, AmpFileType type, c
 						std::wstring wanomfname = anomfilename;
 						anomfname.assign(wanomfname.begin(), wanomfname.end());
 					}
-					res = (ModelPtr)j.AssignAmplitude(new PDBAmplitude(fname, bCenter, anomfname));
+					res = (ModelPtr)j.AssignAmplitude(new electronPDBAmplitude(fname, bCenter, anomfname));
 					break;
 				}				
 
@@ -355,7 +355,7 @@ ModelPtr LocalBackend::HandleCreateFileAmplitude(JobPtr job, AmpFileType type, c
 				throw(backend_exception(ERROR_INVALIDARGS, g_errorStrings[ERROR_INVALIDARGS]));
 
 			case AF_PDB:
-				res = (ModelPtr)j.AssignAmplitude(new PDBAmplitude(buffer, bufferSize, fileNm, fnSize, bCenter, anomFilename, anomfnSize));
+				res = (ModelPtr)j.AssignAmplitude(new electronPDBAmplitude(buffer, bufferSize, fileNm, fnSize, bCenter, anomFilename, anomfnSize));
 				break;
 
 			case AF_AMPGRID:
@@ -966,7 +966,7 @@ std::string LocalBackend::HandleGetPDB(JobPtr job, ModelPtr model) {
 		return ss.str();
 	}
 
-	PDBAmplitude *pa = dynamic_cast<PDBAmplitude*>(amp);
+	electronPDBAmplitude *pa = dynamic_cast<electronPDBAmplitude*>(amp);
 	if (pa && pa->SavePDBFile(ss)) {
 		return ss.str();
 	}

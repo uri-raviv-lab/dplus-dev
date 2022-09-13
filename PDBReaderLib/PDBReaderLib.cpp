@@ -23,22 +23,22 @@ namespace PDBReader {
 	// In order for exporting to work, explicitly instantiate the class for the 
 	// float and double types (and more as necessary)
 #ifdef _WIN32
-	template class PDBReaderOb<float>;
-	template class PDBReaderOb<double>;
+	template class electronPDBReaderOb<float>;
+	template class electronPDBReaderOb<double>;
 #else
 	// For some reason with g++ templates should be instantiated like so
-	template PDBReaderOb<float> ::PDBReaderOb();
-	template PDBReaderOb<float> ::PDBReaderOb(string filename, bool moveToCOM, int model, std::string anomalousFName);
-	template PDBReaderOb<double> ::PDBReaderOb();
-	template PDBReaderOb<double> ::PDBReaderOb(string filename, bool moveToCOM, int model, std::string anomalousFName);
+	template electronPDBReaderOb<float> ::electronPDBReaderOb();
+	template electronPDBReaderOb<float> ::electronPDBReaderOb(string filename, bool moveToCOM, int model, std::string anomalousFName);
+	template electronPDBReaderOb<double> ::electronPDBReaderOb();
+	template electronPDBReaderOb<double> ::electronPDBReaderOb(string filename, bool moveToCOM, int model, std::string anomalousFName);
 #endif
 
 	template<class FLOAT_TYPE>
-	PDBReaderOb<FLOAT_TYPE>::PDBReaderOb(string filename, bool moveToCOM, int model /*= 0*/, string anomalousFName /*= ""*/)
+	electronPDBReaderOb<FLOAT_TYPE>::electronPDBReaderOb(string filename, bool moveToCOM, int model /*= 0*/, string anomalousFName /*= ""*/)
 	{
 		status = UNINITIALIZED;
 
-		initialize();
+		electronInitialize();
 
 		fn = filename;
 		anomalousfn = anomalousFName;
@@ -53,19 +53,19 @@ namespace PDBReader {
 	}
 
 	template<class FLOAT_TYPE>
-	PDBReaderOb<FLOAT_TYPE>::PDBReaderOb()
+	electronPDBReaderOb<FLOAT_TYPE>::electronPDBReaderOb()
 	{
 		status = UNINITIALIZED;
-		initialize();
+		electronInitialize();
 	}
 
 	template<class FLOAT_TYPE>
-	PDBReaderOb<FLOAT_TYPE>::~PDBReaderOb()
+	electronPDBReaderOb<FLOAT_TYPE>::~electronPDBReaderOb()
 	{
 	}
 
 	template<class FLOAT_TYPE>
-	void PDBReaderOb<FLOAT_TYPE>::moveCOMToOrigin()
+	void electronPDBReaderOb<FLOAT_TYPE>::moveCOMToOrigin()
 	{
 		FLOAT_TYPE xx = 0.0, yy = 0.0, zz = 0.0, wt = 0.0, aWt = 0.0;
 		for (size_t i = 0; i < x.size(); i++)
@@ -90,7 +90,7 @@ namespace PDBReader {
 	}
 
 	template<class FLOAT_TYPE>
-	void PDBReaderOb<FLOAT_TYPE>::moveGeometricCenterToOrigin()
+	void electronPDBReaderOb<FLOAT_TYPE>::moveGeometricCenterToOrigin()
 	{
 		Eigen::Map<Eigen::Array<FLOAT_TYPE, -1, 1>> xm(x.data(), x.size(), 1);
 		Eigen::Map<Eigen::Array<FLOAT_TYPE, -1, 1>> ym(y.data(), y.size(), 1);
@@ -123,7 +123,7 @@ namespace PDBReader {
 	and rewrite the PDB file
 	************************/
 	template<class FLOAT_TYPE>
-	void PDBReaderOb<FLOAT_TYPE>::AlignPDB()
+	void electronPDBReaderOb<FLOAT_TYPE>::AlignPDB()
 	{
 #if defined(WIN32) || defined(_WIN32)
 #pragma warning( push )
@@ -238,7 +238,7 @@ namespace PDBReader {
 	}
 
 	template<class FLOAT_TYPE>
-	PDB_READER_ERRS PDBReaderOb<FLOAT_TYPE>::readAnomalousbuffer(const char *buffer, size_t buffSize)
+	PDB_READER_ERRS electronPDBReaderOb<FLOAT_TYPE>::readAnomalousbuffer(const char *buffer, size_t buffSize)
 	{
 		std::istringstream inBuffer(buffer);
 
@@ -263,7 +263,7 @@ namespace PDBReader {
 	}
 
 	template<class FLOAT_TYPE>
-	PDB_READER_ERRS PDBReaderOb<FLOAT_TYPE>::readAnomalousfile(string filename)
+	PDB_READER_ERRS electronPDBReaderOb<FLOAT_TYPE>::readAnomalousfile(string filename)
 	{
 		std::ifstream inFile(filename.c_str());
 
@@ -289,7 +289,7 @@ namespace PDBReader {
 	}
 
 	template<class FLOAT_TYPE>
-	PDB_READER_ERRS PDBReaderOb<FLOAT_TYPE>::readAnomalousstream(std::istream& inFile)
+	PDB_READER_ERRS electronPDBReaderOb<FLOAT_TYPE>::readAnomalousstream(std::istream& inFile)
 	{
 		string line;
 
@@ -576,7 +576,7 @@ namespace PDBReader {
 	}
 
 	template<class FLOAT_TYPE>
-	PDB_READER_ERRS PDBReaderOb<FLOAT_TYPE>::readPDBbuffer(const char *buffer, size_t buffSize, bool bCenter, int model /*= 0*/) {
+	PDB_READER_ERRS electronPDBReaderOb<FLOAT_TYPE>::readPDBbuffer(const char *buffer, size_t buffSize, bool bCenter, int model /*= 0*/) {
 		std::istringstream inBuffer(buffer);
 
 
@@ -593,7 +593,7 @@ namespace PDBReader {
 	}
 
 	template<class FLOAT_TYPE>
-	PDB_READER_ERRS PDBReaderOb<FLOAT_TYPE>::readPDBfile(string filename, bool bCenter, int model) {
+	PDB_READER_ERRS electronPDBReaderOb<FLOAT_TYPE>::readPDBfile(string filename, bool bCenter, int model) {
 		std::ifstream inFile(filename.c_str());
 
 		if (!inFile) {
@@ -610,7 +610,7 @@ namespace PDBReader {
 	}
 
 	template<class FLOAT_TYPE>
-	PDB_READER_ERRS PDBReaderOb<FLOAT_TYPE>::readPDBstream(std::istream& inFile, bool bCenter, int model) {
+	PDB_READER_ERRS electronPDBReaderOb<FLOAT_TYPE>::readPDBstream(std::istream& inFile, bool bCenter, int model) {
 		string line;
 		string name, last4chars;//, atom;
 		string serialNumber, atomName, resName, resNo, segId;
@@ -827,7 +827,7 @@ namespace PDBReader {
 #pragma omp parallel for
 		for (size_t i = 0; i < atmInd.size(); i++) {
 			string atm = implicitAtom[i].length() > 0 ? implicitAtom[i] : (string(atom[i]).substr(0, 4));
-			getAtomIonIndices(atm, atmInd[i], ionInd[i]);
+			electronGetAtomIonIndices(atm, atmInd[i], ionInd[i]);
 			// atmInd[i]--;	// There is a dummy at wt[0]
 			ionInd[i]--;	// No dummy in the coefs matrix
 		} // for
@@ -864,7 +864,7 @@ namespace PDBReader {
 		atomsPerIon.resize(vecSize);
 		sortedAnomfPrimes.resize(vecSize);
 
-		ExtractRelevantCoeffs(entries, vecSize, sortedIonInd, sortedAtmInd, atomsPerIon,
+		electronExtractRelevantCoeffs(entries, vecSize, sortedIonInd, sortedAtmInd, atomsPerIon,
 			sortedCoeffIonInd, sortedX, sortedY, sortedZ, atomLocs, sortedBFactor, sortedCoeffs, &sortedAnomfPrimes);
 
 		return PDB_OK;
@@ -872,7 +872,7 @@ namespace PDBReader {
 	} //readPDBfile
 
 	template<class FLOAT_TYPE>
-	void PDBReaderOb<FLOAT_TYPE>::initialize() {
+	void electronPDBReaderOb<FLOAT_TYPE>::electronInitialize() {
 
 		this->haveAnomalousAtoms = false;
 		this->bOutputSlices = false;
@@ -1095,8 +1095,8 @@ namespace PDBReader {
 		// Ionic values come from Peng 1998
 		// They are good up to s < 2.0A
 		// NUMBER_OF_ATOMIC_FORM_FACTORS for Lobato and Peng have to be different
-		atmFFcoefs.resize(NUMBER_OF_ATOMIC_FORM_FACTORS * 10);
-		Eigen::Map<Eigen::Array<FLOAT_TYPE, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> atmFFcoefsMap(atmFFcoefs.data(), NUMBER_OF_ATOMIC_FORM_FACTORS, 10);
+		atmFFcoefs.resize(ELECTRON_NUMBER_OF_ATOMIC_FORM_FACTORS * 10);
+		Eigen::Map<Eigen::Array<FLOAT_TYPE, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> atmFFcoefsMap(atmFFcoefs.data(), ELECTRON_NUMBER_OF_ATOMIC_FORM_FACTORS, 10);
 
 #pragma region Atomic form factor coefficients - Peng
 		atmFFcoefsMap << 0.0349, 0.5347, 0.1201, 3.5867, 0.1970, 12.3471, 0.0573, 18.9525, 0.1195, 38.6269,	// H
@@ -1444,7 +1444,7 @@ namespace PDBReader {
 	}
 
 	template<class FLOAT_TYPE>
-	PDB_READER_ERRS PDBReaderOb<FLOAT_TYPE>::getAtomsAndCoords(std::vector<float>& xOut, std::vector<float>& yOut, std::vector<float>& zOut, std::vector<u8>& atomInd) const {
+	PDB_READER_ERRS electronPDBReaderOb<FLOAT_TYPE>::getAtomsAndCoords(std::vector<float>& xOut, std::vector<float>& yOut, std::vector<float>& zOut, std::vector<u8>& atomInd) const {
 		PDB_READER_ERRS res = PDB_OK;
 
 		xOut.resize(x.size());
@@ -1463,7 +1463,7 @@ namespace PDBReader {
 	}
 
 	template<class FLOAT_TYPE>
-	PDB_READER_ERRS PDBReaderOb<FLOAT_TYPE>::getAtomsAndCoords(std::vector<float>& xOut, std::vector<float>& yOut, std::vector<float>& zOut, std::vector<short>& atomInd) const {
+	PDB_READER_ERRS electronPDBReaderOb<FLOAT_TYPE>::getAtomsAndCoords(std::vector<float>& xOut, std::vector<float>& yOut, std::vector<float>& zOut, std::vector<short>& atomInd) const {
 		PDB_READER_ERRS res = PDB_OK;
 // Templated code, produces conversion errors
 #if defined(WIN32) || defined(_WIN32)
@@ -1482,7 +1482,7 @@ namespace PDBReader {
 	}
 
 	template<class FLOAT_TYPE>
-	PDB_READER_ERRS PDBReaderOb<FLOAT_TYPE>::writeCondensedFile(string filename) {
+	PDB_READER_ERRS electronPDBReaderOb<FLOAT_TYPE>::writeCondensedFile(string filename) {
 		throw std::exception(/*"IMPLEMENT CONDENSED VERSIONS TO DEAL WITH FLOAT/DOUBLE"*/);
 		if (x.size() != y.size() ||
 			x.size() != z.size() ||
@@ -1520,7 +1520,7 @@ namespace PDBReader {
 	}
 
 	template<class FLOAT_TYPE>
-	PDB_READER_ERRS PDBReaderOb<FLOAT_TYPE>::readCondensedFile(string filename) {
+	PDB_READER_ERRS electronPDBReaderOb<FLOAT_TYPE>::readCondensedFile(string filename) {
 		throw std::exception(/*"IMPLEMENT CONDENSED VERSIONS TO DEAL WITH FLOAT/DOUBLE"*/);
 		return GENERAL_ERROR;
 		// 	fs::path pt(filename);
@@ -1553,7 +1553,7 @@ namespace PDBReader {
 	}
 
 	template<class FLOAT_TYPE>
-	PDB_READER_ERRS PDBReaderOb<FLOAT_TYPE>::ionIndToatmInd() {
+	PDB_READER_ERRS electronPDBReaderOb<FLOAT_TYPE>::electronIonIndToatmInd() {
 		size_t sz = ionInd.size();
 		atmInd.resize(sz);
 
@@ -1764,27 +1764,27 @@ namespace PDBReader {
 	}
 
 	template<class FLOAT_TYPE>
-	bool PDBReader::PDBReaderOb<FLOAT_TYPE>::getHasAnomalous()
+	bool PDBReader::electronPDBReaderOb<FLOAT_TYPE>::getHasAnomalous()
 	{
 		return this->haveAnomalousAtoms;
 	}
 
 	template<class FLOAT_TYPE>
-	bool PDBReaderOb<FLOAT_TYPE>::getBOnlySolvent() {
+	bool electronPDBReaderOb<FLOAT_TYPE>::getBOnlySolvent() {
 		return this->bOnlySolvent;
 	}
 
 	template<class FLOAT_TYPE>
-	void PDBReaderOb<FLOAT_TYPE>::setBOnlySolvent(bool bSolv) {
+	void electronPDBReaderOb<FLOAT_TYPE>::setBOnlySolvent(bool bSolv) {
 		this->bOnlySolvent = bSolv;
 	}
 	template<class FLOAT_TYPE>
-	ATOM_RADIUS_TYPE PDBReaderOb<FLOAT_TYPE>::GetRadiusType() {
+	ATOM_RADIUS_TYPE electronPDBReaderOb<FLOAT_TYPE>::GetRadiusType() {
 		return this->atmRadType;
 	}
 
 	template<class FLOAT_TYPE>
-	void PDBReaderOb<FLOAT_TYPE>::SetRadiusType(ATOM_RADIUS_TYPE type) {
+	void electronPDBReaderOb<FLOAT_TYPE>::SetRadiusType(ATOM_RADIUS_TYPE type) {
 		this->atmRadType = type;
 
 		switch (type) {
@@ -1816,7 +1816,7 @@ namespace PDBReader {
 	}
 
 	template<class FLOAT_TYPE>
-	PDB_READER_ERRS PDBReaderOb<FLOAT_TYPE>::CopyPDBData(const PDBReaderOb& src) {
+	PDB_READER_ERRS electronPDBReaderOb<FLOAT_TYPE>::CopyPDBData(const electronPDBReaderOb& src) {
 		std::vector<float> xi, yi, zi;
 		std::vector<u8> ati;
 		PDB_READER_ERRS err = (src).getAtomsAndCoords(xi, yi, zi, ati);
@@ -1839,7 +1839,7 @@ namespace PDBReader {
 	}
 
 	template<class FLOAT_TYPE>
-	void PDBReaderOb<FLOAT_TYPE>::BuildPDBFromList(std::vector<std::vector<FLOAT_TYPE> > &FormListData) {
+	void electronPDBReaderOb<FLOAT_TYPE>::BuildPDBFromList(std::vector<std::vector<FLOAT_TYPE> > &FormListData) {
 		if (haveAnomalousAtoms)
 			throw std::runtime_error("This hasn't been fixed to deal with Anomalous scattering.");
 		//Build rotation matrices
@@ -1929,7 +1929,7 @@ namespace PDBReader {
 	}
 
 	template<class FLOAT_TYPE>
-	PDB_READER_ERRS PDBReaderOb<FLOAT_TYPE>::WritePDBToFile(std::string fileName, const std::stringstream& header) {
+	PDB_READER_ERRS electronPDBReaderOb<FLOAT_TYPE>::WritePDBToFile(std::string fileName, const std::stringstream& header) {
 		if (haveAnomalousAtoms)
 			throw std::runtime_error("This hasn't been fixed to deal with Anomalous scattering.");
 		std::ifstream inFile(fileName.c_str());
@@ -2020,7 +2020,7 @@ namespace PDBReader {
 	}
 
 	template <class FLOAT_TYPE>
-	void PDBReaderOb<FLOAT_TYPE>::getAtomIonIndices(string atmAsString, u8& atmInd, u8& ionInd)
+	void electronPDBReaderOb<FLOAT_TYPE>::electronGetAtomIonIndices(string atmAsString, u8& atmInd, u8& ionInd)
 	{
 		static const std::map<std::string, std::pair<u8, u8>> indice_map = {
 			{ " h  ", { 1, 1 } },
@@ -2263,7 +2263,7 @@ namespace PDBReader {
 
 
 	template<class FLOAT_TYPE>
-	void PDBReaderOb<FLOAT_TYPE>::ExtractRelevantCoeffs(std::vector< IonEntry<FLOAT_TYPE> > &entries,
+	void electronPDBReaderOb<FLOAT_TYPE>::electronExtractRelevantCoeffs(std::vector< IonEntry<FLOAT_TYPE> > &entries,
 		u64 vecSize, std::vector<u8>& sIonInd, std::vector<u8>& sAtmInd, std::vector<int>& atmsPerIon,
 		std::vector<unsigned char>& sortedCoefIonInd, std::vector<FLOAT_TYPE>& sX,
 		std::vector<FLOAT_TYPE>& sY, std::vector<FLOAT_TYPE>& sZ, std::vector<PDBReader::float4>& atmLocs,
@@ -2317,7 +2317,7 @@ namespace PDBReader {
 
 		// Copy sorted coefficients to a vector
 		Eigen::Array<FLOAT_TYPE, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor> newCoeffs;
-		Eigen::Map<Eigen::Array<FLOAT_TYPE, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> atmFFcoefsMap(atmFFcoefs.data(), NUMBER_OF_ATOMIC_FORM_FACTORS, 10);
+		Eigen::Map<Eigen::Array<FLOAT_TYPE, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> atmFFcoefsMap(atmFFcoefs.data(), ELECTRON_NUMBER_OF_ATOMIC_FORM_FACTORS, 10);
 
 		newCoeffs.resize(apiInd, 10);
 		for (int i = 0; i < apiInd; i++) {
@@ -2331,7 +2331,7 @@ namespace PDBReader {
 	}
 
 	template<class FLOAT_TYPE>
-	std::string PDBReaderOb<FLOAT_TYPE>::removeSpaces(std::string source)
+	std::string electronPDBReaderOb<FLOAT_TYPE>::removeSpaces(std::string source)
 	{
 		std::string result;
 		for (auto is = source.begin(); is != source.end(); is++)
@@ -2342,7 +2342,7 @@ namespace PDBReader {
 
 
 	template<class FLOAT_TYPE>
-	std::string PDBReaderOb<FLOAT_TYPE>::removeDigits(std::string source)
+	std::string electronPDBReaderOb<FLOAT_TYPE>::removeDigits(std::string source)
 	{
 		std::string result;
 		for (auto is = source.begin(); is != source.end(); is++)
@@ -2352,7 +2352,7 @@ namespace PDBReader {
 	}
 
 	template<class FLOAT_TYPE>
-	void PDBReaderOb<FLOAT_TYPE>::ChangeResidueGroupsToImplicit(std::string amino_acid_name, const int i, const int aa_size)
+	void electronPDBReaderOb<FLOAT_TYPE>::ChangeResidueGroupsToImplicit(std::string amino_acid_name, const int i, const int aa_size)
 	{
 		// Assumes pH = 7.4
 		static const std::map < std::string/*amino acid name, e.g. "ser"*/,

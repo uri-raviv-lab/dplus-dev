@@ -114,7 +114,7 @@ int main(int argc, char* argv[])
 		return -3;
 	}
 
-	PDBReader::PDBReaderOb<float> pdb(inFilename, false);
+	PDBReader::electronPDBReaderOb<float> pdb(inFilename, false);
 
 	std::stringstream header;
 	if (boost::iequals(command, "gcenter"))

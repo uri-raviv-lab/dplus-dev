@@ -261,12 +261,12 @@ protected:
 };
 
 
-class EXPORTED_BE PDBAmplitude : public Amplitude, public IGPUCalculable,
+class EXPORTED_BE electronPDBAmplitude : public Amplitude, public IGPUCalculable,
 	public IGPUGridCalculable {
 protected:
 	friend class DomainModel;
 
-	PDBReader::PDBReaderOb<float> pdb;
+	PDBReader::electronPDBReaderOb<float> pdb;
 	/// Values of Table 2.2B (International Tables of X-ray Crystallography Vol IV)
 	Eigen::Array<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> atmFFcoefs;
 	/// Contains the MD5 hash of the pdb object so that we don't have to collect it over and over again.
@@ -312,10 +312,10 @@ protected:
 
 	bool bCentered;
 public:
-	virtual ~PDBAmplitude();
-	PDBAmplitude();
-	PDBAmplitude(string filename, bool bCenter, string anomalousFilename = "", int model = 0);
-	PDBAmplitude(const char *buffer, size_t buffSize, const char *filenm, size_t fnSize,
+	virtual ~electronPDBAmplitude();
+	electronPDBAmplitude();
+	electronPDBAmplitude(string filename, bool bCenter, string anomalousFilename = "", int model = 0);
+	electronPDBAmplitude(const char *buffer, size_t buffSize, const char *filenm, size_t fnSize,
 		bool bCenter, const char *anomalousFilename = NULL, size_t anomBuffSize = 0, int model = 0);
 
 	virtual std::string Hash() const;
@@ -399,7 +399,7 @@ protected:
 	*			calculated. Range: [0-207]
 	* @return FACC The amplitude of the atomic form factor of elem at q
 	**/
-	virtual FACC atomicFF(FACC q, int elem);
+	virtual FACC electronAtomicFF(FACC q, int elem);
 	void WriteEigenSlicesToFile(string filebase);
 
 	virtual void PrepareParametersForGPU(
@@ -420,7 +420,7 @@ protected:
 
 	virtual std::complex<FACC> calcAmplitude(FACC qx, FACC qy, FACC qz);
 	virtual std::complex<FACC> calcAmplitude(int indqx, int indqy, int indqz);
-	virtual void initialize();
+	virtual void electronInitialize();
 	void CalculateSolventSpace();
 	void ReduceSolventSpaceToIrregularBoxes(std::vector<fIdx>& boxCOM, std::vector<idx>& boxDims, int designation, int mark_used_as);
 	void MarkVoxelsNeighboringAtoms(FACC solventRad, SolventSpace::ScalarType from, SolventSpace::ScalarType to, int ignoreIndex = -1);
@@ -546,9 +546,9 @@ class atomicFFCalculator; // Forward declaration
 A test class that reads a pdb file, calculates the intensity using debye's
 formula and reports performance
 **/
-class EXPORTED_BE DebyeCalTester : public IModel {
+class EXPORTED_BE electronDebyeCalTester : public IModel {
 public:
-	PDBReader::PDBReaderOb<F_TYPE> *pdb;
+	PDBReader::electronPDBReaderOb<F_TYPE> *pdb;
 	Eigen::Array<F_TYPE, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> atmFFcoefs;
 
 	//Eigen::ArrayXXd distances; //< The 0.5 * N^2 - N distances of all the atoms. Is of N^2 dimension.
@@ -567,13 +567,13 @@ public:
 	// Methods
 	//////////////////////////////////////////////////////////////////////////
 
-	DebyeCalTester() { bUseGPU = true; kernelVersion = 2; initialize(); }
-	DebyeCalTester(bool bGPU, int kernelVersion_ = 2) { bUseGPU = bGPU;  kernelVersion = kernelVersion_;  initialize(); }
-	virtual ~DebyeCalTester();
+	electronDebyeCalTester() { bUseGPU = true; kernelVersion = 2; electronInitialize(); }
+	electronDebyeCalTester(bool bGPU, int kernelVersion_ = 2) { bUseGPU = bGPU;  kernelVersion = kernelVersion_;  electronInitialize(); }
+	virtual ~electronDebyeCalTester();
 
-	virtual void initialize();
+	virtual void electronInitialize();
 
-	virtual F_TYPE atomicFF(F_TYPE q, int elem);
+	virtual F_TYPE electronAtomicFF(F_TYPE q, int elem);
 
 	virtual PDB_READER_ERRS LoadPDBFile(string filename, int model = 0);
 
@@ -604,11 +604,11 @@ public:
 
 };
 
-class EXPORTED_BE AnomDebyeCalTester : public DebyeCalTester {
+class EXPORTED_BE AnomDebyeCalTester : public electronDebyeCalTester {
 public:
-	AnomDebyeCalTester() : DebyeCalTester() {}
-	AnomDebyeCalTester(bool bGPU) : DebyeCalTester(bGPU, 4) { }
-	AnomDebyeCalTester(bool bGPU, int kernelVersion) : DebyeCalTester(bGPU, kernelVersion) { }
+	AnomDebyeCalTester() : electronDebyeCalTester() {}
+	AnomDebyeCalTester(bool bGPU) : electronDebyeCalTester(bGPU, 4) { }
+	AnomDebyeCalTester(bool bGPU, int kernelVersion) : electronDebyeCalTester(bGPU, kernelVersion) { }
 
 	virtual std::complex<F_TYPE> anomAtomicFF(F_TYPE q, int elem, F_TYPE fPrime, F_TYPE fPrimePrime);
 

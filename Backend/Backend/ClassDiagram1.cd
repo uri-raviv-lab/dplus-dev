@@ -140,7 +140,7 @@
       <FileName>Amplitude.h</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="PDBAmplitude" Collapsed="true">
+  <Class Name="electronPDBAmplitude" Collapsed="true">
     <Position X="22.75" Y="3" Width="1.5" />
     <TypeIdentifier>
       <HashCode>CAgNksAADDYAggE6AkFBToJgIBigECYEBAFDAFKQDUQ=</HashCode>
@@ -167,7 +167,7 @@
       <FileName>Amplitude.h</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="DebyeCalTester" Collapsed="true">
+  <Class Name="electronDebyeCalTester" Collapsed="true">
     <Position X="24" Y="12" Width="1.5" />
     <TypeIdentifier>
       <HashCode>gAQAAAAAEAABAABIAEEAQAAEoCGAEAAAARUAAALAABQ=</HashCode>

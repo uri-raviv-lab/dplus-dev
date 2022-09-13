@@ -14,7 +14,7 @@ Valid bitwise modes:
 
 *****************************************************************************/
 template<int mode, bool bTranspose>
-__global__ void AtomicFormFactorKernel(const float qMin, const float qStepSize, int numQLayers,
+__global__ void ElectronAtomicFormFactorKernel(const float qMin, const float qStepSize, int numQLayers,
 									   float *gCoef, float *affs, int numUIons,
 									   float* atmRad, float solvED)
 {
@@ -43,7 +43,7 @@ __global__ void AtomicFormFactorKernel(const float qMin, const float qStepSize, 
 				gCoef[i+numUIons*2] * expf(-gCoef[i+numUIons*3] * sqq) + 
 				gCoef[i+numUIons*4] * expf(-gCoef[i+numUIons*5] * sqq) + 
 				gCoef[i+numUIons*6] * expf(-gCoef[i+numUIons*7] * sqq) + 
-				gCoef[i+numUIons*8];
+				gCoef[i+numUIons*8] * expf(-gCoef[i+numUIons*9] * sqq);
 		}
 		// dummy atom solvent here
 		if(mode	& 0x02) {

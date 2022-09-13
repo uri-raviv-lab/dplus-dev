@@ -307,7 +307,7 @@ bool Symmetry::AssemblePDBFile( std::vector<std::string> &lines, std::vector<Eig
 				iLocs.insert(iLocs.end(), subLocs.begin(), subLocs.end());
 			} //if symmCast
 
-			PDBAmplitude* pdbCast = dynamic_cast<PDBAmplitude*>(_amps[k]);
+			electronPDBAmplitude* pdbCast = dynamic_cast<electronPDBAmplitude*>(_amps[k]);
 			if(pdbCast) {
 				pdbCast->AssemblePDBFile(subLines, subLocs);
 

@@ -273,7 +273,7 @@ int GPUCalcDebyeV2Template(int numQValues, float qMin, float qMax,
 		}
 		AFF_TYPE * d_nextAffs = (i % 2 == 0) ? d_affsA : d_affsB;
 
-		affCalculator.GetAllAFFs(h_pinned_affs, qMin + stepSize * i);
+		affCalculator.electronGetAllAFFs(h_pinned_affs, qMin + stepSize * i);
 		CHKERR(cudaMemcpyAsync(d_nextAffs, h_pinned_affs, sizeof(AFF_TYPE) * numAtoms, cudaMemcpyHostToDevice, memoryStream));
 		CHKERR(cudaStreamSynchronize(memoryStream));
 
@@ -547,17 +547,17 @@ int GPUCalcDebyeV3MAPSTemplate(
 	switch(comb) {
 	case 1:	// 0x01 In Vac
 		TRACE_KERNEL("AtomicFormFactorKernel<1, true>");
-		AtomicFormFactorKernel<1, true><<<dimGrid, dimBlock, 0, calcstream>>>
+		ElectronAtomicFormFactorKernel<1, true><<<dimGrid, dimBlock, 0, calcstream>>>
 					(qMin, stepSize, numQValues, d_affCoeffs, d_affs, numUnIons, NULL, 0.f);
 		break;
 	case 2:	// 0x02 Solvent only
 		TRACE_KERNEL("AtomicFormFactorKernel<2. true>");
-		AtomicFormFactorKernel<2, true><<<dimGrid, dimBlock, 0, calcstream>>>
+		ElectronAtomicFormFactorKernel<2, true><<<dimGrid, dimBlock, 0, calcstream>>>
 					(qMin, stepSize, numQValues, NULL, d_affs, numUnIons, d_atmRad, solvED);
 		break;
 	case 3:	// 0x03 == 0x01 + 0x02 (Vac - solvent)
 		TRACE_KERNEL("AtomicFormFactorKernel<3, true>");
-		AtomicFormFactorKernel<3, true><<<dimGrid, dimBlock, 0, calcstream>>>
+		ElectronAtomicFormFactorKernel<3, true><<<dimGrid, dimBlock, 0, calcstream>>>
 					(qMin, stepSize, numQValues, d_affCoeffs, d_affs, numUnIons, d_atmRad, solvED);
 		break;
 	}	// switch
@@ -716,7 +716,7 @@ int GPUCalcDebyeV4MAPSTemplate(
 	// Deal with calculating atomic form factors
 	///////////////////////////////////////////////////
 	CHKERR(cudaMallocHost(&h_pinned_affs, sizeof(AFF_TYPE) * roundedNumAtoms));
-	affCalculator.GetAllAFFs(h_pinned_affs, qMin, (void*)anomalousVals);
+	affCalculator.electronGetAllAFFs(h_pinned_affs, qMin, (void*)anomalousVals);
 	
 	CHKERR(cudaMalloc(&d_affsA, sizeof(AFF_TYPE) * roundedNumAtoms));
 	CHKERR(cudaMalloc(&d_affsB, sizeof(AFF_TYPE) * roundedNumAtoms));
@@ -751,7 +751,7 @@ int GPUCalcDebyeV4MAPSTemplate(
 
 		// Compute next affs
 		AFF_TYPE * d_nextAffs = (i % 2 == 0) ? d_affsA : d_affsB;
-		affCalculator.GetAllAFFs(h_pinned_affs, qqq + stepSize);
+		affCalculator.electronGetAllAFFs(h_pinned_affs, qqq + stepSize);
 
 		CHKERR(cudaMemcpyAsync(d_nextAffs, h_pinned_affs, sizeof(float) * numAtoms, cudaMemcpyHostToDevice, memoryStream));
 

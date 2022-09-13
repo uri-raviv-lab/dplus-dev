@@ -12,7 +12,7 @@
 #define CALC_ANOMALOUS					(1 << 2)
 #define CALC_VOXELIZED_SOLVENT			(1 << 3)
 #define CALC_VOXELIZED_OUTER_SOLVENT	(1 << 4)
-class internalAtomicFF;
+class electronInternalAtomicFF;
 
 /**
 Calculates the atomic form factors for the set of ions/atoms initialized with.
@@ -33,11 +33,11 @@ public:
 	/**
 	q is in nm^{-1}
 	**/
-	void GetAllAFFs(float* allAffs, float q, void* anoms = NULL);
+	void electronGetAllAFFs(float* allAffs, float q, void* anoms = NULL);
 	/**
 	q is in nm^{-1}
 	**/
-	void GetAllAFFs(float2* allAffs, float q, void* anoms = NULL);
+	void electronGetAllAFFs(float2* allAffs, float q, void* anoms = NULL);
 
 	void GetSparseAnomalousFactors(float2* allAffs);
 	
@@ -49,7 +49,7 @@ public:
 
 	int GetNumUniqueIon();
 
-	void GetAllUniqueAFFs(float* uniqueAffs, float q);
+	void electronGetAllUniqueAFFs(float* uniqueAffs, float q);
 
 	int GetNumAtomsPerIon(int index);
 
@@ -58,7 +58,7 @@ public:
 	int GetBitCombination();
 
 protected:
-	internalAtomicFF* intern;
+	electronInternalAtomicFF* intern;
 };
 
 #endif

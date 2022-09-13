@@ -262,7 +262,7 @@ bool GraphPane3D::ReadPDBFile(array<unsigned char> ^data, bool bCenterPDB,
 	cli::pin_ptr<unsigned char> vdata = &data[0];
 	const char *buff = (const char *)vdata;
 
-	PDBReader::PDBReaderOb<double> pdbTest;
+	PDBReader::electronPDBReaderOb<double> pdbTest;
 	try
 	{
 		PDB_READER_ERRS err = pdbTest.readPDBbuffer(buff, sz, bCenterPDB);
