@@ -1,4 +1,4 @@
-D+ - X-Ray Analysis Tool
+D+ - XRay Solution Scattering Analysis Tool
 ========================
 
 D+ is an innovative program that computes the X-ray scattering from large supramolecular structures in solutions at any resolution down to (near) atomic resolution.
@@ -22,5 +22,11 @@ On top of that, we also have [a few tutorials](https://scholars.huji.ac.il/urira
 D+ API
 ------
 The API can be downloaded using PIP by running the following inside the command prompt:
-' pip install --extra-index-url https://pypi.fury.io/theresearchsoftwarecompany/ dplus-api'
+
+`pip install --extra-index-url https://pypi.fury.io/theresearchsoftwarecompany/ dplus-api`
+
 A short tutorial with examples can be found [here](https://github.com/uri-raviv-lab/dplus-dev/tree/development/PythonInterface).
+
+Troubleshooting
+---------------
+Questions, bugs, and problems can all be asked in our [issues section](https://github.com/uri-raviv-lab/dplus-dev/issues).
