@@ -35,7 +35,7 @@ namespace DPlus {
 		}
 
 		// Add a new PDB or Amplitude grid to the parameter tree
-		Entity ^RegisterPDB(String ^filename, String ^anomfilename, LevelOfDetail lod, bool bCentered);
+		Entity ^RegisterPDB(String ^filename, String ^anomfilename, LevelOfDetail lod, bool bCentered, bool electron);
 		Entity ^RegisterAMPGrid(String ^filename, LevelOfDetail lod, bool bCentered);
 
 	protected:
@@ -116,9 +116,9 @@ namespace DPlus {
 			 void DrawEntitiesFlat(System::Collections::Generic::LinkedList<Entity ^> ^flatList, GLView::GLGraphics3D ^graphics);
 	public:	 static array<unsigned char> ^GraphPane3D::FileToBuffer(String ^filename);
 			 static bool GraphPane3D::ReadAndSetPDBFile(array<unsigned char> ^data, unsigned int& dlist, unsigned int& CCDList,
-										   LevelOfDetail lod, bool bCenterPDB);
+										   LevelOfDetail lod, bool bCenterPDB, bool electron);
 			 static bool GraphPane3D::ReadPDBFile(array<unsigned char> ^data, bool bCenterPDB,
-				 std::vector<float>* x, std::vector<float>* y, std::vector<float>* z, std::vector<u8>* atoms);
+				 std::vector<float>* x, std::vector<float>* y, std::vector<float>* z, std::vector<u8>* atoms, bool electron);
 			 static bool GraphPane3D::SetPDBFile(unsigned int& dlist, unsigned int& CCDList,
 				 std::vector<float>* x, std::vector<float>* y, std::vector<float>* z,
 				 std::vector<u8>* atoms, LevelOfDetail lod);

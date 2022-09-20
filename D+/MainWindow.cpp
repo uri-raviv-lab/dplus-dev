@@ -1285,8 +1285,10 @@ namespace DPlus {
 			// Separator
 			entityCombo->Items->Add(gcnew ModelInfo("-----------", nullptr, -1));
 
+			// Manually add the Electron PDB
+			entityCombo->Items->Add(gcnew ModelInfo("Electron PDB File...", nullptr, 999));
 			// Manually add the PDB
-			entityCombo->Items->Add(gcnew ModelInfo("PDB File...", nullptr, 999));
+			entityCombo->Items->Add(gcnew ModelInfo("PDB File...", nullptr, 1999));
 
 			// Manually add the Amplitude Grid
 			entityCombo->Items->Add(gcnew ModelInfo("Amplitude Grid (AMP)...", nullptr, 1000));
@@ -1626,7 +1628,7 @@ namespace DPlus {
 		}
 		else if (type->Equals("PDB")) {
 			bool centered = LuaItemToBoolean(ptbl["Centered"]);
-			ent = g3->RegisterPDB((String ^)ptbl["Filename"], (String ^)ptbl["AnomFilename"], GetLevelOfDetail(), centered);
+			ent = g3->RegisterPDB((String ^)ptbl["Filename"], (String ^)ptbl["AnomFilename"], GetLevelOfDetail(), centered, false);
 		}
 		else if (type->Equals("AMP")) {
 			bool centered = LuaItemToBoolean(ptbl["Centered"]);

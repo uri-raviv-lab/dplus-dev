@@ -206,12 +206,12 @@ int main(int argc, char* argv[])
 	{
 		//////////////////////////////////////////////////////////////////////////
 		// Setup Debye calculations
-		DebyeCalTester *dct = (anomalousFilename.empty() ? new DebyeCalTester(useGPU, kernelVersion) : new AnomDebyeCalTester(useGPU));
+		electronDebyeCalTester *dct = (anomalousFilename.empty() ? new electronDebyeCalTester(useGPU, kernelVersion) : new AnomDebyeCalTester(useGPU));
 
 		if (anomalousFilename.empty())
-			dct->pdb = new PDBReader::PDBReaderOb<F_TYPE>(inFilename, false);
+			dct->pdb = new PDBReader::electronPDBReaderOb<F_TYPE>(inFilename, false);
 		else
-			dct->pdb = new PDBReader::PDBReaderOb<F_TYPE>(inFilename, false, 0, anomalousFilename);
+			dct->pdb = new PDBReader::electronPDBReaderOb<F_TYPE>(inFilename, false, 0, anomalousFilename);
 		int sz = nqVals;
 #ifdef _DEBUG0
 		sz = 5;
@@ -264,7 +264,7 @@ int main(int argc, char* argv[])
 		if (writeFile.is_open()) {
 			// Header
 			writeFile << "# Program revision: " << BACKEND_VERSION << std::endl;
-			writeFile << "# Debye scattering of " << inFilename << std::endl;
+			writeFile << "# Electron scattering of " << inFilename << std::endl;
 			writeFile << "# Calculated on ";
 			if (useGPU)
 				writeFile << "GPU, kernel version " << kernelVersion << std::endl;

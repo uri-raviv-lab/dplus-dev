@@ -150,6 +150,7 @@
     <ClInclude Include="PDBReaderLib.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ElectronPDBReaderLib.cpp" />
     <ClCompile Include="PDBReaderLib.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

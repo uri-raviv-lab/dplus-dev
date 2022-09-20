@@ -214,6 +214,8 @@ copy "$(CudaToolkitBinDir)\curand64_*.dll" "$(TargetDir)"</Command>
     <ClCompile Include="CompositeModel.cpp" />
     <ClCompile Include="declarations.cpp" />
     <ClCompile Include="DllBasedBackendWrapper.cpp" />
+    <ClCompile Include="ElectronPDBAmplitude.cpp" />
+    <ClCompile Include="ElectronVoxelizedSolvent.cpp" />
     <ClCompile Include="Grid.cpp" />
     <ClCompile Include="BackendInterface.cpp" />
     <ClCompile Include="kronrod.cpp" />
@@ -263,6 +265,8 @@ copy "$(CudaToolkitBinDir)\curand64_*.dll" "$(TargetDir)"</Command>
     <ClInclude Include="..\DefaultModels\Symmetries.h" />
     <ClInclude Include="..\DefaultModels\TRAModel.h" />
     <ClInclude Include="backend_exception.h" />
+    <ClInclude Include="ElectronPDBAmplitude.h" />
+    <ClInclude Include="PDBAmplitude.h" />
     <ClInclude Include="PythonBackendWrapper.h" />
     <ClInclude Include="UseGPU.h" />
     <None Include="..\GPU\CalculateJacobianSplines.cuh" />

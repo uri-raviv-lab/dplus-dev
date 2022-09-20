@@ -3,6 +3,8 @@
 
 #include <vector>
 #include "Amplitude.h"
+#include "PDBAmplitude.h"
+#include "ElectronPDBAmplitude.h"
 
 class matrix3d_less : public std::binary_function<Eigen::Matrix3d, Eigen::Matrix3d, bool>
 {
@@ -67,7 +69,7 @@ public:
 		progressFunc progFunc, void *progArgs, double progMin, double progMax, int *pStop);
 
 	virtual bool SavePDBFile(std::ostream &output);
-	virtual bool AssemblePDBFile(std::vector<std::string> &lines, std::vector<Eigen::Vector3f> &locs);
+	virtual bool AssemblePDBFile(std::vector<std::string> &lines, std::vector<Eigen::Vector3f> &locs, bool electronPDB=false);
 	
 	virtual ArrayXcX getAmplitudesAtPoints(const std::vector<FACC> & relevantQs, FACC theta, FACC phi) = 0;
 

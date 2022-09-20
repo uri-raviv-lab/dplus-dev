@@ -1,29 +1,29 @@
 #include "Atomic Form Factor.h"
 
 #include <Eigen/Core>
-#include <iostream>
-//#include<cmath>
 
-class electronInternalAtomicFF
+
+class internalAtomicFF
 {
 public:
-	electronInternalAtomicFF(
+	internalAtomicFF() = default;
+	internalAtomicFF(
 		int bitCombination, int numAtoms, int numUnIons,
-		const float* coeffs, const int *atomsPerIon)
-			: m_bitCombination(bitCombination), m_numAtoms(numAtoms), m_numUnIons(numUnIons),
-			m_coeffs(coeffs), m_atomsPerIon(atomsPerIon),
-			as(5, numUnIons), bs(5, numUnIons),
-			m_solED(0), m_solventOnly(false)
+		const float* coeffs, const int* atomsPerIon)
+		: m_bitCombination(bitCombination), m_numAtoms(numAtoms), m_numUnIons(numUnIons),
+		m_coeffs(coeffs), m_atomsPerIon(atomsPerIon),
+		as(4, numUnIons), bs(4, numUnIons), cs(numUnIons),
+		m_solED(0), m_solventOnly(false)
 	{
 
 		for (size_t i = 0; i < numUnIons; i++)
 		{
-			for (size_t j = 0; j < 5; j++)
+			for (size_t j = 0; j < 4; j++)
 			{
 				as(j, i) = coeffs[i + 2 * j * numUnIons];
 				bs(j, i) = coeffs[i + (2 * j + 1) * numUnIons];
 			}
-		
+			cs(i) = coeffs[i + (9 - 1) * numUnIons];
 		}
 
 	}
@@ -32,12 +32,12 @@ public:
 	{
 		m_anomFactors = Eigen::Map<Eigen::ArrayXcf>((std::complex<float>*)(anomFacs), m_numAtoms);
 	}
-	void SetSolventED(float solED, float c1, float *ionRads, bool solventOnly = false)
+	void SetSolventED(float solED, float c1, float* ionRads, bool solventOnly = false)
 	{
 		m_solED = solED;
 		m_c1 = c1;
 		m_solventOnly = solventOnly;
-		
+
 		m_ionRads = Eigen::Map<Eigen::ArrayXf>(ionRads, m_numUnIons);
 		auto numberOfIonsEach = Eigen::Map<const Eigen::ArrayXi>(m_atomsPerIon, m_numUnIons);
 
@@ -50,34 +50,21 @@ public:
 
 	}
 
-	void electronGetAllUniqueAFFs(Eigen::Ref<Eigen::ArrayXf, 0, Eigen::InnerStride<> > mapToAffs, float q)
+	virtual void GetAllUniqueAFFs(Eigen::Ref<Eigen::ArrayXf, 0, Eigen::InnerStride<> > mapToAffs, float q)
 	{
 		const float sqq = (q * q / (100.0f * 157.913670417429737901351855998f));
-		Eigen::ArrayXf uniqueAffsArr = ((-sqq * bs).exp() * as).colwise().sum().transpose();
+		Eigen::ArrayXf uniqueAffsArr = ((-sqq * bs).exp() * as).colwise().sum().transpose() + cs;
 		//Eigen::Map<Eigen::ArrayXf> mapToAffs(uniqueAffs, m_numAtoms);
 		Eigen::ArrayXf solventContrast = solventContribution(q);
 
 		mapToAffs = ((m_bitCombination & CALC_ATOMIC_FORMFACTORS) ? uniqueAffsArr : Eigen::ArrayXf::Constant(uniqueAffsArr.size(), 0.f))
 			- solventContrast;
-
-		/*For Lobato this function would turn into:
-		const float sqq = (q * q / (100.0f * 39.47841760435743f)); // This number is (2*pi)^2 (Lobato defines q differently than Peng and others)
-		Eigen::ArrayXf uniqueAffsArr = (as * (2 + bs * sqq) / pow(1 + bs * sqq, 2)).colwise().sum().transpose();
-		//Eigen::Map<Eigen::ArrayXf> mapToAffs(uniqueAffs, m_numAtoms);
-		Eigen::ArrayXf solventContrast = solventContribution(q);
-
-		mapToAffs = ((m_bitCombination & CALC_ATOMIC_FORMFACTORS) ? uniqueAffsArr : Eigen::ArrayXf::Constant(uniqueAffsArr.size(), 0.f))
-			- solventContrast;
-			*/
 	}
 
-	void electronGetAllAFFs(float* allAffs, float q)
+	virtual void GetAllAFFs(float* allAffs, float q)
 	{
 		const float sqq = (q * q / (100.0f * 157.913670417429737901351855998f));
-		//const float sqq = (q * q / (100.0f * 39.47841760435743f));
-		//std::cout << as << std::endl;
-		Eigen::ArrayXf uniqueAffs = ((-sqq * bs).exp() * as).colwise().sum().transpose();
-		//Eigen::ArrayXf uniqueAffs = (as * (2 + bs * sqq) / pow(1 + bs * sqq, 2)).colwise().sum().transpose();
+		Eigen::ArrayXf uniqueAffs = ((-sqq * bs).exp() * as).colwise().sum().transpose() + cs;
 		Eigen::Map<Eigen::ArrayXf> mapToAffs(allAffs, m_numAtoms);
 		Eigen::ArrayXf solventContrast = solventContribution(q);
 
@@ -92,12 +79,10 @@ public:
 
 	}
 
-	void electronGetAllAFFs(float2* allAffs, float q)
+	virtual void GetAllAFFs(float2* allAffs, float q)
 	{
 		const float sqq = (q * q / (100.0f * 157.913670417429737901351855998f));
-		Eigen::ArrayXf uniqueAffs = ((-sqq * bs).exp() * as).colwise().sum().transpose();
-		//const float sqq = (q * q / (100.0f * 39.47841760435743f)); // This number is (2*pi)^2 (Lobato defines q differently than Peng and others)
-		//Eigen::ArrayXf uniqueAffs = (as * (2 + bs * sqq) / pow(1 + bs * sqq, 2)).colwise().sum().transpose();
+		Eigen::ArrayXf uniqueAffs = ((-sqq * bs).exp() * as).colwise().sum().transpose() + cs;
 		Eigen::Map<Eigen::ArrayXcf> mapToAffs((std::complex<float>*)allAffs, m_numAtoms);
 		Eigen::ArrayXf solventContrast = solventContribution(q);
 
@@ -153,7 +138,7 @@ public:
 		Eigen::Map<Eigen::ArrayXXf> affMatrix(theMatrix, numberOfQValues, m_numUnIons);
 
 		for (int i = 0; i < numberOfQValues; i++)
-			electronGetAllUniqueAFFs(affMatrix.row(i), qMin + stepSize * i);
+			GetAllUniqueAFFs(affMatrix.row(i), qMin + stepSize * i);
 	}
 
 	int GetNumUniqueIon()
@@ -188,15 +173,15 @@ protected:
 		if (m_bitCombination & CALC_DUMMY_SOLVENT)
 		{
 #ifdef USE_FRASER
-			solventContrast = 5.5683279968317084528 * m_ionRads.cube() * (-(m_ionRads.square() * (q*q) / 4.)).exp() * m_solED;
+			solventContrast = 5.5683279968317084528 * m_ionRads.cube() * (-(m_ionRads.square() * (q * q) / 4.)).exp() * m_solED;
 #elif defined(USE_SINGLE_ATOM_VOLUMES)
-			solventContrast = 4.1887902047863909846 * m_ionRads.cube() * (-(m_ionRads.square() * (q*q) * 0.20678349696647)).exp() * m_solED;
-			solventContrast *= m_c1 *m_c1 *m_c1 * exp(
-				(/*-(4\pi/3)^1.5 * (4\pi)^-1*/ -0.6822178052976590 * q * q * m_rm * m_rm * (m_c1 * m_c1 - 1.)) );
+			solventContrast = 4.1887902047863909846 * m_ionRads.cube() * (-(m_ionRads.square() * (q * q) * 0.20678349696647)).exp() * m_solED;
+			solventContrast *= m_c1 * m_c1 * m_c1 * exp(
+				(/*-(4\pi/3)^1.5 * (4\pi)^-1*/ -0.6822178052976590 * q * q * m_rm * m_rm * (m_c1 * m_c1 - 1.)));
 #else
 			//Cdummyatom(q) = ro*Vc*exp(-(q ^ 2 * Vaverage ^ (2 / 3) / 4Pi));
-			solventContrast = 4.1887902047863909846 * m_ionRads.cube() * exp(-((m_rm*m_rm) * (q*q) * 0.2067834969664667))* m_solED;
-			solventContrast *= m_c1 *m_c1 *m_c1 * exp(
+			solventContrast = 4.1887902047863909846 * m_ionRads.cube() * exp(-((m_rm * m_rm) * (q * q) * 0.2067834969664667)) * m_solED;
+			solventContrast *= m_c1 * m_c1 * m_c1 * exp(
 				(/*-(4\pi/3)^1.5 * (4\pi)^-1*/ -0.6822178052976590 * q * q * m_rm * m_rm * (m_c1 * m_c1 - 1.)));
 #endif
 		}
@@ -216,24 +201,113 @@ protected:
 	float m_rm;
 	int m_numUnIons, m_numAtoms;
 	const float* m_coeffs;
-	const int *m_atomsPerIon;
+	const int* m_atomsPerIon;
 	int m_bitCombination;
 	Eigen::ArrayXXf as, bs;
-	//Eigen::ArrayXf cs;
+	Eigen::ArrayXf cs;
 	Eigen::ArrayXf m_ionRads;
 	Eigen::ArrayXcf m_anomFactors;
 
 };
+
+class electronInternalAtomicFF : public internalAtomicFF
+{
+public:
+	electronInternalAtomicFF(int bitCombination, int numAtoms, int numUnIons, const float* coeffs, const int* atomsPerIon)
+	{
+		as = Eigen::ArrayXXf(5, numUnIons);
+		bs = Eigen::ArrayXXf(5, numUnIons);
+
+		for (size_t i = 0; i < numUnIons; i++)
+		{
+			for (size_t j = 0; j < 5; j++)
+			{
+				as(j, i) = coeffs[i + 2 * j * numUnIons];
+				bs(j, i) = coeffs[i + (2 * j + 1) * numUnIons];
+			}
+
+		}
+	}
+
+	void GetAllUniqueAFFs(Eigen::Ref<Eigen::ArrayXf, 0, Eigen::InnerStride<> > mapToAffs, float q)
+	{
+		const float sqq = (q * q / (100.0f * 157.913670417429737901351855998f));
+		Eigen::ArrayXf uniqueAffsArr = ((-sqq * bs).exp() * as).colwise().sum().transpose();
+		//Eigen::Map<Eigen::ArrayXf> mapToAffs(uniqueAffs, m_numAtoms);
+		Eigen::ArrayXf solventContrast = solventContribution(q);
+
+		mapToAffs = ((m_bitCombination & CALC_ATOMIC_FORMFACTORS) ? uniqueAffsArr : Eigen::ArrayXf::Constant(uniqueAffsArr.size(), 0.f))
+			- solventContrast;
+
+		/*For Lobato this function would turn into:
+		const float sqq = (q * q / (100.0f * 39.47841760435743f)); // This number is (2*pi)^2 (Lobato defines q differently than Peng and others)
+		Eigen::ArrayXf uniqueAffsArr = (as * (2 + bs * sqq) / pow(1 + bs * sqq, 2)).colwise().sum().transpose();
+		//Eigen::Map<Eigen::ArrayXf> mapToAffs(uniqueAffs, m_numAtoms);
+		Eigen::ArrayXf solventContrast = solventContribution(q);
+
+		mapToAffs = ((m_bitCombination & CALC_ATOMIC_FORMFACTORS) ? uniqueAffsArr : Eigen::ArrayXf::Constant(uniqueAffsArr.size(), 0.f))
+			- solventContrast;
+			*/
+	}
+
+	void GetAllAFFs(float* allAffs, float q)
+	{
+		const float sqq = (q * q / (100.0f * 157.913670417429737901351855998f));
+		//const float sqq = (q * q / (100.0f * 39.47841760435743f));
+		//std::cout << as << std::endl;
+		Eigen::ArrayXf uniqueAffs = ((-sqq * bs).exp() * as).colwise().sum().transpose();
+		//Eigen::ArrayXf uniqueAffs = (as * (2 + bs * sqq) / pow(1 + bs * sqq, 2)).colwise().sum().transpose();
+		Eigen::Map<Eigen::ArrayXf> mapToAffs(allAffs, m_numAtoms);
+		Eigen::ArrayXf solventContrast = solventContribution(q);
+
+		int initialPos = 0;
+		for (size_t j = 0; j < m_numUnIons; j++)
+		{
+			mapToAffs.segment(initialPos, m_atomsPerIon[j]).setConstant(
+				((m_bitCombination & CALC_ATOMIC_FORMFACTORS) ? uniqueAffs(j) : 0)
+				- solventContrast(j));
+			initialPos += m_atomsPerIon[j];
+		}
+
+	}
+
+	void GetAllAFFs(float2* allAffs, float q)
+	{
+		const float sqq = (q * q / (100.0f * 157.913670417429737901351855998f));
+		Eigen::ArrayXf uniqueAffs = ((-sqq * bs).exp() * as).colwise().sum().transpose();
+		//const float sqq = (q * q / (100.0f * 39.47841760435743f)); // This number is (2*pi)^2 (Lobato defines q differently than Peng and others)
+		//Eigen::ArrayXf uniqueAffs = (as * (2 + bs * sqq) / pow(1 + bs * sqq, 2)).colwise().sum().transpose();
+		Eigen::Map<Eigen::ArrayXcf> mapToAffs((std::complex<float>*)allAffs, m_numAtoms);
+		Eigen::ArrayXf solventContrast = solventContribution(q);
+
+
+		int initialPos = 0;
+		for (size_t j = 0; j < m_numUnIons; j++)
+		{
+			mapToAffs.segment(initialPos, m_atomsPerIon[j]).setConstant(
+				((m_bitCombination & CALC_ATOMIC_FORMFACTORS) ? uniqueAffs(j) : 0)
+				- solventContrast(j));
+			initialPos += m_atomsPerIon[j];
+		}
+
+		if ((m_bitCombination & CALC_ANOMALOUS) && m_anomFactors.size() == m_numAtoms)
+		{
+			mapToAffs += m_anomFactors;
+		}
+
+	}
+};
+
 
 atomicFFCalculator::~atomicFFCalculator()
 {
 	delete intern;
 }
 
-atomicFFCalculator::atomicFFCalculator(int bitCombination, int numAtoms, int numUnIons, const float* coeffs, const int *atomsPerIon)
+atomicFFCalculator::atomicFFCalculator(int bitCombination, int numAtoms, int numUnIons, const float* coeffs, const int* atomsPerIon, bool electron)
 {
 	intern = NULL;
-	Initialize(bitCombination, numAtoms, numUnIons, coeffs, atomsPerIon);
+	Initialize(bitCombination, numAtoms, numUnIons, coeffs, atomsPerIon, electron);
 }
 
 atomicFFCalculator::atomicFFCalculator()
@@ -241,25 +315,25 @@ atomicFFCalculator::atomicFFCalculator()
 	intern = NULL;
 }
 
-void atomicFFCalculator::electronGetAllAFFs(float* allAffs, float q, void* anoms)
+void atomicFFCalculator::GetAllAFFs(float* allAffs, float q, void* anoms)
 {
 	if (!intern) return;
 
 	if (anoms)
 		intern->SetAnomalousFactors((float2*)anoms);
-	intern->electronGetAllAFFs(allAffs, q);
+	intern->GetAllAFFs(allAffs, q);
 }
 
-void atomicFFCalculator::electronGetAllAFFs(float2* allAffs, float q, void* anoms)
+void atomicFFCalculator::GetAllAFFs(float2* allAffs, float q, void* anoms)
 {
 	if (!intern) return;
 
 	if (anoms)
 		intern->SetAnomalousFactors((float2*)anoms);
-	intern->electronGetAllAFFs(allAffs, q);
+	intern->GetAllAFFs(allAffs, q);
 }
 
-void atomicFFCalculator::SetSolventED(float solED, float c1, float *ionRads, bool solventOnly /*= false*/)
+void atomicFFCalculator::SetSolventED(float solED, float c1, float* ionRads, bool solventOnly /*= false*/)
 {
 	if (!intern) return;
 	intern->SetSolventED(solED, c1, ionRads, solventOnly);
@@ -271,11 +345,18 @@ void atomicFFCalculator::SetAnomalousFactors(float2* anomFacs)
 	intern->SetAnomalousFactors(anomFacs);
 }
 
-void atomicFFCalculator::Initialize(int bitCombination, int numAtoms, int numUnIons, const float* coeffs, const int *atomsPerIon)
+void atomicFFCalculator::Initialize(int bitCombination, int numAtoms, int numUnIons, const float* coeffs, const int* atomsPerIon, bool electron)
 {
 	if (intern) delete intern;
 
-	intern = new electronInternalAtomicFF(bitCombination, numAtoms, numUnIons, coeffs, atomsPerIon);
+	if (electron)
+	{
+		intern = new electronInternalAtomicFF(bitCombination, numAtoms, numUnIons, coeffs, atomsPerIon);
+	}
+	else
+	{
+		intern = new internalAtomicFF(bitCombination, numAtoms, numUnIons, coeffs, atomsPerIon);
+	}
 }
 
 int atomicFFCalculator::GetAnomalousIndices(int* indices /*= NULL*/)
@@ -309,9 +390,9 @@ int atomicFFCalculator::GetNumUniqueIon()
 	return intern->GetNumUniqueIon();
 }
 
-void atomicFFCalculator::electronGetAllUniqueAFFs(float* uniqueAffs, float q)
+void atomicFFCalculator::GetAllUniqueAFFs(float* uniqueAffs, float q)
 {
-	intern->electronGetAllUniqueAFFs(Eigen::Map<Eigen::ArrayXf>(uniqueAffs, intern->GetNumUniqueIon()), q);
+	intern->GetAllUniqueAFFs(Eigen::Map<Eigen::ArrayXf>(uniqueAffs, intern->GetNumUniqueIon()), q);
 }
 
 int atomicFFCalculator::GetNumAtomsPerIon(int index)

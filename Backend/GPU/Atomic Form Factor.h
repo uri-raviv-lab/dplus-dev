@@ -12,35 +12,37 @@
 #define CALC_ANOMALOUS					(1 << 2)
 #define CALC_VOXELIZED_SOLVENT			(1 << 3)
 #define CALC_VOXELIZED_OUTER_SOLVENT	(1 << 4)
+
+class internalAtomicFF;
 class electronInternalAtomicFF;
 
 /**
 Calculates the atomic form factors for the set of ions/atoms initialized with.
 
 TODO: Add bfactors(Debye Waller) so that we can delete DW factors from kernels
-      and other functions. The DW calculation belongs here anyway.
+	  and other functions. The DW calculation belongs here anyway.
 **/
 class atomicFFCalculator
 {
 public:
 	atomicFFCalculator();
-	atomicFFCalculator(int bitCombination, int numAtoms, int numUnIons, const float* coeffs, const int *atomsPerIon);
+	atomicFFCalculator(int bitCombination, int numAtoms, int numUnIons, const float* coeffs, const int* atomsPerIon, bool electron=false);
 	~atomicFFCalculator();
-	void Initialize(int bitCombination, int numAtoms, int numUnIons, const float* coeffs, const int *atomsPerIon);
-	void SetSolventED(float solED, float c1, float *ionRads, bool solventOnly = false);
+	void Initialize(int bitCombination, int numAtoms, int numUnIons, const float* coeffs, const int* atomsPerIon, bool electron=false);
+	void SetSolventED(float solED, float c1, float* ionRads, bool solventOnly = false);
 	void SetAnomalousFactors(float2* anomFacs);
 
 	/**
 	q is in nm^{-1}
 	**/
-	void electronGetAllAFFs(float* allAffs, float q, void* anoms = NULL);
+	void GetAllAFFs(float* allAffs, float q, void* anoms = NULL);
 	/**
 	q is in nm^{-1}
 	**/
-	void electronGetAllAFFs(float2* allAffs, float q, void* anoms = NULL);
+	void GetAllAFFs(float2* allAffs, float q, void* anoms = NULL);
 
 	void GetSparseAnomalousFactors(float2* allAffs);
-	
+
 	/// Returns the number of indices (to be allocated by the caller).
 	int GetAnomalousIndices(int* indices = NULL);
 
@@ -49,7 +51,7 @@ public:
 
 	int GetNumUniqueIon();
 
-	void electronGetAllUniqueAFFs(float* uniqueAffs, float q);
+	void GetAllUniqueAFFs(float* uniqueAffs, float q);
 
 	int GetNumAtomsPerIon(int index);
 
@@ -58,7 +60,7 @@ public:
 	int GetBitCombination();
 
 protected:
-	electronInternalAtomicFF* intern;
+	internalAtomicFF* intern;
 };
 
 #endif

@@ -1,6 +1,7 @@
 #include <cstdio>
 #include <ctime>
-#include "Backend/Amplitude.h"
+#include "Backend/PDBAmplitude.h"
+#include "Backend/ElectronPDBAmplitude.h"
 
 #define QPOINTS 800
 #define REPETITIONS 1
@@ -37,14 +38,31 @@ void printProgressBar(int width, float finished, float total) {
 
 int main(int argc, char **argv) {
   clock_t starttm, endtm;
+  bool electron = false;
 
   if(argc < 2) {
     printf("USAGE: pdbgen <PDB file>\n");
     return 1;
   }
 
+  if ((argc > 2) && !strcmp(argv[2], "electron"))
+  {
+	  electron = true;
+  }
+
   starttm = clock();
-  Amplitude *amp = new electronPDBAmplitude(argv[1], true);
+  Amplitude* amp;
+  if (electron)
+  {
+	  std::cout << "electronPDBAmplitude\n";
+	  amp = new electronPDBAmplitude(argv[1], true);
+  }
+  else
+  {
+	  std::cout << "PDBAmplitude\n";
+	  amp = new PDBAmplitude(argv[1], true);
+  }
+
   if(amp->getError() != PDB_OK) {
     printf("ERROR loading PDB\n");
     return 2;

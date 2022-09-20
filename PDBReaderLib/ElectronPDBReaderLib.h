@@ -1,11 +1,10 @@
-#ifndef __PDBREADERLIB_H
-#define __PDBREADERLIB_H
+#ifndef __ELECTRONPDBREADERLIB_H
+#define __ELECTRONPDBREADERLIB_H
 
 #include "GeneralPDBReaderLib.h"
 
-
 // For GPUs
-namespace PDBReader {
+namespace ElectronPDBReader {
 
 struct float4
 {
@@ -21,13 +20,13 @@ template<class FLOAT_TYPE>
 bool SortIonEntry(const IonEntry<FLOAT_TYPE>& a,const IonEntry<FLOAT_TYPE>& b) { return ((int)a.ionInd < (int)b.ionInd); }
 
 template<class FLOAT_TYPE>
-class EXPORTED_PDBREADER PDBReaderOb {
+class EXPORTED_PDBREADER electronPDBReaderOb {
 	typedef std::pair<FLOAT_TYPE, FLOAT_TYPE> fpair;
 
 public:
 	vector<FLOAT_TYPE> x, y, z, BFactor, occupancy, sortedX, sortedY, sortedZ;
 	vector<float> sortedBFactor;
-	vector<PDBReader::float4> atomLocs; ///< The locations of all the atoms, sorted by ion type
+	vector<ElectronPDBReader::float4> atomLocs; ///< The locations of all the atoms, sorted by ion type
 	string pdbPreBla;
 	vector<string> pdbAtomSerNo;
 	vector<string> pdbAtomName;
@@ -78,9 +77,9 @@ public:
 	ATOM_RADIUS_TYPE atmRadType;
 
 public:
-	virtual ~PDBReaderOb();
-	PDBReaderOb();
-	PDBReaderOb(string filename, bool moveToCOM, int model = 0, string anomalousFName = "");
+	virtual ~electronPDBReaderOb();
+	electronPDBReaderOb();
+	electronPDBReaderOb(string filename, bool moveToCOM, int model = 0, string anomalousFName = "");
 	virtual PDB_READER_ERRS readPDBfile(string filename, bool bCenter, int model = 0);
 	virtual PDB_READER_ERRS readPDBbuffer(const char *buffer, size_t buffSize, bool bCenter, int model = 0);
 	virtual PDB_READER_ERRS readAnomalousfile(string filename);
@@ -92,7 +91,7 @@ public:
 	virtual PDB_READER_ERRS readCondensedFile(string filename);
 	virtual void SetRadiusType(ATOM_RADIUS_TYPE type);
 	virtual ATOM_RADIUS_TYPE GetRadiusType();
-	virtual PDB_READER_ERRS CopyPDBData(const PDBReaderOb& src);
+	virtual PDB_READER_ERRS CopyPDBData(const electronPDBReaderOb& src);
 
 	virtual void BuildPDBFromList(std::vector<std::vector<FLOAT_TYPE> > &FormListData);
 	virtual PDB_READER_ERRS WritePDBToFile(std::string fileName, const std::stringstream& header);
@@ -105,15 +104,15 @@ public:
 	virtual void moveGeometricCenterToOrigin();
 
 protected:
-	virtual void initialize();
+	virtual void electronInitialize();
 	PDB_READER_ERRS readPDBstream(std::istream& inFile, bool bCenter, int model);
 	virtual PDB_READER_ERRS readAnomalousstream(std::istream& inFile);
-	PDB_READER_ERRS ionIndToatmInd();
-	virtual void getAtomIonIndices(string atm, u8& atmInd, u8& ionInd);
-	virtual void ExtractRelevantCoeffs(std::vector< IonEntry<FLOAT_TYPE> > &entries,
+	PDB_READER_ERRS electronIonIndToatmInd();
+	virtual void electronGetAtomIonIndices(string atm, u8& atmInd, u8& ionInd);
+	virtual void electronExtractRelevantCoeffs(std::vector< IonEntry<FLOAT_TYPE> > &entries,
 		u64 vecSize, std::vector<u8>& sIonInd, std::vector<u8>& sAtmInd, std::vector<int>& atmsPerIon,
 		std::vector<unsigned char>& sortedCoefIonInd, std::vector<FLOAT_TYPE>& sX,
-		std::vector<FLOAT_TYPE>& sY, std::vector<FLOAT_TYPE>& sZ, std::vector<PDBReader::float4>& atmLocs,
+		std::vector<FLOAT_TYPE>& sY, std::vector<FLOAT_TYPE>& sZ, std::vector<ElectronPDBReader::float4>& atmLocs,
 		std::vector<float> sBFactor, std::vector<FLOAT_TYPE>& sCoeffs, std::vector<std::complex<float>>* fPrimes = NULL);
 	
 	void ChangeResidueGroupsToImplicit(std::string amino_acid_name, const int i, const int aa_size);
