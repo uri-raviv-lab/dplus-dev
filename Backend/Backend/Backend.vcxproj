@@ -206,6 +206,7 @@ copy "$(CudaToolkitBinDir)\curand64_*.dll" "$(TargetDir)"</Command>
     <ClCompile Include="..\DefaultModels\SphericalModels.cpp" />
     <ClCompile Include="..\DefaultModels\Symmetries.cpp" />
     <ClCompile Include="..\DefaultModels\TRAModel.cpp" />
+    <ClCompile Include="..\GPU\electron Atomic Form Factor.cpp" />
     <ClCompile Include="..\GPU\GPUHeader.cpp" />
     <ClCompile Include="AmplitudeCache.cpp" />
     <ClCompile Include="BackendWrapper.cpp" />

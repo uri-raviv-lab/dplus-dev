@@ -169,6 +169,17 @@ def test_example_three_generate_pdb():
     result = runner.generate(caldata)
     assert len(result.graph) > 0
 
+def test_example_three_generate_epdb():
+    #pdb_file = os.path.join(root_path, "files", "1JFF.pdb")
+    #caldata = CalculationInput.load_from_EPDB(pdb_file, 5)
+    state_file = r"C:\temp\1jff_state_from_UI.state"
+    caldata = CalculationInput.load_from_state_file(state_file)
+    caldata.use_gpu = False
+    runner = EmbeddedLocalRunner()
+    result = runner.generate(caldata)
+    result.save_to_out_file(r"c:\temp\api-epdb.out");
+    assert len(result.graph) > 0
+
 def test_example_four_fit_UniformHollowCylinder():
     API = EmbeddedLocalRunner()
     state_file = os.path.join(root_path, "files", "uhc.state")
@@ -184,5 +195,4 @@ def test_example_four_fit_UniformHollowCylinder():
     fit_result = API.fit(input)
     assert len(fit_result.graph) > 0
 
-
-
+//test_example_three_generate_epdb()

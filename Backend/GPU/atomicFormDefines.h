@@ -1,0 +1,11 @@
+#ifndef ATOMIC_FORMS_DEFINES
+#define ATOMIC_FORMS_DEFINES
+
+//#define SOLVENT_ONLY					(0x0000)
+#define CALC_ATOMIC_FORMFACTORS			(1 << 0)
+#define CALC_DUMMY_SOLVENT				(1 << 1)
+#define CALC_ANOMALOUS					(1 << 2)
+#define CALC_VOXELIZED_SOLVENT			(1 << 3)
+#define CALC_VOXELIZED_OUTER_SOLVENT	(1 << 4)
+
+#endif 

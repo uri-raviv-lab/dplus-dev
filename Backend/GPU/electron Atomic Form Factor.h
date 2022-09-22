@@ -1,14 +1,12 @@
-#ifndef ATOMIC_FORM_FACTOR_H__
-#define ATOMIC_FORM_FACTOR_H__
+#ifndef ELECTRON_ATOMIC_FORM_FACTOR_H__
+#define ELECTRON_ATOMIC_FORM_FACTOR_H__
 
 
 //#include <math_constants.h>
 #include <vector_functions.h>
 //#include <Eigen/Core>
-
 #include "atomicFormDefines.h"
-
-class internalAtomicFF;
+class electronInternalAtomicFF;
 
 /**
 Calculates the atomic form factors for the set of ions/atoms initialized with.
@@ -16,12 +14,12 @@ Calculates the atomic form factors for the set of ions/atoms initialized with.
 TODO: Add bfactors(Debye Waller) so that we can delete DW factors from kernels
 	  and other functions. The DW calculation belongs here anyway.
 **/
-class atomicFFCalculator
+class electronAtomicFFCalculator
 {
 public:
-	atomicFFCalculator();
-	atomicFFCalculator(int bitCombination, int numAtoms, int numUnIons, const float* coeffs, const int* atomsPerIon);
-	~atomicFFCalculator();
+	electronAtomicFFCalculator();
+	electronAtomicFFCalculator(int bitCombination, int numAtoms, int numUnIons, const float* coeffs, const int* atomsPerIon);
+	~electronAtomicFFCalculator();
 	void Initialize(int bitCombination, int numAtoms, int numUnIons, const float* coeffs, const int* atomsPerIon);
 	void SetSolventED(float solED, float c1, float* ionRads, bool solventOnly = false);
 	void SetAnomalousFactors(float2* anomFacs);
@@ -54,7 +52,7 @@ public:
 	int GetBitCombination();
 
 protected:
-	internalAtomicFF* intern;
+	electronInternalAtomicFF* intern;
 };
 
 #endif

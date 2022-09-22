@@ -1630,6 +1630,10 @@ namespace DPlus {
 			bool centered = LuaItemToBoolean(ptbl["Centered"]);
 			ent = g3->RegisterPDB((String ^)ptbl["Filename"], (String ^)ptbl["AnomFilename"], GetLevelOfDetail(), centered, false);
 		}
+		else if (type->Equals("EPDB")) {
+			bool centered = LuaItemToBoolean(ptbl["Centered"]);
+			ent = g3->RegisterPDB((String^)ptbl["Filename"], (String^)ptbl["AnomFilename"], GetLevelOfDetail(), centered, true);
+		}
 		else if (type->Equals("AMP")) {
 			bool centered = LuaItemToBoolean(ptbl["Centered"]);
 			ent = g3->RegisterAMPGrid((String ^)ptbl["Filename"], GetLevelOfDetail(), centered);
@@ -1847,7 +1851,7 @@ namespace DPlus {
 				return frontend->CreateScriptedSymmetry(job, cscript.c_str(), fn.c_str(), unsigned int(cscript.size()));
 
 			}
-			else if (str->Equals("PDB")) {
+			else if (str->Equals("PDB") || str->Equals("EPDB")) {
 				if (!bAmp) {
 					MessageBox::Show("A PDB file cannot be chosen as a geometry, only amplitude.");
 					return NULL;

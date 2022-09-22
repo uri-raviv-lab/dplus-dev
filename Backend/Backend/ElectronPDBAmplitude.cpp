@@ -456,9 +456,6 @@ void electronPDBAmplitude::calculateGrid(FACC qmax, int sections, progressFunc p
 #endif // USE_JACOBIAN_SPHERE_GRID
 
 */
-
-	// PDBJacobianGridAmplitudeCalculation DOES NOT USE ELECTRON affCalculator FUNCTIONS.
-	// PASSING NON-ELECTRON TO AVOID CODE DUPLICATION (CHANGE THIS TO INHERITANCE LATER)
 	int gpuRes = PDBJacobianGridAmplitudeCalculation
 		(
 		voxels, grid->GetDimY(1) - 1, grid->GetDimZ(1, 1), grid->GetStepSize(),
@@ -1915,7 +1912,7 @@ void electronDebyeCalTester::PreCalculate(VectorXd& p, int nLayers) {
 
 	if (_electronAff_calculator)
 		delete _electronAff_calculator;
-	_electronAff_calculator = new atomicFFCalculator(comb, num, numUnIons, fAtmFFcoefs.data(), pdb->atomsPerIon.data(), true);
+	_electronAff_calculator = new electronAtomicFFCalculator(comb, num, numUnIons, fAtmFFcoefs.data(), pdb->atomsPerIon.data());
 
 	if (comb & CALC_DUMMY_SOLVENT)
 	{
