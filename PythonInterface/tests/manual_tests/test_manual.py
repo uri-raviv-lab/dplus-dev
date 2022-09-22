@@ -170,14 +170,36 @@ def test_example_three_generate_pdb():
     assert len(result.graph) > 0
 
 def test_example_three_generate_epdb():
-    #pdb_file = os.path.join(root_path, "files", "1JFF.pdb")
-    #caldata = CalculationInput.load_from_EPDB(pdb_file, 5)
-    state_file = r"C:\temp\1jff_state_from_UI.state"
-    caldata = CalculationInput.load_from_state_file(state_file)
+    pdb_file = os.path.join(root_path, "files", "1JFF.pdb")
+    caldata = CalculationInput.load_from_EPDB(pdb_file, 5)
     caldata.use_gpu = False
     runner = EmbeddedLocalRunner()
     result = runner.generate(caldata)
-    result.save_to_out_file(r"c:\temp\api-epdb.out");
+
+    out_dir = os.path.join(root_path, 'out_dir')
+    if not os.path.exists(out_dir):
+        os.makedirs(out_dir)
+
+    out_file = os.path.join(out_dir, 'epdb.out')
+    result.save_to_out_file(out_file)
+    
+    assert len(result.graph) > 0
+
+def test_example_three_generate_epdb_from_state():
+    state_file = os.path.join(root_path, "files", "epdb.state")
+    fixed_state_file = fix_file(state_file)
+    caldata = CalculationInput.load_from_state_file(fixed_state_file)
+    caldata.use_gpu = False
+    runner = EmbeddedLocalRunner()
+    result = runner.generate(caldata)
+    
+    out_dir = os.path.join(root_path, 'out_dir')
+    if not os.path.exists(out_dir):
+        os.makedirs(out_dir)
+
+    out_file = os.path.join(out_dir, 'epdb_from_state.out')
+    result.save_to_out_file(out_file)
+
     assert len(result.graph) > 0
 
 def test_example_four_fit_UniformHollowCylinder():
@@ -195,4 +217,4 @@ def test_example_four_fit_UniformHollowCylinder():
     fit_result = API.fit(input)
     assert len(fit_result.graph) > 0
 
-//test_example_three_generate_epdb()
+#test_example_three_generate_epdb_from_state()
