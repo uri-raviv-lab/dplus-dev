@@ -460,7 +460,7 @@ class Amplitude():
         q = math.sqrt( math.pow(qZ,2) + math.pow(qPerp,2) )
         
         # NOTICE THAT Q_PREP SHOULD BE THE FIRST ARGUMENT IN ATAN2 !!!
-        theta = math.atan2(qPerp, qZ)
+        theta = np.abs(math.atan2(qPerp, qZ))
 
         res = {'q' : q, 'theta' : theta}
         return res
@@ -468,6 +468,7 @@ class Amplitude():
     def get_intensity(
                     self, 
                     q_min,
+                    calculated_points=100,
                     q_max=None,
                     phi_min=0, phi_max=2*math.pi,
                     epsilon=1e-3, seed=0, max_iter=1000000):
@@ -481,13 +482,14 @@ class Amplitude():
         if q_min > q_max:
             raise ValueError('q_min > q_max !')
 
-        grid_size = self.grid.grid_size
+        qZ_list = np.linspace(0-q_max, q_max, calculated_points)
+        qPerp_list = np.linspace(0-q_max, q_max, calculated_points)
 
-        qZ_list = np.linspace(0-q_max, q_max, grid_size*2)
-        qPerp_list = np.linspace(0-q_max, q_max, grid_size*2)
+        qZ_list = np.round(qZ_list, 8)
+        qPerp_list = np.round(qPerp_list, 8)
 
-        arr_intensity = [[0 for qPerp in range(grid_size*2)] for qZ in range(grid_size*2)] 
-        
+        arr_intensity = [[0 for qPerp in range(calculated_points)] for qZ in range(calculated_points)] 
+
         qZ_idx = 0
         for qZ in qZ_list:
             qPerp_idx = 0
@@ -500,7 +502,6 @@ class Amplitude():
                     arr_intensity[qZ_idx][qPerp_idx] = res
                 qPerp_idx += 1
             qZ_idx += 1
-
         return arr_intensity
                 
 

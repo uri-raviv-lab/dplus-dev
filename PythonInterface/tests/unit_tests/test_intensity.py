@@ -100,11 +100,13 @@ def test_qZ_qPerp():
     theta_res = q_theta['theta']
 
     assert(q ==  pytest.approx(q_res))
-    assert(theta ==  pytest.approx(theta_res))
+    assert(np.abs(theta) ==  pytest.approx(np.abs(theta_res)))
+
+import time
 
 def test_intensity_qZ_qPerp():
     # GENERATE: ------------------------
-    sp = Sphere()
+    sp = UniformHollowCylinder()
     sp.layer_params[1]['radius'].value = 3
     sp.layer_params[1]['ed'].value = 356
     sp.location_params['z'].value = 10.5
@@ -119,18 +121,20 @@ def test_intensity_qZ_qPerp():
     # INTENSITY: ------------------------
     amp = runner.get_amp(sp.model_ptr)
     
-    q_min = 4
+    q_min = 0
     q_max = 7.5
     phi_min=0
     phi_max = 2 * math.pi
-    result = amp.get_intensity(q_min=q_min, q_max=q_max, phi_min=phi_min, phi_max=phi_max)
-    
+
+    print("Starting get_intensity...")
+    start_time = time.time()
+    result = amp.get_intensity(q_min=q_min, q_max=q_max, phi_min=phi_min, phi_max=phi_max, max_iter=30, calculated_points=200)
+    print(f"get_intensity Done in {time.time() - start_time} sec")
+
     extent = [0-q_max, q_max, 0-q_max, q_max]
     plt.xlabel('q_Z')
     plt.ylabel('q_Perp')
-    plt.plot([0,0],[0-q_max, q_max], linewidth=1, color='black' )
-    plt.plot([0-q_max, q_max],[0,0], linewidth=1, color='black' )
-
+    plt.grid()
     plt.imshow(result, origin='lower', extent=extent, aspect=1, norm=colors.LogNorm(vmin=0, vmax=np.max(np.max(result))))
     plt.show()
 
@@ -271,7 +275,7 @@ def test_2d_intensity_hard_2():
 
 
 def test_read_write_2D():
-    sp = UniformHollowCylinder()
+    sp = Sphere()
     sp.layer_params[1]['radius'].value = 3
     sp.layer_params[1]['ed'].value = 356
     sp.location_params['z'].value = 10.5
