@@ -461,6 +461,7 @@ class Amplitude():
         
         # NOTICE THAT Q_PREP SHOULD BE THE FIRST ARGUMENT IN ATAN2 !!!
         theta = np.abs(math.atan2(qPerp, qZ))
+        # Theta is abs() according to Eytan's suggestion.
 
         res = {'q' : q, 'theta' : theta}
         return res
