@@ -1641,7 +1641,7 @@ void electronPDBAmplitude::PrepareParametersForGPU(std::vector<float4>& solCOM, 
 
 std::string electronPDBAmplitude::Hash() const
 {
-	std::string str = BACKEND_VERSION "PDB: ";
+	std::string str = BACKEND_VERSION "EPDB: ";
 	str += std::to_string(voxelStep) + std::to_string(solventED) + std::to_string(c1)
 		+ std::to_string(solventRad) + std::to_string(solvationThickness) + std::to_string(outerSolventED);
 
