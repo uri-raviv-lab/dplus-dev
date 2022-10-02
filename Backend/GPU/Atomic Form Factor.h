@@ -4,11 +4,40 @@
 
 //#include <math_constants.h>
 #include <vector_functions.h>
-//#include <Eigen/Core>
+#include <Eigen/Core>
 
 #include "atomicFormDefines.h"
 
-class internalAtomicFF;
+class internalAtomicFF : public baseInternalAtomicFF
+{
+public:
+	internalAtomicFF() = default;
+	internalAtomicFF(int bitCombination, int numAtoms, int numUnIons, const float* coeffs, const int* atomsPerIon);
+
+	void GetAllUniqueAFFs(Eigen::Ref<Eigen::ArrayXf, 0, Eigen::InnerStride<> > mapToAffs, float q);
+
+	void GetAllAFFs(float* allAffs, float q);
+
+	void GetAllAFFs(float2* allAffs, float q);
+
+protected:
+	Eigen::ArrayXf cs;
+};
+
+class electronInternalAtomicFF : public baseInternalAtomicFF
+{
+public:
+	electronInternalAtomicFF(
+		int bitCombination, int numAtoms, int numUnIons,
+		const float* coeffs, const int* atomsPerIon);
+
+
+	void GetAllUniqueAFFs(Eigen::Ref<Eigen::ArrayXf, 0, Eigen::InnerStride<> > mapToAffs, float q);
+
+	void GetAllAFFs(float* allAffs, float q);
+
+	void GetAllAFFs(float2* allAffs, float q);
+};
 
 /**
 Calculates the atomic form factors for the set of ions/atoms initialized with.
@@ -20,9 +49,9 @@ class atomicFFCalculator
 {
 public:
 	atomicFFCalculator();
-	atomicFFCalculator(int bitCombination, int numAtoms, int numUnIons, const float* coeffs, const int* atomsPerIon);
+	atomicFFCalculator(int bitCombination, int numAtoms, int numUnIons, const float* coeffs, const int* atomsPerIon, bool electron=false);
 	~atomicFFCalculator();
-	void Initialize(int bitCombination, int numAtoms, int numUnIons, const float* coeffs, const int* atomsPerIon);
+	void Initialize(int bitCombination, int numAtoms, int numUnIons, const float* coeffs, const int* atomsPerIon, bool electron=false);
 	void SetSolventED(float solED, float c1, float* ionRads, bool solventOnly = false);
 	void SetAnomalousFactors(float2* anomFacs);
 
@@ -54,7 +83,7 @@ public:
 	int GetBitCombination();
 
 protected:
-	internalAtomicFF* intern;
+	baseInternalAtomicFF* intern;
 };
 
 #endif

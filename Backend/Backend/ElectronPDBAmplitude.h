@@ -3,7 +3,7 @@
 
 
 #include "../PDBReaderLib/ElectronPDBReaderLib.h"
-#include "../GPU/electron Atomic Form Factor.h"
+#include "../GPU/Atomic Form Factor.h"
 #include "Amplitude.h"
 
 class EXPORTED_BE electronPDBAmplitude : public Amplitude, public IGPUCalculable,
@@ -161,7 +161,7 @@ protected:
 
 	int bitwiseCalculationFlags;
 
-	electronAtomicFFCalculator electronAffCalculator;
+	atomicFFCalculator electronAffCalculator;
 
 	virtual std::complex<FACC> calcAmplitude(FACC qx, FACC qy, FACC qz);
 	virtual std::complex<FACC> calcAmplitude(int indqx, int indqy, int indqz);
@@ -190,7 +190,7 @@ public:
 
 	//Eigen::ArrayXXd distances; //< The 0.5 * N^2 - N distances of all the atoms. Is of N^2 dimension.
 
-	electronAtomicFFCalculator* _electronAff_calculator;
+	atomicFFCalculator* _electronAff_calculator;
 
 	bool bUseGPU;
 	int kernelVersion;

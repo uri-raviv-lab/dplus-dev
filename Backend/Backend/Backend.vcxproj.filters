@@ -261,9 +261,6 @@
     <ClCompile Include="ElectronPDBAmplitude.cpp">
       <Filter>Source Files\Models</Filter>
     </ClCompile>
-    <ClCompile Include="..\GPU\electron Atomic Form Factor.cpp">
-      <Filter>Source Files\Models</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BackendInterface.h">

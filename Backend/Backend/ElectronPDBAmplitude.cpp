@@ -1512,7 +1512,7 @@ void electronPDBAmplitude::PreCalculate(VectorXd& p, int nLayers) {
 
 	if (pdb.haveAnomalousAtoms) bitwiseCalculationFlags |= CALC_ANOMALOUS;
 
-	electronAffCalculator.Initialize(bitwiseCalculationFlags, pdb.sortedIonInd.size(), numUIons, pdb.sortedCoeffs.data(), numberOfIonsPerIndex.data());
+	electronAffCalculator.Initialize(bitwiseCalculationFlags, pdb.sortedIonInd.size(), numUIons, pdb.sortedCoeffs.data(), numberOfIonsPerIndex.data(), true);
 
 	if (bitwiseCalculationFlags & CALC_DUMMY_SOLVENT)
 		electronAffCalculator.SetSolventED(solventED, c1, uniIonRads.data() , pdb.bOnlySolvent);
@@ -1912,7 +1912,7 @@ void electronDebyeCalTester::PreCalculate(VectorXd& p, int nLayers) {
 
 	if (_electronAff_calculator)
 		delete _electronAff_calculator;
-	_electronAff_calculator = new electronAtomicFFCalculator(comb, num, numUnIons, fAtmFFcoefs.data(), pdb->atomsPerIon.data());
+	_electronAff_calculator = new atomicFFCalculator(comb, num, numUnIons, fAtmFFcoefs.data(), pdb->atomsPerIon.data(), true);
 
 	if (comb & CALC_DUMMY_SOLVENT)
 	{
