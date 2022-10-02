@@ -198,7 +198,7 @@ class CalculationInput(State):
         c.DomainPreferences.convergence = 0.001
         c.DomainPreferences.orientation_iterations = 1000000
         c.DomainPreferences.use_grid = True
-        c.qmax = qmax
+        c.DomainPreferences.q_max = qmax
         c.use_gpu = True
 
         return c
@@ -259,7 +259,7 @@ class CalculationInput(State):
         c.DomainPreferences.convergence = 0.001
         c.DomainPreferences.orientation_iterations = 1000000
         c.DomainPreferences.use_grid = True
-        c.qmax = qmax
+        c.DomainPreferences.q_max = qmax
         c.use_gpu = True
 
         return c
