@@ -1,4 +1,5 @@
 import math
+import numpy as np
 import sys
 import csv
 from pathlib import Path
@@ -573,6 +574,24 @@ class ModelWithLayers(Model):
     def add_layer(self):
         self.layer_params.append(self.default_layer)
         return self.layer_params[-1]
+
+    def del_layer(self, layer_num):
+        '''Layer_num indexing is like python i.e. first layer index is 0. Layer_num can be either an integer, a list of
+        indices, or a range.'''
+        if type(layer_num) == int:
+            print('int')
+            del self.layer_params[layer_num]
+        elif type(layer_num) == range:
+            print('range')
+            for ind in layer_num:
+                del self.layer_params[layer_num[0]]
+        else:
+            print('list')
+            new_list = np.sort(layer_num)
+            j=0
+            for ind in new_list:
+                del self.layer_params[ind - j]
+                j += 1
 
     def serialize(self):
         '''
