@@ -79,8 +79,6 @@ public:
 
 public:
 	virtual ~PDBReaderOb();
-	PDBReaderOb();
-	PDBReaderOb(string filename, bool moveToCOM, int model = 0, string anomalousFName = "");
 	virtual PDB_READER_ERRS readPDBfile(string filename, bool bCenter, int model = 0);
 	virtual PDB_READER_ERRS readPDBbuffer(const char *buffer, size_t buffSize, bool bCenter, int model = 0);
 	virtual PDB_READER_ERRS readAnomalousfile(string filename);
@@ -105,7 +103,7 @@ public:
 	virtual void moveGeometricCenterToOrigin();
 
 protected:
-	virtual void initialize();
+	virtual void initialize() = 0;
 	PDB_READER_ERRS readPDBstream(std::istream& inFile, bool bCenter, int model);
 	virtual PDB_READER_ERRS readAnomalousstream(std::istream& inFile);
 	PDB_READER_ERRS ionIndToatmInd();
@@ -121,6 +119,16 @@ protected:
 	std::string removeDigits(std::string source);
 };
 
+template<class FLOAT_TYPE>
+class EXPORTED_PDBREADER XRayPDBReaderOb : public PDBReaderOb<FLOAT_TYPE>
+{
+public:
+	XRayPDBReaderOb();
+	XRayPDBReaderOb(string filename, bool moveToCOM, int model = 0, string anomalousFName = "");
+
+protected:
+	void initialize();
+};
 
 #ifndef _GLIBCXX_NOEXCEPT 
 #define _GLIBCXX_NOEXCEPT // This is so we can use GNU libstdc++ and VS's versions of std::exception

@@ -23,18 +23,18 @@ namespace PDBReader {
 	// In order for exporting to work, explicitly instantiate the class for the 
 	// float and double types (and more as necessary)
 #ifdef _WIN32
-	template class PDBReaderOb<float>;
-	template class PDBReaderOb<double>;
+	template class XRayPDBReaderOb<float>;
+	template class XRayPDBReaderOb<double>;
 #else
 	// For some reason with g++ templates should be instantiated like so
-	template PDBReaderOb<float> ::PDBReaderOb();
-	template PDBReaderOb<float> ::PDBReaderOb(string filename, bool moveToCOM, int model, std::string anomalousFName);
-	template PDBReaderOb<double> ::PDBReaderOb();
-	template PDBReaderOb<double> ::PDBReaderOb(string filename, bool moveToCOM, int model, std::string anomalousFName);
+	template XRayPDBReaderOb<float> ::XRayPDBReaderOb();
+	template XRayPDBReaderOb<float> ::XRayPDBReaderOb(string filename, bool moveToCOM, int model, std::string anomalousFName);
+	template XRayPDBReaderOb<double> ::XRayPDBReaderOb();
+	template XRayPDBReaderOb<double> ::XRayPDBReaderOb(string filename, bool moveToCOM, int model, std::string anomalousFName);
 #endif
 
 	template<class FLOAT_TYPE>
-	PDBReaderOb<FLOAT_TYPE>::PDBReaderOb(string filename, bool moveToCOM, int model /*= 0*/, string anomalousFName /*= ""*/)
+	XRayPDBReaderOb<FLOAT_TYPE>::XRayPDBReaderOb(string filename, bool moveToCOM, int model /*= 0*/, string anomalousFName /*= ""*/)
 	{
 		status = UNINITIALIZED;
 
@@ -52,8 +52,10 @@ namespace PDBReader {
 			status = readPDBfile(filename, moveToCOM, model);
 	}
 
+
+
 	template<class FLOAT_TYPE>
-	PDBReaderOb<FLOAT_TYPE>::PDBReaderOb()
+	XRayPDBReaderOb<FLOAT_TYPE>::XRayPDBReaderOb()
 	{
 		status = UNINITIALIZED;
 		initialize();
@@ -872,7 +874,7 @@ namespace PDBReader {
 	} //readPDBfile
 
 	template<class FLOAT_TYPE>
-	void PDBReaderOb<FLOAT_TYPE>::initialize() {
+	void XRayPDBReaderOb<FLOAT_TYPE>::initialize() {
 
 		this->haveAnomalousAtoms = false;
 		this->bOutputSlices = false;

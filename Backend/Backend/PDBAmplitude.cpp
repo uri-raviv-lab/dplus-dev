@@ -242,7 +242,7 @@ PDBAmplitude::PDBAmplitude(string filename, bool bCenter, string anomalousFilena
 	initialize();
 	gridStatus = AMP_UNINITIALIZED;
 
-	pdb = PDBReader::PDBReaderOb<float>(filename, bCenter, model, anomalousFilename);
+	pdb = PDBReader::XRayPDBReaderOb<float>(filename, bCenter, model, anomalousFilename);
 
 	bCentered = bCenter;
 

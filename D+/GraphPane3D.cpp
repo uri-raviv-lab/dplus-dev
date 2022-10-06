@@ -300,7 +300,7 @@ bool GraphPane3D::ReadPDBFile(array<unsigned char> ^data, bool bCenterPDB,
 	}
 	else
 	{
-		PDBReader::PDBReaderOb<double> pdbTest;
+		PDBReader::XRayPDBReaderOb<double> pdbTest;
 		try
 		{
 			PDB_READER_ERRS err = pdbTest.readPDBbuffer(buff, sz, bCenterPDB);

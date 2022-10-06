@@ -12,7 +12,7 @@ class EXPORTED_BE PDBAmplitude : public Amplitude, public IGPUCalculable,
 protected:
 	friend class DomainModel;
 
-	PDBReader::PDBReaderOb<float> pdb;
+	PDBReader::XRayPDBReaderOb<float> pdb;
 	/// Values of Table 2.2B (International Tables of X-ray Crystallography Vol IV)
 	Eigen::Array<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> atmFFcoefs;
 	/// Contains the MD5 hash of the pdb object so that we don't have to collect it over and over again.
@@ -186,7 +186,7 @@ protected:
 
 class EXPORTED_BE DebyeCalTester : public IModel {
 public:
-	PDBReader::PDBReaderOb<F_TYPE>* pdb;
+	PDBReader::XRayPDBReaderOb<F_TYPE>* pdb;
 	Eigen::Array<F_TYPE, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> atmFFcoefs;
 
 	//Eigen::ArrayXXd distances; //< The 0.5 * N^2 - N distances of all the atoms. Is of N^2 dimension.

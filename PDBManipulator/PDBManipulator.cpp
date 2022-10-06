@@ -56,7 +56,7 @@ int ElectronPDBManipulate(std::string inFilename, std::string command, fs::path 
 int PDBManipulate(std::string inFilename, std::string command, fs::path ipt, std::string saveFilename)
 {
 	std::cout << "PDBManipulate\n";
-	PDBReader::PDBReaderOb<float> pdb(inFilename, false);
+	PDBReader::XRayPDBReaderOb<float> pdb(inFilename, false);
 
 	std::stringstream header;
 	if (boost::iequals(command, "gcenter"))

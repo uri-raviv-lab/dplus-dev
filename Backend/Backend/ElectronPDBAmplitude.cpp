@@ -1867,6 +1867,14 @@ void electronPDBAmplitude::SetPDBHash()
 
 }
 
+bool electronPDBAmplitude::GetHasAnomalousScattering()
+{
+	return pdb.getHasAnomalous();
+}
+
+#pragma endregion	// CPDB Reader class
+
+#pragma region DebyeCalTester
 void electronDebyeCalTester::SetStop(int* stop) {
 	pStop = stop;
 }
@@ -2072,7 +2080,7 @@ void electronDebyeCalTester::GetHeader(unsigned int depth, std::string& header) 
 
 
 
-// THE NEXT 2 FUNCTIONS SHOULD BE DELETED ONCE ElectronPDBAmplitude INHERITS PDBAmplitude !!!
+// THE NEXT 2 FUNCTIONS SHOULD BE DELETED ONCE electronDebyeCalTester INHERITS DebyeCalTester !!!
 typedef int(*electronGPUCalculateDebyeV2_t)(int numQValues, float qMin, float qMax,
 	F_TYPE* outData,
 	int numAtoms, const int* atomsPerIon,
@@ -2597,9 +2605,4 @@ std::complex<F_TYPE> electronAnomDebyeCalTester::anomAtomicFF(F_TYPE q, int elem
 	return electronDebyeCalTester::electronAtomicFF(q, elem) + fPrime + std::complex<F_TYPE>(0, 1) * fPrimePrime;
 }
 
-bool electronPDBAmplitude::GetHasAnomalousScattering()
-{
-	return pdb.getHasAnomalous();
-}
-
-#pragma endregion	// CPDB Reader class
+#pragma endregion // DebyeCalTester
