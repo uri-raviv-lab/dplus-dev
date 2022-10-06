@@ -209,9 +209,9 @@ int main(int argc, char* argv[])
 		electronDebyeCalTester *dct = (anomalousFilename.empty() ? new electronDebyeCalTester(useGPU, kernelVersion) : new AnomDebyeCalTester(useGPU));
 
 		if (anomalousFilename.empty())
-			dct->pdb = new PDBReader::electronPDBReaderOb<F_TYPE>(inFilename, false);
+			dct->pdb = new PDBReader::ElectronPDBReaderOb<F_TYPE>(inFilename, false);
 		else
-			dct->pdb = new PDBReader::electronPDBReaderOb<F_TYPE>(inFilename, false, 0, anomalousFilename);
+			dct->pdb = new PDBReader::ElectronPDBReaderOb<F_TYPE>(inFilename, false, 0, anomalousFilename);
 		int sz = nqVals;
 #ifdef _DEBUG0
 		sz = 5;

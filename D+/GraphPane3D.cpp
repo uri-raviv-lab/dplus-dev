@@ -19,7 +19,6 @@
 #include <iostream>
 
 #include "PDBReaderLib.h"
-#include "ElectronPDBReaderLib.h"
 #include "LuaBinding.h"
 
 
@@ -277,7 +276,7 @@ bool GraphPane3D::ReadPDBFile(array<unsigned char> ^data, bool bCenterPDB,
 	if (electron)
 	{
 		// THIS IF/ELSE WILL BE DELETED ONCE electronPDBReaderOb INHERITS PDBReaderOb
-		ElectronPDBReader::electronPDBReaderOb<double> pdbTest;
+		PDBReader::ElectronPDBReaderOb<double> pdbTest;
 		try
 		{
 			PDB_READER_ERRS err = pdbTest.readPDBbuffer(buff, sz, bCenterPDB);
@@ -288,7 +287,7 @@ bool GraphPane3D::ReadPDBFile(array<unsigned char> ^data, bool bCenterPDB,
 				return false;
 			}
 		}
-		catch (ElectronPDBReader::pdbReader_exception& e)
+		catch (PDBReader::pdbReader_exception& e)
 		{
 			char a[256] = { 0 };
 			sprintf_s(a, "Invalid PDB! (%s)", e.GetErrorMessage().c_str());

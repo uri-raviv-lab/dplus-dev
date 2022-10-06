@@ -23,8 +23,5 @@
     <ClCompile Include="PDBReaderLib.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ElectronPDBReaderLib.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
 </Project>

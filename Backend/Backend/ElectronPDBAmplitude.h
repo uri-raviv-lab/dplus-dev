@@ -2,7 +2,7 @@
 #define __ELECTRONPDBAMPLITUDE_H
 
 
-#include "../PDBReaderLib/ElectronPDBReaderLib.h"
+#include "../PDBReaderLib/PDBReaderLib.h"
 #include "../GPU/Atomic Form Factor.h"
 #include "Amplitude.h"
 
@@ -11,7 +11,7 @@ class EXPORTED_BE electronPDBAmplitude : public Amplitude, public IGPUCalculable
 protected:
 	friend class DomainModel;
 
-	ElectronPDBReader::electronPDBReaderOb<float> pdb;
+	PDBReader::ElectronPDBReaderOb<float> pdb;
 	/// Values of Table 2.2B (International Tables of X-ray Crystallography Vol IV)
 	Eigen::Array<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> atmFFcoefs;
 	/// Contains the MD5 hash of the pdb object so that we don't have to collect it over and over again.
@@ -185,7 +185,7 @@ protected:
 
 class EXPORTED_BE electronDebyeCalTester : public IModel {
 public:
-	ElectronPDBReader::electronPDBReaderOb<F_TYPE>* pdb;
+	PDBReader::ElectronPDBReaderOb<F_TYPE>* pdb;
 	Eigen::Array<F_TYPE, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> atmFFcoefs;
 
 	//Eigen::ArrayXXd distances; //< The 0.5 * N^2 - N distances of all the atoms. Is of N^2 dimension.

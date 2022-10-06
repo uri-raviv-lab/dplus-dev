@@ -310,7 +310,7 @@ bool tests::DebyeTest() {
 	//	S:\Basic Dimer
 	electronDebyeCalTester dct(false);
 	//	dct.pdb = new PDBReader::PDBReaderOb<F_TYPE>("C:\\DesktopStorage\\TUB PDBs\\CF4\\cf4.pdb", false);
-	dct.pdb = new PDBReader::electronPDBReaderOb<F_TYPE>("S:\\Basic Dimer\\1JFF_Aligned q7- in vacuo_pdb.pdb", false);
+	dct.pdb = new PDBReader::ElectronPDBReaderOb<F_TYPE>("S:\\Basic Dimer\\1JFF_Aligned q7- in vacuo_pdb.pdb", false);
 	int sz = 2*512;
 #ifdef _DEBUG
 	sz = 5;

@@ -244,7 +244,7 @@ electronPDBAmplitude::electronPDBAmplitude(string filename, bool bCenter, string
 	electronInitialize();
 	gridStatus = AMP_UNINITIALIZED;
 
-	pdb = ElectronPDBReader::electronPDBReaderOb<float>(filename, bCenter, model, anomalousFilename);
+	pdb = PDBReader::ElectronPDBReaderOb<float>(filename, bCenter, model, anomalousFilename);
 
 	bCentered = bCenter;
 
@@ -265,7 +265,7 @@ electronPDBAmplitude::electronPDBAmplitude(const char *buffer, size_t buffSize, 
 		if (PDB_OK == status)
 			status = pdb.readPDBbuffer(buffer, buffSize, bCenter, model);
 	}
-	catch (ElectronPDBReader::pdbReader_exception &e)
+	catch (PDBReader::pdbReader_exception &e)
 	{
 		status = PDB_READER_ERRS::ERROR_IN_PDB_FILE;
 		throw backend_exception(e.GetErrorCode(), e.GetErrorMessage().c_str());

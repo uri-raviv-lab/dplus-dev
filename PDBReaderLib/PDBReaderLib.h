@@ -12,6 +12,9 @@ struct float4
 	float x, y, z, w;
 };
 
+const int XRAY_COEFFICIENTS = 9;
+const int ELECTRON_COEFFICIENTS = 10;
+
 template<class FLOAT_TYPE = double>
 struct IonEntry {
 	u8 ionInd, atmInd;
@@ -106,8 +109,9 @@ protected:
 	virtual void initialize() = 0;
 	PDB_READER_ERRS readPDBstream(std::istream& inFile, bool bCenter, int model);
 	virtual PDB_READER_ERRS readAnomalousstream(std::istream& inFile);
-	PDB_READER_ERRS ionIndToatmInd();
-	virtual void getAtomIonIndices(string atm, u8& atmInd, u8& ionInd);
+	virtual PDB_READER_ERRS ionIndToatmInd() = 0;
+	virtual int getNumOfCoeffs() = 0;
+	virtual void getAtomIonIndices(string atm, u8& atmInd, u8& ionInd) = 0;
 	virtual void ExtractRelevantCoeffs(std::vector< IonEntry<FLOAT_TYPE> > &entries,
 		u64 vecSize, std::vector<u8>& sIonInd, std::vector<u8>& sAtmInd, std::vector<int>& atmsPerIon,
 		std::vector<unsigned char>& sortedCoefIonInd, std::vector<FLOAT_TYPE>& sX,
@@ -128,7 +132,25 @@ public:
 
 protected:
 	void initialize();
+	PDB_READER_ERRS ionIndToatmInd();
+	void getAtomIonIndices(string atm, u8& atmInd, u8& ionInd);
+	int getNumOfCoeffs() { return XRAY_COEFFICIENTS; }
 };
+
+template<class FLOAT_TYPE>
+class EXPORTED_PDBREADER ElectronPDBReaderOb : public PDBReaderOb<FLOAT_TYPE>
+{
+public:
+	ElectronPDBReaderOb();
+	ElectronPDBReaderOb(string filename, bool moveToCOM, int model = 0, string anomalousFName = "");
+
+protected:
+	void initialize();
+	PDB_READER_ERRS ionIndToatmInd();
+	void getAtomIonIndices(string atm, u8& atmInd, u8& ionInd);
+	int getNumOfCoeffs() { return ELECTRON_COEFFICIENTS; }
+};
+
 
 #ifndef _GLIBCXX_NOEXCEPT 
 #define _GLIBCXX_NOEXCEPT // This is so we can use GNU libstdc++ and VS's versions of std::exception

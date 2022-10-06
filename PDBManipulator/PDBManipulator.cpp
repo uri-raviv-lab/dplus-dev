@@ -1,7 +1,6 @@
 #include "../backend_version.h"
 
 #include "PDBReaderLib.h"
-#include "ElectronPDBReaderLib.h"
 
 #include <iostream>
 #include <string>
@@ -19,7 +18,7 @@ namespace po = boost::program_options;
 int ElectronPDBManipulate(std::string inFilename, std::string command, fs::path ipt, std::string saveFilename)
 {
 	std::cout << "ElectronPDBManipulate\n";
-	ElectronPDBReader::electronPDBReaderOb<float> pdb(inFilename, false);
+	PDBReader::ElectronPDBReaderOb<float> pdb(inFilename, false);
 
 	std::stringstream header;
 	if (boost::iequals(command, "gcenter"))
