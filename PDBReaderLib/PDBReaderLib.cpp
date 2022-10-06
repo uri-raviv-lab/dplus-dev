@@ -50,6 +50,224 @@ namespace PDBReader {
 	}
 
 	template<class FLOAT_TYPE>
+	void PDBReaderOb<FLOAT_TYPE>::generalInitialize()
+	{
+		this->haveAnomalousAtoms = false;
+		this->bOutputSlices = false;
+		this->atmRadType = RAD_UNINITIALIZED;
+		this->bOnlySolvent = false;
+
+		const int number_of_atoms_and_groups =
+			119 + // Basic atoms
+			8;	// CH, CH2, CH3, NH, NH2, NH3, OH, SH
+
+		atmWt.resize(number_of_atoms_and_groups, 0.0);
+		vdwRad.resize(number_of_atoms_and_groups, 0.0);
+		empRad.resize(number_of_atoms_and_groups, 0.0);
+		calcRad.resize(number_of_atoms_and_groups, 0.0);
+		svgRad.resize(number_of_atoms_and_groups, 0.0);
+#pragma region Atomic weights and radii
+		// Templated code, assignments produce conversion/truncation warnings
+#if defined(WIN32) || defined(_WIN32)
+#pragma warning( push )
+#pragma warning( disable : 4305)
+#pragma warning( disable : 4244)
+#endif
+
+		atmWt[0] = 0.0;		vdwRad[0] = 0.0;	empRad[0] = 0.0;	calcRad[0] = 0.0;
+		atmWt[1] = 1.008;	vdwRad[1] = 120.0;	empRad[1] = 25.0;	calcRad[1] = 53.0;	//	H	hydrogen
+		atmWt[2] = 4.002602;	vdwRad[2] = 140.0;	empRad[2] = 31.0;	calcRad[2] = 31.0;	//	He	helium
+		atmWt[3] = 6.94;		vdwRad[3] = 182.0;	empRad[3] = 145.0;	calcRad[3] = 167.0;	//	Li	lithium
+		atmWt[4] = 9.012182;	vdwRad[4] = 153.0;	empRad[4] = 105.0;	calcRad[4] = 112.0;	//	Be	beryllium
+		atmWt[5] = 10.81;	vdwRad[5] = 192.0;	empRad[5] = 85.0;	calcRad[5] = 87.0;	//	B	boron
+		atmWt[6] = 12.011;	vdwRad[6] = 170.0;	empRad[6] = 70.0;	calcRad[6] = 67.0;	//	C	carbon
+		atmWt[7] = 14.007;	vdwRad[7] = 155.0;	empRad[7] = 65.0;	calcRad[7] = 56.0;	//	N	nitrogen
+		atmWt[8] = 15.999;	vdwRad[8] = 152.0;	empRad[8] = 60.0;	calcRad[8] = 48.0;	//	O	oxygen
+		atmWt[9] = 18.9984;	vdwRad[9] = 147.0;	empRad[9] = 50.0;	calcRad[9] = 42.0;	//	F	fluorine
+		atmWt[10] = 20.1797;	vdwRad[10] = 154.0;	empRad[10] = 38.0;	calcRad[10] = 38.0;	//	Ne	neon
+		atmWt[11] = 22.98976;	vdwRad[11] = 227.0;	empRad[11] = 180.0;	calcRad[11] = 190.0;	//	Na	sodium
+		atmWt[12] = 24.3050;	vdwRad[12] = 173.0;	empRad[12] = 150.0;	calcRad[12] = 145.0;	//	Mg	magnesium
+		atmWt[13] = 26.98153;	vdwRad[13] = 184.0;	empRad[13] = 125.0;	calcRad[13] = 118.0;	//	Al	aluminium
+		atmWt[14] = 28.085;	vdwRad[14] = 210.0;	empRad[14] = 110.0;	calcRad[14] = 111.0;	//	Si	silicon
+		atmWt[15] = 30.97376;	vdwRad[15] = 180.0;	empRad[15] = 100.0;	calcRad[15] = 98.0;	//	P	phosphorus
+		atmWt[16] = 32.06;	vdwRad[16] = 180.0;	empRad[16] = 100.0;	calcRad[16] = 88.0;	//	S	sulfur
+		atmWt[17] = 35.45;	vdwRad[17] = 175.0;	empRad[17] = 100.0;	calcRad[17] = 79.0;	//	Cl	chlorine
+		atmWt[18] = 39.948;	vdwRad[18] = 188.0;	empRad[18] = 71.0;	calcRad[18] = 71.0;	//	Ar	argon
+		atmWt[19] = 39.0983;	vdwRad[19] = 275.0;	empRad[19] = 220.0;	calcRad[19] = 243.0;	//	K	potassium
+		atmWt[20] = 40.078;	vdwRad[20] = 231.0;	empRad[20] = 180.0;	calcRad[20] = 194.0;	//	Ca	calcium
+		atmWt[21] = 44.95591;	vdwRad[21] = 211.0;	empRad[21] = 160.0;	calcRad[21] = 184.0;	//	Sc	scandium
+		atmWt[22] = 47.867;	vdwRad[22] = 201.0;	empRad[22] = 140.0;	calcRad[22] = 176.0;	//	Ti	titanium
+		atmWt[23] = 50.9415;	vdwRad[23] = 196.0;	empRad[23] = 135.0;	calcRad[23] = 171.0;	//	V	vanadium
+		atmWt[24] = 51.9961;	vdwRad[24] = 191.0;	empRad[24] = 140.0;	calcRad[24] = 166.0;	//	Cr	chromium
+		atmWt[25] = 54.93804;	vdwRad[25] = 186.0;	empRad[25] = 140.0;	calcRad[25] = 161.0;	//	Mn	manganese
+		atmWt[26] = 55.845;	vdwRad[26] = 181.0;	empRad[26] = 140.0;	calcRad[26] = 156.0;	//	Fe	iron
+		atmWt[27] = 58.93319;	vdwRad[27] = 177.0;	empRad[27] = 135.0;	calcRad[27] = 152.0;	//	Co	cobalt
+		atmWt[28] = 58.6934;	vdwRad[28] = 163.0;	empRad[28] = 135.0;	calcRad[28] = 149.0;	//	Ni	nickel
+		atmWt[29] = 63.546;	vdwRad[29] = 140.0;	empRad[29] = 135.0;	calcRad[29] = 145.0;	//	Cu	copper
+		atmWt[30] = 65.38;	vdwRad[30] = 139.0;	empRad[30] = 135.0;	calcRad[30] = 142.0;	//	Zn	zinc
+		atmWt[31] = 69.723;	vdwRad[31] = 187.0;	empRad[31] = 130.0;	calcRad[31] = 136.0;	//	Ga	gallium
+		atmWt[32] = 72.63;	vdwRad[32] = 211.0;	empRad[32] = 125.0;	calcRad[32] = 125.0;	//	Ge	germanium
+		atmWt[33] = 74.92160;	vdwRad[33] = 185.0;	empRad[33] = 115.0;	calcRad[33] = 114.0;	//	As	arsenic
+		atmWt[34] = 78.96;	vdwRad[34] = 190.0;	empRad[34] = 115.0;	calcRad[34] = 103.0;	//	Se	selenium
+		atmWt[35] = 79.904;	vdwRad[35] = 185.0;	empRad[35] = 115.0;	calcRad[35] = 94.0;	//	Br	bromine
+		atmWt[36] = 83.798;	vdwRad[36] = 202.0;	empRad[36] = 88.0;	calcRad[36] = 88.0;	//	Kr	krypton
+		atmWt[37] = 85.4678;	vdwRad[37] = 303.0;	empRad[37] = 235.0;	calcRad[37] = 265.0;	//	Rb	rubidium
+		atmWt[38] = 87.62;	vdwRad[38] = 249.0;	empRad[38] = 200.0;	calcRad[38] = 219.0;	//	Sr	strontium
+		atmWt[39] = 88.90585;	vdwRad[39] = 237.0;	empRad[39] = 180.0;	calcRad[39] = 212.0;	//	Y	yttrium
+		atmWt[40] = 91.224;	vdwRad[40] = 231.0;	empRad[40] = 155.0;	calcRad[40] = 206.0;	//	Zr	zirconium
+		atmWt[41] = 92.90638;	vdwRad[41] = 223.0;	empRad[41] = 145.0;	calcRad[41] = 198.0;	//	Nb	niobium
+		atmWt[42] = 95.96;	vdwRad[42] = 215.0;	empRad[42] = 145.0;	calcRad[42] = 190.0;	//	Mo	molybdenum
+		atmWt[43] = 98.0;		vdwRad[43] = 208.0;	empRad[43] = 135.0;	calcRad[43] = 183.0;	//	Tc	technetium
+		atmWt[44] = 101.07;	vdwRad[44] = 203.0;	empRad[44] = 130.0;	calcRad[44] = 178.0;	//	Ru	ruthenium
+		atmWt[45] = 102.9055;	vdwRad[45] = 198.0;	empRad[45] = 135.0;	calcRad[45] = 173.0;	//	Rh	rhodium
+		atmWt[46] = 106.42;	vdwRad[46] = 163.0;	empRad[46] = 140.0;	calcRad[46] = 169.0;	//	Pd	palladium
+		atmWt[47] = 107.8682;	vdwRad[47] = 172.0;	empRad[47] = 160.0;	calcRad[47] = 165.0;	//	Ag	silver
+		atmWt[48] = 112.411;	vdwRad[48] = 158.0;	empRad[48] = 155.0;	calcRad[48] = 161.0;	//	Cd	cadmium
+		atmWt[49] = 114.818;	vdwRad[49] = 193.0;	empRad[49] = 155.0;	calcRad[49] = 156.0;	//	In	indium
+		atmWt[50] = 118.710;	vdwRad[50] = 217.0;	empRad[50] = 145.0;	calcRad[50] = 145.0;	//	Sn	tin
+		atmWt[51] = 121.760;	vdwRad[51] = 206.0;	empRad[51] = 145.0;	calcRad[51] = 133.0;	//	Sb	antimony
+		atmWt[52] = 127.60;	vdwRad[52] = 206.0;	empRad[52] = 140.0;	calcRad[52] = 123.0;	//	Te	tellurium
+		atmWt[53] = 126.9044;	vdwRad[53] = 198.0;	empRad[53] = 140.0;	calcRad[53] = 115.0;	//	I	iodine
+		atmWt[54] = 131.293;	vdwRad[54] = 216.0;	empRad[54] = 108.0;	calcRad[54] = 108.0;	//	Xe	xenon
+		atmWt[55] = 132.9054;	vdwRad[55] = 343.0;	empRad[55] = 260.0;	calcRad[55] = 298.0;	//	Cs	caesium
+		atmWt[56] = 137.327;	vdwRad[56] = 268.0;	empRad[56] = 215.0;	calcRad[56] = 253.0;	//	Ba	barium
+		atmWt[57] = 138.9054;	vdwRad[57] = 250.0;	empRad[57] = 195.0;	calcRad[57] = 195.0;	//	La	lanthanum
+		atmWt[58] = 140.116;	vdwRad[58] = 250.0;	empRad[58] = 185.0;	calcRad[58] = 185.0;	//	Ce	cerium
+		atmWt[59] = 140.9076;	vdwRad[59] = 250.0;	empRad[59] = 185.0;	calcRad[59] = 247.0;	//	Pr	praseodymium
+		atmWt[60] = 144.242;	vdwRad[60] = 250.0;	empRad[60] = 185.0;	calcRad[60] = 206.0;	//	Nd	neodymium
+		atmWt[61] = 145.0;	vdwRad[61] = 250.0;	empRad[61] = 185.0;	calcRad[61] = 205.0;	//	Pm	promethium
+		atmWt[62] = 150.36;	vdwRad[62] = 250.0;	empRad[62] = 185.0;	calcRad[62] = 238.0;	//	Sm	samarium
+		atmWt[63] = 151.964;	vdwRad[63] = 250.0;	empRad[63] = 185.0;	calcRad[63] = 231.0;	//	Eu	europium
+		atmWt[64] = 157.25;	vdwRad[64] = 250.0;	empRad[64] = 180.0;	calcRad[64] = 233.0;	//	Gd	gadolinium
+		atmWt[65] = 158.9253;	vdwRad[65] = 250.0;	empRad[65] = 175.0;	calcRad[65] = 225.0;	//	Tb	terbium
+		atmWt[66] = 162.500;	vdwRad[66] = 250.0;	empRad[66] = 175.0;	calcRad[66] = 228.0;	//	Dy	dysprosium
+		atmWt[67] = 164.9303;	vdwRad[67] = 250.0;	empRad[67] = 175.0;	calcRad[67] = 175.0;	//	Ho	holmium
+		atmWt[68] = 167.259;	vdwRad[68] = 250.0;	empRad[68] = 175.0;	calcRad[68] = 226.0;	//	Er	erbium
+		atmWt[69] = 168.9342;	vdwRad[69] = 250.0;	empRad[69] = 175.0;	calcRad[69] = 222.0;	//	Tm	thulium
+		atmWt[70] = 173.054;	vdwRad[70] = 250.0;	empRad[70] = 175.0;	calcRad[70] = 222.0;	//	Yb	ytterbium
+		atmWt[71] = 174.9668;	vdwRad[71] = 250.0;	empRad[71] = 175.0;	calcRad[71] = 217.0;	//	Lu	lutetium
+		atmWt[72] = 178.49;	vdwRad[72] = 250.0;	empRad[72] = 155.0;	calcRad[72] = 208.0;	//	Hf	hafnium
+		atmWt[73] = 180.9478;	vdwRad[73] = 250.0;	empRad[73] = 145.0;	calcRad[73] = 200.0;	//	Ta	tantalum
+		atmWt[74] = 183.84;	vdwRad[74] = 250.0;	empRad[74] = 135.0;	calcRad[74] = 193.0;	//	W	tungsten
+		atmWt[75] = 186.207;	vdwRad[75] = 250.0;	empRad[75] = 135.0;	calcRad[75] = 188.0;	//	Re	rhenium
+		atmWt[76] = 190.23;	vdwRad[76] = 250.0;	empRad[76] = 130.0;	calcRad[76] = 185.0;	//	Os	osmium
+		atmWt[77] = 192.217;	vdwRad[77] = 250.0;	empRad[77] = 135.0;	calcRad[77] = 180.0;	//	Ir	iridium
+		atmWt[78] = 195.084;	vdwRad[78] = 175.0;	empRad[78] = 135.0;	calcRad[78] = 177.0;	//	Pt	platinum
+		atmWt[79] = 196.9665;	vdwRad[79] = 166.0;	empRad[79] = 135.0;	calcRad[79] = 174.0;	//	Au	gold
+		atmWt[80] = 200.59;	vdwRad[80] = 155.0;	empRad[80] = 150.0;	calcRad[80] = 171.0;	//	Hg	mercury
+		atmWt[81] = 204.38;	vdwRad[81] = 196.0;	empRad[81] = 190.0;	calcRad[81] = 156.0;	//	Tl	thallium
+		atmWt[82] = 207.2;	vdwRad[82] = 202.0;	empRad[82] = 180.0;	calcRad[82] = 154.0;	//	Pb	lead
+		atmWt[83] = 208.9804;	vdwRad[83] = 207.0;	empRad[83] = 160.0;	calcRad[83] = 143.0;	//	Bi	bismuth
+		atmWt[84] = 209.0;	vdwRad[84] = 197.0;	empRad[84] = 190.0;	calcRad[84] = 135.0;	//	Po	polonium
+		atmWt[85] = 210.0;	vdwRad[85] = 202.0;	empRad[85] = 250.0;	calcRad[85] = 250.0;	//	At	astatine
+		atmWt[86] = 222.0;	vdwRad[86] = 220.0;	empRad[86] = 120.0;	calcRad[86] = 120.0;	//	Rn	radon
+		atmWt[87] = 223.0;	vdwRad[87] = 348.0;	empRad[87] = 250.0;	calcRad[87] = 250.0;	//	Fr	francium
+		atmWt[88] = 226.0;	vdwRad[88] = 283.0;	empRad[88] = 215.0;	calcRad[88] = 215.0;	//	Ra	radium
+		atmWt[89] = 227.0;	vdwRad[89] = 250.0;	empRad[89] = 195.0;	calcRad[89] = 195.0;	//	Ac	actinium
+		atmWt[90] = 232.0381;	vdwRad[90] = 250.0;	empRad[90] = 180.0;	calcRad[90] = 180.0;	//	Th	thorium
+		atmWt[91] = 231.0359;	vdwRad[91] = 250.0;	empRad[91] = 180.0;	calcRad[91] = 180.0;	//	Pa	protactinium
+		atmWt[92] = 238.0289;	vdwRad[92] = 186.0;	empRad[92] = 175.0;	calcRad[92] = 175.0;	//	U	uranium
+		atmWt[93] = 237.0;	vdwRad[93] = 225.0;	empRad[93] = 175.0;	calcRad[93] = 175.0;	//	Np	neptunium
+		atmWt[94] = 244.0;	vdwRad[94] = 250.0;	empRad[94] = 175.0;	calcRad[94] = 175.0;	//	Pu	plutonium
+		atmWt[95] = 243.0;	vdwRad[95] = 225.0;	empRad[95] = 175.0;	calcRad[95] = 175.0;	//	Am	americium
+		atmWt[96] = 247.0;	vdwRad[96] = 250.0;												//	Cm	curium
+		atmWt[97] = 247.0;	vdwRad[97] = 250.0;												//	Bk	berkelium
+		atmWt[98] = 251.0;	vdwRad[98] = 250.0;												//	Cf	californium
+		atmWt[99] = 252.0;	vdwRad[99] = 250.0;												//	Es	einsteinium
+		atmWt[100] = 257.0;																	//Fm Fermium		
+		atmWt[101] = 258.0;																	//Md Mendelevium		
+		atmWt[102] = 259.0;																	//No Nobelium		
+		atmWt[103] = 262.0;																	//Lr Lawrencium		
+		atmWt[104] = 265.0;																	//Rf Rutherfordium		
+		atmWt[105] = 268.0;																	//Db Dubnium		
+		atmWt[106] = 271.0;																	//Sg Seaborgium		
+		atmWt[107] = 270.0;																	//Bh Bohrium		
+		atmWt[108] = 277.0;																	//Hs Hassium		
+		atmWt[109] = 276.0;																	//Mt Meitnerium		
+		atmWt[110] = 281.0;																	//Ds Darmstadtium		
+		atmWt[111] = 280.0;																	//Rg	Roentgenium	
+		atmWt[112] = 285.0;																	//Cn Copernicium		
+		atmWt[113] = 284.0;																	//Uut	Ununtrium	
+		atmWt[114] = 289.0;																	//Uuq Ununquadium		
+		atmWt[115] = 288.0;																	//Uup Ununpentium		
+		atmWt[116] = 293.0;																	//Uuh Ununhexium		
+		atmWt[117] = 294.0;																	//Uus Ununseptium		
+		atmWt[118] = 294.0;																	//Uuo Ununoctium		
+#pragma endregion
+
+		for (unsigned int i = 0; i < vdwRad.size(); i++) {
+			vdwRad[i] = vdwRad[i] / 1000.0;	// pm --> nm
+			empRad[i] = empRad[i] / 1000.0;	// pm --> nm
+			calcRad[i] = calcRad[i] / 1000.0;	// pm --> nm
+		}
+
+		svgRad = empRad;
+		svgRad[1] = 0.107;
+		svgRad[6] = 0.1577;
+		svgRad[7] = 0.08414;
+		svgRad[8] = 0.130;
+		svgRad[16] = 0.168;
+		svgRad[12] = 0.160;
+		svgRad[15] = 0.111;
+		svgRad[20] = 0.197;
+		svgRad[25] = 0.130;
+		svgRad[26] = 0.124;
+		svgRad[29] = 0.128;
+		svgRad[30] = 0.133;
+
+		//////////////////////////////////////////////////////////////////////////
+		// Atomic groups (CH, NH3, etc.)
+
+		// CH CH2 CH3
+		atmWt[119] = 1 * atmWt[0] + atmWt[6];
+		atmWt[120] = 2 * atmWt[0] + atmWt[6];
+		atmWt[121] = 3 * atmWt[0] + atmWt[6];
+		vdwRad[119] = cbrt(vdwRad[6] * vdwRad[6] * vdwRad[6] + vdwRad[0] * vdwRad[0] * vdwRad[0]);
+		vdwRad[120] = cbrt(vdwRad[6] * vdwRad[6] * vdwRad[6] + 2. * vdwRad[0] * vdwRad[0] * vdwRad[0]);
+		vdwRad[121] = cbrt(vdwRad[6] * vdwRad[6] * vdwRad[6] + 3. * vdwRad[0] * vdwRad[0] * vdwRad[0]);
+		empRad[119] = cbrt(empRad[6] * empRad[6] * empRad[6] + empRad[0] * empRad[0] * empRad[0]);
+		empRad[120] = cbrt(empRad[6] * empRad[6] * empRad[6] + 2. * empRad[0] * empRad[0] * empRad[0]);
+		empRad[121] = cbrt(empRad[6] * empRad[6] * empRad[6] + 3. * empRad[0] * empRad[0] * empRad[0]);
+		calcRad[119] = cbrt(calcRad[6] * calcRad[6] * calcRad[6] + calcRad[0] * calcRad[0] * calcRad[0]);
+		calcRad[120] = cbrt(calcRad[6] * calcRad[6] * calcRad[6] + 2. * calcRad[0] * calcRad[0] * calcRad[0]);
+		calcRad[121] = cbrt(calcRad[6] * calcRad[6] * calcRad[6] + 3. * calcRad[0] * calcRad[0] * calcRad[0]);
+		svgRad[119] = 0.173;
+		svgRad[120] = 0.185;
+		svgRad[121] = 0.197;
+
+		// NH NH2 NH3
+		atmWt[122] = 1 * atmWt[0] + atmWt[7];
+		atmWt[123] = 2 * atmWt[0] + atmWt[7];
+		atmWt[124] = 3 * atmWt[0] + atmWt[7];
+		vdwRad[122] = cbrt(vdwRad[7] * vdwRad[7] * vdwRad[7] + vdwRad[0] * vdwRad[0] * vdwRad[0]);
+		vdwRad[123] = cbrt(vdwRad[7] * vdwRad[7] * vdwRad[7] + 2. * vdwRad[0] * vdwRad[0] * vdwRad[0]);
+		vdwRad[124] = cbrt(vdwRad[7] * vdwRad[7] * vdwRad[7] + 3. * vdwRad[0] * vdwRad[0] * vdwRad[0]);
+		empRad[122] = cbrt(empRad[7] * empRad[7] * empRad[7] + empRad[0] * empRad[0] * empRad[0]);
+		empRad[123] = cbrt(empRad[7] * empRad[7] * empRad[7] + 2. * empRad[0] * empRad[0] * empRad[0]);
+		empRad[124] = cbrt(empRad[7] * empRad[7] * empRad[7] + 3. * empRad[0] * empRad[0] * empRad[0]);
+		calcRad[122] = cbrt(calcRad[7] * calcRad[7] * calcRad[7] + calcRad[0] * calcRad[0] * calcRad[0]);
+		calcRad[123] = cbrt(calcRad[7] * calcRad[7] * calcRad[7] + 2. * calcRad[0] * calcRad[0] * calcRad[0]);
+		calcRad[124] = cbrt(calcRad[7] * calcRad[7] * calcRad[7] + 3. * calcRad[0] * calcRad[0] * calcRad[0]);
+		svgRad[122] = 0.122;
+		svgRad[123] = 0.145;
+		svgRad[124] = 0.162;
+
+		// OH
+		atmWt[125] = 1 * atmWt[0] + atmWt[8];
+		vdwRad[125] = cbrt(vdwRad[8] * vdwRad[8] * vdwRad[8] + vdwRad[0] * vdwRad[0] * vdwRad[0]);
+		empRad[125] = cbrt(empRad[8] * empRad[8] * empRad[8] + 2. * empRad[0] * empRad[0] * empRad[0]);
+		calcRad[125] = cbrt(calcRad[8] * calcRad[8] * calcRad[8] + 3. * calcRad[0] * calcRad[0] * calcRad[0]);
+		svgRad[125] = 0.150;
+
+		// SH
+		atmWt[126] = 1 * atmWt[0] + atmWt[16];
+		vdwRad[126] = cbrt(vdwRad[16] * vdwRad[16] * vdwRad[16] + vdwRad[0] * vdwRad[0] * vdwRad[0]);
+		empRad[126] = cbrt(empRad[16] * empRad[16] * empRad[16] + 2. * empRad[0] * empRad[0] * empRad[0]);
+		calcRad[126] = cbrt(calcRad[16] * calcRad[16] * calcRad[16] + 3. * calcRad[0] * calcRad[0] * calcRad[0]);
+		svgRad[126] = 0.181;
+	}
+
+	template<class FLOAT_TYPE>
 	void PDBReaderOb<FLOAT_TYPE>::moveCOMToOrigin()
 	{
 		FLOAT_TYPE xx = 0.0, yy = 0.0, zz = 0.0, wt = 0.0, aWt = 0.0;
@@ -1589,221 +1807,7 @@ namespace PDBReader {
 	template<class FLOAT_TYPE>
 	void XRayPDBReaderOb<FLOAT_TYPE>::initialize() {
 
-		this->haveAnomalousAtoms = false;
-		this->bOutputSlices = false;
-		this->atmRadType = RAD_UNINITIALIZED;
-		this->bOnlySolvent = false;
-
-		const int number_of_atoms_and_groups =
-			119 + // Basic atoms
-			8;	// CH, CH2, CH3, NH, NH2, NH3, OH, SH
-
-		atmWt.resize(number_of_atoms_and_groups, 0.0);
-		vdwRad.resize(number_of_atoms_and_groups, 0.0);
-		empRad.resize(number_of_atoms_and_groups, 0.0);
-		calcRad.resize(number_of_atoms_and_groups, 0.0);
-		svgRad.resize(number_of_atoms_and_groups, 0.0);
-#pragma region Atomic weights and radii
-		// Templated code, assignments produce conversion/truncation warnings
-#if defined(WIN32) || defined(_WIN32)
-#pragma warning( push )
-#pragma warning( disable : 4305)
-#pragma warning( disable : 4244)
-#endif
-
-		atmWt[0] = 0.0;		vdwRad[0] = 0.0;	empRad[0] = 0.0;	calcRad[0] = 0.0;
-		atmWt[1] = 1.008;	vdwRad[1] = 120.0;	empRad[1] = 25.0;	calcRad[1] = 53.0;	//	H	hydrogen
-		atmWt[2] = 4.002602;	vdwRad[2] = 140.0;	empRad[2] = 31.0;	calcRad[2] = 31.0;	//	He	helium
-		atmWt[3] = 6.94;		vdwRad[3] = 182.0;	empRad[3] = 145.0;	calcRad[3] = 167.0;	//	Li	lithium
-		atmWt[4] = 9.012182;	vdwRad[4] = 153.0;	empRad[4] = 105.0;	calcRad[4] = 112.0;	//	Be	beryllium
-		atmWt[5] = 10.81;	vdwRad[5] = 192.0;	empRad[5] = 85.0;	calcRad[5] = 87.0;	//	B	boron
-		atmWt[6] = 12.011;	vdwRad[6] = 170.0;	empRad[6] = 70.0;	calcRad[6] = 67.0;	//	C	carbon
-		atmWt[7] = 14.007;	vdwRad[7] = 155.0;	empRad[7] = 65.0;	calcRad[7] = 56.0;	//	N	nitrogen
-		atmWt[8] = 15.999;	vdwRad[8] = 152.0;	empRad[8] = 60.0;	calcRad[8] = 48.0;	//	O	oxygen
-		atmWt[9] = 18.9984;	vdwRad[9] = 147.0;	empRad[9] = 50.0;	calcRad[9] = 42.0;	//	F	fluorine
-		atmWt[10] = 20.1797;	vdwRad[10] = 154.0;	empRad[10] = 38.0;	calcRad[10] = 38.0;	//	Ne	neon
-		atmWt[11] = 22.98976;	vdwRad[11] = 227.0;	empRad[11] = 180.0;	calcRad[11] = 190.0;	//	Na	sodium
-		atmWt[12] = 24.3050;	vdwRad[12] = 173.0;	empRad[12] = 150.0;	calcRad[12] = 145.0;	//	Mg	magnesium
-		atmWt[13] = 26.98153;	vdwRad[13] = 184.0;	empRad[13] = 125.0;	calcRad[13] = 118.0;	//	Al	aluminium
-		atmWt[14] = 28.085;	vdwRad[14] = 210.0;	empRad[14] = 110.0;	calcRad[14] = 111.0;	//	Si	silicon
-		atmWt[15] = 30.97376;	vdwRad[15] = 180.0;	empRad[15] = 100.0;	calcRad[15] = 98.0;	//	P	phosphorus
-		atmWt[16] = 32.06;	vdwRad[16] = 180.0;	empRad[16] = 100.0;	calcRad[16] = 88.0;	//	S	sulfur
-		atmWt[17] = 35.45;	vdwRad[17] = 175.0;	empRad[17] = 100.0;	calcRad[17] = 79.0;	//	Cl	chlorine
-		atmWt[18] = 39.948;	vdwRad[18] = 188.0;	empRad[18] = 71.0;	calcRad[18] = 71.0;	//	Ar	argon
-		atmWt[19] = 39.0983;	vdwRad[19] = 275.0;	empRad[19] = 220.0;	calcRad[19] = 243.0;	//	K	potassium
-		atmWt[20] = 40.078;	vdwRad[20] = 231.0;	empRad[20] = 180.0;	calcRad[20] = 194.0;	//	Ca	calcium
-		atmWt[21] = 44.95591;	vdwRad[21] = 211.0;	empRad[21] = 160.0;	calcRad[21] = 184.0;	//	Sc	scandium
-		atmWt[22] = 47.867;	vdwRad[22] = 201.0;	empRad[22] = 140.0;	calcRad[22] = 176.0;	//	Ti	titanium
-		atmWt[23] = 50.9415;	vdwRad[23] = 196.0;	empRad[23] = 135.0;	calcRad[23] = 171.0;	//	V	vanadium
-		atmWt[24] = 51.9961;	vdwRad[24] = 191.0;	empRad[24] = 140.0;	calcRad[24] = 166.0;	//	Cr	chromium
-		atmWt[25] = 54.93804;	vdwRad[25] = 186.0;	empRad[25] = 140.0;	calcRad[25] = 161.0;	//	Mn	manganese
-		atmWt[26] = 55.845;	vdwRad[26] = 181.0;	empRad[26] = 140.0;	calcRad[26] = 156.0;	//	Fe	iron
-		atmWt[27] = 58.93319;	vdwRad[27] = 177.0;	empRad[27] = 135.0;	calcRad[27] = 152.0;	//	Co	cobalt
-		atmWt[28] = 58.6934;	vdwRad[28] = 163.0;	empRad[28] = 135.0;	calcRad[28] = 149.0;	//	Ni	nickel
-		atmWt[29] = 63.546;	vdwRad[29] = 140.0;	empRad[29] = 135.0;	calcRad[29] = 145.0;	//	Cu	copper
-		atmWt[30] = 65.38;	vdwRad[30] = 139.0;	empRad[30] = 135.0;	calcRad[30] = 142.0;	//	Zn	zinc
-		atmWt[31] = 69.723;	vdwRad[31] = 187.0;	empRad[31] = 130.0;	calcRad[31] = 136.0;	//	Ga	gallium
-		atmWt[32] = 72.63;	vdwRad[32] = 211.0;	empRad[32] = 125.0;	calcRad[32] = 125.0;	//	Ge	germanium
-		atmWt[33] = 74.92160;	vdwRad[33] = 185.0;	empRad[33] = 115.0;	calcRad[33] = 114.0;	//	As	arsenic
-		atmWt[34] = 78.96;	vdwRad[34] = 190.0;	empRad[34] = 115.0;	calcRad[34] = 103.0;	//	Se	selenium
-		atmWt[35] = 79.904;	vdwRad[35] = 185.0;	empRad[35] = 115.0;	calcRad[35] = 94.0;	//	Br	bromine
-		atmWt[36] = 83.798;	vdwRad[36] = 202.0;	empRad[36] = 88.0;	calcRad[36] = 88.0;	//	Kr	krypton
-		atmWt[37] = 85.4678;	vdwRad[37] = 303.0;	empRad[37] = 235.0;	calcRad[37] = 265.0;	//	Rb	rubidium
-		atmWt[38] = 87.62;	vdwRad[38] = 249.0;	empRad[38] = 200.0;	calcRad[38] = 219.0;	//	Sr	strontium
-		atmWt[39] = 88.90585;	vdwRad[39] = 237.0;	empRad[39] = 180.0;	calcRad[39] = 212.0;	//	Y	yttrium
-		atmWt[40] = 91.224;	vdwRad[40] = 231.0;	empRad[40] = 155.0;	calcRad[40] = 206.0;	//	Zr	zirconium
-		atmWt[41] = 92.90638;	vdwRad[41] = 223.0;	empRad[41] = 145.0;	calcRad[41] = 198.0;	//	Nb	niobium
-		atmWt[42] = 95.96;	vdwRad[42] = 215.0;	empRad[42] = 145.0;	calcRad[42] = 190.0;	//	Mo	molybdenum
-		atmWt[43] = 98.0;		vdwRad[43] = 208.0;	empRad[43] = 135.0;	calcRad[43] = 183.0;	//	Tc	technetium
-		atmWt[44] = 101.07;	vdwRad[44] = 203.0;	empRad[44] = 130.0;	calcRad[44] = 178.0;	//	Ru	ruthenium
-		atmWt[45] = 102.9055;	vdwRad[45] = 198.0;	empRad[45] = 135.0;	calcRad[45] = 173.0;	//	Rh	rhodium
-		atmWt[46] = 106.42;	vdwRad[46] = 163.0;	empRad[46] = 140.0;	calcRad[46] = 169.0;	//	Pd	palladium
-		atmWt[47] = 107.8682;	vdwRad[47] = 172.0;	empRad[47] = 160.0;	calcRad[47] = 165.0;	//	Ag	silver
-		atmWt[48] = 112.411;	vdwRad[48] = 158.0;	empRad[48] = 155.0;	calcRad[48] = 161.0;	//	Cd	cadmium
-		atmWt[49] = 114.818;	vdwRad[49] = 193.0;	empRad[49] = 155.0;	calcRad[49] = 156.0;	//	In	indium
-		atmWt[50] = 118.710;	vdwRad[50] = 217.0;	empRad[50] = 145.0;	calcRad[50] = 145.0;	//	Sn	tin
-		atmWt[51] = 121.760;	vdwRad[51] = 206.0;	empRad[51] = 145.0;	calcRad[51] = 133.0;	//	Sb	antimony
-		atmWt[52] = 127.60;	vdwRad[52] = 206.0;	empRad[52] = 140.0;	calcRad[52] = 123.0;	//	Te	tellurium
-		atmWt[53] = 126.9044;	vdwRad[53] = 198.0;	empRad[53] = 140.0;	calcRad[53] = 115.0;	//	I	iodine
-		atmWt[54] = 131.293;	vdwRad[54] = 216.0;	empRad[54] = 108.0;	calcRad[54] = 108.0;	//	Xe	xenon
-		atmWt[55] = 132.9054;	vdwRad[55] = 343.0;	empRad[55] = 260.0;	calcRad[55] = 298.0;	//	Cs	caesium
-		atmWt[56] = 137.327;	vdwRad[56] = 268.0;	empRad[56] = 215.0;	calcRad[56] = 253.0;	//	Ba	barium
-		atmWt[57] = 138.9054;	vdwRad[57] = 250.0;	empRad[57] = 195.0;	calcRad[57] = 195.0;	//	La	lanthanum
-		atmWt[58] = 140.116;	vdwRad[58] = 250.0;	empRad[58] = 185.0;	calcRad[58] = 185.0;	//	Ce	cerium
-		atmWt[59] = 140.9076;	vdwRad[59] = 250.0;	empRad[59] = 185.0;	calcRad[59] = 247.0;	//	Pr	praseodymium
-		atmWt[60] = 144.242;	vdwRad[60] = 250.0;	empRad[60] = 185.0;	calcRad[60] = 206.0;	//	Nd	neodymium
-		atmWt[61] = 145.0;	vdwRad[61] = 250.0;	empRad[61] = 185.0;	calcRad[61] = 205.0;	//	Pm	promethium
-		atmWt[62] = 150.36;	vdwRad[62] = 250.0;	empRad[62] = 185.0;	calcRad[62] = 238.0;	//	Sm	samarium
-		atmWt[63] = 151.964;	vdwRad[63] = 250.0;	empRad[63] = 185.0;	calcRad[63] = 231.0;	//	Eu	europium
-		atmWt[64] = 157.25;	vdwRad[64] = 250.0;	empRad[64] = 180.0;	calcRad[64] = 233.0;	//	Gd	gadolinium
-		atmWt[65] = 158.9253;	vdwRad[65] = 250.0;	empRad[65] = 175.0;	calcRad[65] = 225.0;	//	Tb	terbium
-		atmWt[66] = 162.500;	vdwRad[66] = 250.0;	empRad[66] = 175.0;	calcRad[66] = 228.0;	//	Dy	dysprosium
-		atmWt[67] = 164.9303;	vdwRad[67] = 250.0;	empRad[67] = 175.0;	calcRad[67] = 175.0;	//	Ho	holmium
-		atmWt[68] = 167.259;	vdwRad[68] = 250.0;	empRad[68] = 175.0;	calcRad[68] = 226.0;	//	Er	erbium
-		atmWt[69] = 168.9342;	vdwRad[69] = 250.0;	empRad[69] = 175.0;	calcRad[69] = 222.0;	//	Tm	thulium
-		atmWt[70] = 173.054;	vdwRad[70] = 250.0;	empRad[70] = 175.0;	calcRad[70] = 222.0;	//	Yb	ytterbium
-		atmWt[71] = 174.9668;	vdwRad[71] = 250.0;	empRad[71] = 175.0;	calcRad[71] = 217.0;	//	Lu	lutetium
-		atmWt[72] = 178.49;	vdwRad[72] = 250.0;	empRad[72] = 155.0;	calcRad[72] = 208.0;	//	Hf	hafnium
-		atmWt[73] = 180.9478;	vdwRad[73] = 250.0;	empRad[73] = 145.0;	calcRad[73] = 200.0;	//	Ta	tantalum
-		atmWt[74] = 183.84;	vdwRad[74] = 250.0;	empRad[74] = 135.0;	calcRad[74] = 193.0;	//	W	tungsten
-		atmWt[75] = 186.207;	vdwRad[75] = 250.0;	empRad[75] = 135.0;	calcRad[75] = 188.0;	//	Re	rhenium
-		atmWt[76] = 190.23;	vdwRad[76] = 250.0;	empRad[76] = 130.0;	calcRad[76] = 185.0;	//	Os	osmium
-		atmWt[77] = 192.217;	vdwRad[77] = 250.0;	empRad[77] = 135.0;	calcRad[77] = 180.0;	//	Ir	iridium
-		atmWt[78] = 195.084;	vdwRad[78] = 175.0;	empRad[78] = 135.0;	calcRad[78] = 177.0;	//	Pt	platinum
-		atmWt[79] = 196.9665;	vdwRad[79] = 166.0;	empRad[79] = 135.0;	calcRad[79] = 174.0;	//	Au	gold
-		atmWt[80] = 200.59;	vdwRad[80] = 155.0;	empRad[80] = 150.0;	calcRad[80] = 171.0;	//	Hg	mercury
-		atmWt[81] = 204.38;	vdwRad[81] = 196.0;	empRad[81] = 190.0;	calcRad[81] = 156.0;	//	Tl	thallium
-		atmWt[82] = 207.2;	vdwRad[82] = 202.0;	empRad[82] = 180.0;	calcRad[82] = 154.0;	//	Pb	lead
-		atmWt[83] = 208.9804;	vdwRad[83] = 207.0;	empRad[83] = 160.0;	calcRad[83] = 143.0;	//	Bi	bismuth
-		atmWt[84] = 209.0;	vdwRad[84] = 197.0;	empRad[84] = 190.0;	calcRad[84] = 135.0;	//	Po	polonium
-		atmWt[85] = 210.0;	vdwRad[85] = 202.0;	empRad[85] = 250.0;	calcRad[85] = 250.0;	//	At	astatine
-		atmWt[86] = 222.0;	vdwRad[86] = 220.0;	empRad[86] = 120.0;	calcRad[86] = 120.0;	//	Rn	radon
-		atmWt[87] = 223.0;	vdwRad[87] = 348.0;	empRad[87] = 250.0;	calcRad[87] = 250.0;	//	Fr	francium
-		atmWt[88] = 226.0;	vdwRad[88] = 283.0;	empRad[88] = 215.0;	calcRad[88] = 215.0;	//	Ra	radium
-		atmWt[89] = 227.0;	vdwRad[89] = 250.0;	empRad[89] = 195.0;	calcRad[89] = 195.0;	//	Ac	actinium
-		atmWt[90] = 232.0381;	vdwRad[90] = 250.0;	empRad[90] = 180.0;	calcRad[90] = 180.0;	//	Th	thorium
-		atmWt[91] = 231.0359;	vdwRad[91] = 250.0;	empRad[91] = 180.0;	calcRad[91] = 180.0;	//	Pa	protactinium
-		atmWt[92] = 238.0289;	vdwRad[92] = 186.0;	empRad[92] = 175.0;	calcRad[92] = 175.0;	//	U	uranium
-		atmWt[93] = 237.0;	vdwRad[93] = 225.0;	empRad[93] = 175.0;	calcRad[93] = 175.0;	//	Np	neptunium
-		atmWt[94] = 244.0;	vdwRad[94] = 250.0;	empRad[94] = 175.0;	calcRad[94] = 175.0;	//	Pu	plutonium
-		atmWt[95] = 243.0;	vdwRad[95] = 225.0;	empRad[95] = 175.0;	calcRad[95] = 175.0;	//	Am	americium
-		atmWt[96] = 247.0;	vdwRad[96] = 250.0;												//	Cm	curium
-		atmWt[97] = 247.0;	vdwRad[97] = 250.0;												//	Bk	berkelium
-		atmWt[98] = 251.0;	vdwRad[98] = 250.0;												//	Cf	californium
-		atmWt[99] = 252.0;	vdwRad[99] = 250.0;												//	Es	einsteinium
-		atmWt[100] = 257.0;																	//Fm Fermium		
-		atmWt[101] = 258.0;																	//Md Mendelevium		
-		atmWt[102] = 259.0;																	//No Nobelium		
-		atmWt[103] = 262.0;																	//Lr Lawrencium		
-		atmWt[104] = 265.0;																	//Rf Rutherfordium		
-		atmWt[105] = 268.0;																	//Db Dubnium		
-		atmWt[106] = 271.0;																	//Sg Seaborgium		
-		atmWt[107] = 270.0;																	//Bh Bohrium		
-		atmWt[108] = 277.0;																	//Hs Hassium		
-		atmWt[109] = 276.0;																	//Mt Meitnerium		
-		atmWt[110] = 281.0;																	//Ds Darmstadtium		
-		atmWt[111] = 280.0;																	//Rg	Roentgenium	
-		atmWt[112] = 285.0;																	//Cn Copernicium		
-		atmWt[113] = 284.0;																	//Uut	Ununtrium	
-		atmWt[114] = 289.0;																	//Uuq Ununquadium		
-		atmWt[115] = 288.0;																	//Uup Ununpentium		
-		atmWt[116] = 293.0;																	//Uuh Ununhexium		
-		atmWt[117] = 294.0;																	//Uus Ununseptium		
-		atmWt[118] = 294.0;																	//Uuo Ununoctium		
-#pragma endregion
-
-		for (unsigned int i = 0; i < vdwRad.size(); i++) {
-			vdwRad[i] = vdwRad[i] / 1000.0;	// pm --> nm
-			empRad[i] = empRad[i] / 1000.0;	// pm --> nm
-			calcRad[i] = calcRad[i] / 1000.0;	// pm --> nm
-		}
-
-		svgRad = empRad;
-		svgRad[1] = 0.107;
-		svgRad[6] = 0.1577;
-		svgRad[7] = 0.08414;
-		svgRad[8] = 0.130;
-		svgRad[16] = 0.168;
-		svgRad[12] = 0.160;
-		svgRad[15] = 0.111;
-		svgRad[20] = 0.197;
-		svgRad[25] = 0.130;
-		svgRad[26] = 0.124;
-		svgRad[29] = 0.128;
-		svgRad[30] = 0.133;
-
-		//////////////////////////////////////////////////////////////////////////
-		// Atomic groups (CH, NH3, etc.)
-
-		// CH CH2 CH3
-		atmWt[119] = 1 * atmWt[0] + atmWt[6];
-		atmWt[120] = 2 * atmWt[0] + atmWt[6];
-		atmWt[121] = 3 * atmWt[0] + atmWt[6];
-		vdwRad[119] = cbrt(vdwRad[6] * vdwRad[6] * vdwRad[6] + vdwRad[0] * vdwRad[0] * vdwRad[0]);
-		vdwRad[120] = cbrt(vdwRad[6] * vdwRad[6] * vdwRad[6] + 2. * vdwRad[0] * vdwRad[0] * vdwRad[0]);
-		vdwRad[121] = cbrt(vdwRad[6] * vdwRad[6] * vdwRad[6] + 3. * vdwRad[0] * vdwRad[0] * vdwRad[0]);
-		empRad[119] = cbrt(empRad[6] * empRad[6] * empRad[6] + empRad[0] * empRad[0] * empRad[0]);
-		empRad[120] = cbrt(empRad[6] * empRad[6] * empRad[6] + 2. * empRad[0] * empRad[0] * empRad[0]);
-		empRad[121] = cbrt(empRad[6] * empRad[6] * empRad[6] + 3. * empRad[0] * empRad[0] * empRad[0]);
-		calcRad[119] = cbrt(calcRad[6] * calcRad[6] * calcRad[6] + calcRad[0] * calcRad[0] * calcRad[0]);
-		calcRad[120] = cbrt(calcRad[6] * calcRad[6] * calcRad[6] + 2. * calcRad[0] * calcRad[0] * calcRad[0]);
-		calcRad[121] = cbrt(calcRad[6] * calcRad[6] * calcRad[6] + 3. * calcRad[0] * calcRad[0] * calcRad[0]);
-		svgRad[119] = 0.173;
-		svgRad[120] = 0.185;
-		svgRad[121] = 0.197;
-
-		// NH NH2 NH3
-		atmWt[122] = 1 * atmWt[0] + atmWt[7];
-		atmWt[123] = 2 * atmWt[0] + atmWt[7];
-		atmWt[124] = 3 * atmWt[0] + atmWt[7];
-		vdwRad[122] = cbrt(vdwRad[7] * vdwRad[7] * vdwRad[7] + vdwRad[0] * vdwRad[0] * vdwRad[0]);
-		vdwRad[123] = cbrt(vdwRad[7] * vdwRad[7] * vdwRad[7] + 2. * vdwRad[0] * vdwRad[0] * vdwRad[0]);
-		vdwRad[124] = cbrt(vdwRad[7] * vdwRad[7] * vdwRad[7] + 3. * vdwRad[0] * vdwRad[0] * vdwRad[0]);
-		empRad[122] = cbrt(empRad[7] * empRad[7] * empRad[7] + empRad[0] * empRad[0] * empRad[0]);
-		empRad[123] = cbrt(empRad[7] * empRad[7] * empRad[7] + 2. * empRad[0] * empRad[0] * empRad[0]);
-		empRad[124] = cbrt(empRad[7] * empRad[7] * empRad[7] + 3. * empRad[0] * empRad[0] * empRad[0]);
-		calcRad[122] = cbrt(calcRad[7] * calcRad[7] * calcRad[7] + calcRad[0] * calcRad[0] * calcRad[0]);
-		calcRad[123] = cbrt(calcRad[7] * calcRad[7] * calcRad[7] + 2. * calcRad[0] * calcRad[0] * calcRad[0]);
-		calcRad[124] = cbrt(calcRad[7] * calcRad[7] * calcRad[7] + 3. * calcRad[0] * calcRad[0] * calcRad[0]);
-		svgRad[122] = 0.122;
-		svgRad[123] = 0.145;
-		svgRad[124] = 0.162;
-
-		// OH
-		atmWt[125] = 1 * atmWt[0] + atmWt[8];
-		vdwRad[125] = cbrt(vdwRad[8] * vdwRad[8] * vdwRad[8] + vdwRad[0] * vdwRad[0] * vdwRad[0]);
-		empRad[125] = cbrt(empRad[8] * empRad[8] * empRad[8] + 2. * empRad[0] * empRad[0] * empRad[0]);
-		calcRad[125] = cbrt(calcRad[8] * calcRad[8] * calcRad[8] + 3. * calcRad[0] * calcRad[0] * calcRad[0]);
-		svgRad[125] = 0.150;
-
-		// SH
-		atmWt[126] = 1 * atmWt[0] + atmWt[16];
-		vdwRad[126] = cbrt(vdwRad[16] * vdwRad[16] * vdwRad[16] + vdwRad[0] * vdwRad[0] * vdwRad[0]);
-		empRad[126] = cbrt(empRad[16] * empRad[16] * empRad[16] + 2. * empRad[0] * empRad[0] * empRad[0]);
-		calcRad[126] = cbrt(calcRad[16] * calcRad[16] * calcRad[16] + 3. * calcRad[0] * calcRad[0] * calcRad[0]);
-		svgRad[126] = 0.181;
-
-
+		generalInitialize();
 
 		// Load atomic form factor coefficients (KEEP IN ONE PLACE! here is better)
 		// Values of Table 2.2B (International Tables of X-ray Crystallography Vol IV)
@@ -2524,221 +2528,7 @@ namespace PDBReader {
 	template<class FLOAT_TYPE>
 	void ElectronPDBReaderOb<FLOAT_TYPE>::initialize() {
 
-		this->haveAnomalousAtoms = false;
-		this->bOutputSlices = false;
-		this->atmRadType = RAD_UNINITIALIZED;
-		this->bOnlySolvent = false;
-
-		const int number_of_atoms_and_groups =
-			119 + // Basic atoms
-			8;	// CH, CH2, CH3, NH, NH2, NH3, OH, SH
-
-		atmWt.resize(number_of_atoms_and_groups, 0.0);
-		vdwRad.resize(number_of_atoms_and_groups, 0.0);
-		empRad.resize(number_of_atoms_and_groups, 0.0);
-		calcRad.resize(number_of_atoms_and_groups, 0.0);
-		svgRad.resize(number_of_atoms_and_groups, 0.0);
-#pragma region Atomic weights and radii
-		// Templated code, assignments produce conversion/truncation warnings
-#if defined(WIN32) || defined(_WIN32)
-#pragma warning( push )
-#pragma warning( disable : 4305)
-#pragma warning( disable : 4244)
-#endif
-
-		atmWt[0] = 0.0;		vdwRad[0] = 0.0;	empRad[0] = 0.0;	calcRad[0] = 0.0;
-		atmWt[1] = 1.008;	vdwRad[1] = 120.0;	empRad[1] = 25.0;	calcRad[1] = 53.0;	//	H	hydrogen
-		atmWt[2] = 4.002602;	vdwRad[2] = 140.0;	empRad[2] = 31.0;	calcRad[2] = 31.0;	//	He	helium
-		atmWt[3] = 6.94;		vdwRad[3] = 182.0;	empRad[3] = 145.0;	calcRad[3] = 167.0;	//	Li	lithium
-		atmWt[4] = 9.012182;	vdwRad[4] = 153.0;	empRad[4] = 105.0;	calcRad[4] = 112.0;	//	Be	beryllium
-		atmWt[5] = 10.81;	vdwRad[5] = 192.0;	empRad[5] = 85.0;	calcRad[5] = 87.0;	//	B	boron
-		atmWt[6] = 12.011;	vdwRad[6] = 170.0;	empRad[6] = 70.0;	calcRad[6] = 67.0;	//	C	carbon
-		atmWt[7] = 14.007;	vdwRad[7] = 155.0;	empRad[7] = 65.0;	calcRad[7] = 56.0;	//	N	nitrogen
-		atmWt[8] = 15.999;	vdwRad[8] = 152.0;	empRad[8] = 60.0;	calcRad[8] = 48.0;	//	O	oxygen
-		atmWt[9] = 18.9984;	vdwRad[9] = 147.0;	empRad[9] = 50.0;	calcRad[9] = 42.0;	//	F	fluorine
-		atmWt[10] = 20.1797;	vdwRad[10] = 154.0;	empRad[10] = 38.0;	calcRad[10] = 38.0;	//	Ne	neon
-		atmWt[11] = 22.98976;	vdwRad[11] = 227.0;	empRad[11] = 180.0;	calcRad[11] = 190.0;	//	Na	sodium
-		atmWt[12] = 24.3050;	vdwRad[12] = 173.0;	empRad[12] = 150.0;	calcRad[12] = 145.0;	//	Mg	magnesium
-		atmWt[13] = 26.98153;	vdwRad[13] = 184.0;	empRad[13] = 125.0;	calcRad[13] = 118.0;	//	Al	aluminium
-		atmWt[14] = 28.085;	vdwRad[14] = 210.0;	empRad[14] = 110.0;	calcRad[14] = 111.0;	//	Si	silicon
-		atmWt[15] = 30.97376;	vdwRad[15] = 180.0;	empRad[15] = 100.0;	calcRad[15] = 98.0;	//	P	phosphorus
-		atmWt[16] = 32.06;	vdwRad[16] = 180.0;	empRad[16] = 100.0;	calcRad[16] = 88.0;	//	S	sulfur
-		atmWt[17] = 35.45;	vdwRad[17] = 175.0;	empRad[17] = 100.0;	calcRad[17] = 79.0;	//	Cl	chlorine
-		atmWt[18] = 39.948;	vdwRad[18] = 188.0;	empRad[18] = 71.0;	calcRad[18] = 71.0;	//	Ar	argon
-		atmWt[19] = 39.0983;	vdwRad[19] = 275.0;	empRad[19] = 220.0;	calcRad[19] = 243.0;	//	K	potassium
-		atmWt[20] = 40.078;	vdwRad[20] = 231.0;	empRad[20] = 180.0;	calcRad[20] = 194.0;	//	Ca	calcium
-		atmWt[21] = 44.95591;	vdwRad[21] = 211.0;	empRad[21] = 160.0;	calcRad[21] = 184.0;	//	Sc	scandium
-		atmWt[22] = 47.867;	vdwRad[22] = 201.0;	empRad[22] = 140.0;	calcRad[22] = 176.0;	//	Ti	titanium
-		atmWt[23] = 50.9415;	vdwRad[23] = 196.0;	empRad[23] = 135.0;	calcRad[23] = 171.0;	//	V	vanadium
-		atmWt[24] = 51.9961;	vdwRad[24] = 191.0;	empRad[24] = 140.0;	calcRad[24] = 166.0;	//	Cr	chromium
-		atmWt[25] = 54.93804;	vdwRad[25] = 186.0;	empRad[25] = 140.0;	calcRad[25] = 161.0;	//	Mn	manganese
-		atmWt[26] = 55.845;	vdwRad[26] = 181.0;	empRad[26] = 140.0;	calcRad[26] = 156.0;	//	Fe	iron
-		atmWt[27] = 58.93319;	vdwRad[27] = 177.0;	empRad[27] = 135.0;	calcRad[27] = 152.0;	//	Co	cobalt
-		atmWt[28] = 58.6934;	vdwRad[28] = 163.0;	empRad[28] = 135.0;	calcRad[28] = 149.0;	//	Ni	nickel
-		atmWt[29] = 63.546;	vdwRad[29] = 140.0;	empRad[29] = 135.0;	calcRad[29] = 145.0;	//	Cu	copper
-		atmWt[30] = 65.38;	vdwRad[30] = 139.0;	empRad[30] = 135.0;	calcRad[30] = 142.0;	//	Zn	zinc
-		atmWt[31] = 69.723;	vdwRad[31] = 187.0;	empRad[31] = 130.0;	calcRad[31] = 136.0;	//	Ga	gallium
-		atmWt[32] = 72.63;	vdwRad[32] = 211.0;	empRad[32] = 125.0;	calcRad[32] = 125.0;	//	Ge	germanium
-		atmWt[33] = 74.92160;	vdwRad[33] = 185.0;	empRad[33] = 115.0;	calcRad[33] = 114.0;	//	As	arsenic
-		atmWt[34] = 78.96;	vdwRad[34] = 190.0;	empRad[34] = 115.0;	calcRad[34] = 103.0;	//	Se	selenium
-		atmWt[35] = 79.904;	vdwRad[35] = 185.0;	empRad[35] = 115.0;	calcRad[35] = 94.0;	//	Br	bromine
-		atmWt[36] = 83.798;	vdwRad[36] = 202.0;	empRad[36] = 88.0;	calcRad[36] = 88.0;	//	Kr	krypton
-		atmWt[37] = 85.4678;	vdwRad[37] = 303.0;	empRad[37] = 235.0;	calcRad[37] = 265.0;	//	Rb	rubidium
-		atmWt[38] = 87.62;	vdwRad[38] = 249.0;	empRad[38] = 200.0;	calcRad[38] = 219.0;	//	Sr	strontium
-		atmWt[39] = 88.90585;	vdwRad[39] = 237.0;	empRad[39] = 180.0;	calcRad[39] = 212.0;	//	Y	yttrium
-		atmWt[40] = 91.224;	vdwRad[40] = 231.0;	empRad[40] = 155.0;	calcRad[40] = 206.0;	//	Zr	zirconium
-		atmWt[41] = 92.90638;	vdwRad[41] = 223.0;	empRad[41] = 145.0;	calcRad[41] = 198.0;	//	Nb	niobium
-		atmWt[42] = 95.96;	vdwRad[42] = 215.0;	empRad[42] = 145.0;	calcRad[42] = 190.0;	//	Mo	molybdenum
-		atmWt[43] = 98.0;		vdwRad[43] = 208.0;	empRad[43] = 135.0;	calcRad[43] = 183.0;	//	Tc	technetium
-		atmWt[44] = 101.07;	vdwRad[44] = 203.0;	empRad[44] = 130.0;	calcRad[44] = 178.0;	//	Ru	ruthenium
-		atmWt[45] = 102.9055;	vdwRad[45] = 198.0;	empRad[45] = 135.0;	calcRad[45] = 173.0;	//	Rh	rhodium
-		atmWt[46] = 106.42;	vdwRad[46] = 163.0;	empRad[46] = 140.0;	calcRad[46] = 169.0;	//	Pd	palladium
-		atmWt[47] = 107.8682;	vdwRad[47] = 172.0;	empRad[47] = 160.0;	calcRad[47] = 165.0;	//	Ag	silver
-		atmWt[48] = 112.411;	vdwRad[48] = 158.0;	empRad[48] = 155.0;	calcRad[48] = 161.0;	//	Cd	cadmium
-		atmWt[49] = 114.818;	vdwRad[49] = 193.0;	empRad[49] = 155.0;	calcRad[49] = 156.0;	//	In	indium
-		atmWt[50] = 118.710;	vdwRad[50] = 217.0;	empRad[50] = 145.0;	calcRad[50] = 145.0;	//	Sn	tin
-		atmWt[51] = 121.760;	vdwRad[51] = 206.0;	empRad[51] = 145.0;	calcRad[51] = 133.0;	//	Sb	antimony
-		atmWt[52] = 127.60;	vdwRad[52] = 206.0;	empRad[52] = 140.0;	calcRad[52] = 123.0;	//	Te	tellurium
-		atmWt[53] = 126.9044;	vdwRad[53] = 198.0;	empRad[53] = 140.0;	calcRad[53] = 115.0;	//	I	iodine
-		atmWt[54] = 131.293;	vdwRad[54] = 216.0;	empRad[54] = 108.0;	calcRad[54] = 108.0;	//	Xe	xenon
-		atmWt[55] = 132.9054;	vdwRad[55] = 343.0;	empRad[55] = 260.0;	calcRad[55] = 298.0;	//	Cs	caesium
-		atmWt[56] = 137.327;	vdwRad[56] = 268.0;	empRad[56] = 215.0;	calcRad[56] = 253.0;	//	Ba	barium
-		atmWt[57] = 138.9054;	vdwRad[57] = 250.0;	empRad[57] = 195.0;	calcRad[57] = 195.0;	//	La	lanthanum
-		atmWt[58] = 140.116;	vdwRad[58] = 250.0;	empRad[58] = 185.0;	calcRad[58] = 185.0;	//	Ce	cerium
-		atmWt[59] = 140.9076;	vdwRad[59] = 250.0;	empRad[59] = 185.0;	calcRad[59] = 247.0;	//	Pr	praseodymium
-		atmWt[60] = 144.242;	vdwRad[60] = 250.0;	empRad[60] = 185.0;	calcRad[60] = 206.0;	//	Nd	neodymium
-		atmWt[61] = 145.0;	vdwRad[61] = 250.0;	empRad[61] = 185.0;	calcRad[61] = 205.0;	//	Pm	promethium
-		atmWt[62] = 150.36;	vdwRad[62] = 250.0;	empRad[62] = 185.0;	calcRad[62] = 238.0;	//	Sm	samarium
-		atmWt[63] = 151.964;	vdwRad[63] = 250.0;	empRad[63] = 185.0;	calcRad[63] = 231.0;	//	Eu	europium
-		atmWt[64] = 157.25;	vdwRad[64] = 250.0;	empRad[64] = 180.0;	calcRad[64] = 233.0;	//	Gd	gadolinium
-		atmWt[65] = 158.9253;	vdwRad[65] = 250.0;	empRad[65] = 175.0;	calcRad[65] = 225.0;	//	Tb	terbium
-		atmWt[66] = 162.500;	vdwRad[66] = 250.0;	empRad[66] = 175.0;	calcRad[66] = 228.0;	//	Dy	dysprosium
-		atmWt[67] = 164.9303;	vdwRad[67] = 250.0;	empRad[67] = 175.0;	calcRad[67] = 175.0;	//	Ho	holmium
-		atmWt[68] = 167.259;	vdwRad[68] = 250.0;	empRad[68] = 175.0;	calcRad[68] = 226.0;	//	Er	erbium
-		atmWt[69] = 168.9342;	vdwRad[69] = 250.0;	empRad[69] = 175.0;	calcRad[69] = 222.0;	//	Tm	thulium
-		atmWt[70] = 173.054;	vdwRad[70] = 250.0;	empRad[70] = 175.0;	calcRad[70] = 222.0;	//	Yb	ytterbium
-		atmWt[71] = 174.9668;	vdwRad[71] = 250.0;	empRad[71] = 175.0;	calcRad[71] = 217.0;	//	Lu	lutetium
-		atmWt[72] = 178.49;	vdwRad[72] = 250.0;	empRad[72] = 155.0;	calcRad[72] = 208.0;	//	Hf	hafnium
-		atmWt[73] = 180.9478;	vdwRad[73] = 250.0;	empRad[73] = 145.0;	calcRad[73] = 200.0;	//	Ta	tantalum
-		atmWt[74] = 183.84;	vdwRad[74] = 250.0;	empRad[74] = 135.0;	calcRad[74] = 193.0;	//	W	tungsten
-		atmWt[75] = 186.207;	vdwRad[75] = 250.0;	empRad[75] = 135.0;	calcRad[75] = 188.0;	//	Re	rhenium
-		atmWt[76] = 190.23;	vdwRad[76] = 250.0;	empRad[76] = 130.0;	calcRad[76] = 185.0;	//	Os	osmium
-		atmWt[77] = 192.217;	vdwRad[77] = 250.0;	empRad[77] = 135.0;	calcRad[77] = 180.0;	//	Ir	iridium
-		atmWt[78] = 195.084;	vdwRad[78] = 175.0;	empRad[78] = 135.0;	calcRad[78] = 177.0;	//	Pt	platinum
-		atmWt[79] = 196.9665;	vdwRad[79] = 166.0;	empRad[79] = 135.0;	calcRad[79] = 174.0;	//	Au	gold
-		atmWt[80] = 200.59;	vdwRad[80] = 155.0;	empRad[80] = 150.0;	calcRad[80] = 171.0;	//	Hg	mercury
-		atmWt[81] = 204.38;	vdwRad[81] = 196.0;	empRad[81] = 190.0;	calcRad[81] = 156.0;	//	Tl	thallium
-		atmWt[82] = 207.2;	vdwRad[82] = 202.0;	empRad[82] = 180.0;	calcRad[82] = 154.0;	//	Pb	lead
-		atmWt[83] = 208.9804;	vdwRad[83] = 207.0;	empRad[83] = 160.0;	calcRad[83] = 143.0;	//	Bi	bismuth
-		atmWt[84] = 209.0;	vdwRad[84] = 197.0;	empRad[84] = 190.0;	calcRad[84] = 135.0;	//	Po	polonium
-		atmWt[85] = 210.0;	vdwRad[85] = 202.0;	empRad[85] = 250.0;	calcRad[85] = 250.0;	//	At	astatine
-		atmWt[86] = 222.0;	vdwRad[86] = 220.0;	empRad[86] = 120.0;	calcRad[86] = 120.0;	//	Rn	radon
-		atmWt[87] = 223.0;	vdwRad[87] = 348.0;	empRad[87] = 250.0;	calcRad[87] = 250.0;	//	Fr	francium
-		atmWt[88] = 226.0;	vdwRad[88] = 283.0;	empRad[88] = 215.0;	calcRad[88] = 215.0;	//	Ra	radium
-		atmWt[89] = 227.0;	vdwRad[89] = 250.0;	empRad[89] = 195.0;	calcRad[89] = 195.0;	//	Ac	actinium
-		atmWt[90] = 232.0381;	vdwRad[90] = 250.0;	empRad[90] = 180.0;	calcRad[90] = 180.0;	//	Th	thorium
-		atmWt[91] = 231.0359;	vdwRad[91] = 250.0;	empRad[91] = 180.0;	calcRad[91] = 180.0;	//	Pa	protactinium
-		atmWt[92] = 238.0289;	vdwRad[92] = 186.0;	empRad[92] = 175.0;	calcRad[92] = 175.0;	//	U	uranium
-		atmWt[93] = 237.0;	vdwRad[93] = 225.0;	empRad[93] = 175.0;	calcRad[93] = 175.0;	//	Np	neptunium
-		atmWt[94] = 244.0;	vdwRad[94] = 250.0;	empRad[94] = 175.0;	calcRad[94] = 175.0;	//	Pu	plutonium
-		atmWt[95] = 243.0;	vdwRad[95] = 225.0;	empRad[95] = 175.0;	calcRad[95] = 175.0;	//	Am	americium
-		atmWt[96] = 247.0;	vdwRad[96] = 250.0;												//	Cm	curium
-		atmWt[97] = 247.0;	vdwRad[97] = 250.0;												//	Bk	berkelium
-		atmWt[98] = 251.0;	vdwRad[98] = 250.0;												//	Cf	californium
-		atmWt[99] = 252.0;	vdwRad[99] = 250.0;												//	Es	einsteinium
-		atmWt[100] = 257.0;																	//Fm Fermium		
-		atmWt[101] = 258.0;																	//Md Mendelevium		
-		atmWt[102] = 259.0;																	//No Nobelium		
-		atmWt[103] = 262.0;																	//Lr Lawrencium		
-		atmWt[104] = 265.0;																	//Rf Rutherfordium		
-		atmWt[105] = 268.0;																	//Db Dubnium		
-		atmWt[106] = 271.0;																	//Sg Seaborgium		
-		atmWt[107] = 270.0;																	//Bh Bohrium		
-		atmWt[108] = 277.0;																	//Hs Hassium		
-		atmWt[109] = 276.0;																	//Mt Meitnerium		
-		atmWt[110] = 281.0;																	//Ds Darmstadtium		
-		atmWt[111] = 280.0;																	//Rg	Roentgenium	
-		atmWt[112] = 285.0;																	//Cn Copernicium		
-		atmWt[113] = 284.0;																	//Uut	Ununtrium	
-		atmWt[114] = 289.0;																	//Uuq Ununquadium		
-		atmWt[115] = 288.0;																	//Uup Ununpentium		
-		atmWt[116] = 293.0;																	//Uuh Ununhexium		
-		atmWt[117] = 294.0;																	//Uus Ununseptium		
-		atmWt[118] = 294.0;																	//Uuo Ununoctium		
-#pragma endregion
-
-		for (unsigned int i = 0; i < vdwRad.size(); i++) {
-			vdwRad[i] = vdwRad[i] / 1000.0;	// pm --> nm
-			empRad[i] = empRad[i] / 1000.0;	// pm --> nm
-			calcRad[i] = calcRad[i] / 1000.0;	// pm --> nm
-		}
-
-		svgRad = empRad;
-		svgRad[1] = 0.107;
-		svgRad[6] = 0.1577;
-		svgRad[7] = 0.08414;
-		svgRad[8] = 0.130;
-		svgRad[16] = 0.168;
-		svgRad[12] = 0.160;
-		svgRad[15] = 0.111;
-		svgRad[20] = 0.197;
-		svgRad[25] = 0.130;
-		svgRad[26] = 0.124;
-		svgRad[29] = 0.128;
-		svgRad[30] = 0.133;
-
-		//////////////////////////////////////////////////////////////////////////
-		// Atomic groups (CH, NH3, etc.)
-
-		// CH CH2 CH3
-		atmWt[119] = 1 * atmWt[0] + atmWt[6];
-		atmWt[120] = 2 * atmWt[0] + atmWt[6];
-		atmWt[121] = 3 * atmWt[0] + atmWt[6];
-		vdwRad[119] = cbrt(vdwRad[6] * vdwRad[6] * vdwRad[6] + vdwRad[0] * vdwRad[0] * vdwRad[0]);
-		vdwRad[120] = cbrt(vdwRad[6] * vdwRad[6] * vdwRad[6] + 2. * vdwRad[0] * vdwRad[0] * vdwRad[0]);
-		vdwRad[121] = cbrt(vdwRad[6] * vdwRad[6] * vdwRad[6] + 3. * vdwRad[0] * vdwRad[0] * vdwRad[0]);
-		empRad[119] = cbrt(empRad[6] * empRad[6] * empRad[6] + empRad[0] * empRad[0] * empRad[0]);
-		empRad[120] = cbrt(empRad[6] * empRad[6] * empRad[6] + 2. * empRad[0] * empRad[0] * empRad[0]);
-		empRad[121] = cbrt(empRad[6] * empRad[6] * empRad[6] + 3. * empRad[0] * empRad[0] * empRad[0]);
-		calcRad[119] = cbrt(calcRad[6] * calcRad[6] * calcRad[6] + calcRad[0] * calcRad[0] * calcRad[0]);
-		calcRad[120] = cbrt(calcRad[6] * calcRad[6] * calcRad[6] + 2. * calcRad[0] * calcRad[0] * calcRad[0]);
-		calcRad[121] = cbrt(calcRad[6] * calcRad[6] * calcRad[6] + 3. * calcRad[0] * calcRad[0] * calcRad[0]);
-		svgRad[119] = 0.173;
-		svgRad[120] = 0.185;
-		svgRad[121] = 0.197;
-
-		// NH NH2 NH3
-		atmWt[122] = 1 * atmWt[0] + atmWt[7];
-		atmWt[123] = 2 * atmWt[0] + atmWt[7];
-		atmWt[124] = 3 * atmWt[0] + atmWt[7];
-		vdwRad[122] = cbrt(vdwRad[7] * vdwRad[7] * vdwRad[7] + vdwRad[0] * vdwRad[0] * vdwRad[0]);
-		vdwRad[123] = cbrt(vdwRad[7] * vdwRad[7] * vdwRad[7] + 2. * vdwRad[0] * vdwRad[0] * vdwRad[0]);
-		vdwRad[124] = cbrt(vdwRad[7] * vdwRad[7] * vdwRad[7] + 3. * vdwRad[0] * vdwRad[0] * vdwRad[0]);
-		empRad[122] = cbrt(empRad[7] * empRad[7] * empRad[7] + empRad[0] * empRad[0] * empRad[0]);
-		empRad[123] = cbrt(empRad[7] * empRad[7] * empRad[7] + 2. * empRad[0] * empRad[0] * empRad[0]);
-		empRad[124] = cbrt(empRad[7] * empRad[7] * empRad[7] + 3. * empRad[0] * empRad[0] * empRad[0]);
-		calcRad[122] = cbrt(calcRad[7] * calcRad[7] * calcRad[7] + calcRad[0] * calcRad[0] * calcRad[0]);
-		calcRad[123] = cbrt(calcRad[7] * calcRad[7] * calcRad[7] + 2. * calcRad[0] * calcRad[0] * calcRad[0]);
-		calcRad[124] = cbrt(calcRad[7] * calcRad[7] * calcRad[7] + 3. * calcRad[0] * calcRad[0] * calcRad[0]);
-		svgRad[122] = 0.122;
-		svgRad[123] = 0.145;
-		svgRad[124] = 0.162;
-
-		// OH
-		atmWt[125] = 1 * atmWt[0] + atmWt[8];
-		vdwRad[125] = cbrt(vdwRad[8] * vdwRad[8] * vdwRad[8] + vdwRad[0] * vdwRad[0] * vdwRad[0]);
-		empRad[125] = cbrt(empRad[8] * empRad[8] * empRad[8] + 2. * empRad[0] * empRad[0] * empRad[0]);
-		calcRad[125] = cbrt(calcRad[8] * calcRad[8] * calcRad[8] + 3. * calcRad[0] * calcRad[0] * calcRad[0]);
-		svgRad[125] = 0.150;
-
-		// SH
-		atmWt[126] = 1 * atmWt[0] + atmWt[16];
-		vdwRad[126] = cbrt(vdwRad[16] * vdwRad[16] * vdwRad[16] + vdwRad[0] * vdwRad[0] * vdwRad[0]);
-		empRad[126] = cbrt(empRad[16] * empRad[16] * empRad[16] + 2. * empRad[0] * empRad[0] * empRad[0]);
-		calcRad[126] = cbrt(calcRad[16] * calcRad[16] * calcRad[16] + 3. * calcRad[0] * calcRad[0] * calcRad[0]);
-		svgRad[126] = 0.181;
-
-
+		generalInitialize();
 
 		// Load atomic form factor coefficients (KEEP IN ONE PLACE! here is better)
 		// Atomic values of Table 4.3.2.2 (International Tables of X-ray Crystallography Vol IV)

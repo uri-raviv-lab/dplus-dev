@@ -107,10 +107,13 @@ public:
 
 protected:
 	virtual void initialize() = 0;
-	PDB_READER_ERRS readPDBstream(std::istream& inFile, bool bCenter, int model);
-	virtual PDB_READER_ERRS readAnomalousstream(std::istream& inFile);
 	virtual PDB_READER_ERRS ionIndToatmInd() = 0;
 	virtual int getNumOfCoeffs() = 0;
+
+	void generalInitialize();
+
+	PDB_READER_ERRS readPDBstream(std::istream& inFile, bool bCenter, int model);
+	virtual PDB_READER_ERRS readAnomalousstream(std::istream& inFile);
 	virtual void getAtomIonIndices(string atm, u8& atmInd, u8& ionInd) = 0;
 	virtual void ExtractRelevantCoeffs(std::vector< IonEntry<FLOAT_TYPE> > &entries,
 		u64 vecSize, std::vector<u8>& sIonInd, std::vector<u8>& sAtmInd, std::vector<int>& atmsPerIon,
