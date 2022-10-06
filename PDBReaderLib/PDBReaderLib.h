@@ -107,11 +107,13 @@ public:
 
 protected:
 	virtual void initialize() = 0;
-	virtual PDB_READER_ERRS ionIndToatmInd() = 0;
 	virtual int getNumOfCoeffs() = 0;
+	virtual bool checkAtom_O(u8 atom) = 0;
+	virtual bool checkAtom_Cr(u8 atom) = 0;
+
 
 	void generalInitialize();
-
+	PDB_READER_ERRS ionIndToatmInd();
 	PDB_READER_ERRS readPDBstream(std::istream& inFile, bool bCenter, int model);
 	virtual PDB_READER_ERRS readAnomalousstream(std::istream& inFile);
 	virtual void getAtomIonIndices(string atm, u8& atmInd, u8& ionInd) = 0;
@@ -135,9 +137,10 @@ public:
 
 protected:
 	void initialize();
-	PDB_READER_ERRS ionIndToatmInd();
 	void getAtomIonIndices(string atm, u8& atmInd, u8& ionInd);
 	int getNumOfCoeffs() { return XRAY_COEFFICIENTS; }
+	bool checkAtom_O(u8 atom);
+	bool checkAtom_Cr(u8 atom);
 };
 
 template<class FLOAT_TYPE>
@@ -149,9 +152,10 @@ public:
 
 protected:
 	void initialize();
-	PDB_READER_ERRS ionIndToatmInd();
 	void getAtomIonIndices(string atm, u8& atmInd, u8& ionInd);
 	int getNumOfCoeffs() { return ELECTRON_COEFFICIENTS; }
+	bool checkAtom_O(u8 atom);
+	bool checkAtom_Cr(u8 atom);
 };
 
 

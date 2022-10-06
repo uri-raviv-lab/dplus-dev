@@ -1183,7 +1183,6 @@ namespace PDBReader {
 
 	}
 
-
 	template<class FLOAT_TYPE>
 	bool PDBReader::PDBReaderOb<FLOAT_TYPE>::getHasAnomalous()
 	{
@@ -1757,6 +1756,218 @@ namespace PDBReader {
 		number_of_implicit_amino_acids++;
 	}
 
+	template<class FLOAT_TYPE>
+	PDB_READER_ERRS PDBReaderOb<FLOAT_TYPE>::ionIndToatmInd() {
+		size_t sz = ionInd.size();
+		atmInd.resize(sz);
+
+		for (size_t i = 0; i < sz; i++) {
+			if (ionInd[i] < 0)
+				return BAD_ATOM;
+			if (ionInd[i] < 1)		// H
+				atmInd[i] = 1;
+			else if (ionInd[i] < 2)	// He
+				atmInd[i] = 2;
+			else if (ionInd[i] < 4)	// Li
+				atmInd[i] = 3;
+			else if (ionInd[i] < 6)	// Be
+				atmInd[i] = 4;
+			else if (ionInd[i] < 7)	// B
+				atmInd[i] = 5;
+			else if (ionInd[i] < 8)	// C
+				atmInd[i] = 6;
+			else if (ionInd[i] < 9)	// N
+				atmInd[i] = 7;
+			else if (checkAtom_O(ionInd[i]))	// O
+				atmInd[i] = 8;
+			else if (ionInd[i] < 13)	// F
+				atmInd[i] = 9;
+			else if (ionInd[i] < 14)	// Ne
+				atmInd[i] = 10;
+			else if (ionInd[i] < 16)	// Na
+				atmInd[i] = 11;
+			else if (ionInd[i] < 18)	// Mg
+				atmInd[i] = 12;
+			else if (ionInd[i] < 20)	// Al
+				atmInd[i] = 13;
+			else if (ionInd[i] < 22)	// Si
+				atmInd[i] = 14;
+			else if (ionInd[i] < 23)	// P
+				atmInd[i] = 15;
+			else if (ionInd[i] < 24)	// S
+				atmInd[i] = 16;
+			else if (ionInd[i] < 26)	// Cl
+				atmInd[i] = 17;
+			else if (ionInd[i] < 27)	// Ar
+				atmInd[i] = 18;
+			else if (ionInd[i] < 29)	// K
+				atmInd[i] = 19;
+			else if (ionInd[i] < 31)	// Ca
+				atmInd[i] = 20;
+			else if (ionInd[i] < 33)	// Sc
+				atmInd[i] = 21;
+			else if (ionInd[i] < 37)	// Ti
+				atmInd[i] = 22;
+			else if (ionInd[i] < 41)	// V
+				atmInd[i] = 23;
+			else if (checkAtom_Cr(ionInd[i]))	// Cr
+				atmInd[i] = 24;
+			else if (ionInd[i] < 48)	// Mn
+				atmInd[i] = 25;
+			else if (ionInd[i] < 51)	// Fe
+				atmInd[i] = 26;
+			else if (ionInd[i] < 54)	// Co
+				atmInd[i] = 27;
+			else if (ionInd[i] < 57)	// Ni
+				atmInd[i] = 28;
+			else if (ionInd[i] < 60)	// Cu
+				atmInd[i] = 29;
+			else if (ionInd[i] < 62)	// Zn
+				atmInd[i] = 30;
+			else if (ionInd[i] < 64)	// Ga
+				atmInd[i] = 31;
+			else if (ionInd[i] < 66)	// Ge
+				atmInd[i] = 32;
+			else if (ionInd[i] < 67)	// As
+				atmInd[i] = 33;
+			else if (ionInd[i] < 68)	// Se
+				atmInd[i] = 34;
+			else if (ionInd[i] < 70)	// Br
+				atmInd[i] = 35;
+			else if (ionInd[i] < 71)	// Kr
+				atmInd[i] = 36;
+			else if (ionInd[i] < 73)	// Rb
+				atmInd[i] = 37;
+			else if (ionInd[i] < 75)	// Sr
+				atmInd[i] = 38;
+			else if (ionInd[i] < 77)	// Y
+				atmInd[i] = 39;
+			else if (ionInd[i] < 79)	// Zr
+				atmInd[i] = 40;
+			else if (ionInd[i] < 82)	// Nb
+				atmInd[i] = 41;
+			else if (ionInd[i] < 86)	// Mo
+				atmInd[i] = 42;
+			else if (ionInd[i] < 87)	// Tc
+				atmInd[i] = 43;
+			else if (ionInd[i] < 90)	// Ru
+				atmInd[i] = 44;
+			else if (ionInd[i] < 93)	// Rh
+				atmInd[i] = 45;
+			else if (ionInd[i] < 96)	// Pd
+				atmInd[i] = 46;
+			else if (ionInd[i] < 99)	// Ag
+				atmInd[i] = 47;
+			else if (ionInd[i] < 101)	// Cd
+				atmInd[i] = 48;
+			else if (ionInd[i] < 103)	// In
+				atmInd[i] = 49;
+			else if (ionInd[i] < 106)	// Sn
+				atmInd[i] = 50;
+			else if (ionInd[i] < 109)	// Sb
+				atmInd[i] = 51;
+			else if (ionInd[i] < 110)	// Te
+				atmInd[i] = 52;
+			else if (ionInd[i] < 112)	// I
+				atmInd[i] = 53;
+			else if (ionInd[i] < 113)	// Xe
+				atmInd[i] = 54;
+			else if (ionInd[i] < 115)	// Cs
+				atmInd[i] = 55;
+			else if (ionInd[i] < 117)	// Ba
+				atmInd[i] = 56;
+			else if (ionInd[i] < 119)	// La
+				atmInd[i] = 57;
+			else if (ionInd[i] < 122)	// Ce
+				atmInd[i] = 58;
+			else if (ionInd[i] < 125)	// Pr
+				atmInd[i] = 59;
+			else if (ionInd[i] < 127)	// Nd
+				atmInd[i] = 60;
+			else if (ionInd[i] < 129)	// Pm
+				atmInd[i] = 61;
+			else if (ionInd[i] < 131)	// Sm
+				atmInd[i] = 62;
+			else if (ionInd[i] < 134)	// Eu
+				atmInd[i] = 63;
+			else if (ionInd[i] < 136)	// Gd
+				atmInd[i] = 64;
+			else if (ionInd[i] < 138)	// Tb
+				atmInd[i] = 65;
+			else if (ionInd[i] < 140)	// Dy
+				atmInd[i] = 66;
+			else if (ionInd[i] < 142)	// Ho
+				atmInd[i] = 67;
+			else if (ionInd[i] < 144)	// Er
+				atmInd[i] = 68;
+			else if (ionInd[i] < 145)	// Tm
+				atmInd[i] = 69;
+			else if (ionInd[i] < 149)	// Yb
+				atmInd[i] = 70;
+			else if (ionInd[i] < 151)	// Lu
+				atmInd[i] = 71;
+			else if (ionInd[i] < 153)	// Hf
+				atmInd[i] = 72;
+			else if (ionInd[i] < 155)	// Ta
+				atmInd[i] = 73;
+			else if (ionInd[i] < 157)	// W
+				atmInd[i] = 74;
+			else if (ionInd[i] < 158)	// Re
+				atmInd[i] = 75;
+			else if (ionInd[i] < 160)	// Os
+				atmInd[i] = 76;
+			else if (ionInd[i] < 163)	// Ir
+				atmInd[i] = 77;
+			else if (ionInd[i] < 166)	// Pt
+				atmInd[i] = 78;
+			else if (ionInd[i] < 169)	// Au
+				atmInd[i] = 79;
+			else if (ionInd[i] < 172)	// Hg
+				atmInd[i] = 80;
+			else if (ionInd[i] < 175)	// Tl
+				atmInd[i] = 81;
+			else if (ionInd[i] < 178)	// Pb
+				atmInd[i] = 82;
+			else if (ionInd[i] < 181)	// Bi
+				atmInd[i] = 83;
+			else if (ionInd[i] < 182)	// Po
+				atmInd[i] = 84;
+			else if (ionInd[i] < 183)	// At
+				atmInd[i] = 85;
+			else if (ionInd[i] < 184)	// Rn
+				atmInd[i] = 86;
+			else if (ionInd[i] < 185)	// Fr
+				atmInd[i] = 87;
+			else if (ionInd[i] < 187)	// Ra
+				atmInd[i] = 88;
+			else if (ionInd[i] < 189)	// Ac
+				atmInd[i] = 89;
+			else if (ionInd[i] < 191)	// Th
+				atmInd[i] = 90;
+			else if (ionInd[i] < 192)	// Pa
+				atmInd[i] = 91;
+			else if (ionInd[i] < 196)	// U
+				atmInd[i] = 92;
+			else if (ionInd[i] < 200)	// Np
+				atmInd[i] = 93;
+			else if (ionInd[i] < 204)	// Pu
+				atmInd[i] = 94;
+			else if (ionInd[i] < 205)	// Am
+				atmInd[i] = 95;
+			else if (ionInd[i] < 206)	// Cm
+				atmInd[i] = 96;
+			else if (ionInd[i] < 207)	// Bk
+				atmInd[i] = 97;
+			else if (ionInd[i] < 208)	// Cf
+				atmInd[i] = 98;
+			else
+				return BAD_ATOM;
+		}
+
+		return PDB_OK;
+	}
+
+
 	pdbReader_exception::pdbReader_exception(PDB_READER_ERRS error_code, const char *error_message)
 		: _errorCode(error_code), _errorMessage(error_message)
 	{
@@ -2043,217 +2254,6 @@ namespace PDBReader {
 
 	}
 
-	template<class FLOAT_TYPE>
-	PDB_READER_ERRS XRayPDBReaderOb<FLOAT_TYPE>::ionIndToatmInd() {
-		size_t sz = ionInd.size();
-		atmInd.resize(sz);
-
-		for (size_t i = 0; i < sz; i++) {
-			if (ionInd[i] < 0)
-				return BAD_ATOM;
-			if (ionInd[i] < 1)		// H
-				atmInd[i] = 1;
-			else if (ionInd[i] < 2)	// He
-				atmInd[i] = 2;
-			else if (ionInd[i] < 4)	// Li
-				atmInd[i] = 3;
-			else if (ionInd[i] < 6)	// Be
-				atmInd[i] = 4;
-			else if (ionInd[i] < 7)	// B
-				atmInd[i] = 5;
-			else if (ionInd[i] < 8)	// C
-				atmInd[i] = 6;
-			else if (ionInd[i] < 9)	// N
-				atmInd[i] = 7;
-			else if (ionInd[i] < 11)	// O
-				atmInd[i] = 8;
-			else if (ionInd[i] < 13)	// F
-				atmInd[i] = 9;
-			else if (ionInd[i] < 14)	// Ne
-				atmInd[i] = 10;
-			else if (ionInd[i] < 16)	// Na
-				atmInd[i] = 11;
-			else if (ionInd[i] < 18)	// Mg
-				atmInd[i] = 12;
-			else if (ionInd[i] < 20)	// Al
-				atmInd[i] = 13;
-			else if (ionInd[i] < 22)	// Si
-				atmInd[i] = 14;
-			else if (ionInd[i] < 23)	// P
-				atmInd[i] = 15;
-			else if (ionInd[i] < 24)	// S
-				atmInd[i] = 16;
-			else if (ionInd[i] < 26)	// Cl
-				atmInd[i] = 17;
-			else if (ionInd[i] < 27)	// Ar
-				atmInd[i] = 18;
-			else if (ionInd[i] < 29)	// K
-				atmInd[i] = 19;
-			else if (ionInd[i] < 31)	// Ca
-				atmInd[i] = 20;
-			else if (ionInd[i] < 33)	// Sc
-				atmInd[i] = 21;
-			else if (ionInd[i] < 37)	// Ti
-				atmInd[i] = 22;
-			else if (ionInd[i] < 41)	// V
-				atmInd[i] = 23;
-			else if (ionInd[i] < 44)	// Cr
-				atmInd[i] = 24;
-			else if (ionInd[i] < 48)	// Mn
-				atmInd[i] = 25;
-			else if (ionInd[i] < 51)	// Fe
-				atmInd[i] = 26;
-			else if (ionInd[i] < 54)	// Co
-				atmInd[i] = 27;
-			else if (ionInd[i] < 57)	// Ni
-				atmInd[i] = 28;
-			else if (ionInd[i] < 60)	// Cu
-				atmInd[i] = 29;
-			else if (ionInd[i] < 62)	// Zn
-				atmInd[i] = 30;
-			else if (ionInd[i] < 64)	// Ga
-				atmInd[i] = 31;
-			else if (ionInd[i] < 66)	// Ge
-				atmInd[i] = 32;
-			else if (ionInd[i] < 67)	// As
-				atmInd[i] = 33;
-			else if (ionInd[i] < 68)	// Se
-				atmInd[i] = 34;
-			else if (ionInd[i] < 70)	// Br
-				atmInd[i] = 35;
-			else if (ionInd[i] < 71)	// Kr
-				atmInd[i] = 36;
-			else if (ionInd[i] < 73)	// Rb
-				atmInd[i] = 37;
-			else if (ionInd[i] < 75)	// Sr
-				atmInd[i] = 38;
-			else if (ionInd[i] < 77)	// Y
-				atmInd[i] = 39;
-			else if (ionInd[i] < 79)	// Zr
-				atmInd[i] = 40;
-			else if (ionInd[i] < 82)	// Nb
-				atmInd[i] = 41;
-			else if (ionInd[i] < 86)	// Mo
-				atmInd[i] = 42;
-			else if (ionInd[i] < 87)	// Tc
-				atmInd[i] = 43;
-			else if (ionInd[i] < 90)	// Ru
-				atmInd[i] = 44;
-			else if (ionInd[i] < 93)	// Rh
-				atmInd[i] = 45;
-			else if (ionInd[i] < 96)	// Pd
-				atmInd[i] = 46;
-			else if (ionInd[i] < 99)	// Ag
-				atmInd[i] = 47;
-			else if (ionInd[i] < 101)	// Cd
-				atmInd[i] = 48;
-			else if (ionInd[i] < 103)	// In
-				atmInd[i] = 49;
-			else if (ionInd[i] < 106)	// Sn
-				atmInd[i] = 50;
-			else if (ionInd[i] < 109)	// Sb
-				atmInd[i] = 51;
-			else if (ionInd[i] < 110)	// Te
-				atmInd[i] = 52;
-			else if (ionInd[i] < 112)	// I
-				atmInd[i] = 53;
-			else if (ionInd[i] < 113)	// Xe
-				atmInd[i] = 54;
-			else if (ionInd[i] < 115)	// Cs
-				atmInd[i] = 55;
-			else if (ionInd[i] < 117)	// Ba
-				atmInd[i] = 56;
-			else if (ionInd[i] < 119)	// La
-				atmInd[i] = 57;
-			else if (ionInd[i] < 122)	// Ce
-				atmInd[i] = 58;
-			else if (ionInd[i] < 125)	// Pr
-				atmInd[i] = 59;
-			else if (ionInd[i] < 127)	// Nd
-				atmInd[i] = 60;
-			else if (ionInd[i] < 129)	// Pm
-				atmInd[i] = 61;
-			else if (ionInd[i] < 131)	// Sm
-				atmInd[i] = 62;
-			else if (ionInd[i] < 134)	// Eu
-				atmInd[i] = 63;
-			else if (ionInd[i] < 136)	// Gd
-				atmInd[i] = 64;
-			else if (ionInd[i] < 138)	// Tb
-				atmInd[i] = 65;
-			else if (ionInd[i] < 140)	// Dy
-				atmInd[i] = 66;
-			else if (ionInd[i] < 142)	// Ho
-				atmInd[i] = 67;
-			else if (ionInd[i] < 144)	// Er
-				atmInd[i] = 68;
-			else if (ionInd[i] < 145)	// Tm
-				atmInd[i] = 69;
-			else if (ionInd[i] < 149)	// Yb
-				atmInd[i] = 70;
-			else if (ionInd[i] < 151)	// Lu
-				atmInd[i] = 71;
-			else if (ionInd[i] < 153)	// Hf
-				atmInd[i] = 72;
-			else if (ionInd[i] < 155)	// Ta
-				atmInd[i] = 73;
-			else if (ionInd[i] < 157)	// W
-				atmInd[i] = 74;
-			else if (ionInd[i] < 158)	// Re
-				atmInd[i] = 75;
-			else if (ionInd[i] < 160)	// Os
-				atmInd[i] = 76;
-			else if (ionInd[i] < 163)	// Ir
-				atmInd[i] = 77;
-			else if (ionInd[i] < 166)	// Pt
-				atmInd[i] = 78;
-			else if (ionInd[i] < 169)	// Au
-				atmInd[i] = 79;
-			else if (ionInd[i] < 172)	// Hg
-				atmInd[i] = 80;
-			else if (ionInd[i] < 175)	// Tl
-				atmInd[i] = 81;
-			else if (ionInd[i] < 178)	// Pb
-				atmInd[i] = 82;
-			else if (ionInd[i] < 181)	// Bi
-				atmInd[i] = 83;
-			else if (ionInd[i] < 182)	// Po
-				atmInd[i] = 84;
-			else if (ionInd[i] < 183)	// At
-				atmInd[i] = 85;
-			else if (ionInd[i] < 184)	// Rn
-				atmInd[i] = 86;
-			else if (ionInd[i] < 185)	// Fr
-				atmInd[i] = 87;
-			else if (ionInd[i] < 187)	// Ra
-				atmInd[i] = 88;
-			else if (ionInd[i] < 189)	// Ac
-				atmInd[i] = 89;
-			else if (ionInd[i] < 191)	// Th
-				atmInd[i] = 90;
-			else if (ionInd[i] < 192)	// Pa
-				atmInd[i] = 91;
-			else if (ionInd[i] < 196)	// U
-				atmInd[i] = 92;
-			else if (ionInd[i] < 200)	// Np
-				atmInd[i] = 93;
-			else if (ionInd[i] < 204)	// Pu
-				atmInd[i] = 94;
-			else if (ionInd[i] < 205)	// Am
-				atmInd[i] = 95;
-			else if (ionInd[i] < 206)	// Cm
-				atmInd[i] = 96;
-			else if (ionInd[i] < 207)	// Bk
-				atmInd[i] = 97;
-			else if (ionInd[i] < 208)	// Cf
-				atmInd[i] = 98;
-			else
-				return BAD_ATOM;
-		}
-
-		return PDB_OK;
-	}
-
 	template <class FLOAT_TYPE>
 	void XRayPDBReaderOb<FLOAT_TYPE>::getAtomIonIndices(string atmAsString, u8& atmInd, u8& ionInd)
 	{
@@ -2492,6 +2492,18 @@ namespace PDBReader {
 
 		atmInd = it->second.first;
 		ionInd = it->second.second;
+	}
+
+	template <class FLOAT_TYPE>
+	bool XRayPDBReaderOb<FLOAT_TYPE>::checkAtom_O(u8 atom)
+	{
+		return (atom < 11);
+	}
+
+	template <class FLOAT_TYPE>
+	bool XRayPDBReaderOb<FLOAT_TYPE>::checkAtom_Cr(u8 atom)
+	{
+		return (atom < 44);
 	}
 
 
@@ -2883,217 +2895,6 @@ namespace PDBReader {
 
 	}
 
-	template<class FLOAT_TYPE>
-	PDB_READER_ERRS ElectronPDBReaderOb<FLOAT_TYPE>::ionIndToatmInd() {
-		size_t sz = ionInd.size();
-		atmInd.resize(sz);
-
-		for (size_t i = 0; i < sz; i++) {
-			if (ionInd[i] < 0)
-				return BAD_ATOM;
-			if (ionInd[i] < 1)		// H
-				atmInd[i] = 1;
-			else if (ionInd[i] < 2)	// He
-				atmInd[i] = 2;
-			else if (ionInd[i] < 4)	// Li
-				atmInd[i] = 3;
-			else if (ionInd[i] < 6)	// Be
-				atmInd[i] = 4;
-			else if (ionInd[i] < 7)	// B
-				atmInd[i] = 5;
-			else if (ionInd[i] < 8)	// C
-				atmInd[i] = 6;
-			else if (ionInd[i] < 9)	// N
-				atmInd[i] = 7;
-			else if (ionInd[i] < 11 || ionInd[i] == 217)	// O
-				atmInd[i] = 8;
-			else if (ionInd[i] < 13)	// F
-				atmInd[i] = 9;
-			else if (ionInd[i] < 14)	// Ne
-				atmInd[i] = 10;
-			else if (ionInd[i] < 16)	// Na
-				atmInd[i] = 11;
-			else if (ionInd[i] < 18)	// Mg
-				atmInd[i] = 12;
-			else if (ionInd[i] < 20)	// Al
-				atmInd[i] = 13;
-			else if (ionInd[i] < 22)	// Si
-				atmInd[i] = 14;
-			else if (ionInd[i] < 23)	// P
-				atmInd[i] = 15;
-			else if (ionInd[i] < 24)	// S
-				atmInd[i] = 16;
-			else if (ionInd[i] < 26)	// Cl
-				atmInd[i] = 17;
-			else if (ionInd[i] < 27)	// Ar
-				atmInd[i] = 18;
-			else if (ionInd[i] < 29)	// K
-				atmInd[i] = 19;
-			else if (ionInd[i] < 31)	// Ca
-				atmInd[i] = 20;
-			else if (ionInd[i] < 33)	// Sc
-				atmInd[i] = 21;
-			else if (ionInd[i] < 37)	// Ti
-				atmInd[i] = 22;
-			else if (ionInd[i] < 41)	// V
-				atmInd[i] = 23;
-			else if (ionInd[i] < 44 || ionInd[i] == 218)	// Cr
-				atmInd[i] = 24;
-			else if (ionInd[i] < 48)	// Mn
-				atmInd[i] = 25;
-			else if (ionInd[i] < 51)	// Fe
-				atmInd[i] = 26;
-			else if (ionInd[i] < 54)	// Co
-				atmInd[i] = 27;
-			else if (ionInd[i] < 57)	// Ni
-				atmInd[i] = 28;
-			else if (ionInd[i] < 60)	// Cu
-				atmInd[i] = 29;
-			else if (ionInd[i] < 62)	// Zn
-				atmInd[i] = 30;
-			else if (ionInd[i] < 64)	// Ga
-				atmInd[i] = 31;
-			else if (ionInd[i] < 66)	// Ge
-				atmInd[i] = 32;
-			else if (ionInd[i] < 67)	// As
-				atmInd[i] = 33;
-			else if (ionInd[i] < 68)	// Se
-				atmInd[i] = 34;
-			else if (ionInd[i] < 70)	// Br
-				atmInd[i] = 35;
-			else if (ionInd[i] < 71)	// Kr
-				atmInd[i] = 36;
-			else if (ionInd[i] < 73)	// Rb
-				atmInd[i] = 37;
-			else if (ionInd[i] < 75)	// Sr
-				atmInd[i] = 38;
-			else if (ionInd[i] < 77)	// Y
-				atmInd[i] = 39;
-			else if (ionInd[i] < 79)	// Zr
-				atmInd[i] = 40;
-			else if (ionInd[i] < 82)	// Nb
-				atmInd[i] = 41;
-			else if (ionInd[i] < 86)	// Mo
-				atmInd[i] = 42;
-			else if (ionInd[i] < 87)	// Tc
-				atmInd[i] = 43;
-			else if (ionInd[i] < 90)	// Ru
-				atmInd[i] = 44;
-			else if (ionInd[i] < 93)	// Rh
-				atmInd[i] = 45;
-			else if (ionInd[i] < 96)	// Pd
-				atmInd[i] = 46;
-			else if (ionInd[i] < 99)	// Ag
-				atmInd[i] = 47;
-			else if (ionInd[i] < 101)	// Cd
-				atmInd[i] = 48;
-			else if (ionInd[i] < 103)	// In
-				atmInd[i] = 49;
-			else if (ionInd[i] < 106)	// Sn
-				atmInd[i] = 50;
-			else if (ionInd[i] < 109)	// Sb
-				atmInd[i] = 51;
-			else if (ionInd[i] < 110)	// Te
-				atmInd[i] = 52;
-			else if (ionInd[i] < 112)	// I
-				atmInd[i] = 53;
-			else if (ionInd[i] < 113)	// Xe
-				atmInd[i] = 54;
-			else if (ionInd[i] < 115)	// Cs
-				atmInd[i] = 55;
-			else if (ionInd[i] < 117)	// Ba
-				atmInd[i] = 56;
-			else if (ionInd[i] < 119)	// La
-				atmInd[i] = 57;
-			else if (ionInd[i] < 122)	// Ce
-				atmInd[i] = 58;
-			else if (ionInd[i] < 125)	// Pr
-				atmInd[i] = 59;
-			else if (ionInd[i] < 127)	// Nd
-				atmInd[i] = 60;
-			else if (ionInd[i] < 129)	// Pm
-				atmInd[i] = 61;
-			else if (ionInd[i] < 131)	// Sm
-				atmInd[i] = 62;
-			else if (ionInd[i] < 134)	// Eu
-				atmInd[i] = 63;
-			else if (ionInd[i] < 136)	// Gd
-				atmInd[i] = 64;
-			else if (ionInd[i] < 138)	// Tb
-				atmInd[i] = 65;
-			else if (ionInd[i] < 140)	// Dy
-				atmInd[i] = 66;
-			else if (ionInd[i] < 142)	// Ho
-				atmInd[i] = 67;
-			else if (ionInd[i] < 144)	// Er
-				atmInd[i] = 68;
-			else if (ionInd[i] < 145)	// Tm
-				atmInd[i] = 69;
-			else if (ionInd[i] < 149)	// Yb
-				atmInd[i] = 70;
-			else if (ionInd[i] < 151)	// Lu
-				atmInd[i] = 71;
-			else if (ionInd[i] < 153)	// Hf
-				atmInd[i] = 72;
-			else if (ionInd[i] < 155)	// Ta
-				atmInd[i] = 73;
-			else if (ionInd[i] < 157)	// W
-				atmInd[i] = 74;
-			else if (ionInd[i] < 158)	// Re
-				atmInd[i] = 75;
-			else if (ionInd[i] < 160)	// Os
-				atmInd[i] = 76;
-			else if (ionInd[i] < 163)	// Ir
-				atmInd[i] = 77;
-			else if (ionInd[i] < 166)	// Pt
-				atmInd[i] = 78;
-			else if (ionInd[i] < 169)	// Au
-				atmInd[i] = 79;
-			else if (ionInd[i] < 172)	// Hg
-				atmInd[i] = 80;
-			else if (ionInd[i] < 175)	// Tl
-				atmInd[i] = 81;
-			else if (ionInd[i] < 178)	// Pb
-				atmInd[i] = 82;
-			else if (ionInd[i] < 181)	// Bi
-				atmInd[i] = 83;
-			else if (ionInd[i] < 182)	// Po
-				atmInd[i] = 84;
-			else if (ionInd[i] < 183)	// At
-				atmInd[i] = 85;
-			else if (ionInd[i] < 184)	// Rn
-				atmInd[i] = 86;
-			else if (ionInd[i] < 185)	// Fr
-				atmInd[i] = 87;
-			else if (ionInd[i] < 187)	// Ra
-				atmInd[i] = 88;
-			else if (ionInd[i] < 189)	// Ac
-				atmInd[i] = 89;
-			else if (ionInd[i] < 191)	// Th
-				atmInd[i] = 90;
-			else if (ionInd[i] < 192)	// Pa
-				atmInd[i] = 91;
-			else if (ionInd[i] < 196)	// U
-				atmInd[i] = 92;
-			else if (ionInd[i] < 200)	// Np
-				atmInd[i] = 93;
-			else if (ionInd[i] < 204)	// Pu
-				atmInd[i] = 94;
-			else if (ionInd[i] < 205)	// Am
-				atmInd[i] = 95;
-			else if (ionInd[i] < 206)	// Cm
-				atmInd[i] = 96;
-			else if (ionInd[i] < 207)	// Bk
-				atmInd[i] = 97;
-			else if (ionInd[i] < 208)	// Cf
-				atmInd[i] = 98;
-			else
-				return BAD_ATOM;
-		}
-
-		return PDB_OK;
-	}
-
 	template <class FLOAT_TYPE>
 	void ElectronPDBReaderOb<FLOAT_TYPE>::getAtomIonIndices(string atmAsString, u8& atmInd, u8& ionInd)
 	{
@@ -3336,6 +3137,17 @@ namespace PDBReader {
 		ionInd = it->second.second;
 	}
 
+	template <class FLOAT_TYPE>
+	bool ElectronPDBReaderOb<FLOAT_TYPE>::checkAtom_O(u8 atom)
+	{
+		return (atom < 44 || atom == 218);
+	}
+
+	template <class FLOAT_TYPE>
+	bool ElectronPDBReaderOb<FLOAT_TYPE>::checkAtom_Cr(u8 atom)
+	{
+		return (atom < 11 || atom == 217);
+	}
 
 #pragma endregion // ElectronPDBReaderOb
 }; // namespace PDBReader
