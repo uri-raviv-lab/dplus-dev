@@ -116,7 +116,7 @@ protected:
 	PDB_READER_ERRS ionIndToatmInd();
 	PDB_READER_ERRS readPDBstream(std::istream& inFile, bool bCenter, int model);
 	virtual PDB_READER_ERRS readAnomalousstream(std::istream& inFile);
-	virtual void getAtomIonIndices(string atm, u8& atmInd, u8& ionInd) = 0;
+	void getAtomIonIndices(string atm, u8& atmInd, u8& ionInd);
 	virtual void ExtractRelevantCoeffs(std::vector< IonEntry<FLOAT_TYPE> > &entries,
 		u64 vecSize, std::vector<u8>& sIonInd, std::vector<u8>& sAtmInd, std::vector<int>& atmsPerIon,
 		std::vector<unsigned char>& sortedCoefIonInd, std::vector<FLOAT_TYPE>& sX,
@@ -137,7 +137,6 @@ public:
 
 protected:
 	void initialize();
-	void getAtomIonIndices(string atm, u8& atmInd, u8& ionInd);
 	int getNumOfCoeffs() { return XRAY_COEFFICIENTS; }
 	bool checkAtom_O(u8 atom);
 	bool checkAtom_Cr(u8 atom);
@@ -152,7 +151,6 @@ public:
 
 protected:
 	void initialize();
-	void getAtomIonIndices(string atm, u8& atmInd, u8& ionInd);
 	int getNumOfCoeffs() { return ELECTRON_COEFFICIENTS; }
 	bool checkAtom_O(u8 atom);
 	bool checkAtom_Cr(u8 atom);
