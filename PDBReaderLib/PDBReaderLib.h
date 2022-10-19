@@ -108,9 +108,6 @@ public:
 protected:
 	virtual void initialize() = 0;
 	virtual int getNumOfCoeffs() = 0;
-	virtual bool checkAtom_O(u8 atom) = 0;
-	virtual bool checkAtom_Cr(u8 atom) = 0;
-
 
 	void generalInitialize();
 	PDB_READER_ERRS ionIndToatmInd();
@@ -138,8 +135,6 @@ public:
 protected:
 	void initialize();
 	int getNumOfCoeffs() { return XRAY_COEFFICIENTS; }
-	bool checkAtom_O(u8 atom);
-	bool checkAtom_Cr(u8 atom);
 };
 
 template<class FLOAT_TYPE>
@@ -152,8 +147,6 @@ public:
 protected:
 	void initialize();
 	int getNumOfCoeffs() { return ELECTRON_COEFFICIENTS; }
-	bool checkAtom_O(u8 atom);
-	bool checkAtom_Cr(u8 atom);
 };
 
 

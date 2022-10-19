@@ -1778,7 +1778,7 @@ namespace PDBReader {
 				atmInd[i] = 6;
 			else if (ionInd[i] < 9)	// N
 				atmInd[i] = 7;
-			else if (checkAtom_O(ionInd[i]))	// O
+			else if ((ionInd[i] < 44 || ionInd[i] == 218))	// O
 				atmInd[i] = 8;
 			else if (ionInd[i] < 13)	// F
 				atmInd[i] = 9;
@@ -1810,7 +1810,7 @@ namespace PDBReader {
 				atmInd[i] = 22;
 			else if (ionInd[i] < 41)	// V
 				atmInd[i] = 23;
-			else if (checkAtom_Cr(ionInd[i]))	// Cr
+			else if (ionInd[i] < 11 || ionInd[i] == 217)	// Cr
 				atmInd[i] = 24;
 			else if (ionInd[i] < 48)	// Mn
 				atmInd[i] = 25;
@@ -2499,19 +2499,6 @@ namespace PDBReader {
 
 	}
 
-	template <class FLOAT_TYPE>
-	bool XRayPDBReaderOb<FLOAT_TYPE>::checkAtom_O(u8 atom)
-	{
-		return (atom < 11);
-	}
-
-	template <class FLOAT_TYPE>
-	bool XRayPDBReaderOb<FLOAT_TYPE>::checkAtom_Cr(u8 atom)
-	{
-		return (atom < 44);
-	}
-
-
 #pragma endregion // XRayPDBReaderOb
 
 #pragma region ElectronPDBReaderOb
@@ -2898,18 +2885,6 @@ namespace PDBReader {
 
 		*/
 
-	}
-
-	template <class FLOAT_TYPE>
-	bool ElectronPDBReaderOb<FLOAT_TYPE>::checkAtom_O(u8 atom)
-	{
-		return (atom < 44 || atom == 218);
-	}
-
-	template <class FLOAT_TYPE>
-	bool ElectronPDBReaderOb<FLOAT_TYPE>::checkAtom_Cr(u8 atom)
-	{
-		return (atom < 11 || atom == 217);
 	}
 
 #pragma endregion // ElectronPDBReaderOb
