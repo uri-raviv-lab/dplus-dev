@@ -138,7 +138,7 @@ System::Void SymmetryView::buttonAdd_Click(System::Object^ sender, System::Event
 	if(selmodel->GetID() == 999 || selmodel->GetID()==1999)
 	{
 		// Hardcoded code for PDBs
-		// 998 - Basic PDB
+		// 1999 - XRay PDB
 		// 999 - Electron PDB
 		OpenFileDialog ^ofd = gcnew OpenFileDialog();
 		ofd->Title = "Select a PDB file...";

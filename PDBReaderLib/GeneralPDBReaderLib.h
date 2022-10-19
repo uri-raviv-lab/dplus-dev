@@ -13,8 +13,7 @@
 
 #include "Common.h"
 
-#define NUMBER_OF_ATOMIC_FORM_FACTORS (208 + 8)
-#define ELECTRON_NUMBER_OF_ATOMIC_FORM_FACTORS (208 + 8 + 2)
+#define NUMBER_OF_ATOMIC_FORM_FACTORS (208 + 8 + 2)
 
 using std::vector;
 using std::string;

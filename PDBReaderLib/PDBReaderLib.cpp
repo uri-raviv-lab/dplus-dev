@@ -2484,8 +2484,12 @@ namespace PDBReader {
 			3.00872, 28.3717, 0.288137, 63.9637, 3.39248, 3.51866, 2.03511, 28.3675, 0.269952,		// NH2
 			0.294613, 67.4408, 6.48379, 29.1576, 5.67182, 0.54735, 6.57164, 0.547493, -9.02757,		// NH3
 			-2.73406, 22.1288, 0.00966263, 94.3428, 6.64439, 13.9044, 2.67949, 32.7607, 2.39981,	// OH
-			-127.811, 7.19935, 62.5514, 12.1591, 160.747, 1.88979, 2.34822, 55.952, -80.836			// SH
-			;
+			-127.811, 7.19935, 62.5514, 12.1591, 160.747, 1.88979, 2.34822, 55.952, -80.836	,		// SH
+			
+			// Ions that had no x-ray form factors:
+			0,0,0,0,0,0,0,0,0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0
+				;
 
 #if defined(WIN32) || defined(_WIN32)
 #pragma warning( pop )
@@ -2548,8 +2552,8 @@ namespace PDBReader {
 		// Ionic values come from Peng 1998
 		// They are good up to s < 2.0A
 		// NUMBER_OF_ATOMIC_FORM_FACTORS for Lobato and Peng have to be different
-		atmFFcoefs.resize(ELECTRON_NUMBER_OF_ATOMIC_FORM_FACTORS * 10);
-		Eigen::Map<Eigen::Array<FLOAT_TYPE, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> atmFFcoefsMap(atmFFcoefs.data(), ELECTRON_NUMBER_OF_ATOMIC_FORM_FACTORS, 10);
+		atmFFcoefs.resize(NUMBER_OF_ATOMIC_FORM_FACTORS * 10);
+		Eigen::Map<Eigen::Array<FLOAT_TYPE, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> atmFFcoefsMap(atmFFcoefs.data(), NUMBER_OF_ATOMIC_FORM_FACTORS, 10);
 
 #pragma region Atomic form factor coefficients - Peng
 		atmFFcoefsMap << 0.0349, 0.5347, 0.1201, 3.5867, 0.1970, 12.3471, 0.0573, 18.9525, 0.1195, 38.6269,	// H

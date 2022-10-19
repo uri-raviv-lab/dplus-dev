@@ -661,7 +661,7 @@ void electronPDBAmplitude::electronInitialize() {
 	this->voxelStep = 15.4e99;
 	this->solventED = 0.0;
 	this->outerSolventED = 0.0;
-	atmFFcoefs.resize(ELECTRON_NUMBER_OF_ATOMIC_FORM_FACTORS, 10);
+	atmFFcoefs.resize(NUMBER_OF_ATOMIC_FORM_FACTORS, 10);
 	// I'm almost certain we can delete this part of the code but I changed just in case. Go to PDBReaderLib.cpp
 #pragma region Atomic form factor coefficients - Peng
 	atmFFcoefs << 0.0349, 0.5347, 0.1201, 3.5867, 0.1970, 12.3471, 0.0573, 18.9525, 0.1195, 38.6269,	// H
@@ -2198,7 +2198,7 @@ void electronDebyeCalTester::electronInitialize() {
 	pdb = nullptr;
 	_electronAff_calculator = nullptr;
 
-	atmFFcoefs.resize(ELECTRON_NUMBER_OF_ATOMIC_FORM_FACTORS, 10);
+	atmFFcoefs.resize(NUMBER_OF_ATOMIC_FORM_FACTORS, 10);
 	// I'm almost certain we can delete this part of the code but I changed just in case.
 #pragma region Atomic form factor coefficients - Peng
 	atmFFcoefs << 0.0349, 0.5347, 0.1201, 3.5867, 0.1970, 12.3471, 0.0573, 18.9525, 0.1195, 38.6269,	// H
