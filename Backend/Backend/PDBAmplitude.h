@@ -223,7 +223,7 @@ protected:
 
 class EXPORTED_BE DebyeCalTester : public IModel {
 public:
-	PDBReader::XRayPDBReaderOb<F_TYPE>* pdb;
+	PDBReader::PDBReaderOb<F_TYPE>* pdb;
 	Eigen::Array<F_TYPE, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> atmFFcoefs;
 
 	//Eigen::ArrayXXd distances; //< The 0.5 * N^2 - N distances of all the atoms. Is of N^2 dimension.

@@ -85,7 +85,7 @@ int main(int argc, char* argv[])
 	//////////////////////////////////////////////////////////////////////////
 	// Command line argument values
 	std::string inFilename, saveFilename, anomalousFilename, helpModule;
-	bool useGPU, useDW;
+	bool useGPU, useDW, electron;
 	bool printProgress;
 	float solventEDensity = 0.0, c1, qMax, qMin;
 	int nqVals;
@@ -97,8 +97,10 @@ int main(int argc, char* argv[])
 	desc.add_options()
 		("help,h", po::value<std::string>(&helpModule)->implicit_value(""),
 			"Print this help message")
-		("PDBFile,i", po::value<std::string>(&inFilename), 
+		("PDBFile,i", po::value<std::string>(&inFilename),
 			"Input PDB file")
+		("Electron,e", po::value<bool>(&electron)->default_value(false),
+			"Electron PDB")
 		("out,o", po::value<std::string>(&saveFilename)->default_value("Debye.out"),
 			"The name of the file to write the results to")
 		("gpu,g", po::value<bool>(&useGPU)->implicit_value(true)
@@ -183,6 +185,7 @@ int main(int argc, char* argv[])
 		std::cout << desc;
 		return 0;
 	}
+
 	if(vm.count("sol"))
 	{
 		std::cout << "A solvent electron density of " << solventEDensity << "e/nm^3 will be subtracted." << std::endl;
@@ -208,10 +211,20 @@ int main(int argc, char* argv[])
 		// Setup Debye calculations
 		DebyeCalTester *dct = (anomalousFilename.empty() ? new DebyeCalTester(useGPU, kernelVersion) : new AnomDebyeCalTester(useGPU));
 
-		if (anomalousFilename.empty())
-			dct->pdb = new PDBReader::XRayPDBReaderOb<F_TYPE>(inFilename, false);
+		if (electron)
+		{
+			if (anomalousFilename.empty())
+				dct->pdb = new PDBReader::ElectronPDBReaderOb<F_TYPE>(inFilename, false);
+			else
+				dct->pdb = new PDBReader::ElectronPDBReaderOb<F_TYPE>(inFilename, false, 0, anomalousFilename);
+		}
 		else
-			dct->pdb = new PDBReader::XRayPDBReaderOb<F_TYPE>(inFilename, false, 0, anomalousFilename);
+		{
+			if (anomalousFilename.empty())
+				dct->pdb = new PDBReader::XRayPDBReaderOb<F_TYPE>(inFilename, false);
+			else
+				dct->pdb = new PDBReader::XRayPDBReaderOb<F_TYPE>(inFilename, false, 0, anomalousFilename);
+		}
 		int sz = nqVals;
 #ifdef _DEBUG0
 		sz = 5;
