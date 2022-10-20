@@ -167,6 +167,14 @@ def test_example_three_generate_pdb():
     caldata = CalculationInput.load_from_PDB(pdb_file, 5)
     runner = EmbeddedLocalRunner()
     result = runner.generate(caldata)
+
+    out_dir = os.path.join(root_path, 'out_dir')
+    if not os.path.exists(out_dir):
+        os.makedirs(out_dir)
+
+    out_file = os.path.join(out_dir, 'pdb.out')
+    result.save_to_out_file(out_file)
+
     assert len(result.graph) > 0
 
 def test_example_three_generate_epdb():
@@ -183,6 +191,23 @@ def test_example_three_generate_epdb():
     out_file = os.path.join(out_dir, 'epdb.out')
     result.save_to_out_file(out_file)
     
+    assert len(result.graph) > 0
+
+def test_example_three_generate_pdb_from_state():
+    state_file = os.path.join(root_path, "files", "pdb.state")
+    fixed_state_file = fix_file(state_file)
+    caldata = CalculationInput.load_from_state_file(fixed_state_file)
+    caldata.use_gpu = False
+    runner = EmbeddedLocalRunner()
+    result = runner.generate(caldata)
+    
+    out_dir = os.path.join(root_path, 'out_dir')
+    if not os.path.exists(out_dir):
+        os.makedirs(out_dir)
+
+    out_file = os.path.join(out_dir, 'pdb_from_state.out')
+    result.save_to_out_file(out_file)
+
     assert len(result.graph) > 0
 
 def test_example_three_generate_epdb_from_state():
