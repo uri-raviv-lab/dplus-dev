@@ -176,7 +176,7 @@ Entity ^GraphPane3D::RegisterPDB(String ^filename, String ^anomfilename, LevelOf
 	if (electron)
 	{
 		result->type = EntityType::TYPE_EPDB;
-		pdbType = pdbType + gcnew System::String("(electron PDB)");
+		pdbType = pdbType + gcnew System::String("(EPDB)");
 	}
 	else
 	{
@@ -273,53 +273,41 @@ bool GraphPane3D::ReadPDBFile(array<unsigned char> ^data, bool bCenterPDB,
 	cli::pin_ptr<unsigned char> vdata = &data[0];
 	const char *buff = (const char *)vdata;
 
+	PDBReader::PDBReaderOb<double> * pdbTest;
+
 	if (electron)
 	{
-		// THIS IF/ELSE WILL BE DELETED ONCE electronPDBReaderOb INHERITS PDBReaderOb
-		PDBReader::ElectronPDBReaderOb<double> pdbTest;
-		try
-		{
-			PDB_READER_ERRS err = pdbTest.readPDBbuffer(buff, sz, bCenterPDB);
-			if (err != PDB_OK) {
-				char a[256] = { 0 };
-				sprintf_s(a, "Invalid PDB! (%d)", err);
-				MessageBox::Show(gcnew String(a), "ERROR", MessageBoxButtons::OK, MessageBoxIcon::Error);
-				return false;
-			}
-		}
-		catch (PDBReader::pdbReader_exception& e)
-		{
-			char a[256] = { 0 };
-			sprintf_s(a, "Invalid PDB! (%s)", e.GetErrorMessage().c_str());
-			MessageBox::Show(gcnew String(a), "ERROR", MessageBoxButtons::OK, MessageBoxIcon::Error);
-			return false;
-		}
-		pdbTest.getAtomsAndCoords(*x, *y, *z, *atoms);
-		return true;
+		pdbTest = new PDBReader::ElectronPDBReaderOb<double>();
 	}
 	else
 	{
-		PDBReader::XRayPDBReaderOb<double> pdbTest;
-		try
-		{
-			PDB_READER_ERRS err = pdbTest.readPDBbuffer(buff, sz, bCenterPDB);
-			if (err != PDB_OK) {
-				char a[256] = { 0 };
-				sprintf_s(a, "Invalid PDB! (%d)", err);
-				MessageBox::Show(gcnew String(a), "ERROR", MessageBoxButtons::OK, MessageBoxIcon::Error);
-				return false;
-			}
-		}
-		catch (PDBReader::pdbReader_exception& e)
-		{
+		pdbTest = new PDBReader::XRayPDBReaderOb<double>();
+	}
+
+	try
+	{
+		PDB_READER_ERRS err = pdbTest->readPDBbuffer(buff, sz, bCenterPDB);
+		if (err != PDB_OK) {
 			char a[256] = { 0 };
-			sprintf_s(a, "Invalid PDB! (%s)", e.GetErrorMessage().c_str());
+			sprintf_s(a, "Invalid PDB! (%d)", err);
 			MessageBox::Show(gcnew String(a), "ERROR", MessageBoxButtons::OK, MessageBoxIcon::Error);
+			delete pdbTest;
 			return false;
 		}
-		pdbTest.getAtomsAndCoords(*x, *y, *z, *atoms);
-		return true;
 	}
+	catch (PDBReader::pdbReader_exception& e)
+	{
+		char a[256] = { 0 };
+		sprintf_s(a, "Invalid PDB! (%s)", e.GetErrorMessage().c_str());
+		MessageBox::Show(gcnew String(a), "ERROR", MessageBoxButtons::OK, MessageBoxIcon::Error);
+		delete pdbTest;
+		return false;
+	}
+	pdbTest->getAtomsAndCoords(*x, *y, *z, *atoms);
+
+	delete pdbTest;
+
+	return true;
 	
 }
 

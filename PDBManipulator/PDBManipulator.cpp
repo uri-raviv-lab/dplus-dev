@@ -14,77 +14,50 @@ namespace po = boost::program_options;
 
 #include <boost/algorithm/string/predicate.hpp>
 
-
-int ElectronPDBManipulate(std::string inFilename, std::string command, fs::path ipt, std::string saveFilename)
+int PDBManipulate(std::string inFilename, std::string command, fs::path ipt, std::string saveFilename, bool electron)
 {
-	std::cout << "ElectronPDBManipulate\n";
-	PDBReader::ElectronPDBReaderOb<float> pdb(inFilename, false);
-
+	PDBReader::PDBReaderOb<float>* pdb;
+	
+	if (electron)
+	{
+		pdb = new PDBReader::ElectronPDBReaderOb<float>(inFilename, false);
+	}
+	else
+	{
+		pdb = new PDBReader::XRayPDBReaderOb<float>(inFilename, false);
+	}
+	
 	std::stringstream header;
 	if (boost::iequals(command, "gcenter"))
 	{
-		pdb.moveGeometricCenterToOrigin();
+		pdb->moveGeometricCenterToOrigin();
 		header << "REMARK    This file was made by moving the file\n"
 			"REMARK    " << ipt
 			<< "\nREMARK    to its geometric center.\n";
 	}
 	if (boost::iequals(command, "mcenter"))
 	{
-		pdb.moveCOMToOrigin();
+		pdb->moveCOMToOrigin();
 		header << "REMARK    This file was made by moving the file\n"
 			"REMARK    " << ipt
 			<< "\nREMARK    to its center of mass.\n";
 	}
 	if (boost::iequals(command, "align"))
 	{
-		pdb.AlignPDB();
+		pdb->AlignPDB();
 		header << "REMARK    This file was made by moving the file\n"
 			"REMARK    " << ipt
 			<< "\nREMARK    to its center of mass and aligning its principal axes to Cartesian axes.\n";
 	}
 
-	if (PDB_OK != pdb.WritePDBToFile(saveFilename, header))
+	if (PDB_OK != pdb->WritePDBToFile(saveFilename, header))
 	{
 		std::cerr << "Error occurred when attempting to write to " << saveFilename << ".\n";
+		delete pdb;
 		return -5;
 	}
-	return 0;
-}
 
-
-int PDBManipulate(std::string inFilename, std::string command, fs::path ipt, std::string saveFilename)
-{
-	std::cout << "PDBManipulate\n";
-	PDBReader::XRayPDBReaderOb<float> pdb(inFilename, false);
-
-	std::stringstream header;
-	if (boost::iequals(command, "gcenter"))
-	{
-		pdb.moveGeometricCenterToOrigin();
-		header << "REMARK    This file was made by moving the file\n"
-			"REMARK    " << ipt
-			<< "\nREMARK    to its geometric center.\n";
-	}
-	if (boost::iequals(command, "mcenter"))
-	{
-		pdb.moveCOMToOrigin();
-		header << "REMARK    This file was made by moving the file\n"
-			"REMARK    " << ipt
-			<< "\nREMARK    to its center of mass.\n";
-	}
-	if (boost::iequals(command, "align"))
-	{
-		pdb.AlignPDB();
-		header << "REMARK    This file was made by moving the file\n"
-			"REMARK    " << ipt
-			<< "\nREMARK    to its center of mass and aligning its principal axes to Cartesian axes.\n";
-	}
-
-	if (PDB_OK != pdb.WritePDBToFile(saveFilename, header))
-	{
-		std::cerr << "Error occurred when attempting to write to " << saveFilename << ".\n";
-		return -5;
-	}
+	delete pdb;
 	return 0;
 }
 
@@ -202,14 +175,7 @@ int main(int argc, char* argv[])
 		return -3;
 	}
 
-	if (electron)
-	{
-		return ElectronPDBManipulate(inFilename, command, ipt, saveFilename);
-	}
-	else
-	{
-		return PDBManipulate(inFilename, command, ipt, saveFilename);
-	}
+	return PDBManipulate(inFilename, command, ipt, saveFilename, electron);
 	
 
 }

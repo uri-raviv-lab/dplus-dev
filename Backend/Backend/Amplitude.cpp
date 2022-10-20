@@ -3,7 +3,6 @@
 #include "../backend_version.h"
 
 #include "PDBAmplitude.h"
-#include "ElectronPDBAmplitude.h"
 #include <math.h>
 #include <ctime>
 #include <iostream>
@@ -1554,7 +1553,7 @@ bool DomainModel::AssemblePDBFile(std::vector<std::string> &lines, std::vector<E
 
 		if (electronPDB)
 		{
-			electronPDBAmplitude* pdbCast = dynamic_cast<electronPDBAmplitude*>(_amps[i]);
+			ElectronPDBAmplitude* pdbCast = dynamic_cast<ElectronPDBAmplitude*>(_amps[i]);
 			if (pdbCast) 
 			{
 				pdbCast->AssemblePDBFile(subLines, subLocs);

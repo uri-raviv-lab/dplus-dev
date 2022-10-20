@@ -52,7 +52,7 @@ void PDBAmplitude::CalculateSolventSpace()
 
 	}
 	// 4) If holes are to be filled, flood fill for outer solvent (3) and mark all holes as atoms; else mark all 0 cells as 3
-	if (pdb.bFillHoles)
+	if (pdb->bFillHoles)
 	{
 		Floodfill3D(0, 0, 0, 0, LIGHT_BLUE); // From first voxel up to the center of the solvation
 		// holes should now be marked as atoms
@@ -364,17 +364,17 @@ void PDBAmplitude::ReduceSolventSpaceToIrregularBoxes(std::vector<fIdx>& boxCOM,
 
 void PDBAmplitude::MarkVoxelsNeighboringAtoms(FACC rSol, SolventSpace::ScalarType from, SolventSpace::ScalarType to, int ignoreIndex)
 {
-	int xSz = (int)pdb.x.size();
+	int xSz = (int)pdb->x.size();
 	for (int i = 0; i < xSz; i++) {
-		if (pdb.atmInd[i] == ignoreIndex)
+		if (pdb->atmInd[i] == ignoreIndex)
 			continue;
-		const double ddist = ((*pdb.rad)[pdb.atmInd[i]]) + rSol;
+		const double ddist = ((*pdb->rad)[pdb->atmInd[i]]) + rSol;
 		const auto dm = _solvent_space.dimensions();
 		//std::cout << ddist << "\n";
 		int dist = 2 + int(ddist / voxelStep);
-		int xC = int((pdb.x[i] - xMin) / voxelStep);
-		int yC = int((pdb.y[i] - yMin) / voxelStep);
-		int zC = int((pdb.z[i] - zMin) / voxelStep);
+		int xC = int((pdb->x[i] - xMin) / voxelStep);
+		int yC = int((pdb->y[i] - yMin) / voxelStep);
+		int zC = int((pdb->z[i] - zMin) / voxelStep);
 		for (int h = std::max(0, xC - dist); h < std::min(xC + dist, int(dm(0))); h++) {
 			auto sliceX = _solvent_space.SliceX(h);
 			for (int k = std::max(0, yC - dist); k < std::min(yC + dist, int(dm(1))); k++) {
@@ -382,9 +382,9 @@ void PDBAmplitude::MarkVoxelsNeighboringAtoms(FACC rSol, SolventSpace::ScalarTyp
 				for (int l = std::max(0, zC - dist); l < std::min(zC + dist, int(dm(2))); l++) {
 					if (col(l) == from && // Check to make sure that the voxel has not yet been marked
 						sqrt(
-						sq(xMin + (FACC(h) * voxelStep) - pdb.x[i]) +
-						sq(yMin + (FACC(k) * voxelStep) - pdb.y[i]) +
-						sq(zMin + (FACC(l) * voxelStep) - pdb.z[i]))
+						sq(xMin + (FACC(h) * voxelStep) - pdb->x[i]) +
+						sq(yMin + (FACC(k) * voxelStep) - pdb->y[i]) +
+						sq(zMin + (FACC(l) * voxelStep) - pdb->z[i]))
 						<= ddist
 						)
 					{

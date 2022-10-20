@@ -12,7 +12,7 @@ class EXPORTED_BE PDBAmplitude : public Amplitude, public IGPUCalculable,
 protected:
 	friend class DomainModel;
 
-	PDBReader::XRayPDBReaderOb<float> pdb;
+	PDBReader::PDBReaderOb<float> * pdb;
 	/// Values of Table 2.2B (International Tables of X-ray Crystallography Vol IV)
 	Eigen::Array<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> atmFFcoefs;
 	/// Contains the MD5 hash of the pdb object so that we don't have to collect it over and over again.
@@ -59,13 +59,13 @@ protected:
 	bool bCentered;
 public:
 	virtual ~PDBAmplitude();
-	PDBAmplitude();
-	PDBAmplitude(string filename, bool bCenter, string anomalousFilename = "", int model = 0);
+	PDBAmplitude() : Amplitude() {}
+	/*PDBAmplitude(string filename, bool bCenter, string anomalousFilename = "", int model = 0);
 	PDBAmplitude(const char* buffer, size_t buffSize, const char* filenm, size_t fnSize,
-		bool bCenter, const char* anomalousFilename = NULL, size_t anomBuffSize = 0, int model = 0);
+		bool bCenter, const char* anomalousFilename = NULL, size_t anomBuffSize = 0, int model = 0);*/
 
-	virtual std::string Hash() const;
-	virtual std::string GetName() const;
+	virtual std::string Hash() const=0;
+	virtual std::string GetName() const=0;
 
 	virtual FACC GetVoxelStepSize();
 	virtual void SetVoxelStepSize(FACC stepSize);
@@ -108,7 +108,7 @@ public:
 	void dummyprogress();
 
 	// GPU calculating functions
-	virtual bool SetModel(Workspace& workspace);
+	virtual bool SetModel(Workspace& workspace)=0;
 
 	virtual bool SetParameters(Workspace& workspace, const double* params, unsigned int numParams);
 
@@ -145,12 +145,14 @@ protected:
 	*			calculated. Range: [0-207]
 	* @return FACC The amplitude of the atomic form factor of elem at q
 	**/
-	virtual FACC atomicFF(FACC q, int elem);
+	virtual FACC atomicFF(FACC q, int elem) =0;
 	void WriteEigenSlicesToFile(string filebase);
 
 	virtual void PrepareParametersForGPU(
 		std::vector<float4>& solCOM, std::vector<int4>& solDims,
 		std::vector<float4>& oSolCOM, std::vector<int4>& outSolDims);
+
+	virtual bool isElectron() = 0;
 
 protected:
 
@@ -166,7 +168,7 @@ protected:
 
 	virtual std::complex<FACC> calcAmplitude(FACC qx, FACC qy, FACC qz);
 	virtual std::complex<FACC> calcAmplitude(int indqx, int indqy, int indqz);
-	virtual void initialize();
+	virtual void initialize()=0;
 	void CalculateSolventSpace();
 	void ReduceSolventSpaceToIrregularBoxes(std::vector<fIdx>& boxCOM, std::vector<idx>& boxDims, int designation, int mark_used_as);
 	void MarkVoxelsNeighboringAtoms(FACC solventRad, SolventSpace::ScalarType from, SolventSpace::ScalarType to, int ignoreIndex = -1);
@@ -182,6 +184,41 @@ protected:
 	* @return FACC The amplitude of the atomic form factor of elem at q
 	**/
 	//virtual FACC atomicFF(FACC q, int elem, double background = 0.0);
+};
+
+class EXPORTED_BE XRayPDBAmplitude : public PDBAmplitude
+{
+public:
+	XRayPDBAmplitude();
+	XRayPDBAmplitude(string filename, bool bCenter, string anomalousFilename = "", int model = 0);
+	XRayPDBAmplitude(const char* buffer, size_t buffSize, const char* filenm, size_t fnSize,
+		bool bCenter, const char* anomalousFilename = NULL, size_t anomBuffSize = 0, int model = 0);
+
+	std::string Hash() const;
+	bool SetModel(Workspace& workspace);
+	std::string GetName() const;
+
+protected:
+	FACC atomicFF(FACC q, int elem);
+	void initialize();
+	bool isElectron() { return false; }
+};
+
+class EXPORTED_BE ElectronPDBAmplitude : public PDBAmplitude {
+public:
+	ElectronPDBAmplitude();
+	ElectronPDBAmplitude(string filename, bool bCenter, string anomalousFilename = "", int model = 0);
+	ElectronPDBAmplitude(const char* buffer, size_t buffSize, const char* filenm, size_t fnSize,
+		bool bCenter, const char* anomalousFilename = NULL, size_t anomBuffSize = 0, int model = 0);
+
+	std::string Hash() const;
+	bool SetModel(Workspace& workspace);
+	std::string GetName() const;
+
+protected:
+	FACC atomicFF(FACC q, int elem);
+	void initialize();
+	bool isElectron() { return true; }
 };
 
 class EXPORTED_BE DebyeCalTester : public IModel {
@@ -205,13 +242,31 @@ public:
 	// Methods
 	//////////////////////////////////////////////////////////////////////////
 
-	DebyeCalTester() { bUseGPU = true; kernelVersion = 2; initialize(); }
-	DebyeCalTester(bool bGPU, int kernelVersion_ = 2) { bUseGPU = bGPU;  kernelVersion = kernelVersion_;  initialize(); }
+	DebyeCalTester(bool electron=false) 
+	{ 
+		bUseGPU = true; 
+		kernelVersion = 2; 
+		if (electron)
+			electronInitialize();
+		else
+			xrayInitialize();
+	}
+	DebyeCalTester(bool bGPU, int kernelVersion_ = 2, bool electron=false) 
+	{ 
+		bUseGPU = bGPU;  
+		kernelVersion = kernelVersion_;  
+		if (electron)
+			electronInitialize();
+		else
+			xrayInitialize();
+	}
 	virtual ~DebyeCalTester();
 
-	virtual void initialize();
+	virtual void xrayInitialize();
+	virtual void electronInitialize();
 
-	virtual F_TYPE atomicFF(F_TYPE q, int elem);
+	virtual F_TYPE xrayAtomicFF(F_TYPE q, int elem);
+	virtual F_TYPE electronAtomicFF(F_TYPE q, int elem);
 
 	virtual PDB_READER_ERRS LoadPDBFile(string filename, int model = 0);
 
@@ -253,7 +308,7 @@ public:
 	AnomDebyeCalTester(bool bGPU) : DebyeCalTester(bGPU, 4) { }
 	AnomDebyeCalTester(bool bGPU, int kernelVersion) : DebyeCalTester(bGPU, kernelVersion) { }
 
-	virtual std::complex<F_TYPE> anomAtomicFF(F_TYPE q, int elem, F_TYPE fPrime, F_TYPE fPrimePrime);
+	virtual std::complex<F_TYPE> anomAtomicFF(F_TYPE q, int elem, F_TYPE fPrime, F_TYPE fPrimePrime, bool electron=false);
 
 	virtual void PreCalculate(VectorXd& p, int nLayers);
 

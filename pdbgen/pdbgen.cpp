@@ -1,7 +1,6 @@
 #include <cstdio>
 #include <ctime>
 #include "Backend/PDBAmplitude.h"
-#include "Backend/ElectronPDBAmplitude.h"
 
 #define QPOINTS 800
 #define REPETITIONS 1
@@ -54,13 +53,13 @@ int main(int argc, char **argv) {
   Amplitude* amp;
   if (electron)
   {
-	  std::cout << "electronPDBAmplitude\n";
-	  amp = new electronPDBAmplitude(argv[1], true);
+	  std::cout << "ElectronPDBAmplitude\n";
+	  amp = new ElectronPDBAmplitude(argv[1], true);
   }
   else
   {
 	  std::cout << "PDBAmplitude\n";
-	  amp = new PDBAmplitude(argv[1], true);
+	  amp = new XRayPDBAmplitude(argv[1], true);
   }
 
   if(amp->getError() != PDB_OK) {

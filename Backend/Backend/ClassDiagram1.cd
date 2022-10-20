@@ -140,7 +140,7 @@
       <FileName>Amplitude.h</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="electronPDBAmplitude" Collapsed="true">
+  <Class Name="ElectronPDBAmplitude" Collapsed="true">
     <Position X="22.75" Y="3" Width="1.5" />
     <TypeIdentifier>
       <HashCode>CAgNksAADDYAggE6AkFBToJgIBigECYEBAFDAFKQDUQ=</HashCode>

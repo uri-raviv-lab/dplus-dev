@@ -4,7 +4,6 @@
 #include <vector>
 #include "Amplitude.h"
 #include "PDBAmplitude.h"
-#include "ElectronPDBAmplitude.h"
 
 class matrix3d_less : public std::binary_function<Eigen::Matrix3d, Eigen::Matrix3d, bool>
 {

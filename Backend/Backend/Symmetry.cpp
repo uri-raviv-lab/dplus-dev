@@ -309,7 +309,7 @@ bool Symmetry::AssemblePDBFile( std::vector<std::string> &lines, std::vector<Eig
 
 			if (electronPDB) // Solve this redundancy with inheritance or something !!!
 			{
-				electronPDBAmplitude* pdbCast = dynamic_cast<electronPDBAmplitude*>(_amps[k]);
+				ElectronPDBAmplitude* pdbCast = dynamic_cast<ElectronPDBAmplitude*>(_amps[k]);
 				if (pdbCast)
 				{
 					pdbCast->AssemblePDBFile(subLines, subLocs);

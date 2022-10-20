@@ -255,12 +255,6 @@
     <ClCompile Include="PythonBackendWrapper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ElectronVoxelizedSolvent.cpp">
-      <Filter>Source Files\Models</Filter>
-    </ClCompile>
-    <ClCompile Include="ElectronPDBAmplitude.cpp">
-      <Filter>Source Files\Models</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BackendInterface.h">
@@ -420,9 +414,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="PDBAmplitude.h">
-      <Filter>Header Files\Models</Filter>
-    </ClInclude>
-    <ClInclude Include="ElectronPDBAmplitude.h">
       <Filter>Header Files\Models</Filter>
     </ClInclude>
   </ItemGroup>

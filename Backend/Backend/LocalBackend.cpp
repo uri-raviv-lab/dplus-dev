@@ -1,6 +1,5 @@
 
 #include "PDBAmplitude.h"
-#include "ElectronPDBAmplitude.h"
 #include "LocalBackend.h"
 #define RAPIDJSON_HAS_STDSTRING 1
 #include "../../BackendCommunication/LocalCommunication/LocalComm.h"
@@ -318,9 +317,9 @@ ModelPtr LocalBackend::HandleCreateFileAmplitude(JobPtr job, AmpFileType type, c
 						anomfname.assign(wanomfname.begin(), wanomfname.end());
 					}
 					if (electronPDB)
-						res = (ModelPtr)j.AssignAmplitude(new electronPDBAmplitude(fname, bCenter, anomfname));
+						res = (ModelPtr)j.AssignAmplitude(new ElectronPDBAmplitude(fname, bCenter, anomfname));
 					else
-						res = (ModelPtr)j.AssignAmplitude(new PDBAmplitude(fname, bCenter, anomfname));
+						res = (ModelPtr)j.AssignAmplitude(new XRayPDBAmplitude(fname, bCenter, anomfname));
 					break;
 				}				
 
@@ -360,9 +359,9 @@ ModelPtr LocalBackend::HandleCreateFileAmplitude(JobPtr job, AmpFileType type, c
 
 			case AF_PDB:
 				if (electronPDB)
-					res = (ModelPtr)j.AssignAmplitude(new electronPDBAmplitude(buffer, bufferSize, fileNm, fnSize, bCenter, anomFilename, anomfnSize));
+					res = (ModelPtr)j.AssignAmplitude(new ElectronPDBAmplitude(buffer, bufferSize, fileNm, fnSize, bCenter, anomFilename, anomfnSize));
 				else
-					res = (ModelPtr)j.AssignAmplitude(new PDBAmplitude(buffer, bufferSize, fileNm, fnSize, bCenter, anomFilename, anomfnSize));
+					res = (ModelPtr)j.AssignAmplitude(new XRayPDBAmplitude(buffer, bufferSize, fileNm, fnSize, bCenter, anomFilename, anomfnSize));
 				break;
 
 			case AF_AMPGRID:
@@ -970,22 +969,20 @@ std::string LocalBackend::HandleGetPDB(JobPtr job, ModelPtr model, bool electron
 		return ss.str();
 	}
 
+	PDBAmplitude* pa;
 	if (electron)
 	{
-		electronPDBAmplitude* pa = dynamic_cast<electronPDBAmplitude*>(amp);
-		if (pa && pa->SavePDBFile(ss)) {
-			return ss.str();
-		}
+		pa = dynamic_cast<ElectronPDBAmplitude*>(amp);
 	}
 	else
 	{
-		PDBAmplitude* pa = dynamic_cast<PDBAmplitude*>(amp);
-		if (pa && pa->SavePDBFile(ss)) {
-			return ss.str();
-		}
+		pa = dynamic_cast<XRayPDBAmplitude*>(amp);
+	}
+
+	if (pa && pa->SavePDBFile(ss)) {
+		return ss.str();
 	}
 	
-
 	throw(backend_exception(ERROR_MODELNOTFOUND, g_errorStrings[ERROR_MODELNOTFOUND]));
 }
 
