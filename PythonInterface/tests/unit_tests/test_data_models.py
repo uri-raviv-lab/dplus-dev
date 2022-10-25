@@ -1,7 +1,6 @@
 from dplus.DataModels import Parameter
 from dplus.State import State
 
-
 def test_create_state_with_cylinder():
     from dplus.DataModels.models import UniformHollowCylinder
     uhc=UniformHollowCylinder()
