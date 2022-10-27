@@ -505,7 +505,43 @@ class Amplitude():
                 qPerp_idx += 1
             qZ_idx += 1
         return arr_intensity
-                
+
+    def get_crystal_intensity(self, q_min, calculated_points=100, q_max=None, phi=0):
+        '''Returns the 2D intensity expected from a given model as if a crystallographic experiment was done.
+        The returned array goes from -q_max to q_max. Changing phi will give the scattering from another face (as if
+        turned by -phi in real-space)'''
+        if not q_max:
+            q_max = q_min
+            q_min = 0
+
+        if q_max > self.grid.q_max:
+            raise ValueError('q_max > grid.q_max !')
+
+        if q_min > q_max:
+            raise ValueError('q_min > q_max !')
+
+        qZ_list = np.linspace(-1*q_max, q_max, calculated_points)
+        qPerp_list = np.linspace(-1*q_max, q_max, calculated_points)
+
+        amps = np.zeros([calculated_points, calculated_points], dtype=complex)
+
+        phi_1 = phi
+        phi_2 = phi + np.pi
+        if phi_2 > 2 * np.pi:
+            phi_2 -= 2 * np.pi
+        for i in range(calculated_points):
+            for j in range(calculated_points):
+                q = np.sqrt(qPerp_list[i] ** 2 + qZ_list[j] ** 2)
+                theta = np.arctan2(qPerp_list[i], qZ_list[j])
+                if q_min <= q <= q_max:
+                    if theta < 0:
+                        amps[j, i] += self.get_interpolation([q], np.abs(theta), phi_2)[0]
+                    else:
+                        amps[j, i] += self.get_interpolation([q], theta, phi_1)[0]
+
+        I = np.power(np.abs(amps), 2)
+        return I
+
 
     def get_intensity_q_theta(self, q_list, theta_list=None, epsilon=1e-3, seed=0, max_iter=1000000):
         """
