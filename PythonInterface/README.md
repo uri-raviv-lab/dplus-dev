@@ -416,6 +416,9 @@ The `Parameter` class contains the following properties:
 
 `constraints`: an instance of the `Constraints` class, its default value is the default `Constraints`
 
+'sigma' is a parameter that does not exist in the D+ UI, but rather only in the API and is a measure for the polydispersivity of a parameter in the model. Sigma represents the full width at half-maximum of a Gaussian distribution that is applied to the parameter it is added to. 
+This was inherited from X+ and more information can be found in Ben-Nun, T., Ginsburg, A., Szekely, P. & Raviv, U. (2010). J. Appl. Cryst. 43, 1522-1531.
+
 Usage:
 
 ```python  

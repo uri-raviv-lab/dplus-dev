@@ -67,6 +67,23 @@ def test_model_building():
 
     print(chi_sq) 
 
+
+def test_del_layer():
+    from dplus.DataModels.models import ManualSymmetry
+    ms = ManualSymmetry()
+    for i in range(10):
+        ms.add_layer()
+        ms.layer_params[i].x.value = i + 0.1
+        ms.layer_params[i].y.value = i + 0.2
+        ms.layer_params[i].z.value = i + 0.3
+    ms.del_layer(0)
+    ms.del_layer(range(2, 5))
+    ms.del_layer([4, 3])
+
+    assert ((ms.layer_params[2].x.value == 6.1) & (ms.layer_params[2].y.value == 6.2) &
+           (ms.layer_params[2].z.value == 6.3)) & (len(ms.layer_params) == 4)
+
+
     
     
     
