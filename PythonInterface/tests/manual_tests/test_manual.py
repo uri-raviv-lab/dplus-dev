@@ -4,6 +4,7 @@ from dplus.DataModels import Constraints, Parameter
 from dplus.State import State, DomainPreferences, FittingPreferences
 from dplus.Amplitudes import Amplitude
 from dplus.DataModels.models import UniformHollowCylinder
+import numpy as np
 
 import os
 from os.path import abspath
@@ -241,5 +242,93 @@ def test_example_four_fit_UniformHollowCylinder():
     input.use_gpu = True
     fit_result = API.fit(input)
     assert len(fit_result.graph) > 0
+
+def test_EPDB():
+    from dplus.DataModels.models import EPDB
+
+    O_2 = EPDB(os.path.join(root_path, "files", "O_2.pdb"))
+    O_2.extra_params.solvent_method.value = 0
+    O = EPDB(os.path.join(root_path, "files", "O.pdb"))
+    O.extra_params.solvent_method.value = 0
+    O_2_state = CalculationInput()
+    O_2_state.Domain.populations[0].add_model(O_2)
+    O_state = CalculationInput()
+    O_state.Domain.populations[0].add_model(O)
+
+    runner = EmbeddedLocalRunner()
+    O_2_result = runner.generate(O_2_state)
+    O_result = runner.generate(O_state)
+
+    assert not np.isclose(O_result.graph[0.0], O_2_result.graph[0.0])
+
+def test_nonexist_PDB():
+    from dplus.DataModels.models import PDB
+
+    O_2 = PDB(os.path.join(root_path, "files", "O_2.pdb"))
+    O_2.extra_params.solvent_method.value = 0
+    O_2_state = CalculationInput()
+    O_2_state.Domain.populations[0].add_model(O_2)
+
+    runner = EmbeddedLocalRunner()
+    O_2_result = runner.generate(O_2_state)
+
+    assert O_2_result.graph[0.0] == 0
+
+def test_EPDB_Pu():
+    from dplus.DataModels.models import EPDB
+
+    Pu_p3 = EPDB(os.path.join(root_path, "files", "Pu_p3.pdb"))
+    Pu_p3.extra_params.solvent_method.value = 0
+    Pu_p3_state = CalculationInput()
+    Pu_p3_state.Domain.populations[0].add_model(Pu_p3)
+    runner = EmbeddedLocalRunner()
+    Pu_p3_result = runner.generate(Pu_p3_state)
+
+    assert Pu_p3_result.graph[0.0] == 0
+
+def test_PDB_vs_EPDB():
+    from dplus.DataModels.models import EPDB, PDB
+
+    epdb = EPDB(os.path.join(root_path, "files", "O.pdb"))
+    pdb = PDB(os.path.join(root_path, "files", "O.pdb"))
+    epdb.extra_params.solvent_method.value = 0
+    pdb.extra_params.solvent_method.value = 0
+    epdb_state = CalculationInput()
+    pdb_state = CalculationInput()
+    epdb_state.Domain.populations[0].add_model(epdb)
+    pdb_state.Domain.populations[0].add_model(pdb)
+    runner = EmbeddedLocalRunner()
+    epdb_result = runner.generate(epdb_state)
+    pdb_result = runner.generate(pdb_state)
+
+    assert not np.isclose(epdb_result.y[0], pdb_result.y[0])
+
+def test_EPDB_in_sym():
+    from dplus.DataModels.models import EPDB
+    from dplus.DataModels.models import SpacefillingSymmetry
+
+    my_epdb = EPDB(os.path.join(root_path, "files", "1jff.pdb"))
+    my_epdb.extra_params.solvent_method.value = 0
+
+    my_sym = SpacefillingSymmetry()
+    my_sym.layer_params[0].distance.value = 1.1
+    my_sym.layer_params[1].distance.value = 1.2
+    my_sym.layer_params[2].distance.value = 1.3
+    my_sym.use_grid = False
+    my_sym.children.append(my_epdb)
+
+    my_state = CalculationInput()
+    my_state.Domain.populations[0].add_model(my_sym)
+    my_state.DomainPreferences.signal_file = os.path.join(root_path, "files", "1jff.out")
+    my_state.DomainPreferences.grid_size = 250
+    my_state.DomainPreferences.orientation_iterations = 1e6
+    # my_state.export_all_parameters(os.path.join(root_path, "files", "1jff.state"))
+
+    runner = EmbeddedLocalRunner()
+    result = runner.generate(my_state)
+    # result.save_to_out_file(os.path.join(root_path, "files", "found.out"))
+
+    assert np.max(np.abs((np.array(my_state.y) - np.array(result.y))) / np.array(my_state.y)) < 0.10
+
 
 #test_example_three_generate_epdb_from_state()
