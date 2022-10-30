@@ -548,6 +548,7 @@ class Amplitude():
         if extension == ".amp":
             amp= Amplitude._legacy_load(filename)
             amp._calculate_splines()
+            amp.filename = filename
             return amp
 
         ampzip = zipfile.ZipFile(filename, mode='r')
@@ -578,6 +579,7 @@ class Amplitude():
         amp._values = amp_values
         amp._calculate_splines()
         amp.external_headers = header_dict
+        amp.filename = filename
         return amp
 
 
@@ -626,7 +628,7 @@ def scrap():
 
 
 if __name__ == "__main__":
-    #files = scrap()
+    # files = scrap()
     files=[]
     for file in files:
         new = amp_to_ampj_converter(file)

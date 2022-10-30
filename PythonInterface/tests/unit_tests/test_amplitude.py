@@ -272,3 +272,7 @@ def test_use_grid():
     input.Domain.children[0].children[0].children[1].children[0].use_grid = False
     with pytest.raises(ValueError):
         result = runner.generate(input)
+
+def test_update_filename():
+    my_amp = Amplitude.load(r'.\files_for_tests\sphere.ampj')
+    assert my_amp.filename != ''

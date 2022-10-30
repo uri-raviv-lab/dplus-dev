@@ -1,4 +1,4 @@
-﻿This document was last updated on April 2 2018, for version 4.3.7
+﻿This document was last updated on August 8 2022, for version 4.6.1
 
 # The Dplus Python API
 
@@ -11,7 +11,7 @@ The Python API works on both Windows and Linux.
 
 Installing the Python API is done using PIP:
 
-    pip install dplus-api
+     pip install --extra-index-url https://pypi.fury.io/theresearchsoftwarecompany/ dplus-api
     
 The API was tested with Python 3.8 and newer. It *may* work with older versions of Python, although Python 2 
 is probably not supported.
@@ -347,6 +347,9 @@ The `Parameter` class contains the following properties:
 `mutable`: a boolean whose default value is `False`
 
 `constraints`: an instance of the `Constraints` class, its default value is the default `Constraints`
+
+'sigma' is a parameter that does not exist in the D+ UI, but rather only in the API and is a measure for the polydispersivity of a parameter in the model. Sigma represents the full width at half-maximum of a Gaussian distribution that is applied to the parameter it is added to. 
+This was inherited from X+ and more information can be found in Ben-Nun, T., Ginsburg, A., Szekely, P. & Raviv, U. (2010). J. Appl. Cryst. 43, 1522-1531.
 
 Usage:
 
