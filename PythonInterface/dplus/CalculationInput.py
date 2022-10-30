@@ -128,7 +128,7 @@ class CalculationInput(State):
         return input
 
     @staticmethod
-    def load_from_state_file(filename):
+    def load_from_state_file(filename, use_gpu=True):
         """
         receives the location of a file that contains a serialized parameter tree (state) and creates instance of /
         CalculationInput from the file.
@@ -138,7 +138,7 @@ class CalculationInput(State):
         """
         with open(filename, 'r') as statefile:
             input = json.load(statefile)
-        stateInput = CalculationInput()
+        stateInput = CalculationInput(use_gpu)
         stateInput.load_from_dictionary(input)
         return stateInput
 

@@ -2,6 +2,7 @@ import pprint
 from collections import OrderedDict
 from dplus.CalculationInput import CalculationInput
 from dplus.Signal import Signal
+import os
 
 
 class CalculationResult(object):
@@ -9,7 +10,7 @@ class CalculationResult(object):
     Stores the various aspects of the result for further manipulation
     """
 
-    def __init__(self, calc_data, result, job ):
+    def __init__(self, calc_data, result, job, get_amp_func=None):
         '''
 
         :param calc_data: an instance of CalculationInput class
@@ -20,6 +21,7 @@ class CalculationResult(object):
         self._job = job  # used for getting amps and pdbs
         self._calc_data = calc_data  # gets x for getting graph. possibly also used for fitting.
         self._headers = OrderedDict()
+        self._get_amp_func = get_amp_func
 
         if 'Graph' not in self._raw_result:
             # sometimes fit doesn't return graph, also any time generate crashes
@@ -72,7 +74,8 @@ class CalculationResult(object):
     def get_amp(self, model_ptr, destination_folder=None):
         '''
            returns the file location of the amplitude file for given model_ptr. \
-           destination_folder has a default value of None, but if provided, the amplitude file will be copied to that location,\
+           destination_folder has a default value of None, but if provided, \
+           the amplitude file will be copied to that location,\
            and then have its address returned.
 
           :param model_ptr: int value of model_ptr
@@ -80,7 +83,15 @@ class CalculationResult(object):
           :return: File location of the amplitude file
           '''
         model_name = self._calc_data.get_model(model_ptr).name
-        return self._job._get_amp(model_ptr, model_name, destination_folder)
+
+        if self._job:
+            return self._job._get_amp(model_ptr, model_name, destination_folder)
+        elif self._get_amp_func: 
+            if not destination_folder:
+                destination_folder = os.getcwd()
+            return self._get_amp_func(model_ptr, model_name, destination_folder)
+        else:
+            raise TypeError("Both job and get_amp_func not defined.")
 
     def get_amps(self, destination_folder=None):
         '''
@@ -132,8 +143,8 @@ class GenerateResult(CalculationResult):
     A class for generate calculation results
     '''
 
-    def __init__(self, calc_data, result, job):
-        super().__init__(calc_data, result, job)
+    def __init__(self, calc_data, result, job, get_amp_func=None):
+        super().__init__(calc_data, result, job, get_amp_func)
         if self._calc_data.DomainPreferences.apply_resolution:
             self.signal = self.signal.apply_resolution_function(self._calc_data.DomainPreferences.resolution_sigma)
         self._parse_headers()  # sets self._headers to a list of headers

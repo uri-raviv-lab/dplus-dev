@@ -13,11 +13,16 @@ from scipy.integrate import simpson
 import dplus.g_r as g
 import time as t
 import numpy as np
+import pytest
+
+from tests.test_settings import USE_GPU
 
 root_path = os.path.dirname(os.path.abspath(__file__))
 
 
 def test_1():
+    if not USE_GPU:
+        pytest.skip("NO GPU")
     print('test 1\n')
 
     a, b, c = np.array([5,0,0]), np.array([0,5,0]), np.array([0,0,5])
@@ -149,6 +154,8 @@ def test_1():
     print('N_mod_s(q) tot', simpson(rho * g_r_mod_s * 4 * np.pi * r_mod_s**2, r_mod_s))
 
 def test_2():
+    if not USE_GPU:
+        pytest.skip("NO GPU")
     print('test 2\n')
 
     I_sfs = CalculationInput()

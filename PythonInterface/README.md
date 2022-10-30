@@ -1,4 +1,4 @@
-﻿This document was last updated on August 8 2022, for version 4.6.1
+﻿This document was last updated on August 3 2022, for version dplus-v4.6.1.0
 
 # The Dplus Python API
 
@@ -30,28 +30,31 @@ which describes the parameter tree and calculation settings of the D+ computatio
 
 It is unnecessary to write a state file yourself. 
 State files can either be generated from within the python interface (with the function `export_all_parameters`),
-or created from the D+ GUI (by selecting File>Export All Parameters from within the D+ GUI).
+or created from the D+ GUI (by selecting File>Save All Parameters from within the D+ GUI).
 
 **The overall flow of the Python API is as follows:**
 
 1. The data to be used for the calculation is built by the user in an instance of the `CalculationInput` class. 
-`CalculationInput` is a child class of the class `State`, which represents a program state. A `State` includes both program 
-preferences such as `DomainPreferences`, and a parameter tree composed of `Models`.
+`CalculationInput` is a child class of the class `State`, which represents a program state. A `State` includes program preferences:
+    - `DomainPreferences`
+    - `FittingPreferences`  
 
-2. The calculation input is then passed to a `CalculationRunner` class (either `LocalRunner` or `WebRunner`),
+    and the `Domain` - a parameter tree composed of `Models`.
+
+2. The CalculationInput is then passed to a `CalculationRunner.Runner` class (either `EmbeddedLocalRunner` or `WebRunner`),
 and the calculation function is called (`generate`, `generate_async`, `fit`, or `fit_async`).
 
-3. The `CalculationRunner` class returns an instance of a `CalculationResult` class, 
+3. The `CalculationRunner.Runner` class returns an instance of a `CalculationResult` class, 
 either `FitResult` or `GenerateResult`.
 
 Here is a very simple example of what this might look like in main.py:
 
 ```python
 from dplus.CalculationInput import CalculationInput
-from dplus.CalculationRunner import LocalRunner
+from dplus.CalculationRunner import EmbeddedLocalRunner
 
 calc_data = CalculationInput.load_from_state_file("mystate.state")
-runner = LocalRunner()
+runner = EmbeddedLocalRunner()
 result = runner.generate(calc_data)
 print(result.graph)
 ```
@@ -61,9 +64,25 @@ A detailed explanation of the class types and their usage follows.
 
 ## CalculationRunner
 
-There are two kinds of `CalculationRunners`, Local and Web.
+The class `Runner` implemented in package `CalculationRunner` is a base abstract class.  
+There are two kinds of `Runners`: `EmbeddedLocalRunner` and `WebRunner`. 
+The Runner `LocalRunner` is deprecated
 
-The `LocalRunner` is intended for users who have the D+ executable files installed on their system. It takes two optional
+it can run generate and fit on calculationInput and get the result
+
+### EmbeddedLocalRunner
+The `EmbeddedLocalRunner` class can be used without D+ compiled or installed.
+
+To use `EmbeddedLocalRunner`, create an an instance using the default constructor:
+```python
+from dplus.CalculationRunner import EmbeddedLocalRunner
+
+runner = EmbeddedLocalRunner()
+```
+
+### LocalRunner
+The `LocalRunner` runner class is not supported anymore, but can still be used.
+It is intended for users who have the D+ executable files installed on their system. It takes two optional
 initialization arguments:
 
 * `exe_directory` is the folder location of the D+ executables. 
@@ -75,19 +94,11 @@ Amplitude files, and protein data bank (PDB) files, from the C++ executable.
 By default, its value is `None`, and an automatically generated 
 temporary folder will be used. 
 
-```python
-from dplus.CalculationRunner import LocalRunner
+### WebRunner
 
-exe_dir = r"C:\Program Files\D+\bin"
-sess_dir = r"sessions"
-runner = LocalRunner(exe_dir, sess_dir)
-# also possible:
-# runner = LocalRunner()
-# runner = LocalRunner(exe_dir)
-# runner = LocalRunner(session_directory=sess_dir)
-```
+WebRunner is currently out of use.
 
-The WebRunner is intended for users accessing the D+ server. It takes two required initialization arguments, with no
+<s>The WebRunner is intended for users accessing the D+ server. It takes two required initialization arguments, with no
 default values:
 
 * `url` is the address of the server.
@@ -100,39 +111,79 @@ url = r'http://localhost:8000/'
 token = '4bb25edc45acd905775443f44eae'
 runner = WebRunner(url, token)
 ```
+</s>
 
-Both runner classes have the same four methods: 
 
-`generate(calc_data)`, `generate_async(calc_data)`, `fit(calc_data)`, and `fit_async(calc_data)`.
+All runner classes have the same four methods: 
+
+* `generate(calc_data)` 
+* `generate_async(calc_data)` 
+* `fit(calc_data)`
+* `fit_async(calc_data)` (Not implemented for all classes)
+
+> Notice that `fit_async` is currently implemented only for the deprecated class `WebRunner`,  
+meaning, it is not in use.
 
 All four methods take the same single argument, `calc_data` - an instance of a `CalculationData` class.
 
-`generate` and `fit` return a `CalculationResult`.
-
-`generate_async` and `fit_async` return a `RunningJob`.
+## Synchronous Functions
+The synchronous functions: `generate` and `fit` - return a `CalculationResult`.
 
 When using `generate` or `fit` the program will wait until the call has finished and returned a result, before continuing. 
-Their asynchronous counterparts (`generate_async` and `fit_async`) allow D+ calculations to be run in the background 
+
+## Asynchronous Functions
+
+The asynchronous functions (`generate_async` and `fit_async`) allow D+ calculations to be run in the background 
 (for example, the user can call `generate_async`, tell the program to do other things, 
-and then return and check if the computation is finished). 
+and then return and check if the computation is finished).
+
+### How to use async function for `EmbeddedLocalRunner`
+
+> The classes `WebRunner` and `LocalRunner` implement async functions different than `EmbeddedLocalRunner`.  
+These classes are currently out of use. This documentation focuses on the mainly used `EmbeddedLocalRunner`.   
+However, a short explanation and example about `WebRunner` and `LocalRunner` async functions following.
 
 
-### RunningJob
+When an async function is called, generate or fit procedure is started, and the function returns.  
+In order to get the results, the job can be polled for the status, using `get_job_status()` until it is done.
 
-The user should not be initializing this class. When returned from an async function
- (`generate_async` or `fit_async`) in `CalculationRunner`, the user can 
-use the following methods to interact with the `RunningJob` instance:
-
-* `get_status()`: get a JSON dictionary reporting the job's current status
-* `get_result(calc_data)`: get a `CalculationResult`. Requires a copy of the `CalculationInput` used to create the job. 
-Should only be called when the job is completed. It is the user's responsibility to verify job completion with `get_status` 
-before calling. 
-* `abort()`: end a currently running job
+Once the job is done, call `get_generate_results(calc_data)` to get the result.  
+This returns a `CalculationResult`.
 
 ```python
 import datetime
 from dplus.CalculationInput import CalculationInput
-from dplus.CalculationRunner import LocalRunner
+from dplus.CalculationRunner import EmbeddedLocalRunner
+
+state_file=os.path.join(root_path, "files", "mystate.state")
+calc_data = CalculationInput.load_from_state_file(state_file, USE_GPU)
+runner = EmbeddedLocalRunner()
+runner.generate_async(calc_data)
+start_time = datetime.datetime.now()
+status=True
+while status:
+    try:
+        status_dict = runner.get_job_status()
+        status=status_dict['isRunning']
+    except:
+        status=True
+    run_time = datetime.datetime.now() - start_time
+    if run_time > datetime.timedelta(seconds=50):
+        runner.stop_generate()
+        raise TimeoutError("Job took too long")
+result = runner.get_generate_results(calc_data)
+```
+
+### How to use async function for `WebRunner` and `LocalRunner`
+
+The async functions return an instance of `RunningJob`.
+Call the `RunningJob.get_status` function to check if the job is done.
+Once the job is done. get the result using the `RunningJob.get_result` function.
+
+```python
+import datetime
+from dplus.CalculationInput import CalculationInput
+from dplus.CalculationRunner import EmbeddedLocalRunner
 
  calc_data = CalculationInput.load_from_state_file("mystate.state")
  runner = LocalRunner()
@@ -171,7 +222,7 @@ It has the methods:
 * `apply_resolution_function` - gets a sigma value and apply resolution on the y according to the sigma, returns signal instance with the new value
 
 ## State
-The state class contains an instance of each of three classes: DomainPreferences, FittingPreferences, and Domain. 
+The `State` class contains an instance of each of three classes: `DomainPreferences`, `FittingPreferences`, and `Domain`. 
 They are described in the upcoming sections.
 
 It has the methods:
@@ -200,6 +251,25 @@ It can behave recursively as necessary, for example, with a model that has child
 beyond those described in this document, because some defunct (outdated, irrelevant, or not-yet-implemented) fields are 
 still saved in the serialized dictionary.
 
+### How to use State
+
+The `State` class isn't usually used directly,
+It is inherited by the `CalculationInput` class. More Details about `CalculationInput` can be found in the following sections.
+
+If for any reason the `State` class is needed, it can be loaded in two different ways:
+
+1. By using the load_from_dictionary function:
+```python
+s = State()
+s.load_from_dictionary(state_json) # state_json is the json string describing the state
+```
+2. By adding a Model to population: 
+```python
+from dplus.DataModels.models import UniformHollowCylinder
+uhc = UniformHollowCylinder()
+s = State()
+s.Domain.populations[0].add_model(uhc)
+```
 
 
 ### DomainPreferences
@@ -216,7 +286,7 @@ There are no arguments given to the initialization function, and all the propert
 |---|---|---|
 |`signal`|	`an instance of signal class with qmin=0, qmax=7.5 and generated_points=800 `||
 |`convergence`|	0.001||
-|`grid_size`|	100|Even integer greater than 20|
+|`grid_size`|	200|Even integer greater than 20|
 |`orientation_iterations`|	100||
 |`orientation_method`|	`"Monte Carlo (Mersenne Twister)"`|`"Monte Carlo (Mersenne Twister)", "Adaptive (VEGAS) Monte Carlo", "Adaptive Gauss Kronrod"`|
 |`use_grid`|	`False`| `True`, `False`|
@@ -253,11 +323,11 @@ There are no arguments given to the initialization function, and all the propert
 |`loss_func_param_two`|0.5|Number|Required when `loss_function` is "Tolerant Loss"|
 |`x_ray_residuals_type`|`"Normal Residuals"`|`"Normal Residuals","Ratio Residuals","Log Residuals"`||
 |`minimizer_type`|`"Trust Region"`|`"Line Search","Trust Region"`||
-|`trust_region_strategy_type`|`"Dogleg"`|`"Levenberg-Marquardt","Dogleg"`|`minimizer_type` is `"Trust Region"`|
+|`trust_region_strategy_type`|`"Levenberg-Marquardt"`|`"Levenberg-Marquardt","Dogleg"`|`minimizer_type` is `"Trust Region"`|
 |`dogleg_type`|`"Traditional Dogleg"`|`"Traditional Dogleg","Subspace Dogleg"`|`trust_region_strategy_type` is `"Dogleg"`|
-|`line_search_type`|`"Armijo"`|`"Armijo","Wolfe"`|`minimizer_type` is `"Line Search"`|
-|`line_search_direction_type`|`"Steepest Descent"`|`"Steepest Descent","Nonlinear Conjugate Gradient","L-BFGS","BFGS"`|`minimizer_type` is `"Line Search"`. if `line_search_type` is `"Armijo"`, cannot be `"BFGS"` or `"L-BFGS"`. |
-|`nonlinear_conjugate_gradient_type`|`""`|`"Fletcher Reeves","Polak Ribirere","Hestenes Stiefel"`|`linear_search_direction_type` is `"Nonlinear Conjugate Gradient"`|
+|`line_search_type`|`"Wolfe"`|`"Armijo","Wolfe"`|`minimizer_type` is `"Line Search"`|
+|`line_search_direction_type`|`"L-BFGS"`|`"Steepest Descent","Nonlinear Conjugate Gradient","L-BFGS","BFGS"`|`minimizer_type` is `"Line Search"`. if `line_search_type` is `"Armijo"`, cannot be `"BFGS"` or `"L-BFGS"`. |
+|`nonlinear_conjugate_gradient_type`|`"Fletcher Reeves"`|`"Fletcher Reeves","Polak Ribirere","Hestenes Stiefel"`|`linear_search_direction_type` is `"Nonlinear Conjugate Gradient"`|
 
 Any property can then be easily changed, for example,
 
@@ -282,16 +352,18 @@ Populations can contain standard types of models.
 
 The available standard model classes are:
 
-* `UniformHollowCylinder`
-* `Sphere`
-* `SymmetricLayeredSlabs`
-* `AsymmetricLayeredSlabs`
-* `Helix`
-* `DiscreteHelix`
-* `SpacefillingSymmetry`
-* `ManualSymmetry`
-* `PDB`- a PDB file
-* `AMP`- an amplitude grid file
+| Model Name | location_params | extra_params | layer_params |
+|---|---|---|---|
+| `UniformHollowCylinder`| x, y, z,<br/>alpha, beta, gamma | scale, background,<br/>height | radius, ed
+| `Sphere`| x, y, z,<br/>alpha, beta, gamma | scale,<br/>background | radius, ed
+| `SymmetricLayeredSlabs`| x, y, z,<br/>alpha, beta, gamma | scale, background,<br/>x_domain_size, y_domain_size | width, ed
+| `AsymmetricLayeredSlabs`| x, y, z,<br/>alpha, beta, gamma | scale, background,<br/>x_domain_size, y_domain_size | width, ed
+| `Helix`| x, y, z,<br/>alpha, beta, gamma | scale, background,<br/>height, helix_radius,<br/>pitch | phase, ed,<br/>cross_section
+| `SpacefillingSymmetry`| x, y, z,<br/>alpha, beta, gamma | scale | distance, angle,<br/>repetitions
+| `ManualSymmetry`| x, y, z,<br/>alpha, beta, gamma | scale | Dependes on layers added
+| `PDB`- a PDB file| x, y, z,<br/>alpha, beta, gamma | scale, solvent_ed,<br/>solvent_probe_radius,<br/>solvation_thickness,<br/> outer_solvent_ed, fill_holes,<br/>solvent_only, solvent_method | N/A
+| `AMP`- an amplitude grid file| x, y, z,<br/>alpha, beta, gamma | scale | N/A
+||||
 
 You can create any model by calling its initialization. 
 
@@ -303,12 +375,11 @@ Some models (that support layers) also contain `layer_params`.
 These can be accessed from `model.location_params`, `model.extra_params`, and `model.layer_params`, respectively.
 
 They contain special custom python containers, based on standard python containers, but with validation
-of what the user does to them.
+of what the user does to them.  
 `layer_params` contains an instance of the class `Layers`, a modified list which enforces minimum/maximum length
-and requires any entries to the list be instances of the class `ParameterContainer`
-`location_params`, `extra_params`, and each entry in `layer_params` contain an instance of the class `ParameterContainer`,
-a modified dictionary. `ParameterContainer` is initialized with a dictionary containing keys and values, and thereafter
-does not allow the addition of any new keys. It also requires the value of the keys to be set exclusively to isntances of the
+and requires any entries to the list be instances of the class `ParameterContainer`.  
+`location_params`, `extra_params`, and each entry in `layer_params` is an instance of the class `ParameterContainer`.  
+`ParameterContainer` is initialized with a dictionary containing keys and values, and thereafter does not allow the addition of any new keys. It also requires the value of the keys to be set exclusively to isntances of the
 `Parameter` class.
 
 The goal of all this customization is to help the user be alerted to any mistakes they might make setting up their models.
@@ -318,7 +389,7 @@ An example of code that will raise an error:
 ```python
 from dplus.DataModels.models import UniformHollowCylinder
 uhc=UniformHollowCylinder()
-uhc.layer_params[1]["radius"]=2.0 #will raise error "radius can only be set to an instance of Parameter
+uhc.layer_params[1]["radius"]=2.0 #will raise error "2.0 can only be set to an instance of Parameter"
 ```
 
 
@@ -332,9 +403,6 @@ uhc.layer_params[1]["radius"].value=2.0
 uhc.extra_params["height"].value=3.0
 uhc.location_params["x"].value=2
 ```
-
-For additional information about which models have layers and what the various parameters available for each model are,
-please consult the D+ User's Manual.
 
 #### Parameters
 
@@ -392,7 +460,7 @@ In addition, it contains the following properties of its own:
 
 A new instance of CalculationInput can be created simply by calling its constructor.
 
-An empty constructor will cause CalculationInput to be created with default values derived from the default State, and with use_gpu = True.
+An empty constructor will cause CalculationInput to be created with default values derived from the default State, and with `use_gpu = True`.
 
 In addition, CalculationInput has the following static methods to create an instance of GenerateInput:
 
@@ -410,7 +478,7 @@ gen_input=CalculationInput()
 from dplus.CalculationInput import CalculationInput
 gen_input=CalculationInput.load_from_state_file('sphere.state')
 ```
-
+> See *Example Two* at the end of this document for loading a model into existing `CalculationInput`. 
 
 ## Amplitudes
 
@@ -505,7 +573,8 @@ q must be between q_min and q_max. Theta must be between 0 and pi. Phi must be b
 ```python
 #loading an existing amplitude and viewing the values it contains
 from dplus.Amplitudes import Amplitude
-my_amp = Amplitude.load("myamp.ampj")
+root_path=os.path.dirname(abspath(__file__))
+my_amp = Amplitude.load(os.path.join(root_path, "files", "myamp.ampj"))
 for c in my_amp.complex_amplitude_array:
     print(c)
 ```
@@ -525,6 +594,28 @@ a.save("myfile.ampj")
 
 output_intrp = a.get_interpolation(5,3,6)
 output_intrp_arr = a.get_interpolation([1,2,3],3,6)
+```
+
+```python
+# Save an Amplitude to a file and then load it to a Domain param tree
+from dplus.Amplitudes import Amplitude
+def my_func(q, theta, phi):
+        return np.complex64(q + 0.0j)
+
+    a = Amplitude(50, 7.5)
+    a.fill(my_func)
+    a.description = "example"
+    a.save(os.path.join(session, "artificialgrid.ampj"))
+    input = CalculationInput(USE_GPU)
+    input.DomainPreferences.use_grid = True
+    input.DomainPreferences.q_max = 7.5
+    input.DomainPreferences.grid_size = 50
+    a = AMP()
+    a.filename = os.path.join(session, "artificialgrid.ampj")
+    a.centered = True
+    input.Domain.populations[0].children.append(a)
+    runner = EmbeddedLocalRunner()
+    result = runner.generate(input)
 ```
 
 There are examples of using Amplitudes to implement models similar to D+ in the additional examples section.
@@ -551,7 +642,7 @@ In addition the module contains two functions that conert old ".amp" file to ".a
 
 ## CalculationResult
 
-The CalculationResult class is returned by the CalculationRunner. 
+The `CalculationResult` class is returned by the `Runner`. 
 The user should generally not be instantiating the class themselves. 
 
 The base `CalculationResult` class is inherited by `GenerateResult` and `FitResult`
@@ -566,7 +657,8 @@ In addition, CalculationResults has the following functions:
 
 * `get_amp(model_ptr, destination_folder)`: returns the file location of the amplitude file for given `model_ptr`. 
 `destination_folder` has a default value of `None`, but if provided, the amplitude file will be copied to that location,
-and then have its address returned. 
+and then have its address returned.
+If the model has a name, the amplitude file will be named according to the model_name. If there is no model name, the file will be named according to the model_ptr. See following example "Model Naming". 
 * `get_amps(destionation_folder)`: returns an array of file locations for every amplitude file created during the D+
 calculation process. `destination_folder` has a default value of `None`, but if provided, the amplitude files
 will be copied to that location.  
@@ -600,76 +692,74 @@ The module contains the class NumpyHandlingEncoder.
 
 ```python
 from dplus.CalculationInput import CalculationInput
-from dplus.CalculationRunner import LocalRunner
+from dplus.CalculationRunner import EmbeddedLocalRunner
 
-exe_directory = r"C:\Program Files\D+\bin"
-sess_directory = r"session"
-runner= LocalRunner(exe_directory, sess_directory)
+root_path=os.path.dirname(abspath(__file__))
 
-input=CalculationInput.load_from_state_file('spherefit.state')
-result=runner.fit(input)
-print(result.graph)
+runner = EmbeddedLocalRunner()
+state_file = os.path.join(root_path, "files", "sphere.state")
+fixed_state_file = fix_file(state_file)
+input = CalculationInput.load_from_state_file(fixed_state_file, USE_GPU)
+result = runner.fit(input)
 ```
 
 Comments:
-This program loads a state file from `spherefit.state`, runs fitting with the local runner, and print the graph of the result.
+This program loads a state file from `sphere.state` and runs fitting with the local runner.
 
 ***Example Two***
 
 ```python
+# Create CalculationInput, load UniformHollowCylinder and generate.
 from dplus.CalculationInput import CalculationInput
-from dplus.CalculationRunner import LocalRunner
-from dplus.DataModels import ModelFactory, Population
-from dplus.State import State
+from dplus.CalculationRunner import EmbeddedLocalRunner
 from dplus.DataModels.models import UniformHollowCylinder
 
-sess_directory = r"session"
-runner= LocalRunner(session_directory=sess_directory)
+runner = EmbeddedLocalRunner()
+uhc = UniformHollowCylinder()
+uhc.layer_params[1]["radius"].value = 2.0
+uhc.extra_params.height.value = 3.0
+uhc.location_params.x.value = 2
 
-uhc=UniformHollowCylinder()
-caldata = CalculationInput()
+caldata = CalculationInput(USE_GPU)
 caldata.Domain.populations[0].add_model(uhc)
-
-result=runner.generate(caldata)
-print(result.graph)
+result = runner.generate(caldata)
 ```
 
 ***Example Three***
 
 ```python
-from dplus.CalculationRunner import LocalRunner
+from dplus.CalculationRunner import EmbeddedLocalRunner
 from dplus.CalculationInput import CalculationInput
 
-runner=LocalRunner()
-caldata=CalculationInput.load_from_PDB('1JFF.pdb', 5)
-result=runner.generate(caldata)
+pdb_file = os.path.join(root_path, "files", "1JFF.pdb")
+caldata = CalculationInput.load_from_PDB(pdb_file, 5)
+caldata.use_gpu = USE_GPU
+runner = EmbeddedLocalRunner()
+result = runner.generate(caldata)
+assert len(result.graph) > 0
 print(result.graph)
 ```
 
 ***Example Four***
 
 ```python
-from dplus.CalculationRunner import LocalRunner
+from dplus.CalculationRunner import EmbeddedLocalRunner
 from dplus.CalculationInput import CalculationInput
-runner=LocalRunner()
-input = CalculationInput.load_from_state_file("uhc.state")
+if not USE_GPU:
+        pytest.skip("NO GPU")
+API = EmbeddedLocalRunner()
+state_file = os.path.join(root_path, "files", "uhc.state")
+input = CalculationInput.load_from_state_file(state_file)
 cylinder = input.get_model("test_cylinder")
-
-print("Original radius is ", cylinder.layer_params[1]['Radius'].value)
-result = runner.generate(input)
-
+result = API.generate(input)
 input.signal = result.signal
 cylinder = input.get_model("test_cylinder")
-cylinder.layer_params[1]['Radius'].value = 2
-cylinder.layer_params[1]['Radius'].mutable = True
+cylinder.layer_params[1].radius.value = 2
+cylinder.layer_params[1].radius.mutable = True
 input.FittingPreferences.convergence = 0.5
 input.use_gpu = True
-fit_result = runner.fit(input)
-optimized_input= fit_result.result_state
-result_cylinder=optimized_input.get_model("test_cylinder")
-print(fit_result.parameter_tree)
-print("Result radius is ", result_cylinder.layer_params[1]['Radius'].value)
-
+fit_result = API.fit(input)
+assert len(fit_result.graph) > 0
 ```
 
 Comments: 
@@ -683,7 +773,7 @@ scenario the user would set those parameters as editable properties to be change
 
 ```python
 from dplus.Amplitudes import Amplitude
-from dplus.CalculationRunner import LocalRunner
+from dplus.CalculationRunner import EmbeddedLocalRunner
 from dplus.CalculationInput import CalculationInput
 import math
 import numpy as np
@@ -736,7 +826,7 @@ a.save("sphere.ampj")
 input = CalculationInput()
 amp_model = input.add_amplitude(a)
 amp_model.centered = True
-runner = LocalRunner()
+runner = EmbeddedLocalRunner()
 result = runner.generate(input)
 ```
 
@@ -790,7 +880,7 @@ class SymmetricSlab:
 
 from dplus.Amplitudes import Amplitude
 from dplus.State import State
-from dplus.CalculationRunner import LocalRunner
+from dplus.CalculationRunner import EmbeddedLocalRunner
 from dplus.CalculationInput import CalculationInput
 symSlab = SymmetricSlab()
 a = Amplitude(80, 7.5)
@@ -808,10 +898,10 @@ An example follows:
 import numpy as np
 from scipy import optimize
 from dplus.CalculationInput import CalculationInput
-from dplus.CalculationRunner import LocalRunner
+from dplus.CalculationRunner import EmbeddedLocalRunner
 
 input=CalculationInput.load_from_state_file(r"2_pops.state")
-generate_runner=LocalRunner()
+generate_runner=EmbeddedLocalRunner()
 
 def run_generate(xdata, *params):
     '''
@@ -834,4 +924,35 @@ popt, pcov =optimize.curve_fit(run_generate, x_data, y_data, p0=p0, method=metho
 input.set_mutable_parameter_values(popt)
 #we can run generate to get the results of generate with them
 best_results=generate_runner.generate(input)
+```
+
+### Model Naming
+A model name can be given to a model.
+If a model has a name, the get_amp function will save the amplitude file with the model name.
+If the model does not have a name, the amplitude file will be named according to the model_ptr
+```python
+    from dplus.DataModels.models import UniformHollowCylinder
+    from dplus.CalculationInput import CalculationInput
+    from dplus.CalculationRunner import EmbeddedLocalRunner
+
+    runner = EmbeddedLocalRunner()
+
+    # without model name:
+    uhc=UniformHollowCylinder()
+    caldata = CalculationInput(USE_GPU)
+    caldata.Domain.populations[0].add_model(uhc)
+    result=runner.generate(caldata)
+    dest_folder = result.get_amp(uhc.model_ptr, session)
+    # The amplitude is saved to: seesion/00000000.ampj
+
+    # with model name:
+    uhc=UniformHollowCylinder()
+    uhc.name="test_hc"
+    caldata = CalculationInput(USE_GPU)
+    caldata.Domain.populations[0].add_model(uhc)
+    runner = EmbeddedLocalRunner()
+    result=runner.generate(caldata)
+    dest_folder = result.get_amp(uhc.model_ptr, session)
+    # The amplitude is saved to: seesion/test_hc.ampj
+    
 ```

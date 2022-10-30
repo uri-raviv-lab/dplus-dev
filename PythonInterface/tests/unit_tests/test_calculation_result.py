@@ -1,4 +1,6 @@
 import struct
+
+import pytest
 from dplus.CalculationInput import CalculationInput
 from dplus.CalculationRunner import EmbeddedLocalRunner
 from tests.reviewer_tests.utils import Expected
@@ -9,11 +11,14 @@ import tempfile
 import shutil
 import numpy as np
 import math
+from tests.test_settings import USE_GPU
 pi=math.pi
 
 
 class TestGenerateResolution():
     def test_resolution_function(self):
+        if not USE_GPU:
+            pytest.skip("NO GPU")
         state_file = os.path.join(test_dir, r"files_for_resolution_function\Stacked_Slabs.state")
         input = CalculationInput.load_from_state_file(state_file)
         runner = EmbeddedLocalRunner()
@@ -24,7 +29,7 @@ class TestGenerateResolution():
 
     def load_file_with_resolution(self, file_name):
         state_file = os.path.join(test_dir, file_name+ ".state")
-        input = CalculationInput.load_from_state_file(state_file)
+        input = CalculationInput.load_from_state_file(state_file, USE_GPU)
         runner = EmbeddedLocalRunner()
 
         result = runner.generate(input)
@@ -34,6 +39,8 @@ class TestGenerateResolution():
         assert d  # the useful information is in the captured stdout call
 
     def test_some_sigma_value(self):
+        if not USE_GPU:
+            pytest.skip("NO GPU")
         file_name1 = r"files_for_resolution_function\Stacked_Slabs_s_1"
         self.load_file_with_resolution(file_name1)
         file_name01 = r"files_for_resolution_function\Stacked_Slabs_s_01"
@@ -64,7 +71,7 @@ class TestGenerateResolution():
     def test_load_and_save(self):
 
         uhc = UniformHollowCylinder()
-        input = CalculationInput()
+        input = CalculationInput(use_gpu=USE_GPU)
         input.Domain.populations[0].add_model(uhc)
         input.DomainPreferences.apply_resolution = True
         input.DomainPreferences.resolution_sigma = 0.4
@@ -73,7 +80,7 @@ class TestGenerateResolution():
         new_file_path = os.path.join(tmp_directory, 'test.state')
         input.export_all_parameters(new_file_path)
 
-        calc_input = CalculationInput.load_from_state_file(new_file_path)
+        calc_input = CalculationInput.load_from_state_file(new_file_path, USE_GPU)
         shutil.rmtree(tmp_directory)
 
         assert calc_input.DomainPreferences.apply_resolution is True

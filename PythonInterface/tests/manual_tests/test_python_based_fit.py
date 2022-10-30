@@ -4,10 +4,12 @@ A python implemention of the fitting algorithm, using scipy's optimization libra
 from os.path import abspath
 import numpy as np
 import os
+import pytest
 from scipy import optimize
 from dplus.CalculationInput import CalculationInput
 from dplus.CalculationRunner import EmbeddedLocalRunner
 from tests.old_stuff.fix_state_files import fix_file
+from tests.test_settings import USE_GPU
 
 root_path = os.path.dirname(abspath(__file__))
 
@@ -51,7 +53,7 @@ def run_fit(input):
 def test_fit_1():
     state_file = os.path.join(root_path, "files", "2_pops.state")
     fixed_state_file = fix_file(state_file)
-    input = CalculationInput.load_from_state_file(fixed_state_file)
+    input = CalculationInput.load_from_state_file(fixed_state_file, USE_GPU)
     result_input, result = run_fit(input)
     muts = result_input.get_mutable_params()
     assert close_enough(muts[0][0].value, 1)
@@ -59,6 +61,8 @@ def test_fit_1():
 
 
 def test_fit_2():
+    if not USE_GPU:
+        pytest.skip("NO GPU")
     from dplus.State import State
     from dplus.DataModels.models import Sphere
     input = CalculationInput()
@@ -78,7 +82,7 @@ def test_fit_2():
 
 
 def test_fit_manual():
-    input = CalculationInput.load_from_state_file(os.path.join(root_path, "files", "2_pops_fixed.state"))
+    input = CalculationInput.load_from_state_file(os.path.join(root_path, "files", "2_pops_fixed.state"), USE_GPU)
     generate_runner = EmbeddedLocalRunner()
 
     def run_generate(xdata, *params):

@@ -9,7 +9,7 @@ from dplus.CalculationInput import CalculationInput
 from dplus.CalculationRunner import EmbeddedLocalRunner, WebRunner
 from tests.old_stuff.fix_state_files import fix_file
 from tests.reviewer_tests.utils import DplusProps
-from tests.test_settings import tests_dir
+from tests.test_settings import USE_GPU, tests_dir
 import numpy as np
 
 web=False
@@ -29,6 +29,8 @@ class TestGenerateRun(DplusProps):
         return input
 
     def test_GPU(self):
+        if not USE_GPU:
+            pytest.skip("NO GPU")
         test_file=os.path.join(tests_dir, 'unit_tests', 'files_for_tests', 'sphere_GPU.state')
         input = CalculationInput.load_from_state_file(test_file)
         input.use_gpu = True
@@ -56,6 +58,17 @@ class TestGenerateRun(DplusProps):
         # first, do basic checks:
         expected = self.get_expected_signal(test_folder_path)
         input = self.get_input(test_folder_path)
+        if not USE_GPU \
+            and input.DomainPreferences.orientation_method == 'Adaptive (VEGAS) Monte Carlo':
+            """ 
+            "The current integration method was not implemented for CPU usage 
+            (probably means you selected VEGAS and a space-filling symmetry, 
+             which haven't been implemented on a GPU)."
+            """
+            pytest.skip("NO GPU") 
+            
+            
+        input.use_gpu = USE_GPU
         input._fix_use_grid()
         #then run the program:
         result = self.run_calc_and_save_result(input, test_folder_path)

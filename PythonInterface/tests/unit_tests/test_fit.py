@@ -1,6 +1,7 @@
 import os, sys
 import datetime
 import time
+import pytest 
 
 sys.path.append(os.getcwd())
 from tests.old_stuff.fix_state_files import fix_file
@@ -10,14 +11,17 @@ from dplus.CalculationInput import CalculationInput
 from dplus.FitRunner import FitRunner
 # from dplus.PyCeresOptimizer import PyCeresOptimizer
 
+from tests.test_settings import USE_GPU
+
 tests_folder = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 root_path = os.path.join(tests_folder, "unit_tests")
 
 
 def test_fit():
     input = CalculationInput.load_from_state_file(
-        os.path.join(tests_folder, "reviewer_tests", "files_for_tests", "fit", "gpu", "short", "Sphere_Radius_Fit_low", "Sphere_Radius_Fit_low_fixed.state")
-    )
+        os.path.join(tests_folder, "reviewer_tests", "files_for_tests", "fit", "gpu", "short", "Sphere_Radius_Fit_low", "Sphere_Radius_Fit_low_fixed.state"),
+        USE_GPU)
+    
     runner = FitRunner()
     result = runner.fit(input)
     print("result")
@@ -26,6 +30,8 @@ def test_fit():
 
 
 def test_fit_async():
+    if not USE_GPU:
+        pytest.skip("NO GPU")
     input = CalculationInput.load_from_state_file(
         os.path.join(tests_folder, "reviewer_tests", "files_for_tests", "fit", "gpu", "short", "Sphere_Radius_Fit_low", "Sphere_Radius_Fit_low_fixed.state")
     )
@@ -58,7 +64,7 @@ def test_example_five_sphere():
 
     out_file = os.path.join(root_path, "files_for_tests", 'Sph_r4_ed400.out')
 
-    calc_input = CalculationInput()
+    calc_input = CalculationInput(USE_GPU)
     # calc_input.use_gpu = False
     calc_input.DomainPreferences.signal_file = out_file
     calc_input.FittingPreferences.fitting_iterations = 6
@@ -77,6 +83,8 @@ def test_example_five_sphere():
         calc_input.get_mutable_parameter_values()[1] - 400) / 400 < 0.02
 
 def test_example_six_sphere_cylinder():
+    if not USE_GPU:
+        pytest.skip("NO GPU")
     out_file = os.path.join(root_path, "files_for_tests", 'Cyl_Sph_End.out')
     state_file= os.path.join(root_path, "files_for_tests", 'Cyl_Sph_Start.state')
     calc_input = CalculationInput.load_from_state_file(state_file)
@@ -90,6 +98,8 @@ def test_example_six_sphere_cylinder():
         calc_input.get_mutable_parameter_values()[1] - 400) / 400 < 0.02
 
 def test_example_seven_PDB():
+    if not USE_GPU:
+        pytest.skip("NO GPU")
     out_file = os.path.join(root_path, "files_for_tests", '1jff_ED_334_probe_0.14_voxel.out')
     calc_input = CalculationInput.load_from_state_file(os.path.join(root_path, "files_for_tests", '1jff_ED_350_probe_0.125_voxel.state'))
     calc_input.Domain.populations[0].models[0].filename = os.path.join(root_path, "files_for_tests", '1jff.pdb')
