@@ -128,7 +128,7 @@ class CalculationInput(State):
         return input
 
     @staticmethod
-    def load_from_state_file(filename):
+    def load_from_state_file(filename, use_gpu=True):
         """
         receives the location of a file that contains a serialized parameter tree (state) and creates instance of /
         CalculationInput from the file.
@@ -138,7 +138,7 @@ class CalculationInput(State):
         """
         with open(filename, 'r') as statefile:
             input = json.load(statefile)
-        stateInput = CalculationInput()
+        stateInput = CalculationInput(use_gpu)
         stateInput.load_from_dictionary(input)
         return stateInput
 
@@ -198,7 +198,68 @@ class CalculationInput(State):
         c.DomainPreferences.convergence = 0.001
         c.DomainPreferences.orientation_iterations = 1000000
         c.DomainPreferences.use_grid = True
-        c.qmax = qmax
+        c.DomainPreferences.q_max = qmax
+        c.use_gpu = True
+
+        return c
+
+    @staticmethod
+    def load_from_EPDB(filename, qmax):
+        """
+        receives the location of a PDB file and qmax, and automatically creates a guess at the grid size based on the pdb.
+
+        :param filename: location of a PDB file
+        :param qmax: The max q value for the creation of the pdb grid size
+        :return: instance of GenerateInput
+        """
+
+        def _calculate_grid_size(pdbfile, q):
+            import numpy as np
+            x, y, z = _get_x_y_z_window(pdbfile)
+            max_len = np.sqrt(x * x + y * y + z * z)
+            max_len /= 10  # convert from nm to angstrom
+            density = int(max_len) / np.pi
+            grid_size = int(2 * q * density + 3)
+            grid_size /= 10
+            grid_size += 1
+            grid_size = int(grid_size)
+            grid_size *= 10
+            if grid_size < 20:
+                grid_size = 20  # minimum grid size
+            return grid_size
+
+        def _get_x_y_z_window(file):
+            x_coords = []
+            y_coords = []
+            z_coords = []
+            for line in file:
+                record_name = line[0:6]
+                if record_name in ["ATOM  ", "HETATM"]:
+                    x_coords.append(float(line[30:38]))
+                    y_coords.append(float(line[38:46]))
+                    z_coords.append(float(line[46:54]))
+            x_len = max(x_coords) - min(x_coords)
+            y_len = max(y_coords) - min(y_coords)
+            z_len = max(z_coords) - min(z_coords)
+            return x_len, y_len, z_len
+
+        with open(filename) as pdbfile:  # checks file exists
+            if not filename.endswith(".pdb"):
+                raise NameError("Not a pdb file")
+            grid_size = _calculate_grid_size(pdbfile, qmax)
+
+        from dplus.DataModels.models import EPDB
+        c = CalculationInput()
+        pdb = EPDB(filename)
+        pdb.centered = True
+        pdb.anomfilename = ""
+        pdb.use_grid = True
+        c.add_model(pdb)
+        c.DomainPreferences.grid_size = grid_size
+        c.DomainPreferences.convergence = 0.001
+        c.DomainPreferences.orientation_iterations = 1000000
+        c.DomainPreferences.use_grid = True
+        c.DomainPreferences.q_max = qmax
         c.use_gpu = True
 
         return c

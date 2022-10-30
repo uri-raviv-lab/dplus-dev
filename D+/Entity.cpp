@@ -159,7 +159,7 @@ static LuaTable ^LuaParamValueTreeFromStruct(Lua ^context, const paramStruct& pa
 void Entity::SetParameters(const paramStruct& parConst, LevelOfDetail lod) {
 	paramStruct par = parConst;
 	// This is a hack to enable backwards compatibility of old state files with PDB nodes
-	if (type == EntityType::TYPE_PDB && par.nExtraParams == 8 && params->nExtraParams == 10)
+	if ( (type == EntityType::TYPE_PDB || type == EntityType::TYPE_EPDB) && par.nExtraParams == 8 && params->nExtraParams == 10)
 	{
 		par.extraParams.reserve(par.extraParams.size() + 2);
 		auto c1 = params->extraParams[2];

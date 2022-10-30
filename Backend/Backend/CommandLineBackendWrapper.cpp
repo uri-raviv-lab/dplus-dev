@@ -100,7 +100,7 @@ void CommandLineBackendWrapper::SaveAmplitude(ModelPtr modelPtr, std::string fol
 
 }
 
-void CommandLineBackendWrapper::SavePDB(ModelPtr modelPtr, std::string folderpath)
+void CommandLineBackendWrapper::SavePDB(ModelPtr modelPtr, std::string folderpath, bool electron)
 {
 	char _Dest[50];
 	sprintf(_Dest, "%08d.pdb", modelPtr);
@@ -111,7 +111,7 @@ void CommandLineBackendWrapper::SavePDB(ModelPtr modelPtr, std::string folderpat
 
 	try
 	{
-		std::string pdb = _info.local_backend->HandleGetPDB(_info.job, _info.Converter->StateToInternal(modelPtr));
+		std::string pdb = _info.local_backend->HandleGetPDB(_info.job, _info.Converter->StateToInternal(modelPtr), electron);
 		if (pdb.length() > 0)
 		{
 			ofstream myfile(filepath, ios::binary);

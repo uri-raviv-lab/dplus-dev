@@ -263,6 +263,7 @@ copy "$(CudaToolkitBinDir)\curand64_*.dll" "$(TargetDir)"</Command>
     <ClInclude Include="..\DefaultModels\Symmetries.h" />
     <ClInclude Include="..\DefaultModels\TRAModel.h" />
     <ClInclude Include="backend_exception.h" />
+    <ClInclude Include="PDBAmplitude.h" />
     <ClInclude Include="PythonBackendWrapper.h" />
     <ClInclude Include="UseGPU.h" />
     <None Include="..\GPU\CalculateJacobianSplines.cuh" />

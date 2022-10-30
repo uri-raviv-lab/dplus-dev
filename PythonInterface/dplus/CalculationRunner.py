@@ -750,8 +750,27 @@ class EmbeddedLocalRunner(Runner):
         Send to C++ function to get the generate result.
         """
         result = self.wrapper.get_generate_results()
-        calc_result = GenerateResult(calc_data, result, job=None)
+        calc_result = GenerateResult(calc_data, result, job=None, get_amp_func=self.get_amp)
         return calc_result
+
+    def get_amp(self, model_ptr, model_name, destination_folder):
+        file_name = model_name
+        
+        if file_name == '':
+            file_name = '%08d' % (int(model_ptr))
+        
+        filepath = os.path.join(destination_folder, file_name + ".ampj")
+        self.save_amp(model_ptr, filepath)
+        return destination_folder
+        
+        '''
+        TODO: save_amp() + return path
+        and then test_save_amp / test Embedded runner
+        uhc=UniformHollowCylinder()
+        uhc.name="test_hc"
+
+        documentation: if you: uhc.name="test_hc" the file will be saved with the name. see test
+        '''
 
     def save_amp(self, modelptr, path):
         '''

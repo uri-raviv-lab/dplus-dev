@@ -89,7 +89,10 @@ inline bool isequal(double a, double b, int significant) {
 // double accuracy problem: bessel_i0(701) == #inf
 double bessel_i0(double x);
 
+#ifndef MATH_SQ
+#define MATH_SQ
 template <typename T> inline T sq(T x) { return x * x; }
+#endif
 	
 void SetX(std::vector <double> xIn);
 

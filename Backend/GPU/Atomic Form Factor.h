@@ -4,30 +4,55 @@
 
 //#include <math_constants.h>
 #include <vector_functions.h>
-//#include <Eigen/Core>
+#include <Eigen/Core>
 
-//#define SOLVENT_ONLY					(0x0000)
-#define CALC_ATOMIC_FORMFACTORS			(1 << 0)
-#define CALC_DUMMY_SOLVENT				(1 << 1)
-#define CALC_ANOMALOUS					(1 << 2)
-#define CALC_VOXELIZED_SOLVENT			(1 << 3)
-#define CALC_VOXELIZED_OUTER_SOLVENT	(1 << 4)
-class internalAtomicFF;
+#include "atomicFormDefines.h"
+
+class internalAtomicFF : public baseInternalAtomicFF
+{
+public:
+	internalAtomicFF() = default;
+	internalAtomicFF(int bitCombination, int numAtoms, int numUnIons, const float* coeffs, const int* atomsPerIon);
+
+	void GetAllUniqueAFFs(Eigen::Ref<Eigen::ArrayXf, 0, Eigen::InnerStride<> > mapToAffs, float q);
+
+	void GetAllAFFs(float* allAffs, float q);
+
+	void GetAllAFFs(float2* allAffs, float q);
+
+protected:
+	Eigen::ArrayXf cs;
+};
+
+class electronInternalAtomicFF : public baseInternalAtomicFF
+{
+public:
+	electronInternalAtomicFF(
+		int bitCombination, int numAtoms, int numUnIons,
+		const float* coeffs, const int* atomsPerIon);
+
+
+	void GetAllUniqueAFFs(Eigen::Ref<Eigen::ArrayXf, 0, Eigen::InnerStride<> > mapToAffs, float q);
+
+	void GetAllAFFs(float* allAffs, float q);
+
+	void GetAllAFFs(float2* allAffs, float q);
+};
 
 /**
 Calculates the atomic form factors for the set of ions/atoms initialized with.
 
 TODO: Add bfactors(Debye Waller) so that we can delete DW factors from kernels
-      and other functions. The DW calculation belongs here anyway.
+	  and other functions. The DW calculation belongs here anyway.
 **/
 class atomicFFCalculator
 {
 public:
 	atomicFFCalculator();
-	atomicFFCalculator(int bitCombination, int numAtoms, int numUnIons, const float* coeffs, const int *atomsPerIon);
+	atomicFFCalculator(int bitCombination, int numAtoms, int numUnIons, const float* coeffs, const int* atomsPerIon, bool electron=false);
 	~atomicFFCalculator();
-	void Initialize(int bitCombination, int numAtoms, int numUnIons, const float* coeffs, const int *atomsPerIon);
-	void SetSolventED(float solED, float c1, float *ionRads, bool solventOnly = false);
+	void Initialize(int bitCombination, int numAtoms, int numUnIons, const float* coeffs, const int* atomsPerIon, bool electron=false);
+	void SetSolventED(float solED, float c1, float* ionRads, bool solventOnly = false);
 	void SetAnomalousFactors(float2* anomFacs);
 
 	/**
@@ -40,7 +65,7 @@ public:
 	void GetAllAFFs(float2* allAffs, float q, void* anoms = NULL);
 
 	void GetSparseAnomalousFactors(float2* allAffs);
-	
+
 	/// Returns the number of indices (to be allocated by the caller).
 	int GetAnomalousIndices(int* indices = NULL);
 
@@ -58,7 +83,7 @@ public:
 	int GetBitCombination();
 
 protected:
-	internalAtomicFF* intern;
+	baseInternalAtomicFF* intern;
 };
 
 #endif

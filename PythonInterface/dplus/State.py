@@ -17,7 +17,8 @@ RESOLUTION_SIGMA_DEFAULT = 0.02
 
 class DomainPreferences:
     """
-    The DomainPreferences class contains properties that are copied from the D+ interface. Their usage is explained in the D+ documentation.
+    The DomainPreferences class contains properties that are copied from the D+ interface. 
+    Their usage is explained in the D+ documentation.
     """
 
     def __init__(self):
@@ -608,7 +609,7 @@ class State:
             "ctx": 0,
             "cty": 0,
             "ctz": 0
-        }
+         }
         self.Domain = Domain()
         self.__filenames = []
 
@@ -803,7 +804,7 @@ class State:
 
     def set_mutable_parameter_values(self, param_vals_array):
         """
-           sets the mutable parameters values in the Domain field with the the input list (in the order given by \
+           sets the mutable parameters values in the Domain field with the input list (in the order given by \
            get_mutable_parameter_values).
 
            :param param_vals_array: a list of floats

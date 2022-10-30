@@ -1,4 +1,4 @@
-#include "Amplitude.h"
+#include "PDBAmplitude.h"
 #include <queue>
 
 void PDBAmplitude::CalculateSolventSpace()
@@ -52,7 +52,7 @@ void PDBAmplitude::CalculateSolventSpace()
 
 	}
 	// 4) If holes are to be filled, flood fill for outer solvent (3) and mark all holes as atoms; else mark all 0 cells as 3
-	if (pdb.bFillHoles)
+	if (pdb->bFillHoles)
 	{
 		Floodfill3D(0, 0, 0, 0, LIGHT_BLUE); // From first voxel up to the center of the solvation
 		// holes should now be marked as atoms
@@ -364,17 +364,17 @@ void PDBAmplitude::ReduceSolventSpaceToIrregularBoxes(std::vector<fIdx>& boxCOM,
 
 void PDBAmplitude::MarkVoxelsNeighboringAtoms(FACC rSol, SolventSpace::ScalarType from, SolventSpace::ScalarType to, int ignoreIndex)
 {
-	int xSz = (int)pdb.x.size();
+	int xSz = (int)pdb->x.size();
 	for (int i = 0; i < xSz; i++) {
-		if (pdb.atmInd[i] == ignoreIndex)
+		if (pdb->atmInd[i] == ignoreIndex)
 			continue;
-		const double ddist = ((*pdb.rad)[pdb.atmInd[i]]) + rSol;
+		const double ddist = ((*pdb->rad)[pdb->atmInd[i]]) + rSol;
 		const auto dm = _solvent_space.dimensions();
 		//std::cout << ddist << "\n";
 		int dist = 2 + int(ddist / voxelStep);
-		int xC = int((pdb.x[i] - xMin) / voxelStep);
-		int yC = int((pdb.y[i] - yMin) / voxelStep);
-		int zC = int((pdb.z[i] - zMin) / voxelStep);
+		int xC = int((pdb->x[i] - xMin) / voxelStep);
+		int yC = int((pdb->y[i] - yMin) / voxelStep);
+		int zC = int((pdb->z[i] - zMin) / voxelStep);
 		for (int h = std::max(0, xC - dist); h < std::min(xC + dist, int(dm(0))); h++) {
 			auto sliceX = _solvent_space.SliceX(h);
 			for (int k = std::max(0, yC - dist); k < std::min(yC + dist, int(dm(1))); k++) {
@@ -382,9 +382,9 @@ void PDBAmplitude::MarkVoxelsNeighboringAtoms(FACC rSol, SolventSpace::ScalarTyp
 				for (int l = std::max(0, zC - dist); l < std::min(zC + dist, int(dm(2))); l++) {
 					if (col(l) == from && // Check to make sure that the voxel has not yet been marked
 						sqrt(
-						sq(xMin + (FACC(h) * voxelStep) - pdb.x[i]) +
-						sq(yMin + (FACC(k) * voxelStep) - pdb.y[i]) +
-						sq(zMin + (FACC(l) * voxelStep) - pdb.z[i]))
+						sq(xMin + (FACC(h) * voxelStep) - pdb->x[i]) +
+						sq(yMin + (FACC(k) * voxelStep) - pdb->y[i]) +
+						sq(zMin + (FACC(l) * voxelStep) - pdb->z[i]))
 						<= ddist
 						)
 					{
@@ -438,64 +438,4 @@ void PDBAmplitude::Floodfill3D(int i, int j, int k, int from, int to)
 			}	// for(int jj = j - 1; jj <= j + 1; jj++)
 		}	// for(int ii = i - 1; ii <= i + 1; ii++)
 	}	// while(!qu.empty())
-}
-
-SolventSpace::ScalarType& SolventSpace::operator()(size_t x, size_t y, size_t z)
-{
-	assert(x >= 0);
-	assert(y >= 0);
-	assert(z >= 0);
-
-	assert(x < _x_size);
-	assert(y < _y_size);
-	assert(z < _z_size);
-
-	return _solvent_space(x * _zy_plane + y * _z_size + z);
-}
-
-void SolventSpace::allocate(size_t x, size_t y, size_t z, float voxel_length)
-{
-	assert(x > 0);
-	assert(y > 0);
-	assert(z > 0);
-
-	// Align to 16 bytes
-	const int numelements = 16 / sizeof(ScalarType);
-
-	_z_size = z + (numelements - 1 - (z + numelements - 1) % numelements);
-	_y_size = y;
-	_x_size = x;
-
-	_zy_plane = _z_size * _y_size;
-
-	_solvent_space = array_t::Zero(_x_size, _z_size * _y_size);
-	_voxel_length = voxel_length;
-}
-
-Eigen::Map<SolventSpace::array_t, Eigen::AlignmentType::Aligned> SolventSpace::SliceX(size_t x)
-{
-	return Eigen::Map<array_t, Eigen::AlignmentType::Aligned>(_solvent_space.data() + x * _zy_plane, _z_size, _y_size);
-}
-
-Eigen::Map<SolventSpace::array_t, 0, Eigen::Stride<Eigen::Dynamic, 1>> SolventSpace::SurroundingVoxels(size_t x, size_t y, size_t z)
-{
-	Eigen::Map<array_t, 0, Eigen::Stride<Eigen::Dynamic, 1>> box9(
-		_solvent_space.data() + x * _zy_plane + (y-1) * _z_size + (z-1),
-		3, 3, Eigen::Stride<Eigen::Dynamic, 1>(_z_size, 1));
-
-	return box9;
-}
-
-SolventSpace::array_t& SolventSpace::SpaceRef()
-{
-	return _solvent_space;
-}
-
-SolventSpace::Dimensions SolventSpace::dimensions()
-{
-	return Dimensions(_x_size, _y_size, _z_size);
-}
-void SolventSpace::deallocate()
-{
-	_solvent_space.resize(0, 0);
 }

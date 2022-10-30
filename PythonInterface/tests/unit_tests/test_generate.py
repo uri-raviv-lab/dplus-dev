@@ -5,11 +5,13 @@ import time
 from dplus.CalculationInput import CalculationInput
 from dplus.CalculationRunner import EmbeddedLocalRunner
 
+from tests.test_settings import USE_GPU
+
 root_path = os.path.dirname(os.path.abspath(__file__))
 
 def test_generate_1():
     state_file_path = os.path.join(root_path, "files_for_tests", "sphere.state")
-    calc_input = CalculationInput.load_from_state_file(state_file_path)
+    calc_input = CalculationInput.load_from_state_file(state_file_path, USE_GPU)
     runner = EmbeddedLocalRunner()
     runner.generate_async(calc_input)
 
@@ -38,8 +40,7 @@ def test_generate_1():
 
 def test_generate_2():
     state_file_path = os.path.join(root_path, "files_for_tests", "sphere.state")
-    calc_input = CalculationInput.load_from_state_file(state_file_path)
-    # calc_input.use_gpu = False
+    calc_input = CalculationInput.load_from_state_file(state_file_path, USE_GPU)
     runner = EmbeddedLocalRunner()
     res = runner.generate(calc_input)
     print(res)

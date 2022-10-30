@@ -212,7 +212,7 @@ bool tests::JacobianGridTest(char pth[]) {
 	clock_t starttm, endtm;
 
 	starttm = clock();
-	PDBAmplitude *amp = new PDBAmplitude("S:\\Basic Dimer\\1JFF_Aligned outer in positive X direction.pdb", true);
+	ElectronPDBAmplitude *amp = new ElectronPDBAmplitude("S:\\Basic Dimer\\1JFF_Aligned outer in positive X direction.pdb", true);
 
 	amp->calculateGrid(5.0, 50, OurProgressFunc, NULL);
 
@@ -308,9 +308,9 @@ bool tests::JacobianGridTest(char pth[]) {
 
 bool tests::DebyeTest() {
 	//	S:\Basic Dimer
-	DebyeCalTester dct(false);
+	electronDebyeCalTester dct(false);
 	//	dct.pdb = new PDBReader::PDBReaderOb<F_TYPE>("C:\\DesktopStorage\\TUB PDBs\\CF4\\cf4.pdb", false);
-	dct.pdb = new PDBReader::PDBReaderOb<F_TYPE>("S:\\Basic Dimer\\1JFF_Aligned q7- in vacuo_pdb.pdb", false);
+	dct.pdb = new PDBReader::ElectronPDBReaderOb<F_TYPE>("S:\\Basic Dimer\\1JFF_Aligned q7- in vacuo_pdb.pdb", false);
 	int sz = 2*512;
 #ifdef _DEBUG
 	sz = 5;
@@ -472,22 +472,22 @@ bool tests::DebugGridSymmetry( bool useGPU /*= true*/ ) {
 
 bool tests::DebugGrid() {
 	bool pass = true;
-	PDBAmplitude *pdb = NULL;
-	PDBAmplitude *pdbG = NULL;
+	ElectronPDBAmplitude *pdb = NULL;
+	ElectronPDBAmplitude *pdbG = NULL;
 
 	// Generate grid mode
 	/*if((argc == 2 && !strcmp(argv[1], "-g")))*/ {
 #ifndef _DEBUG
 		//pdb = new PDBAmplitude("1JFF_Aligned q4- in vacuo_CL_pdb.pdb", true);
 		//delete pdb;
-		pdb = new PDBAmplitude("S:\\Basic Dimer\\1JFF_Aligned outer in positive X direction.pdb", true);
+		pdb = new ElectronPDBAmplitude("S:\\Basic Dimer\\1JFF_Aligned outer in positive X direction.pdb", true);
 		//pdb = new PDBAmplitude("S:\\Roi\\one pentamer deltaC center align to Z.pdb", false);
 #else
 		//pdb = new PDBAmplitude("C:\\Delete\\CF4.pdb", false);	
 		//pdb = new PDBAmplitude("C:\\Delete\\1JFF_Aligned q4- in vacuo_CL_pdb.pdb", true);
 
 		//pdb = new PDBAmplitude("s:\\Roi\\one pentamer deltaC center align to Z.pdb", true);
-		pdb = new PDBAmplitude("S:\\Basic Dimer\\1JFF_Aligned outer in positive X direction.pdb", true);
+		pdb = new ElectronPDBAmplitude("S:\\Basic Dimer\\1JFF_Aligned outer in positive X direction.pdb", true);
 
 
 #endif
@@ -529,7 +529,7 @@ bool tests::DebugGrid() {
 
 
 				starttm = clock();
-				pdbG = new PDBAmplitude("S:\\Basic Dimer\\1JFF_Aligned outer in positive X direction.pdb", true);
+				pdbG = new ElectronPDBAmplitude("S:\\Basic Dimer\\1JFF_Aligned outer in positive X direction.pdb", true);
 				pdbG->calculateGrid(4.0, 350, OurProgressFunc);
 				endtm = clock();
 				timeItTook =  ((double)(endtm - starttm)) / CLOCKS_PER_SEC;
@@ -819,7 +819,7 @@ bool tests::JacobianManualSymmetryTest() {
 #define PDB_SUBAMP
 #ifdef PDB_SUBAMP
 	std::cout << "Creating PDBAmplitude..." << std::endl;
-	subAmp = new PDBAmplitude("S:\\Basic Dimer\\1JFF_Aligned outer in positive X direction.pdb", true);
+	subAmp = new ElectronPDBAmplitude("S:\\Basic Dimer\\1JFF_Aligned outer in positive X direction.pdb", true);
 
 	p(0) = 1.0000000000000000;	p(1) = 70.000000000000000;	p(2) = 0.00000000000000000;	p(3) = 0.00000000000000000;
 	p(4) = 0.00000000000000000;	p(5) = 0.00000000000000000;	p(6) = 0.00000000000000000;	p(7) = 0.00000000000000000;
@@ -960,8 +960,8 @@ bool tests::BasicGridTest() {
 	double qRange = 5.0;
 	long long maxIters = 1000000;
 	
-	PDBAmplitude *pdbAmp   = new PDBAmplitude("S:\\Basic Dimer\\1JFF_Aligned outer in positive X direction.pdb", true);
-	PDBAmplitude *pdbAmpGr = new PDBAmplitude("S:\\Basic Dimer\\1JFF_Aligned outer in positive X direction.pdb", true);
+	ElectronPDBAmplitude *pdbAmp   = new ElectronPDBAmplitude("S:\\Basic Dimer\\1JFF_Aligned outer in positive X direction.pdb", true);
+	ElectronPDBAmplitude *pdbAmpGr = new ElectronPDBAmplitude("S:\\Basic Dimer\\1JFF_Aligned outer in positive X direction.pdb", true);
 
 	pdbAmp->SetUseGrid(false);
 	pdbAmpGr->SetUseGrid(true);
@@ -1118,7 +1118,7 @@ bool tests::JacobianSpaceFillingSymmetryTest() {
 #define PDB_SUBAMP
 #ifdef PDB_SUBAMP
 	std::cout << "Creating PDBAmplitude..." << std::endl;
-	subAmp = new PDBAmplitude("S:\\Basic Dimer\\1JFF_Aligned outer in positive X direction.pdb", true);
+	subAmp = new ElectronPDBAmplitude("S:\\Basic Dimer\\1JFF_Aligned outer in positive X direction.pdb", true);
 
 	p(0) = 1.0000000000000000;	p(1) = 19.000000000000000;	p(2) = 0.00000000000000000;	p(3) = 0.00000000000000000;
 	p(4) = 0.00000000000000000;	p(5) = 0.00000000000000000;	p(6) = 0.00000000000000000;	p(7) = 0.00000000000000000;
@@ -1277,7 +1277,7 @@ bool tests::SpaceFillingGridTest() {
 #define PDB_SUBAMP
 #ifdef PDB_SUBAMP
 	std::cout << "Creating PDBAmplitude..." << std::endl;
-	subAmp = new PDBAmplitude("S:\\Basic Dimer\\1JFF_Aligned outer in positive X direction.pdb", true);
+	subAmp = new ElectronPDBAmplitude("S:\\Basic Dimer\\1JFF_Aligned outer in positive X direction.pdb", true);
 
 	p(0) = 1.0000000000000000;	p(1) = 19.000000000000000;	p(2) = 0.00000000000000000;	p(3) = 0.00000000000000000;
 	p(4) = 0.00000000000000000;	p(5) = 0.00000000000000000;	p(6) = 0.00000000000000000;	p(7) = 0.00000000000000000;
@@ -1770,8 +1770,8 @@ bool tests::RunPDBKernel( char pth[], int gridSize /*= 350*/, double qMax /*= 5.
 	clock_t starttm, endtm;
 
 	starttm = clock();
-	PDBAmplitude *amp = new PDBAmplitude(std::string(pth), false);
-	PDBAmplitude *ampNoGrid = new PDBAmplitude(std::string(pth), false);
+	ElectronPDBAmplitude *amp = new ElectronPDBAmplitude(std::string(pth), false);
+	ElectronPDBAmplitude *ampNoGrid = new ElectronPDBAmplitude(std::string(pth), false);
 	
 	ampNoGrid->SetUseGPU(false);
 	ampNoGrid->SetUseGrid(true);
@@ -1865,7 +1865,7 @@ void tests::Playground() {
 // 	pdbf  = "s:\\Carbon copy.pdb";
 // 	pdbf  = "s:\\Carbon.pdb";
 	
-	PDBAmplitude *ampNoGrid = new PDBAmplitude(pdbf, false);
+	ElectronPDBAmplitude *ampNoGrid = new ElectronPDBAmplitude(pdbf, false);
 
 	ampNoGrid->SetUseGPU(false);
 	ampNoGrid->SetUseGrid(false);
@@ -1879,7 +1879,7 @@ void tests::Playground() {
 	HMODULE hMod = GetBackend(L"g");
 	getModelFunc getModel = (getModelFunc)GetProcAddress(hMod, "GetModel");
 
-	Amplitude *amp = new PDBAmplitude(pdbf, false);
+	Amplitude *amp = new ElectronPDBAmplitude(pdbf, false);
 	amp->SetUseGrid(true);
 
 	ISymmetry *isymm = (ISymmetry *)getModel(26);
