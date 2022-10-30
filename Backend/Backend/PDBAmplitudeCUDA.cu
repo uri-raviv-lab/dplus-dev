@@ -435,6 +435,8 @@ int PDBJacobianGridAmplitudeCalculationCUDA(
 
 }
 
+
+
 #undef FREE_GPUCalcPDBKernelJacobSphrTempl_MEMORY
 
 int PDBJacobianGridAmplitudeCalculation(
@@ -453,6 +455,8 @@ int PDBJacobianGridAmplitudeCalculation(
 		outSolCOM, outSolDims, float(outerSolED),
 		scale, progfunc, progargs, progmin, progmax, pStop);
 }
+
+
 
 int PDBJacobianGridAmplitudeCalculation(
 	u64 voxels, int thDivs, int phDivs, float stepSize, float *outData,

@@ -1,5 +1,6 @@
 _models_with_files_index_dict = {
     "PDB": 999,
+    "EPDB": 1999,
     "AMP": 1000,
     "Scripted Geometry": 1001,
     "Scripted Model": 1002,
@@ -108,6 +109,29 @@ def pdbmodel():
     ]
     return pdbmod
 
+def epdbmodel():
+    # TODO:
+    # extraParamOptions[7].resize(RAD_SIZE);
+    # extraParamOptions[7][0] = "No Solvent";
+    # extraParamOptions[7][1] = "Van der Waals";
+    # extraParamOptions[7][2] = "Empirical";
+    # extraParamOptions[7][3] = "Calculated";
+    # extraParamOptions[7][4] = "Dummy Atoms";
+    epdbmod = create_hard_model("EPDB", -1, 1999, False, 0, 0, 0, 8, 0, False, True, True, True)
+    epdbmod["extraParams"] = [
+        extra_param_creator("Scale", 1.0, False, False, False, 0.0, 0.0, False, 12),
+        extra_param_creator("Solvent ED", 334.0),
+        extra_param_creator("C1", 1.0, False, True, True, 0.95, 1.05),
+        extra_param_creator("Solvent Voxel Size", 0.2),
+        extra_param_creator("Solvent Probe Radius", 0.14),
+        extra_param_creator("Solvation Thickness", 0.28, False, True, True, 0.0),
+        extra_param_creator("Outer Solvent ED"),
+        extra_param_creator("Fill Holes", 0.0, False, False, True, 0.0, 1.0, True),
+        extra_param_creator("Solvent Only", 0.0, False, False, True, 0.0, 1.0, True),
+        extra_param_creator("Solvent method", 4.0, False, False, True, 0.0, 4.0, True)
+    ]
+    return epdbmod
+
 
 def ampmodel():
     amp = create_hard_model("AMP", -1, 1000, False, 0, 0, 0, 1, 0, False, False, False, True)
@@ -132,6 +156,7 @@ def scriptedgeometry():
 
 hardcode_models = [
     pdbmodel(),
+    epdbmodel(),
     ampmodel(),
     # scriptedsymm()
 ]

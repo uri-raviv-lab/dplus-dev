@@ -40,8 +40,8 @@ public:
 	virtual ModelPtr HandleCreateCompositeModel(JobPtr job);
 	virtual ModelPtr HandleCreateDomainModel(JobPtr job);
 	virtual ModelPtr HandleCreateScriptedModel(JobPtr job, const char *script, unsigned int len);
-	virtual ModelPtr HandleCreateFileAmplitude(JobPtr job, AmpFileType type, const wchar_t *filename, bool bCenter, const wchar_t *anomfilename = NULL);
-	virtual ModelPtr HandleCreateFileAmplitude(JobPtr job, AmpFileType type, const char *buffer, unsigned int bufferSize, const char *fileNm, unsigned int fnSize, bool bCenter, const char *anomfileNm = NULL, unsigned int anomfnSize = 0);
+	virtual ModelPtr HandleCreateFileAmplitude(JobPtr job, AmpFileType type, const wchar_t *filename, bool bCenter, const wchar_t *anomfilename = NULL, bool electronPDB = false);
+	virtual ModelPtr HandleCreateFileAmplitude(JobPtr job, AmpFileType type, const char *buffer, unsigned int bufferSize, const char *fileNm, unsigned int fnSize, bool bCenter, const char *anomfileNm = NULL, unsigned int anomfnSize = 0, bool electronPDB = false);
 	virtual ModelPtr HandleCreateGeometricAmplitude(JobPtr job, ModelPtr model);
 	virtual ModelPtr HandleCreateSymmetry(JobPtr job, const wchar_t *container, int symmetryIndex);
 	virtual ModelPtr HandleCreateScriptedSymmetry(JobPtr job, const char *script, unsigned int len);
@@ -69,7 +69,7 @@ public:
 		OUT double *modelErrors, int nMutParams, int nPoints);
 	virtual std::string HandleGetAmplitude(JobPtr job, ModelPtr model);
 	virtual std::string HandleGetAmplitude(JobPtr job, ModelPtr model, std::string filename);
-	virtual std::string	HandleGetPDB(JobPtr job, ModelPtr stateModel);
+	virtual std::string	HandleGetPDB(JobPtr job, ModelPtr stateModel, bool electron=false);
 
 	// Retrieve model data
 	//////////////////////////////////////////////////////////////////////////

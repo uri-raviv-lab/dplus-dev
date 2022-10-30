@@ -55,7 +55,7 @@ ORDERED BY VERSION:
 		--- Programming tasks ---
 		* Add a function to load a PDB from lua
 		* Add align and center pdb options to the frontend as buttons that modify xyzabg
-			* Add to PDBReaderOb COM translation and original and principal axes for rotation
+			* Add to electronPDBReaderOb COM translation and original and principal axes for rotation
 		* Add PDB information to the amplitude file so that the backend can tell the frontend how to
 			display the relevant pdb
 		* Correct generation grid/no grid bugs

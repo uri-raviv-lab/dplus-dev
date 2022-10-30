@@ -109,7 +109,7 @@ Entity ^GraphPane3D::RegisterAMPGrid(String ^filename, LevelOfDetail lod, bool b
 		array<unsigned char> ^data = FileToBuffer(pdbFile);
 		// We don't care if it fails, it will show a message box from within ReadPDBFile
 		unsigned int tempDList = NULL, tempCCDList = NULL;
-		ReadAndSetPDBFile(data, tempDList, tempCCDList, lod, bCentered);
+		ReadAndSetPDBFile(data, tempDList, tempCCDList, lod, bCentered, false);
 		result->currentLOD = lod;
 		result->renderDList = tempDList;
 		result->colorCodedDList = tempCCDList;
@@ -136,7 +136,7 @@ Entity ^GraphPane3D::RegisterAMPGrid(String ^filename, LevelOfDetail lod, bool b
 	return result;
 }
 
-Entity ^GraphPane3D::RegisterPDB(String ^filename, String ^anomfilename, LevelOfDetail lod, bool bCentered) {
+Entity ^GraphPane3D::RegisterPDB(String ^filename, String ^anomfilename, LevelOfDetail lod, bool bCentered, bool electron) {
 	
 	// Read the PDB file to buffer
 	array<unsigned char> ^data = FileToBuffer(filename);
@@ -172,8 +172,19 @@ Entity ^GraphPane3D::RegisterPDB(String ^filename, String ^anomfilename, LevelOf
 
 	// Commit the entity
 	Entity ^result = gcnew Entity();
-	result->type = EntityType::TYPE_PDB;
-	result->modelName=result->displayName = filename->Substring(filename->LastIndexOf("\\") + 1) + gcnew System::String(" (PDB)");
+	System::String ^pdbType("");
+	if (electron)
+	{
+		result->type = EntityType::TYPE_EPDB;
+		pdbType = pdbType + gcnew System::String("(EPDB)");
+	}
+	else
+	{
+		result->type = EntityType::TYPE_PDB;
+		pdbType = "(PDB)";
+	}
+	
+	result->modelName=result->displayName = filename->Substring(filename->LastIndexOf("\\") + 1) + gcnew System::String(pdbType);
 	result->filename = filename;
 	result->anomfilename = anomfilename;
 	result->modelfile = filename;
@@ -184,7 +195,7 @@ Entity ^GraphPane3D::RegisterPDB(String ^filename, String ^anomfilename, LevelOf
 	unsigned int tempDList = NULL, tempCCDList = NULL;
 
 	if (!ReadPDBFile(data, bCentered, result->xs, result->ys,
-		result->zs, result->atoms)
+		result->zs, result->atoms, electron)
 		||
 		!SetPDBFile(tempDList, tempCCDList, result->xs, result->ys,
 					result->zs, result->atoms, lod)
@@ -240,18 +251,18 @@ Entity ^GraphPane3D::RegisterPDB(String ^filename, String ^anomfilename, LevelOf
 }
 
 bool GraphPane3D::ReadAndSetPDBFile(array<unsigned char> ^data, unsigned int& dlist, unsigned int& CCDList,
-							  LevelOfDetail lod, bool bCenterPDB)
+							  LevelOfDetail lod, bool bCenterPDB, bool electron)
 {
 	std::vector<float> x, y, z;
 	std::vector<u8> atoms;
 
 	return 
-		GraphPane3D::ReadPDBFile(data, bCenterPDB, &x, &y, &z, &atoms) &&
+		GraphPane3D::ReadPDBFile(data, bCenterPDB, &x, &y, &z, &atoms, electron) &&
 		GraphPane3D::SetPDBFile(dlist, CCDList, &x, &y, &z, &atoms, lod);
 }
 
 bool GraphPane3D::ReadPDBFile(array<unsigned char> ^data, bool bCenterPDB,
-	std::vector<float>* x, std::vector<float>* y, std::vector<float>* z, std::vector<u8>* atoms)
+	std::vector<float>* x, std::vector<float>* y, std::vector<float>* z, std::vector<u8>* atoms, bool electron)
 {
 	if (data == nullptr)
 		return false;
@@ -262,26 +273,42 @@ bool GraphPane3D::ReadPDBFile(array<unsigned char> ^data, bool bCenterPDB,
 	cli::pin_ptr<unsigned char> vdata = &data[0];
 	const char *buff = (const char *)vdata;
 
-	PDBReader::PDBReaderOb<double> pdbTest;
+	PDBReader::PDBReaderOb<double> * pdbTest;
+
+	if (electron)
+	{
+		pdbTest = new PDBReader::ElectronPDBReaderOb<double>();
+	}
+	else
+	{
+		pdbTest = new PDBReader::XRayPDBReaderOb<double>();
+	}
+
 	try
 	{
-		PDB_READER_ERRS err = pdbTest.readPDBbuffer(buff, sz, bCenterPDB);
+		PDB_READER_ERRS err = pdbTest->readPDBbuffer(buff, sz, bCenterPDB);
 		if (err != PDB_OK) {
 			char a[256] = { 0 };
 			sprintf_s(a, "Invalid PDB! (%d)", err);
 			MessageBox::Show(gcnew String(a), "ERROR", MessageBoxButtons::OK, MessageBoxIcon::Error);
+			delete pdbTest;
 			return false;
 		}
 	}
-	catch (PDBReader::pdbReader_exception &e)
+	catch (PDBReader::pdbReader_exception& e)
 	{
 		char a[256] = { 0 };
 		sprintf_s(a, "Invalid PDB! (%s)", e.GetErrorMessage().c_str());
 		MessageBox::Show(gcnew String(a), "ERROR", MessageBoxButtons::OK, MessageBoxIcon::Error);
+		delete pdbTest;
 		return false;
 	}
-	pdbTest.getAtomsAndCoords(*x, *y, *z, *atoms);
+	pdbTest->getAtomsAndCoords(*x, *y, *z, *atoms);
+
+	delete pdbTest;
+
 	return true;
+	
 }
 
 bool GraphPane3D::SetPDBFile(unsigned int& dlist, unsigned int& CCDList, 
