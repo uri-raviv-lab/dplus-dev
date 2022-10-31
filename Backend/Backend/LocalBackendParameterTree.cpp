@@ -132,15 +132,13 @@ ModelPtr LocalBackendParameterTreeConverter::CreateModelFromJSON(const std::stri
 	map<ModelPtr, ModelPtr >::iterator i = _stateToInternal.find(stateModel);
 	ModelPtr internalModel;
 
-	if (i == _stateToInternal.end()) {
-		//not found in map, so create the model
-		internalModel = ModelFromJsonString(str, model, bAmp);
-		MapModel(stateModel, internalModel);
+	if (i != _stateToInternal.end()) {
+		// if it exists, delete before reading the json again 
+		_stateToInternal.erase(_stateToInternal.find(i->second));
 	}
-	else {
-		//found in map, just return the internal ModelPtr
-		internalModel = i->second;
-	}
+
+	internalModel = ModelFromJsonString(str, model, bAmp);
+	MapModel(stateModel, internalModel);
 
 	_usedModels.insert(stateModel);
 	return internalModel;
