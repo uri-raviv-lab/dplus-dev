@@ -358,7 +358,7 @@ void BackendWrapper::StartGenerate(const rapidjson::Value &json, const LocalBack
 	}
 	catch (const std::exception& e)
 	{
-		throw backend_exception(ERROR_INVALIDPARAMTREE, e.what());
+		throw backend_exception(*(backend_exception*)&e);
 	}
 	catch (backend_exception& be)
 	{
