@@ -4,7 +4,7 @@ from dplus.DataModels import Constraints, Parameter
 from dplus.State import State, DomainPreferences, FittingPreferences
 from dplus.Amplitudes import Amplitude
 from dplus.DataModels.models import UniformHollowCylinder
-from tests.test_settings import USE_GPU, session, exe_directory
+from tests.test_settings import USE_GPU, session
 import pytest
 
 import os
@@ -59,22 +59,22 @@ def test_running_generate_async():
     result = runner.get_generate_results(calc_data)
     assert len(result.graph) > 0
 
-def test_running_generate_async_localrunner():
+# def test_running_generate_async_localrunner():
 
-    state_file=os.path.join(root_path, "files", "mystate.state")
-    calc_data = CalculationInput.load_from_state_file(state_file, USE_GPU)
-    runner = LocalRunner(exe_directory)
-    job = runner.generate_async(calc_data)
-    start_time = datetime.datetime.now()
-    status = job.get_status()
-    while status['isRunning']:
-        status = job.get_status()
-        run_time = datetime.datetime.now() - start_time
-        if run_time > datetime.timedelta(seconds=50):
-            job.abort()
-            raise TimeoutError("Job took too long")
-    result = job.get_result(calc_data)
-    assert len(result.graph) > 0
+#     state_file=os.path.join(root_path, "files", "mystate.state")
+#     calc_data = CalculationInput.load_from_state_file(state_file, USE_GPU)
+#     runner = LocalRunner(exe_directory)
+#     job = runner.generate_async(calc_data)
+#     start_time = datetime.datetime.now()
+#     status = job.get_status()
+#     while status['isRunning']:
+#         status = job.get_status()
+#         run_time = datetime.datetime.now() - start_time
+#         if run_time > datetime.timedelta(seconds=50):
+#             job.abort()
+#             raise TimeoutError("Job took too long")
+#     result = job.get_result(calc_data)
+#     assert len(result.graph) > 0
 
 
 def test_calculation_input():

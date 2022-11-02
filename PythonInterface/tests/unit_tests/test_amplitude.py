@@ -273,5 +273,6 @@ def test_use_grid():
         result = runner.generate(input)
 
 def test_update_filename():
-    my_amp = Amplitude.load(r'.\files_for_tests\sphere.ampj')
+    filename = os.path.join(test_dir, "sphere.ampj")
+    my_amp = Amplitude.load(filename)
     assert my_amp.filename != ''

@@ -18,9 +18,8 @@ root_path = os.path.join(tests_folder, "unit_tests")
 
 
 def test_fit():
-    input = CalculationInput.load_from_state_file(
-        os.path.join(tests_folder, "reviewer_tests", "files_for_tests", "fit", "gpu", "short", "Sphere_Radius_Fit_low", "Sphere_Radius_Fit_low_fixed.state"),
-        USE_GPU)
+    fixed_state_file = fix_file(os.path.join(tests_folder, "reviewer_tests", "files_for_tests", "fit", "gpu", "short", "Sphere_Radius_Fit_low", "Sphere_Radius_Fit_low.state"))
+    input = CalculationInput.load_from_state_file(fixed_state_file,USE_GPU)
     
     runner = FitRunner()
     result = runner.fit(input)
@@ -32,9 +31,8 @@ def test_fit():
 def test_fit_async():
     if not USE_GPU:
         pytest.skip("NO GPU")
-    input = CalculationInput.load_from_state_file(
-        os.path.join(tests_folder, "reviewer_tests", "files_for_tests", "fit", "gpu", "short", "Sphere_Radius_Fit_low", "Sphere_Radius_Fit_low_fixed.state")
-    )
+    fixed_state_file = fix_file(os.path.join(tests_folder, "reviewer_tests", "files_for_tests", "fit", "gpu", "short", "Sphere_Radius_Fit_low", "Sphere_Radius_Fit_low.state"))
+    input = CalculationInput.load_from_state_file(fixed_state_file)
     runner = FitRunner()
     runner.fit_async(input)
     status = runner.get_status()

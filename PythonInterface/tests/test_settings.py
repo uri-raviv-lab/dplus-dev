@@ -4,7 +4,7 @@ from sys import platform
 tests_dir = os.path.join(os.path.dirname(__file__))  # pretty sure this never needs to change
 session = os.path.join(os.path.dirname(__file__), "test_session")
 
-USE_GPU = True
+USE_GPU = False
 
 try:
     from .local_test_settings import *
