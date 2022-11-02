@@ -2,6 +2,9 @@ import pprint
 from collections import OrderedDict
 from dplus.CalculationInput import CalculationInput
 from dplus.Signal import Signal
+import time
+import numpy as np
+from csv import reader
 import os
 
 
@@ -137,6 +140,64 @@ class CalculationResult(object):
             for key, value in self.graph.items():
                 out_file.write('{:.5f}\t{:.20f}\n'.format(key, value))
 
+    def save_to_2D_out_file(q, theta, y, filename=None):
+        '''
+        static function for writing 2D result to file.
+        saves the file as *.out2 format
+        returns the given/generated filename
+        '''
+        if filename is None:
+            timestr = time.strftime("%d-%m-%Y_%H-%M")
+            filename = os.path.join(os.getcwd(), timestr+".out2")
+
+        if not filename.endswith(".out2"):
+            filename = filename + ".out2"
+
+
+        with open(filename, 'w') as out_file:
+            out_file.write("q, theta, y\n")
+            for q_idx in range(len(q)):
+                for t_idx in range(len(theta)):
+                    out_file.write(f"{q[q_idx]}, {theta[t_idx]}, {y[q_idx][t_idx]}\n")
+
+        return filename
+
+    def read_2D_out_file(filename):
+        '''
+        static function for reading 2D result from file.
+        returns q_list, theta_list, y_matrix
+        '''
+        q = []
+        theta = []
+        y = []
+
+        append_theta = True
+        
+        with open(filename, 'r') as read_obj:
+            csv_reader = reader(read_obj)
+            header = next(csv_reader)
+            if not (header[0].strip() == 'q' and header[1].strip() == 'theta' and header[2].strip() == 'y'):
+                raise ValueError("Wrong format for 2D result.")
+            for row in csv_reader:
+                
+                if float(row[0]) not in q:
+                    q.append(float(row[0]))
+                
+                if append_theta:
+                    if float(row[1]) in theta:
+                        append_theta = False # all done with theta
+                    else:
+                        theta.append(float(row[1]))
+                
+                y.append(float(row[2])) # always append y
+        
+        y_2d = np.reshape(y, (len(q), len(theta))).tolist()
+
+
+        return q,theta,y_2d
+
+CalculationResult.save_to_2D_out_file = staticmethod(CalculationResult.save_to_2D_out_file)
+CalculationResult.read_2D_out_file = staticmethod(CalculationResult.read_2D_out_file)
 
 class GenerateResult(CalculationResult):
     '''

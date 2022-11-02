@@ -5,7 +5,6 @@ import sys
 from setuptools import setup
 from distutils.extension import Extension
 import setuptools
-from setuptools.command.build_ext import build_ext as original_build_ext
 
 with open(os.path.join(os.path.dirname(__file__), 'README.md')) as readme:
     README = readme.read()

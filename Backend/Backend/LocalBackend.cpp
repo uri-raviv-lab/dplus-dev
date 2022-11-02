@@ -924,8 +924,6 @@ std::string LocalBackend::HandleGetAmplitude(JobPtr job, ModelPtr model) {
 		throw(backend_exception(ERROR_GENERAL, g_errorStrings[ERROR_GENERAL]));
 	}
 
-	std::string temp = "C:\\Users\\devora\\Sources\\dplus\\testingzipping.zip";
-	amp->WriteAmplitudeToFile(temp);
 
 	if (!amp->WriteAmplitudeToStream(ss) == PDB_OK)
 	{

@@ -1,12 +1,16 @@
+import io
 import json
 import math
-
 import numpy as np
 import os
 import zipfile
 import pathlib
-from dplus.wrappers import CJacobianSphereGrid
-    
+
+
+try:
+    from dplus.wrappers import CJacobianSphereGrid
+except:
+    print("could not import from CythonGrid")    
 from math import pi
 
 PI = 3.14159265358979323846  # math.pi
@@ -446,93 +450,247 @@ class Amplitude():
         return interp_list
 
     @staticmethod
-    def _legacy_load(filename):
+    def q_theta_to_qZ_qPerp(q, theta):
+        qZ = q * math.cos(theta)
+        qPerp = q * math.sin(theta)
+        res = {'qZ' : qZ, 'qPerp' : qPerp}
+        return res
+
+    def qZ_qPerp_to_q_theta(qZ, qPerp):
+        q = math.sqrt( math.pow(qZ,2) + math.pow(qPerp,2) )
+        
+        # NOTICE THAT Q_PREP SHOULD BE THE FIRST ARGUMENT IN ATAN2 !!!
+        theta = np.abs(math.atan2(qPerp, qZ))
+        # Theta is abs() according to Eytan's suggestion.
+
+        res = {'q' : q, 'theta' : theta}
+        return res
+
+    def get_intensity(
+                    self, 
+                    q_min,
+                    calculated_points=100,
+                    q_max=None,
+                    phi_min=0, phi_max=2*math.pi,
+                    epsilon=1e-3, seed=0, max_iter=1000000):
+
+        if not q_max:
+            q_max = q_min
+            q_min = 0
+        
+        if q_max > self.grid.q_max:
+            raise ValueError('q_max > grid.q_max !')
+        
+        if q_min > q_max:
+            raise ValueError('q_min > q_max !')
+
+        qZ_list = np.linspace(0-q_max, q_max, calculated_points)
+        qPerp_list = np.linspace(0-q_max, q_max, calculated_points)
+
+        qZ_list = np.round(qZ_list, 8)
+        qPerp_list = np.round(qPerp_list, 8)
+
+        arr_intensity = [[0 for qPerp in range(calculated_points)] for qZ in range(calculated_points)] 
+
+        qZ_idx = 0
+        for qZ in qZ_list:
+            qPerp_idx = 0
+            for qPerp in qPerp_list:
+                q_theta_dict = Amplitude.qZ_qPerp_to_q_theta(qZ, qPerp)
+                q = q_theta_dict['q']
+                theta = q_theta_dict['theta']
+                if q_min <= q <= q_max: # q is always positive
+                    res = self.grid.get_intensity(q, theta, epsilon, seed, max_iter, phi_min, phi_max)
+                    arr_intensity[qZ_idx][qPerp_idx] = res
+                qPerp_idx += 1
+            qZ_idx += 1
+        return arr_intensity
+
+    def get_crystal_intensity(self, q_min, calculated_points=100, q_max=None, phi=0):
+        '''Returns the 2D intensity expected from a given model as if a crystallographic experiment was done.
+        The returned array goes from -q_max to q_max. Changing phi will give the scattering from another face (as if
+        turned by -phi in real-space)'''
+        if not q_max:
+            q_max = q_min
+            q_min = 0
+
+        if q_max > self.grid.q_max:
+            raise ValueError('q_max > grid.q_max !')
+
+        if q_min > q_max:
+            raise ValueError('q_min > q_max !')
+
+        qZ_list = np.linspace(-1*q_max, q_max, calculated_points)
+        qPerp_list = np.linspace(-1*q_max, q_max, calculated_points)
+
+        amps = np.zeros([calculated_points, calculated_points], dtype=complex)
+
+        phi_1 = phi
+        phi_2 = phi + np.pi
+        if phi_2 > 2 * np.pi:
+            phi_2 -= 2 * np.pi
+        for i in range(calculated_points):
+            for j in range(calculated_points):
+                q = np.sqrt(qPerp_list[i] ** 2 + qZ_list[j] ** 2)
+                theta = np.arctan2(qPerp_list[i], qZ_list[j])
+                if q_min <= q <= q_max:
+                    if theta < 0:
+                        amps[j, i] += self.get_interpolation([q], np.abs(theta), phi_2)[0]
+                    else:
+                        amps[j, i] += self.get_interpolation([q], theta, phi_1)[0]
+
+        I = np.power(np.abs(amps), 2)
+        return I
+
+
+    def get_intensity_q_theta(self, q_list, theta_list=None, epsilon=1e-3, seed=0, max_iter=1000000):
+        """
+        replace DomainModel::CalculateIntensityVector
+        calculate the 2D intensity for a vector of q's and theta's by send to JacobianSphereGrid::CalculateIntensity
+        If theta_list is None, calculate 1D intensity using q only.
+        :param q_list: list-double list of q's
+        :param theta_list: optional param list-double list of q's
+        :param epsilon: the allowed error
+        :param seed: start seed point ( for the randomization)
+        :param max_iter: max iteration for the optimization, for each q.
+        :return: If theta_list is None: a vector of the intensity each q from the list.
+                 else: a 2 dimensional matrix of intensity for each q, theta from the lists.
+        """
+        if theta_list is None:
+            arr_intensity = []
+            for q in q_list:
+                arr_intensity.append(self.grid.get_intensity(q, None, epsilon, seed, max_iter))
+            return arr_intensity
+
+        
+        arr_intensity = [[0 for t in range(len(theta_list))] for q in range(len(q_list))] 
+        q_idx = 0
+        for q in q_list:
+            t_idx = 0
+            for t in theta_list:
+                arr_intensity[q_idx][t_idx] = self.grid.get_intensity(q, t, epsilon, seed, max_iter)
+                t_idx = t_idx + 1
+            q_idx = q_idx + 1
+            
+        return arr_intensity
+
+    def calculate_intensity(self, q, theta=None, epsilon=1e-3, seed=0, max_iter=1000000): # max_iter = 'iterations' on c++
+        """
+        calculate the intensity for one q point - DomainModel::DefaultCPUCalculation, JacobianSphereGrid::CalculateIntensity
+        :param q: the point (x)
+        :param epsilon: the allowed error
+        :param seed: start seed point ( for the randomization)
+        :param max_iter: max iteration for the optimization
+        :return: the intensity for the q point
+        """
+        return self.grid.get_intensity(q, theta, epsilon, seed, max_iter)
+
+
+    @staticmethod
+    def _legacy_load_bytes(filestream):
         def _peek(File, length):
             pos = File.tell()
             data = File.read(length)
             File.seek(pos)
             return data
-
+        
         has_headers = False
         headers = []
-        with open(filename, "rb+") as f:
-            if _peek(f, 1).decode('ascii') == '#':
-                desc = f.read(2)
-                tempdesc = desc.decode('ascii')
-                if (tempdesc[1] == '@'):
-                    has_headers = True
-                else:
-                    tmphead = f.readline()
-                    headers.append(desc + tmphead)
 
-            if has_headers:
-                offset = np.fromfile(f, dtype=np.uint32, count=1, sep="")
-                del_aka_newline = f.readline()  # b"\n"
+        if _peek(filestream, 1).decode('ascii') == '#':
+            desc = filestream.read(2)
+            tempdesc = desc.decode('ascii')
+            if (tempdesc[1] == '@'):
+                has_headers = True
+            else:
+                tmphead = filestream.readline()
+                headers.append(desc + tmphead)
 
-                while _peek(f, 1).decode('ascii') == '#':
-                    headers.append(f.readline())
-                if offset > 0:
-                    f.seek(offset[0], 0)
+        if has_headers:
+            offset_bytes = filestream.read(np.dtype(np.uint32).itemsize)
+            offset = np.fromstring(offset_bytes, dtype=np.uint32)
+            del_aka_newline = filestream.readline()  # b"\n"
 
-            version_r = f.readline().rstrip()
-            version = int(version_r.decode('ascii'))
-            size_element_r = f.readline().rstrip()
-            size_element = int(size_element_r.decode('ascii'))
+            while _peek(filestream, 1).decode('ascii') == '#':
+                headers.append(filestream.readline())
+            if offset > 0:
+                filestream.seek(offset[0], 0)
 
-            if size_element != int(2 * np.dtype(np.float64).itemsize):
-                raise ValueError("error in file: " + filename + "dtype is not float64\n")
+        version_r = filestream.readline().rstrip()
+        version = int(version_r.decode('ascii'))
+        size_element_r = filestream.readline().rstrip()
+        size_element = int(size_element_r.decode('ascii'))
 
-            tmpGridsize_r = f.readline().rstrip()
-            tmpGridsize = int(tmpGridsize_r.decode('ascii'))  # I
+        if size_element != int(2 * np.dtype(np.float64).itemsize):
+            raise ValueError("dtype is not float64\n")
 
-            tmpExtras_r = f.readline().rstrip()
-            extra_shells = int(tmpExtras_r.decode('ascii'))  # extra shells
-            grid_size = (tmpGridsize - extra_shells) * 2  # grid_size
+        tmpGridsize_r = filestream.readline().rstrip()
+        tmpGridsize = int(tmpGridsize_r.decode('ascii'))  # I
 
-            actualGridSize = grid_size / 2 + extra_shells  # I
+        tmpExtras_r = filestream.readline().rstrip()
+        extra_shells = int(tmpExtras_r.decode('ascii'))  # extra shells
+        grid_size = (tmpGridsize - extra_shells) * 2  # grid_size
 
-            i = actualGridSize
-            totalsz = int((6 * i * (i + 1) * (3 + 3 + 2 * 3 * i)) / 6)
-            totalsz = totalsz + 1
-            totalsz = totalsz * 2
-            step_size = np.fromfile(f, dtype=np.float64, count=1, sep="")
-            q_max = np.float64(step_size * (grid_size / 2.0))
+        actualGridSize = grid_size / 2 + extra_shells  # I
 
-            amp_values = np.fromfile(f, dtype=np.float64, count=totalsz, sep="")
+        i = actualGridSize
+        totalsz = int((6 * i * (i + 1) * (3 + 3 + 2 * 3 * i)) / 6)
+        totalsz = totalsz + 1
+        totalsz = totalsz * 2
 
-            header_List = []
-            if has_headers:
-                pos = 0
-                header_List.append(desc)
-                pos = pos + len(desc)
+        step_size_bytes = filestream.read(np.dtype(np.float64).itemsize)
+        step_size = np.fromstring(step_size_bytes, dtype=np.float64)
 
-                header_List.append(offset[0].tobytes())
-                pos = pos + len(offset[0].tobytes())
-                header_List.append(del_aka_newline)
-                pos = pos + len(del_aka_newline)
+        q_max = np.float64(step_size * (grid_size / 2.0))
 
-                for i in headers:
-                    header_List.append(i)
-                    pos = pos + len(i)
-                header_List.append(del_aka_newline)
-                header_List.append(del_aka_newline)
-                pos = pos + 2 * len(del_aka_newline)
+        amp_values_bytes = filestream.read(np.dtype(np.float64).itemsize * totalsz)
+        amp_values = np.fromstring(amp_values_bytes, dtype=np.float64)
 
-                pos = np.int32(pos)
-                if pos != offset[0]:
-                    header_List[1] = pos.tobytes()
+        header_List = []
+        if has_headers:
+            pos = 0
+            header_List.append(desc)
+            pos = pos + len(desc)
 
-                header_List.append(version_r + b"\n")
-                header_List.append(size_element_r + b"\n")
-                header_List.append(tmpGridsize_r + b"\n")
-                header_List.append(tmpExtras_r + b"\n")
-                header_List.append(step_size.tobytes())
+            header_List.append(offset[0].tobytes())
+            pos = pos + len(offset[0].tobytes())
+            header_List.append(del_aka_newline)
+            pos = pos + len(del_aka_newline)
 
-            amp = Amplitude(grid_size, q_max)
-            amp.extra_shells = extra_shells
-            amp._values = amp_values
-            amp.external_headers = header_List
-            return amp
+            for i in headers:
+                header_List.append(i)
+                pos = pos + len(i)
+            header_List.append(del_aka_newline)
+            header_List.append(del_aka_newline)
+            pos = pos + 2 * len(del_aka_newline)
+
+            pos = np.int32(pos)
+            if pos != offset[0]:
+                header_List[1] = pos.tobytes()
+
+            header_List.append(version_r + b"\n")
+            header_List.append(size_element_r + b"\n")
+            header_List.append(tmpGridsize_r + b"\n")
+            header_List.append(tmpExtras_r + b"\n")
+            header_List.append(step_size.tobytes())
+
+        amp = Amplitude(grid_size, q_max)
+        amp.extra_shells = extra_shells
+        amp._values = amp_values
+        amp.external_headers = header_List
+        return amp
+
+    @staticmethod
+    def _legacy_load(filename):
+        with open(filename, "rb") as f:
+            try:
+                f_bytes = f.read()
+                f_bytes_io = io.BytesIO(f_bytes)
+                amp = Amplitude._legacy_load_bytes(f_bytes_io)
+            except ValueError as ve:
+                raise ValueError("error in file: " + filename + " " + ve)
+
+        return amp
 
     @staticmethod
     def load(filename):

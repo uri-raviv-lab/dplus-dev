@@ -29,6 +29,7 @@ public:
 
 	std::vector<ModelPtr> GetModelPtrs();
 	void SaveAmplitude(ModelPtr modelPtr, std::string path);
+	std::string GetAmplitude(ModelPtr modelPtr);
 	std::string GetPDB(ModelPtr modelPtr);
 	void Stop();
 

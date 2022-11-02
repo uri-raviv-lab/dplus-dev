@@ -17,6 +17,7 @@ cdef extern from r"Backend/Backend/PythonBackendWrapper.h" :
         void StartGenerate(string state, bool useGPU) except +
 
         void SaveAmplitude(unsigned int modelPtr, string path) except +
+        string GetAmplitude(unsigned int modelPtr) except +
         string GetPDB(unsigned int modelPtr) except +
         vector[unsigned int] GetModelPtrs() except +
         void Stop() except +
