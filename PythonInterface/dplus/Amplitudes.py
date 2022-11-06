@@ -543,7 +543,7 @@ class Amplitude():
         return I
 
 
-    def get_intensity_q_theta(self, q_list, theta_list=None, epsilon=1e-3, seed=0, max_iter=1000000):
+    def get_intensity_q_theta(self, q_list, theta_list=None, epsilon=1e-3, seed=0, max_iter=1000000, phi_min=0, phi_max=2*math.pi):
         """
         replace DomainModel::CalculateIntensityVector
         calculate the 2D intensity for a vector of q's and theta's by send to JacobianSphereGrid::CalculateIntensity
@@ -559,7 +559,7 @@ class Amplitude():
         if theta_list is None:
             arr_intensity = []
             for q in q_list:
-                arr_intensity.append(self.grid.get_intensity(q, None, epsilon, seed, max_iter))
+                arr_intensity.append(self.grid.get_intensity(q, None, epsilon, seed, max_iter, phi_min, phi_max))
             return arr_intensity
 
         
@@ -568,13 +568,13 @@ class Amplitude():
         for q in q_list:
             t_idx = 0
             for t in theta_list:
-                arr_intensity[q_idx][t_idx] = self.grid.get_intensity(q, t, epsilon, seed, max_iter)
+                arr_intensity[q_idx][t_idx] = self.grid.get_intensity(q, t, epsilon, seed, max_iter, phi_min, phi_max)
                 t_idx = t_idx + 1
             q_idx = q_idx + 1
             
         return arr_intensity
 
-    def calculate_intensity(self, q, theta=None, epsilon=1e-3, seed=0, max_iter=1000000): # max_iter = 'iterations' on c++
+    def calculate_intensity(self, q, theta=None, epsilon=1e-3, seed=0, max_iter=1000000, phi_min=0, phi_max=2*math.pi): # max_iter = 'iterations' on c++
         """
         calculate the intensity for one q point - DomainModel::DefaultCPUCalculation, JacobianSphereGrid::CalculateIntensity
         :param q: the point (x)
@@ -583,7 +583,7 @@ class Amplitude():
         :param max_iter: max iteration for the optimization
         :return: the intensity for the q point
         """
-        return self.grid.get_intensity(q, theta, epsilon, seed, max_iter)
+        return self.grid.get_intensity(q, theta, epsilon, seed, max_iter, phi_min, phi_max)
 
 
     @staticmethod
