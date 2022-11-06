@@ -344,8 +344,6 @@ def _chi_a_squ(result, expected):
     chi_a_sq = sum_i_to_N / N
     return chi_a_sq
 
-
-
 def send_calculate_intensity(amp_filename, excepted_signal_filename, out_filename):
     expected_signal = get_expected_signal(excepted_signal_filename)
     amp = Amplitude.load(amp_filename)
