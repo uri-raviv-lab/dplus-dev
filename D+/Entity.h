@@ -11,6 +11,7 @@ namespace DPlus {
 
 	public enum class EntityType {
 		TYPE_PDB,
+		TYPE_EPDB,
 		TYPE_AMPGRID,
 		TYPE_PRIMITIVE,
 		TYPE_SYMMETRY

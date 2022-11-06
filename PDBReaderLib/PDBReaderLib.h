@@ -1,38 +1,8 @@
 #ifndef __PDBREADERLIB_H
 #define __PDBREADERLIB_H
-#define BOOST_SYSTEM_NO_DEPRECATED
-#pragma warning( disable : 4251 )
 
-#pragma once
-#include <vector>
-#include <map>
-#include <complex>
-#include <string>
+#include "GeneralPDBReaderLib.h"
 
-#include "Common.h"
-
-#define NUMBER_OF_ATOMIC_FORM_FACTORS (208 + 8)
-
-using std::vector;
-using std::string;
-
-#ifndef __MATHFUNCS_H
-template <typename T> inline T sq(T x) { return x * x; }
-#endif
-
-#ifdef _WIN32
-	#ifdef PDBOB_INNER_TEMPLATE
-		#define EXPORTED_PDBREADER __declspec(dllexport)
-	#else
-		#define EXPORTED_PDBREADER __declspec(dllimport)
-	#endif
-#else
-	#ifdef PDBOB_INNER_TEMPLATE
-		#define EXPORTED_PDBREADER __attribute__ ((visibility ("default")))
-	#else
-		#define EXPORTED_PDBREADER
-	#endif
-#endif
 
 // For GPUs
 namespace PDBReader {
@@ -41,6 +11,9 @@ struct float4
 {
 	float x, y, z, w;
 };
+
+const int XRAY_COEFFICIENTS = 9;
+const int ELECTRON_COEFFICIENTS = 10;
 
 template<class FLOAT_TYPE = double>
 struct IonEntry {
@@ -109,8 +82,6 @@ public:
 
 public:
 	virtual ~PDBReaderOb();
-	PDBReaderOb();
-	PDBReaderOb(string filename, bool moveToCOM, int model = 0, string anomalousFName = "");
 	virtual PDB_READER_ERRS readPDBfile(string filename, bool bCenter, int model = 0);
 	virtual PDB_READER_ERRS readPDBbuffer(const char *buffer, size_t buffSize, bool bCenter, int model = 0);
 	virtual PDB_READER_ERRS readAnomalousfile(string filename);
@@ -135,11 +106,14 @@ public:
 	virtual void moveGeometricCenterToOrigin();
 
 protected:
-	virtual void initialize();
+	virtual void initialize() = 0;
+	virtual int getNumOfCoeffs() = 0;
+
+	void generalInitialize();
+	PDB_READER_ERRS ionIndToatmInd();
 	PDB_READER_ERRS readPDBstream(std::istream& inFile, bool bCenter, int model);
 	virtual PDB_READER_ERRS readAnomalousstream(std::istream& inFile);
-	PDB_READER_ERRS ionIndToatmInd();
-	virtual void getAtomIonIndices(string atm, u8& atmInd, u8& ionInd);
+	void getAtomIonIndices(string atm, u8& atmInd, u8& ionInd);
 	virtual void ExtractRelevantCoeffs(std::vector< IonEntry<FLOAT_TYPE> > &entries,
 		u64 vecSize, std::vector<u8>& sIonInd, std::vector<u8>& sAtmInd, std::vector<int>& atmsPerIon,
 		std::vector<unsigned char>& sortedCoefIonInd, std::vector<FLOAT_TYPE>& sX,
@@ -149,6 +123,30 @@ protected:
 	void ChangeResidueGroupsToImplicit(std::string amino_acid_name, const int i, const int aa_size);
 	std::string removeSpaces(std::string source); //we had to create these two functions because of a gcc bug
 	std::string removeDigits(std::string source);
+};
+
+template<class FLOAT_TYPE>
+class EXPORTED_PDBREADER XRayPDBReaderOb : public PDBReaderOb<FLOAT_TYPE>
+{
+public:
+	XRayPDBReaderOb();
+	XRayPDBReaderOb(string filename, bool moveToCOM, int model = 0, string anomalousFName = "");
+
+protected:
+	void initialize();
+	int getNumOfCoeffs() { return XRAY_COEFFICIENTS; }
+};
+
+template<class FLOAT_TYPE>
+class EXPORTED_PDBREADER ElectronPDBReaderOb : public PDBReaderOb<FLOAT_TYPE>
+{
+public:
+	ElectronPDBReaderOb();
+	ElectronPDBReaderOb(string filename, bool moveToCOM, int model = 0, string anomalousFName = "");
+
+protected:
+	void initialize();
+	int getNumOfCoeffs() { return ELECTRON_COEFFICIENTS; }
 };
 
 

@@ -8,9 +8,12 @@
             "name": "Python: test",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}\\tests\\unit_tests\\test_generate.py",
+            "program": "${workspaceFolder}\\tests\\manual_tests\\test_manual.py",
             "console": "integratedTerminal",
-            "justMyCode": true
+            "justMyCode": true,
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            },
         }
     ]
 }

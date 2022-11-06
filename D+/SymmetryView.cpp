@@ -135,8 +135,11 @@ System::Void SymmetryView::buttonAdd_Click(System::Object^ sender, System::Event
 	ModelInfo ^selmodel = (ModelInfo ^)entityCombo->SelectedItem;
 	Entity ^ent = nullptr;
 
-	if(selmodel->GetID() == 999) {
+	if(selmodel->GetID() == 999 || selmodel->GetID()==1999)
+	{
 		// Hardcoded code for PDBs
+		// 1999 - XRay PDB
+		// 999 - Electron PDB
 		OpenFileDialog ^ofd = gcnew OpenFileDialog();
 		ofd->Title = "Select a PDB file...";
 		ofd->Filter = "PDB Files (*.pdb)|*.pdb|All Files (*.*)|*.*";
@@ -148,7 +151,8 @@ System::Void SymmetryView::buttonAdd_Click(System::Object^ sender, System::Event
 		String ^anomfilename = "";
 		// Puts the basename without extension in the treeview
 		// Example: C:\1SVA.pdb --> "1SVA (PDB)"
-		ent = g3->RegisterPDB(pdbfilename, anomfilename, parentForm->GetLevelOfDetail(), CenterChecked());
+		bool electron = (selmodel->GetID() == 999);
+		ent = g3->RegisterPDB(pdbfilename, anomfilename, parentForm->GetLevelOfDetail(), CenterChecked(), electron);
 	} 
 	else if(selmodel->GetID() == 1000) 
 	{
@@ -363,7 +367,7 @@ System::Void SymmetryView::treeViewAdv1_SelectionChanged(System::Object^ sender,
 		// Deselect all and reselect the selected item
 		ClearEntitySelection(parentForm);
 		en->selected = true;
-		this->anomalousCheckBox->Visible = (en->type == EntityType::TYPE_PDB);
+		this->anomalousCheckBox->Visible = ( en->type == EntityType::TYPE_PDB || en->type == EntityType::TYPE_EPDB);
 		if (en->anomfilename && en->anomfilename!="")
 			this->anomalousCheckBox->Checked = true;
 		else

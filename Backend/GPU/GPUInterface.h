@@ -150,7 +150,7 @@ struct GridWorkspace
 	int numUniqueIons;	///< The total number of unique ions (e.g. Acetic acid assuming [A-][H+] would be 5 (H, C, O, O-, H+) if we assume the entire charge is on one oxygen)
 	float* d_affCoeffs;	///< The coefficients (a_i, b_i) used to calculate the atomic form factors
 	float* d_affs;		///< The calculated atomic form factors. Should be of dimensions [numUniquIons*qLayers]
-	const int* atomsPerIon;	///< DO NOT ALLOCATE!! Should point to the PDBReaderObj member atomsPerIon.
+	const int* atomsPerIon;	///< DO NOT ALLOCATE!! Should point to the electronPDBReaderObj member atomsPerIon.
 	int solventType;	///< The index of the solvent type. Is casted to an int from enum ATOM_RADIUS_TYPE. Valid values are: 1, VDW; 2, EMP; 3, CALC; 4, Dummy atom.
 	float solventED;	///< The electron density of the bulk solvent
 	float* d_atmRad;	///< The radii used for calculating the solvent amplitude. Of length numUniqueIons.

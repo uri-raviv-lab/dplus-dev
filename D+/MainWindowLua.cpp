@@ -183,6 +183,13 @@ namespace DPlus {
 				subtbl["Centered"] = ent->bCentered;
 				break;
 
+			case EntityType::TYPE_EPDB:
+				conttype = "EPDB";
+				subtbl["Filename"] = ent->filename;
+				subtbl["AnomFilename"] = ent->anomfilename;
+				subtbl["Centered"] = ent->bCentered;
+				break;
+
 			case EntityType::TYPE_AMPGRID:
 				conttype = "AMP";
 				subtbl["Filename"] = ent->filename;

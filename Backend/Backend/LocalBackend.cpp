@@ -1,5 +1,5 @@
 
-#include "Amplitude.h"
+#include "PDBAmplitude.h"
 #include "LocalBackend.h"
 #define RAPIDJSON_HAS_STDSTRING 1
 #include "../../BackendCommunication/LocalCommunication/LocalComm.h"
@@ -289,7 +289,7 @@ ModelPtr LocalBackend::HandleCreateScriptedSymmetry(JobPtr job, const char *scri
 }
 
 
-ModelPtr LocalBackend::HandleCreateFileAmplitude(JobPtr job, AmpFileType type, const wchar_t *filename, bool bCenter, const wchar_t *anomfilename) {
+ModelPtr LocalBackend::HandleCreateFileAmplitude(JobPtr job, AmpFileType type, const wchar_t *filename, bool bCenter, const wchar_t *anomfilename, bool electronPDB) {
 	Job j = JobManager::GetInstance().GetJobInformation(job);
 	ModelPtr res = (ModelPtr)NULL;
 	if(j.uid == 0)
@@ -316,7 +316,10 @@ ModelPtr LocalBackend::HandleCreateFileAmplitude(JobPtr job, AmpFileType type, c
 						std::wstring wanomfname = anomfilename;
 						anomfname.assign(wanomfname.begin(), wanomfname.end());
 					}
-					res = (ModelPtr)j.AssignAmplitude(new PDBAmplitude(fname, bCenter, anomfname));
+					if (electronPDB)
+						res = (ModelPtr)j.AssignAmplitude(new ElectronPDBAmplitude(fname, bCenter, anomfname));
+					else
+						res = (ModelPtr)j.AssignAmplitude(new XRayPDBAmplitude(fname, bCenter, anomfname));
 					break;
 				}				
 
@@ -341,7 +344,7 @@ ModelPtr LocalBackend::HandleCreateFileAmplitude(JobPtr job, AmpFileType type, c
 	return res;
 }
 
-ModelPtr LocalBackend::HandleCreateFileAmplitude(JobPtr job, AmpFileType type, const char *buffer, unsigned int bufferSize, const char *fileNm, unsigned int fnSize, bool bCenter, const char *anomFilename, unsigned int anomfnSize) {
+ModelPtr LocalBackend::HandleCreateFileAmplitude(JobPtr job, AmpFileType type, const char *buffer, unsigned int bufferSize, const char *fileNm, unsigned int fnSize, bool bCenter, const char *anomFilename, unsigned int anomfnSize, bool electronPDB) {
 	Job j = JobManager::GetInstance().GetJobInformation(job);
 	ModelPtr res = (ModelPtr)NULL;
 	if(j.uid == 0)
@@ -355,7 +358,10 @@ ModelPtr LocalBackend::HandleCreateFileAmplitude(JobPtr job, AmpFileType type, c
 				throw(backend_exception(ERROR_INVALIDARGS, g_errorStrings[ERROR_INVALIDARGS]));
 
 			case AF_PDB:
-				res = (ModelPtr)j.AssignAmplitude(new PDBAmplitude(buffer, bufferSize, fileNm, fnSize, bCenter, anomFilename, anomfnSize));
+				if (electronPDB)
+					res = (ModelPtr)j.AssignAmplitude(new ElectronPDBAmplitude(buffer, bufferSize, fileNm, fnSize, bCenter, anomFilename, anomfnSize));
+				else
+					res = (ModelPtr)j.AssignAmplitude(new XRayPDBAmplitude(buffer, bufferSize, fileNm, fnSize, bCenter, anomFilename, anomfnSize));
 				break;
 
 			case AF_AMPGRID:
@@ -924,7 +930,6 @@ std::string LocalBackend::HandleGetAmplitude(JobPtr job, ModelPtr model) {
 		throw(backend_exception(ERROR_GENERAL, g_errorStrings[ERROR_GENERAL]));
 	}
 
-
 	if (!amp->WriteAmplitudeToStream(ss) == PDB_OK)
 	{
 		throw(backend_exception(ERROR_GENERAL, g_errorStrings[ERROR_GENERAL]));
@@ -933,7 +938,7 @@ std::string LocalBackend::HandleGetAmplitude(JobPtr job, ModelPtr model) {
 	return ss.str();	
 }
 
-std::string LocalBackend::HandleGetPDB(JobPtr job, ModelPtr model) {
+std::string LocalBackend::HandleGetPDB(JobPtr job, ModelPtr model, bool electron) {
 	
 	stringstream ss;
 
@@ -964,11 +969,20 @@ std::string LocalBackend::HandleGetPDB(JobPtr job, ModelPtr model) {
 		return ss.str();
 	}
 
-	PDBAmplitude *pa = dynamic_cast<PDBAmplitude*>(amp);
+	PDBAmplitude* pa;
+	if (electron)
+	{
+		pa = dynamic_cast<ElectronPDBAmplitude*>(amp);
+	}
+	else
+	{
+		pa = dynamic_cast<XRayPDBAmplitude*>(amp);
+	}
+
 	if (pa && pa->SavePDBFile(ss)) {
 		return ss.str();
 	}
-
+	
 	throw(backend_exception(ERROR_MODELNOTFOUND, g_errorStrings[ERROR_MODELNOTFOUND]));
 }
 

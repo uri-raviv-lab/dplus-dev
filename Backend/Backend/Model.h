@@ -148,7 +148,7 @@ public:
 									Contains the rotated and translated locations of all the sub atoms
 	 * @ret		True if no errors were encountered
 	*/
-	virtual bool AssemblePDBFile(std::vector<std::string> &lines, std::vector<Eigen::Vector3f> &locs) = 0;
+	virtual bool AssemblePDBFile(std::vector<std::string> &lines, std::vector<Eigen::Vector3f> &locs, bool electronPDB=false) = 0;
 };
 
 // A special model representing a model which is polydisperse in one 

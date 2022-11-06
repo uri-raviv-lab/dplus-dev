@@ -6,7 +6,6 @@ from tests.test_settings import USE_GPU, session
 import math
 import os
 
-
 def test_create_state_with_cylinder():
     from dplus.DataModels.models import UniformHollowCylinder
     uhc=UniformHollowCylinder()

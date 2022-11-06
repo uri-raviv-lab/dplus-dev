@@ -273,7 +273,7 @@ bool Symmetry::SavePDBFile(std::ostream &output) {
 	return true;
 }
 
-bool Symmetry::AssemblePDBFile( std::vector<std::string> &lines, std::vector<Eigen::Vector3f> &locs ) {
+bool Symmetry::AssemblePDBFile( std::vector<std::string> &lines, std::vector<Eigen::Vector3f> &locs, bool electronPDB) {
 	int numSubs = GetNumSubLocations();
 
 	Eigen::Vector3f thisTr(tx, ty, tz);
@@ -307,15 +307,33 @@ bool Symmetry::AssemblePDBFile( std::vector<std::string> &lines, std::vector<Eig
 				iLocs.insert(iLocs.end(), subLocs.begin(), subLocs.end());
 			} //if symmCast
 
-			PDBAmplitude* pdbCast = dynamic_cast<PDBAmplitude*>(_amps[k]);
-			if(pdbCast) {
-				pdbCast->AssemblePDBFile(subLines, subLocs);
+			if (electronPDB) // Solve this redundancy with inheritance or something !!!
+			{
+				ElectronPDBAmplitude* pdbCast = dynamic_cast<ElectronPDBAmplitude*>(_amps[k]);
+				if (pdbCast)
+				{
+					pdbCast->AssemblePDBFile(subLines, subLocs);
 
-				iLines.reserve(iLines.size() + subLines.size());
-				iLines.insert(iLines.end(), subLines.begin(), subLines.end());
-				iLocs.reserve(iLocs.size() + subLocs.size());
-				iLocs.insert(iLocs.end(), subLocs.begin(), subLocs.end());
-			} // if pdbCast
+					iLines.reserve(iLines.size() + subLines.size());
+					iLines.insert(iLines.end(), subLines.begin(), subLines.end());
+					iLocs.reserve(iLocs.size() + subLocs.size());
+					iLocs.insert(iLocs.end(), subLocs.begin(), subLocs.end());
+				} // if pdbCast
+			}
+			else
+			{
+				PDBAmplitude* pdbCast = dynamic_cast<PDBAmplitude*>(_amps[k]);
+				if (pdbCast)
+				{
+					pdbCast->AssemblePDBFile(subLines, subLocs);
+
+					iLines.reserve(iLines.size() + subLines.size());
+					iLines.insert(iLines.end(), subLines.begin(), subLines.end());
+					iLocs.reserve(iLocs.size() + subLocs.size());
+					iLocs.insert(iLocs.end(), subLocs.begin(), subLocs.end());
+				} // if pdbCast
+			}
+			
 
 		} // for k < _amps.size
 

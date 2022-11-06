@@ -179,7 +179,7 @@ ModelPtr LocalBackendParameterTreeConverter::ModelFromJsonString(const std::stri
 			string cscript = GetScript(model);
 			return _pBackend->HandleCreateScriptedSymmetry(_job, cscript.c_str(), (unsigned)cscript.size());
 		}
-		else if (str == "pdb")
+		else if (str == "pdb" || str == "epdb")
 		{
 			if (!bAmp) {
 
@@ -201,7 +201,9 @@ ModelPtr LocalBackendParameterTreeConverter::ModelFromJsonString(const std::stri
 				throw backend_exception(ERROR_INVALIDARGS, "Invalid PDB, no file(model.Filename) defined!");
 			}
 
-			return _pBackend->HandleCreateFileAmplitude(_job, AF_PDB, StringToWideCharT(fname), centered, StringToWideCharT(anomfname));
+			bool electronPDB = (str == "epdb");
+
+			return _pBackend->HandleCreateFileAmplitude(_job, AF_PDB, StringToWideCharT(fname), centered, StringToWideCharT(anomfname), electronPDB);
 
 		}
 		else if (str == "amp")
