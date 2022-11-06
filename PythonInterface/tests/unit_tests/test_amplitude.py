@@ -345,35 +345,6 @@ def _chi_a_squ(result, expected):
     return chi_a_sq
 
 
-def test_calculate_intensity():
-    # compare 2 signals from D+
-    # path_signal_1 = r"C:\Users\chana\Source\DPlus\dplus\PythonInterface\tests\unit_tests\files_for_tests\intensity\signal-d-plus.out"
-    # path_signal_1 = r"C:\Users\chana\Source\DPlus\dplus\PythonInterface\tests\unit_tests\files_for_tests\intensity\signal-d-plus-generate-again.out"
-    # signal1 = get_expected_signal(path_signal_1)
-    # signal2 = get_expected_signal(path_signal_1)
-    # result = [val for val in signal2.get('intensity')]
-    # chi_a_sq_val = _chi_a_squ(result, signal1)
-
-    amp_filename = r"C:\Users\chana\Source\DPlus\dplus\PythonInterface\tests\unit_tests\files_for_tests\intensity\myamp.ampj"
-    out_filename = r"C:\Users\chana\Source\DPlus\dplus\PythonInterface\tests\unit_tests\files_for_tests\intensity\signal-python-myamp-size200.out"
-    excepted_signal_filename = r"C:\Users\chana\Source\DPlus\dplus\PythonInterface\tests\unit_tests\files_for_tests\intensity\signal-d-plus-size200.out"
-    result_1 = send_calculate_intensity(amp_filename, excepted_signal_filename, out_filename)
-    #
-    # amp_filename = r"C:\Users\chana\Source\DPlus\dplus\PythonInterface\tests\unit_tests\files_for_tests\intensity\myamp-2.ampj"
-    # out_filename = r"C:\Users\chana\Source\DPlus\dplus\PythonInterface\tests\unit_tests\files_for_tests\intensity\signal-python-myamp-2.out"
-    # excepted_signal_filename = r"C:\Users\chana\Source\DPlus\dplus\PythonInterface\tests\unit_tests\files_for_tests\intensity\signal-d-plus-2.out"
-    # result_2 = send_calculate_intensity(amp_filename, excepted_signal_filename, out_filename)
-
-    # amp_filename = r"C:\Users\chana\Source\DPlus\dplus\PythonInterface\tests\unit_tests\files_for_tests\intensity\myamp_helix2layrers.ampj"
-    # out_filename = r"C:\Users\chana\Source\DPlus\dplus\PythonInterface\tests\unit_tests\files_for_tests\intensity\signal-python-myamp_helix2layrers.out"
-    # excepted_signal_filename = r"C:\Users\chana\Source\DPlus\dplus\PythonInterface\tests\unit_tests\files_for_tests\intensity\signal-d-plus-helix2layrers.out"
-    # result_3 = send_calculate_intensity(amp_filename, excepted_signal_filename, out_filename)
-    
-    print("result 1:", result_1)
-    # print("result 2:", result_2)
-    # print("result 3:", result_3)
-
-
 
 def send_calculate_intensity(amp_filename, excepted_signal_filename, out_filename):
     expected_signal = get_expected_signal(excepted_signal_filename)
