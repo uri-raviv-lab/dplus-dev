@@ -4,6 +4,7 @@ from dplus.DataModels import Constraints, Parameter
 from dplus.State import State, DomainPreferences, FittingPreferences
 from dplus.Amplitudes import Amplitude
 from dplus.DataModels.models import UniformHollowCylinder
+from tests.test_settings import USE_GPU, tests_dir, session
 
 import os
 from os.path import abspath
@@ -64,13 +65,30 @@ def test_calculation_input():
     fixed_state_file = fix_file(os.path.join(root_path, "files", 'sphere.state'))
     gen_input = CalculationInput.load_from_state_file(fixed_state_file, USE_GPU)
 
-	gen_input = CalculationInput()
+def test_datamodels_generate_calculate_input_new_state():
+    uhc = UniformHollowCylinder()
+    gen_input = CalculationInput(USE_GPU)
     gen_input.Domain.populations[0].add_model(uhc)
     gen_input.DomainPreferences.q_max = 10
     runner = EmbeddedLocalRunner()
     result = runner.generate(gen_input)
     assert len(result.graph) > 0
 
+def test_datamodels_save_state():
+    uhc = UniformHollowCylinder()
+    gen_input = CalculationInput()
+    gen_input.Domain.populations[0].add_model(uhc)
+    dompref = DomainPreferences()
+    dompref.q_max = 10
+    gen_input.DomainPreferences = dompref
+
+    tmp_directory = tempfile.mkdtemp()
+    new_file_path  = os.path.join(tmp_directory, 'test.state')
+    gen_input.export_all_parameters(new_file_path)
+
+    calc_input=CalculationInput.load_from_state_file(new_file_path)
+
+    shutil.rmtree(tmp_directory)
 
 
 def test_build_simple_state():
@@ -444,8 +462,27 @@ def test_constraints_and_parameters():
   
 
    
-    calc_input=CalculationInput.load_from_state_file(new_file_path)
+def test_datamodels_fit_calculate_input_state():
+    # TODO - fit files???
+    state_file = os.path.join(root_path, "files", "sphere.state")
+    fixed_state_file = fix_file(state_file)
+    fit_input = CalculationInput.load_from_state_file(fixed_state_file, USE_GPU)
+    fit_input.FittingPreferences.convergence=0.5
+    runner = EmbeddedLocalRunner()
+    result = runner.fit(fit_input)
+    assert len(result.graph) > 0
 
+def test_datamodels_generate_model():
+    runner = EmbeddedLocalRunner()
+    uhc = UniformHollowCylinder()
+    caldata = CalculationInput(USE_GPU)
+    caldata.Domain.populations[0].add_model(uhc)
+    result = runner.generate(caldata)
+    assert len(result.graph) > 0
+
+def test_constraints_and_parameters():
+    c = Constraints(min_val=5)
+    p = Parameter(4)
 #the extra examples at the end of the manual:
 
 def test_example_one_sphere_fit():
@@ -647,20 +684,8 @@ def test_EPDB_in_sym():
 
     assert np.max(np.abs((np.array(my_state.y) - np.array(result.y))) / np.array(my_state.y)) < 0.17
 
-
+from dplus.DataModels.models import AMP
 def test_save_amplitude_and_load():
-
-
-
-
-
-
-
-
-
-
-    from dplus.DataModels.models import AMP
-    
     def my_func(q, theta, phi):
         return np.complex64(q + 0.0j)
 
