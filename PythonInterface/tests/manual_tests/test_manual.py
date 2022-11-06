@@ -5,6 +5,7 @@ from dplus.State import State, DomainPreferences, FittingPreferences
 from dplus.Amplitudes import Amplitude
 from dplus.DataModels.models import UniformHollowCylinder
 from tests.test_settings import USE_GPU, tests_dir, session
+import pytest
 
 import os
 from os.path import abspath

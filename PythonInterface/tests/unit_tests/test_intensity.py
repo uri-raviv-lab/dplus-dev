@@ -300,24 +300,3 @@ def test_read_write_2D():
         file_2_text = file_2.readlines()
         for line_1, line_2 in zip(file_1_text, file_2_text):
             assert line_1 == line_2
-
-def test_test():
-    plt.figure()
-    # Hold activation for multiple lines on same graph
-    #plt.hold('on')
-    # Set x-axis range
-    plt.xlim((1,9))
-    # Set y-axis range
-    plt.ylim((1,9))
-    # Draw lines to split quadrants
-    plt.plot([5,5],[1,9], linewidth=4, color='red' )
-    plt.plot([1,9],[5,5], linewidth=4, color='red' )
-    #plt.title('Quadrant plot')
-    # Draw some sub-regions in upper left quadrant
-    #plt.plot([3,3],[5,9], linewidth=2, color='blue')
-    #plt.plot([1,5],[7,7], linewidth=2, color='blue')
-    plt.show()
-
-#test_intensity_qZ_qPerp()
-#test_easy_2()
-#test_easy_without_ampj_file()
