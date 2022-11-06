@@ -750,10 +750,10 @@ class EmbeddedLocalRunner(Runner):
         Send to C++ function to get the generate result.
         """
         result = self.wrapper.get_generate_results()
-        calc_result = GenerateResult(calc_data, result, job=None, get_amp_func=self.get_amp)
+        calc_result = GenerateResult(calc_data, result, job=None, get_amp_func=self.save_and_get_amp)
         return calc_result
 
-    def get_amp(self, model_ptr, model_name, destination_folder):
+    def save_and_get_amp(self, model_ptr, model_name, destination_folder):
         file_name = model_name
         
         if file_name == '':
