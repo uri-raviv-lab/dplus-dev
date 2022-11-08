@@ -1,5 +1,11 @@
 The DPLus Python Wrapper
 ========================
+5.0.0
+----------------
+* Documentation improved
+* 2D intensity calculation
+* Eplus merged in
+
 4.3.7
 ----------------
 * Added classes ParameterContainers, Layers, Children to help with input validation
