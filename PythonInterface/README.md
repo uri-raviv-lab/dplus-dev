@@ -351,18 +351,18 @@ Populations can contain standard types of models.
 
 The available standard model classes are:
 
-| Model Name | location_params | extra_params | layer_params |
-|---|---|---|---|
-| `UniformHollowCylinder`| x, y, z,<br/>alpha, beta, gamma | scale, background,<br/>height | radius, ed
-| `Sphere`| x, y, z,<br/>alpha, beta, gamma | scale,<br/>background | radius, ed
-| `SymmetricLayeredSlabs`| x, y, z,<br/>alpha, beta, gamma | scale, background,<br/>x_domain_size, y_domain_size | width, ed
-| `AsymmetricLayeredSlabs`| x, y, z,<br/>alpha, beta, gamma | scale, background,<br/>x_domain_size, y_domain_size | width, ed
-| `Helix`| x, y, z,<br/>alpha, beta, gamma | scale, background,<br/>height, helix_radius,<br/>pitch | phase, ed,<br/>cross_section
-| `SpacefillingSymmetry`| x, y, z,<br/>alpha, beta, gamma | scale | distance, angle,<br/>repetitions
-| `ManualSymmetry`| x, y, z,<br/>alpha, beta, gamma | scale | Dependes on layers added
-| `PDB`- a PDB file| x, y, z,<br/>alpha, beta, gamma | scale, solvent_ed,<br/>solvent_probe_radius,<br/>solvation_thickness,<br/> outer_solvent_ed, fill_holes,<br/>solvent_only, solvent_method | N/A
-| `AMP`- an amplitude grid file| x, y, z,<br/>alpha, beta, gamma | scale | N/A
-||||
+| Model Name                    | location_params | extra_params | layer_params |
+|-------------------------------|---|---|---|
+| `UniformHollowCylinder`       | x, y, z,<br/>alpha, beta, gamma | scale, background,<br/>height | radius, ed
+| `Sphere`                      | x, y, z,<br/>alpha, beta, gamma | scale,<br/>background | radius, ed
+| `SymmetricLayeredSlabs`       | x, y, z,<br/>alpha, beta, gamma | scale, background,<br/>x_domain_size, y_domain_size | width, ed
+| `AsymmetricLayeredSlabs`      | x, y, z,<br/>alpha, beta, gamma | scale, background,<br/>x_domain_size, y_domain_size | width, ed
+| `Helix`                       | x, y, z,<br/>alpha, beta, gamma | scale, background,<br/>height, helix_radius,<br/>pitch | phase, ed,<br/>cross_section
+| `SpacefillingSymmetry`        | x, y, z,<br/>alpha, beta, gamma | scale | distance, angle,<br/>repetitions
+| `ManualSymmetry`              | x, y, z,<br/>alpha, beta, gamma | scale | Dependes on layers added
+| `PDB`- a PDB file             | x, y, z,<br/>alpha, beta, gamma | scale, solvent_ed,<br/>solvent_probe_radius,<br/>solvation_thickness,<br/> outer_solvent_ed, fill_holes,<br/>solvent_only, solvent_method | N/A
+| `EPDB`- an EPDB file          | x, y, z,<br/>alpha, beta, gamma | scale, solvent_ed,<br/>solvent_probe_radius,<br/>solvation_thickness,<br/> outer_solvent_ed, fill_holes,<br/>solvent_only, solvent_method | N/A
+| `AMP`- an amplitude grid file | x, y, z,<br/>alpha, beta, gamma | scale | N/A
 
 You can create any model by calling its initialization. 
 
@@ -372,6 +372,7 @@ Therefore, your code editor may underline the model in red even if the model exi
 All models have `location_params` (Location Parameters) and  `extra_params` (Extra Parameters). 
 Some models (that support layers) also contain `layer_params`.
 These can be accessed from `model.location_params`, `model.extra_params`, and `model.layer_params`, respectively.
+On top of these, both PDB and EPDB can receive an anomalous file as a string. This can be done through `E/PDB.anomfile`. 
 
 They contain special custom python containers, based on standard python containers, but with validation
 of what the user does to them.  
@@ -636,11 +637,65 @@ In addition the module contains two functions that conert old ".amp" file to ".a
 * `amp_to_ampj_converter` - receives amp file and save it as ampj file, returns the new filename
 * `ampj_to_amp_converter`- receives ampj file and save it as amp file, returns the new filename
 
+### 2D Intensities
+
+Models that have been calculated and have an amplitude, can be reused to calculate either the crystallographic 
+diffraction  of the model or its fibre diffraction. In D+, the X-Ray beam is parallel to the y-axis, and thus, 
+models should be built accordingly.
+
+#### Crystallography
+
+To find the crystallographic diffraction pattern, one should use `my_amp.get_crystal_intensity(q_min, 
+calculated_points, q_max, phi)` and only `q_min` has to be given. The parameters `calculated_points`, `phi` are defaulted to 
+the values 100 and 0. In the case only `q_min` is given, it is taken to be q_max, and if both are given then D+ will 
+only calculate the diffraction between them.
+
+The parameter `phi`, which is defaulted at 0, will as such give the diffraction of the face parallel to the xz-plane.
+To get another face of the model, one can use `phi` to turn the model by -phi degrees (in real space) around the 
+z-axis.
+
+An example of the usage:
+```python
+my_amp = Amplitude.load(r'Path\To\ampj_file')
+## can also be initialized as such (after generating 1D graph)
+my_amp = runner.get_amp(model.model_ptr)
+
+cryst_diff = my_amp.get_crystal_intensity(15, calculated_points=1500)
+
+## Plotting
+qp_2d = np.linspace(-15, 15, 1500)
+qz_2d = np.linspace(-15, 15, 1500)
+plt.pcolormesh(qp_2d, qz_2d, cryst_diff)
+```
+
+#### Fibre Diffraction
+
+Similarly, one can use the function ` get_intensity(q_min, calculated_points=100, q_max=None, phi_min=0, 
+phi_max=2*math.pi, epsilon=1e-3, seed=0, max_iter=1000000)`. Once more, if `q_max` isn't given, then `q_min` will be 
+it. One can also decide to integrate over a domain different from `[0, 2*PI]` by changing `phi_min` and `phi_max`. 
+The parameter `epsilon` is the "convergence epsilon", `max_iter` is the maximum number of iterations before the 
+integrator returns an answer if convergence has not been attained, and `seed` is the seed given for the random number 
+generator.
+
+It is important to note that the integration is done around the z-axis, and thus the model must be built accordingly.
+An example of the usage:
+```python
+my_amp = Amplitude.load(r'Path\To\ampj_file')
+## can also be initialized as such (after generating 1D graph)
+my_amp = runner.get_amp(model.model_ptr)
+
+fibre_diff = my_amp.get_intensity(15, calculated_points=1500)
+
+## Plotting
+qp_2d = np.linspace(-15, 15, 1500)
+qz_2d = np.linspace(-15, 15, 1500)
+plt.pcolormesh(qp_2d, qz_2d, fibre_diff)
+```
 
 ## CalculationResult
- 
-The `CalculationResult` class is returned by the `Runner`. 
-The user should generally not be instantiating the class themselves. 
+
+The `CalculationResult` class is returned by the `Runner`.
+The user should generally not be instantiating the class themselves.
 
 The base `CalculationResult` class is inherited by `GenerateResult` and `FitResult`
 
@@ -652,32 +707,32 @@ The base `CalculationResult` class is inherited by `GenerateResult` and `FitResu
 
 In addition, CalculationResults has the following functions:
 
-* `get_amp(model_ptr, destination_folder)`: returns the file location of the amplitude file for given `model_ptr`. 
-`destination_folder` has a default value of `None`, but if provided, the amplitude file will be copied to that location,
-and then have its address returned.
-If the model has a name, the amplitude file will be named according to the model_name. If there is no model name, the file will be named according to the model_ptr. See following example "Model Naming". 
+* `get_amp(model_ptr, destination_folder)`: returns the file location of the amplitude file for given `model_ptr`.
+  `destination_folder` has a default value of `None`, but if provided, the amplitude file will be copied to that location,
+  and then have its address returned.
+  If the model has a name, the amplitude file will be named according to the model_name. If there is no model name, the file will be named according to the model_ptr. See following example "Model Naming".
 * `get_amps(destionation_folder)`: returns an array of file locations for every amplitude file created during the D+
-calculation process. `destination_folder` has a default value of `None`, but if provided, the amplitude files
-will be copied to that location.  
-* `get_pdb(mod_ptr, destination_folder)`: returns the file location of the PDB file for given `model_ptr`. 
-`destination_folder` has a default value of `None`, but if provided, the PDB file will be copied to that location,
-and then have its address returned 
+  calculation process. `destination_folder` has a default value of `None`, but if provided, the amplitude files
+  will be copied to that location.
+* `get_pdb(mod_ptr, destination_folder)`: returns the file location of the PDB file for given `model_ptr`.
+  `destination_folder` has a default value of `None`, but if provided, the PDB file will be copied to that location,
+  and then have its address returned
 * `save_to_out_file(filename)`: receives file name, and saves the results to the file.
 
 In addition to the above:
- 
-`GenerateResult` has a property `headers`, created by D+ to describe 
-the job that was run. It is an Ordered Dictionary, whose keys are ModelPtrs and whose values are the header associated. 
+
+`GenerateResult` has a property `headers`, created by D+ to describe
+the job that was run. It is an Ordered Dictionary, whose keys are ModelPtrs and whose values are the header associated.
 
 `FitResult` has two additional properties,
-* `parameter_tree`: A JSON of parameters (can be used to create a new `state` with state's `load_from_dictionary`). 
-Only present in fitting, not generate, results
+* `parameter_tree`: A JSON of parameters (can be used to create a new `state` with state's `load_from_dictionary`).
+  Only present in fitting, not generate, results
 * `result_state`: a `CalculationInput` whose `Domain` contains the optimized parameters obtained from the fitting
 
 
 ## FileReaders
 
-The API contains a module FileReaders. 
+The API contains a module FileReaders.
 
 The module contains the class NumpyHandlingEncoder.
 
@@ -744,7 +799,7 @@ print(result.graph)
 from dplus.CalculationRunner import EmbeddedLocalRunner
 from dplus.CalculationInput import CalculationInput
 if not USE_GPU:
-        pytest.skip("NO GPU")
+    pytest.skip("NO GPU")
 API = EmbeddedLocalRunner()
 state_file = os.path.join(root_path, "files", "uhc.state")
 input = CalculationInput.load_from_state_file(state_file)
@@ -761,13 +816,13 @@ fit_result = API.fit(input)
 assert len(fit_result.graph) > 0
 ```
 
-Comments: 
+Comments:
 `fit_result.result_state` is the optimized state (i.e. the optimized parameter tree) that is returned from the fitting (`runner.fit(input)`). You can fetch the cylinder whose name is "test_cylinder" from that parameter tree, to see what its new optimized parameters are.
 
 
 ### Implementing Models using Amplitudes
 
-For the purpose of these examples the models are implemented with minimal default parameters, in a realistic usage 
+For the purpose of these examples the models are implemented with minimal default parameters, in a realistic usage
 scenario the user would set those parameters as editable properties to be changed at his convenience.
 
 ```python
@@ -890,7 +945,7 @@ a.fill(symSlab.calculate)
 ### Python Fitting
 It is possible to fit a curve using the results from Generate and numpy's built in minimization/curve fitting functions.
 All that is requires is wrapping the interface code so that it receives and returns parameters the way scipy expects (eg as numpy arrays)
- 
+
 An example follows:
 
 ```python
@@ -931,27 +986,50 @@ If a model has a name, the get_amp function will save the amplitude file with th
 If the model does not have a name, the amplitude file will be named according to the model_ptr
 ```python
     from dplus.DataModels.models import UniformHollowCylinder
-    from dplus.CalculationInput import CalculationInput
-    from dplus.CalculationRunner import EmbeddedLocalRunner
+from dplus.CalculationInput import CalculationInput
+from dplus.CalculationRunner import EmbeddedLocalRunner
 
-    runner = EmbeddedLocalRunner()
+runner = EmbeddedLocalRunner()
 
-    # without model name:
-    uhc=UniformHollowCylinder()
-    caldata = CalculationInput(USE_GPU)
-    caldata.Domain.populations[0].add_model(uhc)
-    result=runner.generate(caldata)
-    dest_folder = result.get_amp(uhc.model_ptr, session)
-    # The amplitude is saved to: seesion/00000000.ampj
+# without model name:
+uhc=UniformHollowCylinder()
+caldata = CalculationInput(USE_GPU)
+caldata.Domain.populations[0].add_model(uhc)
+result=runner.generate(caldata)
+dest_folder = result.get_amp(uhc.model_ptr, session)
+# The amplitude is saved to: seesion/00000000.ampj
 
-    # with model name:
-    uhc=UniformHollowCylinder()
-    uhc.name="test_hc"
-    caldata = CalculationInput(USE_GPU)
-    caldata.Domain.populations[0].add_model(uhc)
-    runner = EmbeddedLocalRunner()
-    result=runner.generate(caldata)
-    dest_folder = result.get_amp(uhc.model_ptr, session)
-    # The amplitude is saved to: seesion/test_hc.ampj
-    
+# with model name:
+uhc=UniformHollowCylinder()
+uhc.name="test_hc"
+caldata = CalculationInput(USE_GPU)
+caldata.Domain.populations[0].add_model(uhc)
+runner = EmbeddedLocalRunner()
+result=runner.generate(caldata)
+dest_folder = result.get_amp(uhc.model_ptr, session)
+# The amplitude is saved to: seesion/test_hc.ampj
+
 ```
+
+## G_r module
+
+The g_r module is a complementary module to D+ and is helpful if one wants to further analyse data using the radial 
+distribution function or the structure factor. It has multiple functions, part of which have been parallelized using 
+DaCe (*Ben-Nun, T., de-Fine-Licht, J., Ziogas, A. N., Schneider, T. and Hoefler, T., Stateful Dataflow Multigraphs: A 
+Data-Centric Model for Performance Portability on Heterogeneous Architectures, 2019, Proceedings of the 
+International Conference for High Performance Computing, Networking, Storage and Analysis*).
+
+It can be called like all the other modules, i.e.:
+```python
+    import dplus.g_r
+```
+The available functions inside the module are:
+
+| Function Name      | Function Info                                                                       | Input                                                                                                           | Output      |
+|--------------------|-------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------|-------------|
+| `g_r_from_model`   | finds the RDF of a given dol file                                                   | file, Lx, Ly, Lz, file_triple, radius, r_max, dr, Number_for_average_atoms, thermal, u, Number_for_average_conf | r, g_r, rho 
+| `g_r_from_s_q`     | from s(q), finds the rdf                                                            | q, s_q, rho, r_min, r_max, dr, factor, type                                                                     |r, g_r        
+| `S_Q_from_I`       | finds the structure factor from the intensity and the subunit form-factor           | I_q, f_q, N                                                                                                      | s_q                       
+| `S_Q_from_model`   | finds the structure factor of a given dol file                                      | filename, q_min , q_max, dq, thermal, Number_for_average_conf, u                                                | q, s_q, rho                    
+| `s_q_from_g_r`     | from the rdf, finds the structure factor                                            | r, g_r, rho, q_min, q_max, dq, factor, type                                                                     | q, s_q    
+| `build_crystal`    | receives lattice parameters and number of repetitions and from it builds a dol file | lattice, rep_a, rep_b, rep_c, dol_out, ran, move_to_GC                                                          | N/A
