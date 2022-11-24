@@ -1,7 +1,8 @@
 # How to update version
 
 ### Before updating the version follow these next steps:
-* Run all tests on dplus-api
+* Run all tests on dplus-api.
+Check out the [README](PythonInterface/tests/README.md) under the `tests` directory. 
 * Make sure the README.md is updated with the latest changes. All code snippets in README.md should have corresponding tests in manual_tests.py
 * Update the HISTORY.md file with the version changes
 * Change the version in file `backend_version.h`. 

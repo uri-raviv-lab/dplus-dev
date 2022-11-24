@@ -2,7 +2,7 @@
 # further development
 Write-Host --ForegroundColor Cyan "Building the D+ Wheels"
 
-# Remove old fils
+# Remove old files
 remove-item -recurse -force -erroraction silentlycontinue .\dist
 remove-item -recurse -force -erroraction silentlycontinue .\build
 
