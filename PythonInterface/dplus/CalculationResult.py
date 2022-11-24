@@ -111,6 +111,11 @@ class CalculationResult(object):
                 addresses.append(self.get_amp(model_ptr, destination_folder))
             except FileNotFoundError:  # not every model will necessarily have an amplitude file
                 pass
+            except Exception as ex:
+                if ex.error_code == 14:
+                    pass
+                else:
+                    raise ex
         return addresses
 
     @property
