@@ -273,6 +273,30 @@ def test_2d_intensity_hard_2():
     plt.imshow(result, origin='lower', aspect=aspect, norm=colors.LogNorm(vmin=0, vmax=np.max(np.max(result))))
     plt.show()
 
+def test_2d_cryst_intensity():
+    my_amp = Amplitude.load(join(file_dir, "intensity", "Graphene_xz.ampj"))
+    cryst_diff = my_amp.get_crystal_intensity(100, calculated_points=2000)
+    ## Plotting
+    qp_2d = np.linspace(-100, 100, 2000)
+    qz_2d = np.linspace(-100, 100, 2000)
+
+    plt.figure()
+    plt.pcolormesh(qp_2d, qz_2d, cryst_diff)
+    plt.colorbar(label='I [a.u.]')
+    plt.xlabel('$q_\perp[nm^{-1}]$')
+    plt.ylabel('$q_z[nm^{-1}]$')
+
+def test_2d_fibre_intensity():
+    my_amp = Amplitude.load(join(file_dir, "intensity", "Graphene_xz.ampj"))
+    fibre_diff = my_amp.get_intensity(100, calculated_points=2000)
+    ## Plotting
+    qp_2d = np.linspace(-100, 100, 2000)
+    qz_2d = np.linspace(-100, 100, 2000)
+    plt.pcolormesh(qp_2d, qz_2d, fibre_diff)
+    plt.colorbar(label='I [a.u.]')
+    plt.xlabel('$q_\perp[nm^{-1}]$')
+    plt.ylabel('$q_z[nm^{-1}]$')
+
 
 def test_read_write_2D():
     sp = Sphere()
