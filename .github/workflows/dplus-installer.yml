@@ -63,7 +63,7 @@ jobs:
       - name: Build DPlus
         env:
           BOOST_ROOT: ${{ github.workspace }}/boost
-        run: msbuild dplus.sln /p:Configuration=Release /p:Platform=x64 "/target:User Interface\DPlus"
+        run: msbuild dplus.sln /p:Configuration=Release /p:Platform=x64 /p:PlatformToolset=v143 "/target:User Interface\DPlus"
       - name: Build Extra Utilities
         env:
           BOOST_ROOT: ${{ github.workspace }}/boost
