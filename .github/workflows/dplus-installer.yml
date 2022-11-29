@@ -58,6 +58,7 @@ jobs:
         working-directory: PythonInterface
         run: |
           pip install -r requirements.txt
+          pip install wheel
           ./rebuild-wheels.ps1
       - name: Build DPlus
         env:
