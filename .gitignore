@@ -537,3 +537,5 @@ PythonInterface/dplus/lua51-backend.dll
 PythonInterface/dplus/PDBReaderLib.dll
 PythonInterface/dplus/xplusbackend.dll
 PythonInterface/tests/manual_tests/out_dir
+PythonInterface/amp-4.ampj
+PythonInterface/myfile.ampj
