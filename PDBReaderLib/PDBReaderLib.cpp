@@ -2233,38 +2233,38 @@ namespace PDBReader {
 	template<class FLOAT_TYPE>
 	XRayPDBReaderOb<FLOAT_TYPE>::XRayPDBReaderOb(string filename, bool moveToCOM, int model /*= 0*/, string anomalousFName /*= ""*/)
 	{
-		status = UNINITIALIZED;
+		this->status = UNINITIALIZED;
 
 		initialize();
 
-		fn = filename;
-		anomalousfn = anomalousFName;
+		this->fn = filename;
+		this->anomalousfn = anomalousFName;
 
-		bMoveToCOM = moveToCOM;
+		this->bMoveToCOM = moveToCOM;
 
-		if (anomalousfn.size())
-			status = readAnomalousfile(anomalousFName);
+		if (this->anomalousfn.size())
+			this->status = this->readAnomalousfile(anomalousFName);
 
-		if (status == UNINITIALIZED || status == PDB_OK)
-			status = readPDBfile(filename, moveToCOM, model);
+		if (this->status == UNINITIALIZED || this->status == PDB_OK)
+			this->status = this->readPDBfile(filename, moveToCOM, model);
 	}
 
 	template<class FLOAT_TYPE>
 	XRayPDBReaderOb<FLOAT_TYPE>::XRayPDBReaderOb()
 	{
-		status = UNINITIALIZED;
+		this->status = UNINITIALIZED;
 		initialize();
 	}
 	
 	template<class FLOAT_TYPE>
 	void XRayPDBReaderOb<FLOAT_TYPE>::initialize() {
 
-		generalInitialize();
+		this->generalInitialize();
 
 		// Load atomic form factor coefficients (KEEP IN ONE PLACE! here is better)
 		// Values of Table 2.2B (International Tables of X-ray Crystallography Vol IV)
-		atmFFcoefs.resize(NUMBER_OF_ATOMIC_FORM_FACTORS * 9);
-		Eigen::Map<Eigen::Array<FLOAT_TYPE, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> atmFFcoefsMap(atmFFcoefs.data(), NUMBER_OF_ATOMIC_FORM_FACTORS, 9);
+		this->atmFFcoefs.resize(NUMBER_OF_ATOMIC_FORM_FACTORS * 9);
+		Eigen::Map<Eigen::Array<FLOAT_TYPE, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> atmFFcoefsMap(this->atmFFcoefs.data(), NUMBER_OF_ATOMIC_FORM_FACTORS, 9);
 
 #pragma region Atomic form factor coefficients
 		atmFFcoefsMap << 0.49300, 10.51090, 0.32290, 26.1257, 0.14020, 3.14240, 0.04080, 57.79980, 0.0030,	// H
@@ -2506,41 +2506,41 @@ namespace PDBReader {
 	template<class FLOAT_TYPE>
 	ElectronPDBReaderOb<FLOAT_TYPE>::ElectronPDBReaderOb(string filename, bool moveToCOM, int model /*= 0*/, string anomalousFName /*= ""*/)
 	{
-		status = UNINITIALIZED;
+		this->status = UNINITIALIZED;
 
 		initialize();
 
-		fn = filename;
-		anomalousfn = anomalousFName;
+		this->fn = filename;
+		this->anomalousfn = anomalousFName;
 
-		bMoveToCOM = moveToCOM;
+		this->bMoveToCOM = moveToCOM;
 
-		if (anomalousfn.size())
-			status = readAnomalousfile(anomalousFName);
+		if (this->anomalousfn.size())
+			this->status = this->readAnomalousfile(anomalousFName);
 
-		if (status == UNINITIALIZED || status == PDB_OK)
-			status = readPDBfile(filename, moveToCOM, model);
+		if (this->status == UNINITIALIZED || this->status == PDB_OK)
+			this->status = this->readPDBfile(filename, moveToCOM, model);
 	}
 
 	template<class FLOAT_TYPE>
 	ElectronPDBReaderOb<FLOAT_TYPE>::ElectronPDBReaderOb()
 	{
-		status = UNINITIALIZED;
+		this->status = UNINITIALIZED;
 		initialize();
 	}
 
 	template<class FLOAT_TYPE>
 	void ElectronPDBReaderOb<FLOAT_TYPE>::initialize() {
 
-		generalInitialize();
+		this->generalInitialize();
 
 		// Load atomic form factor coefficients (KEEP IN ONE PLACE! here is better)
 		// Atomic values of Table 4.3.2.2 (International Tables of X-ray Crystallography Vol IV)
 		// Ionic values come from Peng 1998
 		// They are good up to s < 2.0A
 		// NUMBER_OF_ATOMIC_FORM_FACTORS for Lobato and Peng have to be different
-		atmFFcoefs.resize(NUMBER_OF_ATOMIC_FORM_FACTORS * 10);
-		Eigen::Map<Eigen::Array<FLOAT_TYPE, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> atmFFcoefsMap(atmFFcoefs.data(), NUMBER_OF_ATOMIC_FORM_FACTORS, 10);
+		this->atmFFcoefs.resize(NUMBER_OF_ATOMIC_FORM_FACTORS * 10);
+		Eigen::Map<Eigen::Array<FLOAT_TYPE, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> atmFFcoefsMap(this->atmFFcoefs.data(), NUMBER_OF_ATOMIC_FORM_FACTORS, 10);
 
 #pragma region Atomic form factor coefficients - Peng
 		atmFFcoefsMap << 0.0349, 0.5347, 0.1201, 3.5867, 0.1970, 12.3471, 0.0573, 18.9525, 0.1195, 38.6269,	// H
