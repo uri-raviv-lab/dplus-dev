@@ -530,3 +530,10 @@ PythonInterface/tests/reviewer_tests/files_for_tests/generate/*/*/*/*.ampj
 PythonInterface/tests/reviewer_tests/files_for_tests/qmin/*/*/*.ampj
 PythonInterface/tests/unit_tests/files_for_tests/*.ampj
 test_session/*
+PythonInterface/.dacecache
+PythonInterface/dplus/cudart64_110.dll
+PythonInterface/dplus/curand64_10.dll
+PythonInterface/dplus/lua51-backend.dll
+PythonInterface/dplus/PDBReaderLib.dll
+PythonInterface/dplus/xplusbackend.dll
+PythonInterface/tests/manual_tests/out_dir
