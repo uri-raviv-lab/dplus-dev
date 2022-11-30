@@ -35,9 +35,9 @@ jobs:
         uses: microsoft/setup-msbuild@v1.1 
       - name: Setup MSVC
         uses: TheMrMilchmann/setup-msvc-dev@v2
-          with:
-            arch: x64 
-            uwp: true   
+        with:
+          arch: x64 
+          uwp: true   
       - name: Setup nuget
         uses: nuget/setup-nuget@v1
       - name: Restore nuget packages
