@@ -32,10 +32,7 @@ jobs:
           cuda: '11.7.0'
           method: 'network'
       - name: Add msbuild to PATH
-        uses: microsoft/setup-msbuild@v1.1 
-        with:
-          vs-version: '[17.2,17.4)'
-          # msbuild-architecture: x64
+        uses: microsoft/setup-msbuild@v1.1
       - name: Setup nuget
         uses: nuget/setup-nuget@v1
       - name: Restore nuget packages
