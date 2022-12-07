@@ -14,6 +14,7 @@ Q = dc.symbol('Q')
 L = dc.symbol('L')
 U = dc.symbol('U')
 S = dc.symbol('S')
+NFC = dc.symbol('NFC')
 
 
 def MoveToGC(Array):
@@ -33,18 +34,19 @@ def MoveToGC(Array):
 
 
 def rad_balls(r, g_r):
-    n = len(g_r)
+    n = g_r.shape[0]
     rad = np.array([])
     for i in range(n):
         if g_r[i] != 0.0:
             rad = np.append(rad, [r[i], g_r[i]])
-    rad_n = rad.reshape([int(len(rad) / 2), 2])
+    rad_n = rad.reshape([dc.int64(rad.shape[0] / 2), 2])
     return rad_n
 
 
 def build_crystal(lattice, rep_a, rep_b, rep_c, dol_out, ran=0, move_to_GC=1):
     """Given lattice vectors a, b, c and the number of repetitions of each vector, builds a .dol file at location
-     dol_out (dol_out must contain both the location and the file name)."""
+     dol_out (dol_out must contain both the location and the file name). If lattice constants are used,
+     then the angles must be given in radians."""
 
     m = lattice.shape
     if m[0] == 6:
@@ -80,22 +82,51 @@ def build_crystal(lattice, rep_a, rep_b, rep_c, dol_out, ran=0, move_to_GC=1):
     if move_to_GC:
         places = MoveToGC(places)
 
+    if dol_out[-4:] != '.dol':
+        dol_out += '.dol'
+
     with open(dol_out, 'w', newline='', encoding='utf-8') as file:
         dolfile = csv.writer(file, delimiter='\t', quoting=csv.QUOTE_NONNUMERIC)
         # dolfile.writerow(['## vec a = ', a, 'rep a = ', rep_a, 'vec b = ', b, 'rep b = ', rep_b, 'vec c = ', c, 'rep c = ', rep_c])
         for i in range(0, np.shape(places)[0]):
             dolfile.writerow([i, *places[i], 0, 0, 0])
 
-    return
+    return places
 
 
 def write_to_out(out_file, q, I):
+    if out_file[-4:] != '.out' and out_file[-4] != '.':
+        out_file += '.out'
+    elif out_file[-4:] != '.out' and out_file[-4] == '.':
+        out_file = out_file[:-3] + 'out'
+        print('The function write_to_out only accepts .out file extensions, it has been changed')
+    else:
+        pass
+
     with open(out_file, 'w', newline='', encoding='utf-8') as file:
-        dolfile = csv.writer(file, delimiter='\t', quoting=csv.QUOTE_NONNUMERIC)
+        outfile = csv.writer(file, delimiter='\t', quoting=csv.QUOTE_NONNUMERIC)
         # dolfile.writerow(['## q', 'I(q)'])
-        for i in range(len(q)):
-            dolfile.writerow([q[i], I[i]])
+        for i in range(q.shape[0]):
+            outfile.writerow([q[i], I[i]])
     return
+
+
+def write_to_dol(dol_file, xyz):
+    m, n = xyz.shape
+    with open(dol_file, 'w+', newline='', encoding='utf-8') as file:
+        dolfile = csv.writer(file, delimiter='\t', quoting=csv.QUOTE_NONNUMERIC)
+        if n == 3:
+            for i in range(m):
+                dolfile.writerow([i, *xyz[i], 0, 0, 0])
+        elif n == 4:
+            for i in range(m):
+                dolfile.writerow([i, *xyz[i][:-1], 0, 0, 0])
+        elif n == 6:
+            for i in range(m):
+                dolfile.writerow([i, *xyz[i]])
+        else:
+            print('The size of the dol (xyz) is (%i, %i) but should be (%i, 3) or (%i, 6) instead' % (m, n, m, m))
+            pass
 
 
 def find_atm_rad(atm_type):
@@ -146,7 +177,7 @@ def read_from_file(filename, r=0.1):
                                           atm_rad])
                 else:
                     continue
-    n = int(len(vec) / 4)
+    n = dc.int64(vec.shape[0] / 4)
     vec = np.reshape(vec, [n, 4])
     # print('Done reading file')
     return vec, n
@@ -171,7 +202,7 @@ def Lens_Vol(R, r, d):
 
 
 def N_R(r, dR):
-    N_R = math.ceil(2 * r / dR) + 1
+    N_R = np.ceil(2 * r / dR) + 1
     return N_R
 
 
@@ -182,8 +213,8 @@ def balls_in_spheres(vec_triple, x_0, y_0, z_0, R_max):
     m = np.shape(vec_triple)[0]
     dist = np.zeros(m)
     for i in range(m):
-        dist[i] = np.sqrt(sum((vec_triple[i][:3] - np.array([x_0, y_0, z_0])) ** 2))
-    num = sum((dist < R_max) & (dist > 1e-10))
+        dist[i] = np.sqrt(np.sum((vec_triple[i][:3] - np.array([x_0, y_0, z_0])) ** 2))
+    num = np.sum((dist < R_max) & (dist > 1e-10))
 
     return num
 
@@ -196,35 +227,58 @@ def find_N(r, g_r, rho, r_min=0, r_max=0.56402):
 
     return N
 
+# @dc.program()
+# def triple(mat_single: dc.float64[V, 4], Lx: dc.float64, Ly: dc.float64[1], Lz: dc.float64[1], file_triple: str = ''):
+def triple(mat_single, Lx, Ly, Lz, file_triple: str = None):
+    ms = mat_single.shape[0] #: dc.int64
+    mat_triple = np.zeros([27*ms, 4])
+    # mat_triple: dc.float64[27*V, 4] = np.zeros([27*V, 4])
+    lx_t: dc.float64[3] = np.array([-Lx, 0., Lx])
+    ly_t: dc.float64[3] = np.array([-Ly, 0., Ly])
+    lz_t: dc.float64[3] = np.array([-Lz, 0., Lz])
+    for dim_1 in range(3):
+        for dim_2 in range(3):
+            for dim_3 in range(3):
+                # print(dim_1, dim_2, dim_3)
+                # it[:] = dc.int32((9 * dim_1 + 3 * dim_2 + dim_3) * V)
+                it = dc.int32((9 * dim_1 + 3 * dim_2 + dim_3) * ms)
+                # itpn[:] = dc.int32((9 * dim_1 + 3 * dim_2 + dim_3 + 1) * V)
+                itpn = dc.int32((9 * dim_1 + 3 * dim_2 + dim_3 + 1) * ms)
+                # print(itpn)
+                mat_triple[it:itpn] += mat_single + np.array([lx_t[dim_1], ly_t[dim_2], lz_t[dim_3], .0])
 
-def triple(mat_single, Lx, Ly, Lz, file_triple=None):
-    n = np.shape(mat_single)[0]
-    trans = [-1, 0, 1]
-    mat_triple = mat_single
+    # for i in range(3):
+    #     for j in range(3):
+    #         for k in range(3):
+    #             # if (trans[i] != 0) & (trans[j] != 0) & (trans[k] != 0):
+    #             # new_loc[:] = np.add(mat_single, np.array([trans[i] * Lx, trans[j] * Ly, trans[k] * Lz, .0]))
+    #             # mat_triple = np.append(mat_triple, new_loc, axis=0)
+    #             # it = dc.int64((9 * i + 3 * j + k)*V)
+    #             # itpv = dc.int64((9 * i + 3 * j + k + 1)*V)
+    #             it = int((9 * i + 3 * j + k)*ms)
+    #             itpn = int((9 * i + 3 * j + k + 1)*ms)
+    #             mat_triple[it:itpn] = mat_single + np.array([trans[i] * Lx, trans[j] * Ly, trans[k] * Lz, .0])
+    #             # mat_triple[it:itpv, :] = new_loc
+    #             # mat_triple[it:it+n] = mat_single + np.array([trans[i] * Lx, trans[j] * Ly, trans[k] * Lz, 0.])
+    #             # it += V
+    #             # it = it + n
+    if file_triple != None:
+        write_to_dol(file_triple, mat_triple)
 
-    for i in trans:
-        for j in trans:
-            for k in trans:
-                if i == j == k == 0:
-                    continue
-                new_loc = mat_single + np.array([i * Lx, j * Ly, k * Lz, 0])
-                mat_triple = np.append(mat_triple, new_loc, axis=0)
+    return mat_triple
 
-    if file_triple:
-        with open(file_triple, 'w', newline='', encoding='utf-8') as file:
-            dolfile = csv.writer(file, delimiter='\t', quoting=csv.QUOTE_NONNUMERIC)
-            for i in range(0, np.shape(mat_triple)[0]):
-                dolfile.writerow([i, *mat_triple[i][:-1], 0, 0, 0])
-
-    return mat_triple, 27 * n
-
-
-def thermalize(vec, u):
-    if (u != 1) & (np.shape(vec)[1] != len(u)):
-        u = np.append(u, 0)
-    elif u == 1:
-        u = np.append(u, [u, u, 0])
-
+@dc.program
+def thermalize(vec: dc.float64[V, U], u: dc.float64[U]):
+    # TODO::Make this actually work well...
+    # u_new: dc.float64[4]
+    # if (np.size(u) != 1) & (np.size(u) != 4):
+    #     u_new = np.array([u[0], u[1], u[2], 0])
+    #     new_vec = np.random.normal(vec, u_new)  # Radius is still inside
+    # elif U == 1:
+    #     u_new = np.array([u, u, u, 0])
+    #     new_vec = np.random.normal(vec, u_new)  # Radius is still inside
+    # else:
+    # new_vec: dc.float64[V, 4] = np.zeros([V, U])
     new_vec = np.random.normal(vec, u)  # Radius is still inside
     return new_vec
 
@@ -277,8 +331,9 @@ def S_Q_from_I(I_q, f_q, N):
     return S_q
 
 
-def S_Q_from_model_slow(filename: dc.string, q_min: dc.float64 = 0, q_max: dc.float64 = 100, dq: dc.float64 = 0.1
-                        , thermal: dc.float64 = 0, Number_for_average_conf: dc.int64 = 1, u: dc.float64[U] = 0):
+def S_Q_from_model_slow(filename: str, q_min: dc.float64 = 0, q_max: dc.float64 = 100, dq: dc.float64 = 0.01
+                        , thermal: dc.float64 = 0, Number_for_average_conf: dc.int64 = 1, u: dc.float64[4] =
+                        np.array([0, 0, 0, 0])):
     """Given a .dol or .pdb filename and a q-range, returns the orientation averaged structure factor."""
 
     r_mat, n = read_from_file(filename)
@@ -286,50 +341,47 @@ def S_Q_from_model_slow(filename: dc.string, q_min: dc.float64 = 0, q_max: dc.fl
     if thermal:
         r_mat_old = r_mat
     q = np.arange(q_min, q_max + dq, dq)
-    S_Q = np.zeros([Number_for_average_conf, Q])
-    S_Q += L
+    S_Q = np.zeros([Number_for_average_conf, len(q)])
+    S_Q += n
     R = np.zeros(Number_for_average_conf)
     rho = 0
     it = 0
     while it < Number_for_average_conf:
         if thermal:
-            r_mat[:] = thermalize(r_mat_old, u)
+            r_mat[:] = thermalize(np.copy(r_mat_old), u)
 
         # for i in dc.map[0:n-1]:
-        for i in range(L - 1):
+        for i in range(n - 1):
             r_i = r_mat[i]
             if i == 0:
-                r = np.sqrt(sum(r_i ** 2))
+                r = np.sqrt(np.sum(r_i ** 2))
                 if r > R[it]:
                     R[it] = r
             # for j in dc.map[i+1:n]:
-            for j in range(i + 1, L):
+            for j in range(i + 1, n):
                 r_j = r_mat[j]
                 if i == 0:
-                    r = np.sqrt(sum(r_j ** 2))
+                    r = np.sqrt(np.sum(r_j ** 2))
                     if r > R[it]:
                         R[it] = r
-                r = np.sqrt(sum((r_i - r_j) ** 2))
+                r = np.sqrt(np.sum((r_i - r_j) ** 2))
                 qr = q * r
                 S_Q[it][0] += 2
 
                 S_Q[it][1:] += 2 * np.sin(qr[1:]) / qr[1:]
 
-        S_Q[it] /= L
+        S_Q[it] /= n
         R[it] /= 2
         rho += 3 * S_Q[it][0] / (4 * np.pi * R[it] ** 3)
         it += 1
     S_Q[:] = np.sum(S_Q, axis=0) / Number_for_average_conf
     rho /= Number_for_average_conf
 
-    return q, S_Q, rho
-
-    return compute_sq(q, r_mat, thermal, Number_for_average_conf, u,
-                      Number_for_average_conf=Number_for_average_conf)  # , r_mat_old
+    return q, S_Q[0], rho
 
 
 def S_Q_from_model(filename: str, q_min: dc.float64 = 0, q_max: dc.float64 = 100, dq: dc.float64 = 0.01
-                   , thermal: dc.bool = False, Number_for_average_conf: dc.int64 = 1, u: dc.float64[U] = 0):
+                   , thermal: dc.bool = False, Number_for_average_conf: dc.int64 = 1, u: dc.float64[4] = np.array([0,0,0,0])):
     """Given a .dol or .pdb filename and a q-range, returns the orientation averaged structure factor."""
 
     r_mat, n = read_from_file(filename)
@@ -347,7 +399,7 @@ def S_Q_from_model(filename: str, q_min: dc.float64 = 0, q_max: dc.float64 = 100
     it = 0
     while it < Number_for_average_conf:
         if thermal:
-            r_mat[:] = thermalize(r_mat_old, u)
+            r_mat[:] = thermalize(np.copy(r_mat_old), u)
         S_Q_pretemp = np.copy(S_Q[it])
         R[it], S_Q[it, :] = compute_sq(q, S_Q_pretemp, r_mat)
         # R_temp, S_Q_temp = compute_sq(q, S_Q_pretemp, r_mat)
@@ -369,7 +421,7 @@ def s_q_from_g_r(r, g_r, rho, q_min=0, q_max=50, dq=0.01, factor=1, type='Simpso
     """Given an r-vector r, a g(r) g_r, and a density rho, returns the structure factor in one of two ways: 'DST' or
      'Simpson' as given in type."""
     if type == 'DST':
-        n = len(r) * factor
+        n = r.shape[0] * factor
         R = np.linspace(r[0], r[-1], n)
         dr = (max(R) - min(R)) / n  # R[1] - R[0]
         q = fftfreq(n, dr)[1:n // 2] * 2 * np.pi
@@ -385,8 +437,8 @@ def s_q_from_g_r(r, g_r, rho, q_min=0, q_max=50, dq=0.01, factor=1, type='Simpso
         return q[q_range], s_q[q_range]  # q, s_q
 
     elif type == 'Simpson':
-        q = np.linspace(q_min, q_max, int((q_max - q_min) / dq) + 1)
-        qr = r * np.reshape(q, [len(q), 1])
+        q = np.linspace(q_min, q_max, dc.int64((q_max - q_min) / dq) + 1)
+        qr = r * np.reshape(q, [q.shape[0], 1])
 
         I = simpson(g_r * r * np.sin(qr), r)
         s_q = I * (4 * np.pi * rho)
@@ -401,7 +453,7 @@ def g_r_from_s_q(q, s_q, rho, r_min=0, r_max=15, dr=0.01, factor=1, type='Simpso
     'DST' or 'Simpson' as given in type."""
 
     if type == 'DST':
-        n = len(q) * factor
+        n = q.shape[0] * factor
         Q = np.linspace(0, q[-1], n)
         dq = (max(Q) - min(Q)) / n
         r = fftfreq(n, dq)[1:n // 2] * 2 * np.pi
@@ -418,8 +470,8 @@ def g_r_from_s_q(q, s_q, rho, r_min=0, r_max=15, dr=0.01, factor=1, type='Simpso
         return r[r_range], g_r[r_range]  # r, g_r
 
     elif type == 'Simpson':
-        r = np.linspace(r_min, r_max, int((r_max - r_min) / dr) + 1)
-        qr = q * np.reshape(r, [len(r), 1])
+        r = np.linspace(r_min, r_max, dc.int64((r_max - r_min) / dr) + 1)
+        qr = q * np.reshape(r, [r.shape[0], 1])
 
         Yminus1 = s_q - 1
         I = simpson(Yminus1 * q * np.sin(qr), q)
@@ -428,12 +480,89 @@ def g_r_from_s_q(q, s_q, rho, r_min=0, r_max=15, dr=0.01, factor=1, type='Simpso
 
         return r, g_r
 
+def g_r_from_model_slow(file, Lx, Ly, Lz, file_triple=None, radius=0, r_min=0, r_max = 15, dr = 0.01,
+                        Number_for_average =
+1):
+    """Given a file of a structure and the box size, finds the radial distribution function."""
+    vec, n = read_from_file(file, radius)
+    vec_triple = triple(vec, Lx, Ly, Lz, file_triple)
 
-def g_r_from_model(file: dc.string, Lx: dc.float64, Ly: dc.float64, Lz: dc.float64, file_triple: dc.string = None,
-                   radius: dc.float64 = 0, r_max: dc.float64 = 15, dr: dc.float64 = 0.01,
+    it = 0
+
+    bins = np.arange(0, r_max + dr, dr)
+    m = len(bins)
+    g_r = np.zeros([Number_for_average, m])
+
+    num = 0
+
+    while it < Number_for_average:
+        my_rand = np.random.randint(0, n)
+        r_0 = vec[my_rand]
+
+        if radius == 0:
+            for row_j in vec_triple:
+                    d = np.sqrt((row_j[0] - r_0[0])**2 + (row_j[1] - r_0[1])**2 + (row_j[2] - r_0[2])**2)
+                    if (r_max < d) | (d < 1e-10):
+                        continue
+                    num += 1
+                    for i in range(m):
+                        if bins[i] < d:
+                            continue
+                        else:
+                            if bins[i] >= d:
+                                g_r[it][i] += 1
+                                break
+        else:
+            for row in vec_triple:
+                d = np.sqrt((row[0] - r_0[0]) ** 2 + (row[1] - r_0[1]) ** 2 + (row[2] - r_0[2]) ** 2)
+                r = row[3]
+                d_min = d - r
+                d_max = d + r
+                vol_tot = 4 * np.pi * r ** 3 / 3
+                N = N_R(r, dr)
+
+                if (r_max < d_min) | (d < 1e-10):
+                    continue
+                num += 1
+
+                for i in range(m):
+                    if bins[i] < d_min:
+                        continue
+                    else:
+                        if bins[i] > d_max:
+                            g_r[0][i] += 1
+                            break
+                        else:
+                            counted_vol = 0
+                            for j in range(N):
+                                if i + j < m:
+                                    if bins[i + j] < d_max:
+                                        Vol = Lens_Vol(bins[i + j], r, d) - counted_vol
+                                        g_r[it][i + j] += Vol / vol_tot
+                                        counted_vol += Vol
+                                    else:
+                                        g_r[it][i + j] += 1 - counted_vol / vol_tot
+                                else:
+                                    break
+                            break
+
+        rho = 3 * sum(g_r[it]) / (4 * np.pi * bins[-1] ** 3)
+        if it == 0:
+            rad = rad_balls(bins, g_r[it])
+        g_r[it][1:] /= (rho * 4 / 3 * np.pi * (bins[1:] ** 3 - bins[:-1] ** 3))
+        it += 1
+
+    g_r = sum(g_r) / Number_for_average
+
+    r_range = (bins > r_min) & (bins < r_max)
+
+    return bins[r_range], g_r[r_range], rho, rad
+
+def g_r_from_model(file: str, Lx: dc.float64, Ly: dc.float64, Lz: dc.float64,
+                   radius: dc.float64 = 0, r_min: dc.float64 = 0, r_max: dc.float64 = 15, dr: dc.float64 = 0.01,
                    Number_for_average_atoms: dc.int64 = 1
-                   , thermal: dc.bool = 0, u: dc.float64[3] = np.array([0, 0, 0]),
-                   Number_for_average_conf: dc.int64 = 1):
+                   , thermal: dc.bool = 0, u: dc.float64[4] = np.array([0., 0., 0., 0.]),
+                   Number_for_average_conf: dc.int64 = 1, file_triple: str = ''):
     """Given a (dol/pdb) file of a structure and the box size, finds the radial distribution function. It is possible to
      enter thermal fluctuations by giving 'u' and thermal = 1. u is either int or 3 vector [ux, uy, uz], i.e. if int,
       same displacement in all directions else the given displacement in each directions. The displacement is given
@@ -441,13 +570,24 @@ def g_r_from_model(file: dc.string, Lx: dc.float64, Ly: dc.float64, Lz: dc.float
 
     vec, n = read_from_file(file, radius)
     vec = np.copy(vec)
-    if thermal != 1:
-        vec_triple = triple(vec, Lx, Ly, Lz, file_triple)
-    vec_old = vec
+    if not thermal:
+        vec_triple = np.zeros([1, 27 * n, 4])
+        vec_triple[0] = triple(vec, Lx, Ly, Lz)#, file_triple)
+    elif Number_for_average_conf != 1:
+        vec_triple = np.zeros([Number_for_average_conf, 27 * n, 4])
+        for conf in range(Number_for_average_conf):
+            vec = thermalize(np.copy(vec), u)
+            vec_triple[conf] = triple(vec, Lx, Ly, Lz)
+    else:
+        vec_triple = np.zeros([Number_for_average_conf, 27*n, 4])
+        for conf in range(Number_for_average_conf):
+            vec = thermalize(np.copy(vec), u)
+            vec_triple[conf] = triple(vec, Lx, Ly, Lz)
+    vec_old = np.copy(vec)
 
-    bins = np.arange(0, r_max + dr, dr)
+    bins = np.arange(r_min, r_max + dr, dr)
     return compute_gr(bins, thermal, vec_old, Lx, Ly, Lz, file_triple,
-                      vec_triple, vec, radius, u, dr, r_max,
+                      vec_triple, vec, radius, u, dr, r_min, r_max,
                       Number_for_average_atoms=Number_for_average_atoms,
                       Number_for_average_conf=Number_for_average_conf)
 
@@ -477,133 +617,126 @@ def compute_sq(q: dc.float64[Q], S_Q: dc.float64[Q], r_mat: dc.float64[L, 4]):
 
     return R, S_Q
 
-
 Number_for_average_atoms = dc.symbol('Number_for_average_atoms')
 Number_for_average_conf = dc.symbol('Number_for_average_conf')
 
-
 @dc.program(auto_optimize=True)
-def compute_gr(bins: dc.float64[M], thermal: dc.bool, vec_old: dc.float64[V, 4], Lx: dc.int64, Ly: dc.int64,
-               Lz: dc.int64, file_triple: str, vec_triple, vec, radius=0, u=np.array([0, 0, 0]), dr=0.01, r_max=15):
+def compute_gr(bins: dc.float64[M], thermal: dc.bool, vec_old: dc.float64[V, 4], Lx: dc.float64, Ly: dc.float64,
+               Lz: dc.float64, file_triple: str, vec_triple: dc.float64[NFC, TV, 4], vec: dc.float64[V, 4], radius=0,
+               u: dc.float64[4]=np.array([0, 0, 0, 0]), dr=0.01, r_min=0, r_max=15):
+    rho: dc.float64
+    r_0: dc.float64[4]
     g_r = np.zeros([Number_for_average_atoms * Number_for_average_conf, M])
 
     num = 0
     it_tot = 0
     it_conf = 0
 
-    while it_conf < Number_for_average_conf:
-        if thermal == 1:
-            vec[:] = thermalize(vec_old, u)
-            vec_triple[:] = triple(vec, Lx, Ly, Lz, file_triple)
+    while it_conf < NFC:#Number_for_average_conf:
+        # if thermal == True:
+        #     vec[:] = thermalize(np.copy(vec_old), u)
+        #     vec_triple[:, :] = triple(np.copy(vec), Lx, Ly, Lz)#, file_triple)
 
+        my_rand: dc.int64[Number_for_average_atoms] = np.random.randint(0, V, Number_for_average_atoms)
+        # print(my_rand)
         it_atom = 0
         while it_atom < Number_for_average_atoms:
-            my_rand: int = np.random.randint(0, V)
-            r_0 = vec[my_rand]
+            r_0 = vec[my_rand[it_atom]]
 
             if radius == 0:
-                for j in range(vec_triple.shape[0]):
-                    row_j = vec_triple[j]
+                for j in range(vec_triple.shape[1]):
+                    row_j = vec_triple[it_conf, j]
                     d = np.sqrt((row_j[0] - r_0[0]) ** 2 + (row_j[1] - r_0[1]) ** 2 + (row_j[2] - r_0[2]) ** 2)
-                    if (r_max < d) | (d < 1e-10):
-                        continue
-                    num += 1
-                    for i in range(M):
-                        if bins[i] < d:
-                            pass
-                        else:
-                            if bins[i] >= d:
-                                g_r[it_tot, i] += 1
-                                break
+                    if (d < r_min) | (r_max < d) | (d < 1e-10):
+                        pass#continue
+                    else:
+                        num += 1
+                        for i in range(M):
+                            if bins[i] < d:
+                                pass
+                            else:
+                                if bins[i] >= d:
+                                    g_r[it_tot, i] += 1
+                                    break
             else:
-                for j in range(vec_triple.shape[0]):
-                    row = vec_triple[j]
+                for j in range(vec_triple.shape[1]):
+                    row = vec_triple[it_conf, j]
                     d = np.sqrt((row[0] - r_0[0]) ** 2 + (row[1] - r_0[1]) ** 2 + (row[2] - r_0[2]) ** 2)
                     r = row[3]
                     d_min = d - r
                     d_max = d + r
                     vol_tot = 4 * np.pi * r ** 3 / 3
-                    nn = int(N_R(r, dr))
+                    nn = dc.int64(N_R(r, dr))
 
-                    if (r_max < d_min) | (d < 1e-10):
-                        continue
-                    num += 1
+                    if (d < r_min) | (r_max < d_min) | (d < 1e-10):
+                        pass
+                    else:
+                        num += 1
 
-                    for i in range(M):
-                        if bins[i] < d_min:
-                            pass
-                        else:
-                            if bins[i] > d_max:
-                                g_r[0, i] += 1
-                                break
+                        for i in range(M):
+                            if bins[i] < d_min:
+                                pass
                             else:
-                                counted_vol = 0
-                                for k in range(nn[0]):
-                                    if i + k < M:
-                                        if bins[i + k] < d_max:
-                                            Vol = Lens_Vol(bins[i + k], r, d) - counted_vol
-                                            g_r[it_tot, i + k] += Vol / vol_tot
-                                            counted_vol += Vol
+                                if bins[i] > d_max:
+                                    g_r[0, i] += 1
+                                    break
+                                else:
+                                    counted_vol = 0
+                                    for k in range(nn[0]):
+                                        if i + k < M:
+                                            if bins[i + k] < d_max:
+                                                Vol = Lens_Vol(bins[i + k], r, d) - counted_vol
+                                                g_r[it_tot, i + k] += Vol / vol_tot
+                                                counted_vol += Vol
+                                            else:
+                                                g_r[it_tot, i + k] += 1 - counted_vol / vol_tot
                                         else:
-                                            g_r[it_tot, i + k] += 1 - counted_vol / vol_tot
-                                    else:
-                                        break
-                                break
+                                            break
+                                    break
 
-            rho = 3 * sum(g_r[it_tot]) / (4 * np.pi * bins[-1] ** 3)
+            rho_temp = 3 * np.sum(g_r[it_tot]) / (4 * np.pi * bins[-1] ** 3)
             # if it_tot == 0:
             #     rad = rad_balls(bins, g_r[it_tot])
-            g_r[it_tot, 1:] /= (rho * 4 / 3 * np.pi * (bins[1:] ** 3 - bins[:-1] ** 3))
+            g_r[it_tot, 1:] /= (rho_temp * 4 / 3 * np.pi * (bins[1:] ** 3 - bins[:-1] ** 3))
             it_tot += 1
             it_atom += 1
         it_conf += 1
 
-    g_r[:] = np.sum(g_r) / (Number_for_average_atoms * Number_for_average_conf)
+    g_r[:] = np.sum(g_r, axis=0) / (Number_for_average_atoms * Number_for_average_conf)
+    rho = 3 * np.sum(g_r[0]) / (4 * np.pi * bins[-1] ** 3)
 
-    return bins, g_r, rho  # , rad
+    return bins, g_r[0], rho  # , rad
 
+# triple.compile()
+# compute_gr = precompute_gr.compile()
+# compute_sq = precompute_sq.compile()
+# thermalize = prethermalize.compile()
 
-# def new_g_r(file, Lx, Ly, Lz, R_max=5, dr = 0.01, it = 1):  #, r0=np.array([0,0,0])
-#
-#     vec, n = read_from_file(file, 0)
-#     vec_triple, m = triple(vec, Lx, Ly, Lz)
-#     r = np.arange(0, R_max + dr, dr)
-#     lr = len(r)
-#     iter_num = 0
-#     # g_r = np.zeros(lr)
-#
-#     while iter_num < it:
-#         accumulator = np.zeros(lr)
-#         rho_r = np.zeros(lr)
-#         r0 = vec[np.random.randint(n)][:3]
-#
-#         for i in range(lr):
-#             # bis = balls_in_spheres(vec, Lx, Ly, Lz, *r0, r[i])
-#             # if bis == 1:
-#             #     accumulator[i] = 0
-#             # else:
-#             accumulator[i] = balls_in_spheres(vec_triple, *r0, r[i])
-#         # accumulator[0] = accumulator[1]
-#         # print(accumulator)
-#         rho = accumulator[-1] / (4/3 * np.pi * R_max**3)
-#
-#         for j in range(lr - 1):
-#             rho_r[j] = (accumulator[j+1] - accumulator[j]) / (4/3 * np.pi * (r[j+1]**3 - r[j]**3))
-#
-#         g_r = rho_r / rho
-#         # print(g_r)
-#         iter_num += 1
-#
-#     g_r /= it
-#
-#     return r, g_r, rho
 
 if __name__ == '__main__':
+    import matplotlib
+    matplotlib.use('TkAgg')
+    import matplotlib.pyplot as plt
     file_single = r'D:\Eytan\g_r_test\DOL\thermal_cube.dol'
     file_triple = r'D:\Eytan\g_r_test\DOL\thermal_cube_triple.dol'
-    vec, n = read_from_file(file_single,0.01)
-    Lx = 50
-    Ly = 50
-    Lz = 50
+    vec, n = read_from_file(file_single, 0.01)
+    # write_to_dol(file_single[:-4] + '_test.dol', vec)
+    Lx = 45.
+    Ly = 45.
+    Lz = 45.
 
-    vec_3 = triple(vec, Lx, Ly, Lz, file_triple)
+    # vec_thermalized = thermalize(np.copy(vec), np.array([0.2, 0.2, 0.2, 0]))
+    # vec_3 = triple(np.copy(vec), Lx, Ly, Lz)#, file_triple)
+
+    r, g_r, rho = g_r_from_model(file_single, Lx, Ly, Lz, thermal=0, Number_for_average_conf=1)
+    r_slow, g_r_slow, rho_slow, _ = g_r_from_model_slow(file_single, Lx, Ly, Lz)
+    plt.plot(r, g_r)
+    plt.plot(r_slow, g_r_slow)
+
+
+    q, s_q, rho_2 = S_Q_from_model(file_single, q_max=12)
+    q_slow, s_q_slow, rho_2_slow = S_Q_from_model(file_single, q_max=12)
+    plt.figure()
+    plt.semilogy(q, s_q)
+    plt.semilogy(q_slow, s_q_slow)
+

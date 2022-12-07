@@ -21,8 +21,8 @@ root_path = os.path.dirname(os.path.abspath(__file__))
 
 
 def test_1():
-    if not USE_GPU:
-        pytest.skip("NO GPU")
+    # if not USE_GPU:
+    #     pytest.skip("NO GPU")
     print('test 1\n')
 
     a, b, c = np.array([5,0,0]), np.array([0,5,0]), np.array([0,0,5])
@@ -38,7 +38,7 @@ def test_1():
     # filename_triple = r'D:\Eytan\g_r_test\DOL\triple_cube.dol'
     filename_triple = os.path.join(root_path, "files_for_tests", "DOL", 'triple_cube.dol')
 
-    g.build_crystal(a, b, c, rep_a, rep_b, rep_c, filename_single)
+    g.build_crystal(np.array([a, b, c]), rep_a, rep_b, rep_c, filename_single)
 
     I_sfs = CalculationInput()
     f_sfs = CalculationInput()
@@ -85,12 +85,12 @@ def test_1():
     q = np.array(f_sfs.x)
 
     # S_q_sfs = g.S_Q_from_I(np.array(list(I_calc.graph.values())), np.array(list(f_calc.graph.values())), n_sfs)
-    S_q_sfs = g.S_Q_from_I(np.array(I_sfs.y), np.array(f_sfs.y), n_sfs)
-    print('calculated S(q) from I')
-    q_mod, S_Q_mod, rho_mod = g.S_Q_from_model(filename_single, q_max=q_max, dq=dq)
-    print('calculated S(q) from model')
+    # S_q_sfs = g.S_Q_from_I(np.array(I_sfs.y), np.array(f_sfs.y), n_sfs)
+    # print('calculated S(q) from I')
+    # q_mod, S_Q_mod, rho_mod = g.S_Q_from_model(filename_single, q_max=q_max, dq=dq)
+    # print('calculated S(q) from model')
     r_mod, g_r_mod, rho, rad_balls = g.g_r_from_model(filename_single, Lx, Ly, Lz, file_triple=filename_triple, radius=0
-                                                      , r_max=r_max, dr=dr, Number_for_average=1)
+                                                      , r_max=r_max, dr=dr, Number_for_average_conf=1, thermal=1)
     print('calculated g(r) from model')
     r_sfs, g_r_sfs = g.g_r_from_s_q(q_mod, S_Q_mod, rho, r_max=r_max, type='Simpson')
     r_mod_s, g_r_mod_s = g.g_r_from_s_q(q_mod, S_Q_mod, rho, r_max=r_max, type='DST')
@@ -368,13 +368,14 @@ def test_7():
 if __name__ == '__main__':
     test_1()
 
-    test_2()
+    # test_2()
     
-    test_4()
+    # test_4()
     
-    test_6()
+    # test_6()
 
-    test_7()
+    # test_7()
+    print('Woohoo!')
     # filename_8 = r'D:\Eytan\g_r_test\DOL\cube.dol'
     # Lx, Ly, Lz = 50, 50, 50
     # r_max = 22.5
