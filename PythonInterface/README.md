@@ -372,7 +372,7 @@ Therefore, your code editor may underline the model in red even if the model exi
 All models have `location_params` (Location Parameters) and  `extra_params` (Extra Parameters). 
 Some models (that support layers) also contain `layer_params`.
 These can be accessed from `model.location_params`, `model.extra_params`, and `model.layer_params`, respectively.
-On top of these, both PDB and EPDB can receive an anomalous file as a string. This can be done through `E/PDB.anomfile`. 
+On top of these, both PDB and EPDB can receive an anomalous file as a string, this can be done through `E/PDB.anomfile`, or be centered to their center of mass, done with the boolean `E\PDB.centered`.
 
 They contain special custom python containers, based on standard python containers, but with validation
 of what the user does to them.  
