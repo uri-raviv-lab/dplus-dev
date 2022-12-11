@@ -1286,12 +1286,12 @@ namespace DPlus {
 			entityCombo->Items->Add(gcnew ModelInfo("-----------", nullptr, -1));
 
 			// Manually add the Electron PDB
-			entityCombo->Items->Add(gcnew ModelInfo("Electron PDB File...", nullptr, 999));
+			entityCombo->Items->Add(gcnew ModelInfo("Electron PDB File...", nullptr, ModelsWithFiles::EPDB));
 			// Manually add the PDB
-			entityCombo->Items->Add(gcnew ModelInfo("PDB File...", nullptr, 1999));
+			entityCombo->Items->Add(gcnew ModelInfo("PDB File...", nullptr, ModelsWithFiles::PDB));
 
 			// Manually add the Amplitude Grid
-			entityCombo->Items->Add(gcnew ModelInfo("Amplitude Grid (AMP)...", nullptr, 1000));
+			entityCombo->Items->Add(gcnew ModelInfo("Amplitude Grid (AMP)...", nullptr, ModelsWithFiles::AMP));
 		}
 
 		entityCombo->SelectedIndex = 0;

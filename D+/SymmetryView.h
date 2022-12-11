@@ -17,6 +17,17 @@ namespace DPlus {
 	/// <summary>
 	/// Summary for SymmetryView
 	/// </summary>
+	
+	public enum ModelsWithFiles
+	{
+		PDB = 999,
+		EPDB = 1999,
+		AMP = 1000,
+		ScriptedGeometry = 1001,
+		ScriptedModel = 1002,
+		ScriptedSymmetry = 1003
+	};
+
 	public ref class SymmetryView : public WeifenLuo::WinFormsUI::Docking::DockContent
 	{
 	protected:
