@@ -16,7 +16,6 @@ from os.path import join, dirname
 from tests.manual_tests.test_amplitude_manual import UniformSphere
 from tests.test_settings import session
 from pylab import *
-from tests.test_settings import session
 
 file_dir = join(dirname( __file__ ), "files_for_tests")
 
