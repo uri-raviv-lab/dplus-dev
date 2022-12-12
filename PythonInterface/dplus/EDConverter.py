@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import csv
 import argparse
@@ -8,50 +9,53 @@ class ResultEDConverter:
         self.coeff = _coeff
         self.eED = _eED
 
+    def __repr__(self) -> str:
+        return f"The conversion coefficient is: {self.coeff}, The electron scattering length is now: {self.eED}"
 
-def find_and_write_amp():
-    amp_list_D = np.array([])
-    amp_list_E = np.array([])
-    for filename in [r'.\helper_files\DPlus_FF.csv', r'.\helper_files\EPlus_FF.csv']:
-        with open(filename, 'r') as file:
-            my_list = csv.reader(file)
-            for line in my_list:
-                if line[0][0] == "#":
-                    continue
-                if 'EPlus_FF' in filename:
-                    amp = 0
-                    for j in line[:-1:2]:
-                        amp += float(j)
-                    amp_list_E = np.append(amp_list_E, [line[-1], float(amp)])
-                else:
-                    amp = 0
-                    for j in line[:-1:2]:
-                        amp += float(j)
-                    amp_list_D = np.append(
-                        amp_list_D, np.array([line[-1], amp]))
 
-    amp_list_D = np.reshape(amp_list_D, [len(amp_list_D)//2, 2])
-    amp_list_E = np.reshape(amp_list_E, [len(amp_list_E)//2, 2])
+# def find_and_write_amp():
+#     amp_list_D = np.array([])
+#     amp_list_E = np.array([])
+#     for filename in [r'.\dplus\helper_files\DPlus_FF.csv', r'.\dplus\helper_files\EPlus_FF.csv']:
+#         with open(filename, 'r') as file:
+#             my_list = csv.reader(file)
+#             for line in my_list:
+#                 if line[0][0] == "#":
+#                     continue
+#                 if 'EPlus_FF' in filename:
+#                     amp = 0
+#                     for j in line[:-1:2]:
+#                         amp += float(j)
+#                     amp_list_E = np.append(amp_list_E, [line[-1], float(amp)])
+#                 else:
+#                     amp = 0
+#                     for j in line[:-1:2]:
+#                         amp += float(j)
+#                     amp_list_D = np.append(
+#                         amp_list_D, np.array([line[-1], amp]))
 
-    filename_out = [r'.\helper_files\D_amp.csv', r'.\helper_files\E_amp.csv']
-    for file_out in filename_out:
-        with open(file_out, 'w', newline='') as file:
-            my_list = csv.writer(file)
-            if 'D_amp' in file_out:
-                my_list.writerows(amp_list_D)
-            else:
-                my_list.writerows(amp_list_E)
-    return
+#     amp_list_D = np.reshape(amp_list_D, [len(amp_list_D)//2, 2])
+#     amp_list_E = np.reshape(amp_list_E, [len(amp_list_E)//2, 2])
+
+#     filename_out = [r'.\dplus\helper_files\D_amp.csv', r'.\dplus\helper_files\E_amp.csv']
+#     for file_out in filename_out:
+#         with open(file_out, 'w', newline='') as file:
+#             my_list = csv.writer(file)
+#             if 'D_amp' in file_out:
+#                 my_list.writerows(amp_list_D)
+#             else:
+#                 my_list.writerows(amp_list_E)
+#     return
 
 
 def find_coeff(atoms, occur, ED):
-    filename_out_list = [r'.\helper_files\D_amp.csv',
-                         r'.\helper_files\E_amp.csv']
+    filename_out_list = [r'.\dplus\helper_files\D_amp.csv',
+                         r'.\dplus\helper_files\E_amp.csv']
     amp_sum = np.zeros(2)
     i = 0
     for filename_out in filename_out_list:
-        with open(filename_out) as file:
-            my_list = csv.reader(file)  # , quoting=csv.QUOTE_NONNUMERIC)
+        with open(filename_out, 'r') as file:
+            my_list = csv.reader(file)
             for line in my_list:
                 if not line[0] in atoms:
                     continue
@@ -60,7 +64,6 @@ def find_coeff(atoms, occur, ED):
                         amp_sum[i] += float(line[1]) * \
                             float(occur[line[0] == atoms])
                     else:
-
                         raise KeyError('The atom ' + line[0] + ' is not an atom for which we can calculate the '
                                                                'scattering length...')
         i += 1
@@ -71,7 +74,7 @@ def find_coeff(atoms, occur, ED):
 
 
 def different_atoms(file):
-    with open(file, encoding='utf-8') as pdb:
+    with open(file, 'r', encoding='utf-8') as pdb:
         atom_list = np.array(['Fake'])
         atom_reps = np.array([0])
         for line in pdb:
@@ -83,39 +86,41 @@ def different_atoms(file):
                 else:
                     atom_list = np.append(atom_list, atm_type)
                     atom_reps = np.append(atom_reps, 1)
-                    with open(atm_type + r'.pdb', 'w', encoding='utf-8') as pdb:
-                        changed_line = line[:30] + \
-                            '   0.000   0.000   0.000' + line[54:]
-                        pdb.write(changed_line)
+                    # with open(atm_type + r'.pdb', 'w', encoding='utf-8') as pdb:
+                    #     changed_line = line[:30] + \
+                    #         '   0.000   0.000   0.000' + line[54:]
+                    #     pdb.write(changed_line)
 
     atom_list = atom_list[1:]
     atom_reps = atom_reps[1:]
     return atom_list, atom_reps
 
 
-def convert(args):
-    if args.PDB != '':
-        atoms, occur = different_atoms(args.PDB)
-        result = find_coeff(atoms, occur, args.ED)
+def convert(ed=333, a=['H', 'O'], pdb='', n=[2, 1]):
+    if not ed or not (pdb and a and n):
+        raise ValueError("Invalid input parameters. ed={ed}, pdb={pdb}, a={a}, n={n}")
+    if pdb != '':
+        atoms, occur = different_atoms(pdb)
+        result = find_coeff(atoms, occur, ed)
     else:
-        result = find_coeff(np.array(args.A), np.array(args.N), args.ED)
+        result = find_coeff(np.array(a), np.array(n), ed)
     return result
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Conversion of ED to scattering length of electrons.')
-    parser.add_argument('--ED', type=float, default=333,
+    parser.add_argument('--ed', type=float, default=333,
                         help='The electron density of the what you wish to convert.')
     parser.add_argument(
-        '--A', type=str, default=['H', 'O'], nargs='+', help='The atoms in the molecular formula.')
-    parser.add_argument('--N', type=int, default=[2, 1], nargs='+', help='Number of occurrences of each atom in '
+        '--a', type=str, default=['H', 'O'], nargs='+', help='The atoms in the molecular formula.')
+    parser.add_argument('--n', type=int, default=[2, 1], nargs='+', help='Number of occurrences of each atom in '
                                                                          'the molecular formula (in the same order as '
                                                                          'the atoms were given).')
-    parser.add_argument('--PDB', type=str, default='', help='The .pdb file of the molecule you want to convert. If a '
+    parser.add_argument('--pdb', type=str, default='', help='The .pdb file of the molecule you want to convert. If a '
                                                             '.pdb file is given, A and N do not need to be given.')
     args = parser.parse_args()
 
-    result = convert(args)
+    result = convert(args.ed, args.a, args.pdb, args.n)
     print('The conversion coefficient is:', result.coeff)
     print('The electron scattering length is now:', result.eED)
