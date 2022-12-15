@@ -88,6 +88,15 @@ def test_save2_amp_correct():
     result = runner.generate(input)
     assert len(result.graph)
 
+def test_fill():
+    def my_func(q, theta, phi, test_arg_1, test_arg_2):
+        amp = test_arg_1 + 1j * test_arg_2
+
+        return amp
+
+    a = Amplitude(20, 7)
+    a.fill(my_test_func, 3, 2)
+
 
 def test_create_grid_save_correct():
     def my_func(q, theta, phi):

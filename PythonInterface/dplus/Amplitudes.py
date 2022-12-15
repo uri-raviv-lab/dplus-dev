@@ -336,8 +336,8 @@ class Amplitude():
         ampzip.close()
         self.filename = os.path.abspath(filename)
 
-    def fill(self, calcAmplitude):
-        self.grid.fill(calcAmplitude)
+    def fill(self, calcAmplitude, *args):
+        self.grid.fill(calcAmplitude, args)
         self.__initialized_splines = True
 
     def fill_cart(self, calcAmplitude_cart):

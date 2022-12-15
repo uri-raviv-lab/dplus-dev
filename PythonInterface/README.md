@@ -561,7 +561,9 @@ Amplitude also has the following methods:
 passed along to D+ to calculate its signal or perform fitting.
 * `load` - a static function that receives a filename of an Amplitude file, and returns an Amplitude instance
 with the values from that file already loaded.
-* `fill` - populate a new Amplitude with values calculated by a function provided by the user. The function must expect to receive three arguments, (q, theta, phi).
+* `fill` - populate a new Amplitude with values calculated by a function provided by the user. The function must 
+  expect to receive at least three arguments which must lead, (q, theta, phi), but can afterwards also receive 
+  others. These extra parameters must be imputted in the same order the function receives them.
 * `get_interpolation` - The user *must* call `fill` before using this function unless loading an existing amplitude. Receives a single q or array of q values, a value for theta, and a value for pi. It returns a complex number, representing the *interpolated* value of the amplitude at the point(s) given
 q must be between q_min and q_max. Theta must be between 0 and pi. Phi must be between 0 and 2pi. 
 
@@ -1011,10 +1013,10 @@ dest_folder = result.get_amp(uhc.model_ptr, session)
 
 ```
 
-## G_r module
+## g(r) module
 
-The g_r module is a complementary module to D+ and is helpful if one wants to further analyse data using the radial 
-distribution function or the structure factor. It has multiple functions, part of which have been parallelized using 
+The g(r) module is a complementary module to D+ and is helpful if one wants to further analyse data using the radial 
+distribution function or the structure factor.It has multiple functions, part of which have been parallelized using 
 DaCe (*Ben-Nun, T., de-Fine-Licht, J., Ziogas, A. N., Schneider, T. and Hoefler, T., Stateful Dataflow Multigraphs: A 
 Data-Centric Model for Performance Portability on Heterogeneous Architectures, 2019, Proceedings of the 
 International Conference for High Performance Computing, Networking, Storage and Analysis*).
@@ -1033,3 +1035,16 @@ The available functions inside the module are:
 | `S_Q_from_model`   | finds the structure factor of a given dol file                                      | filename, q_min , q_max, dq, thermal, Number_for_average_conf, u                                                | q, s_q, rho                    
 | `s_q_from_g_r`     | from the rdf, finds the structure factor                                            | r, g_r, rho, q_min, q_max, dq, factor, type                                                                     | q, s_q    
 | `build_crystal`    | receives lattice parameters and number of repetitions and from it builds a dol file | lattice, rep_a, rep_b, rep_c, dol_out, ran, move_to_GC                                                          | N/A
+
+## ED converter
+
+In D+'s geometric models or pdb, one can add the electron density (ED) of a solvent or of the geometric shape to take 
+them into account during calculation. Since there is no such equivalent in electron diffraction, a converter has 
+been built. The function receives the following:
+
+| Function Name | Function Info                                                                                                     | Input               | Output |
+|---------------|-------------------------------------------------------------------------------------------------------------------|---------------------|--------|
+| `convert`     | Converts the ED to its E+ equivalent from a list of atom names (a) and the number of occurences (n) or from a PDB | ED and a, n OR PDB  | result | 
+
+To use this, one must first import `dplus.EDConverter`. The returned result has two values in it, namely `result.eED` 
+and `result.coeff`, which are the equivalent "ED" and the conversion coefficient respectively.

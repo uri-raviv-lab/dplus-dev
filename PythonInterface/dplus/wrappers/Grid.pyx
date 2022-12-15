@@ -78,7 +78,7 @@ cdef class CJacobianSphereGrid:
     def phi_divisions(self):
         return self.c_grid.phiDivisions
 
-    def fill(self, calcAmplitude):
+    def fill(self, calcAmplitude, args):
         data = self.get_data()
         cdef long long dims = (self.real_size / sizeof(double)) / 2;
         cdef long long ind = 0
@@ -103,7 +103,7 @@ cdef class CJacobianSphereGrid:
             #     csp = np.cos(pI)
             #     snp = np.sin(pI)
             # rs = calcAmplitude(qI * snt * csp, qI * snt * snp, qI * cst)
-            rs = calcAmplitude(qI, tI, pI)
+            rs = calcAmplitude(qI, tI, pI, *args)
             data[2*ind] = rs.real
             data[2*ind+1] = rs.imag
             ind += 1

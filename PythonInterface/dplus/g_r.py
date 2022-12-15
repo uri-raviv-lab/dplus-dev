@@ -519,7 +519,7 @@ def g_r_from_model_slow(file, Lx, Ly, Lz, file_triple=None, radius=0, r_min=0, r
                 d_min = d - r
                 d_max = d + r
                 vol_tot = 4 * np.pi * r ** 3 / 3
-                N = N_R(r, dr)
+                N = int(N_R(r, dr))
 
                 if (r_max < d_min) | (d < 1e-10):
                     continue

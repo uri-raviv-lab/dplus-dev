@@ -47,10 +47,9 @@ class ResultEDConverter:
 #                 my_list.writerows(amp_list_E)
 #     return
 
-
+test_dir = os.path.join(os.path.dirname(__file__), "helper_files")
 def find_coeff(atoms, occur, ED):
-    filename_out_list = [r'.\dplus\helper_files\D_amp.csv',
-                         r'.\dplus\helper_files\E_amp.csv']
+    filename_out_list = [os.path.join(test_dir, "D_amp.csv"), os.path.join(test_dir, "E_amp.csv")]
     amp_sum = np.zeros(2)
     i = 0
     for filename_out in filename_out_list:
@@ -96,10 +95,10 @@ def different_atoms(file):
     return atom_list, atom_reps
 
 
-def convert(ed=333, a=['H', 'O'], pdb='', n=[2, 1]):
+def convert(ed=333, a=['H', 'O'], pdb='fake', n=[2, 1]):
     if not ed or not (pdb and a and n):
         raise ValueError("Invalid input parameters. ed={ed}, pdb={pdb}, a={a}, n={n}")
-    if pdb != '':
+    elif pdb != 'fake':
         atoms, occur = different_atoms(pdb)
         result = find_coeff(atoms, occur, ed)
     else:
