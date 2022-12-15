@@ -1,5 +1,11 @@
 The DPLus Python Wrapper
 ========================
+5.1.0
+---------------
+* Added the possibilty to add *args to the Amplitude.fill function
+* Parallelized the g(r)-module
+* Added the ED-Converter to the API
+
 5.0.0
 ----------------
 * Documentation improved
