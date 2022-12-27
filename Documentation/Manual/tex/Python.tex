@@ -1,0 +1,707 @@
+
+\documentclass[../D+Manual.tex]{subfiles}
+
+\begin{document}
+	
+\chapter{Python API} \label{chp:Python}
+
+\begin{quote}
+	You can start any 'Monty Python' routine and people finish it for you. Everyone knows it like shorthand. \\
+	\hspace*{\fill} \textit{Robin Williams}
+\end{quote}
+
+
+\section{The Dplus Python API}\label{the-dplus-python-api}
+
+The D+ Python API allows using the D+ backend from Python, instead of
+the ordinary D+ application.
+
+The Python API works on both Windows and Linux.
+
+\subsection{Installation}\label{installation}
+
+Installing the Python API is done using PIP:
+
+\begin{lstlisting}[language=bash,basicstyle=\small, breaklines= true, breakatwhitespace= true]
+pip install dplus-api
+\end{lstlisting}
+
+The API was tested with Python 3.5 and newer. It \emph{may} work with
+older versions of Python, although Python 2 is probably not supported.
+
+\subsubsection{Overview}
+
+Throughout the manual, code examples are given with filenames, like "mystate.state".
+To run an example code for yourself, these files must be located in the same directory as the script itself,
+or alternately the code can be modified to contain the full path of the file's location.
+
+Throughout the manual, we mention "state files". A state file is a JavaScript Object Notation (JSON) format file (https://www.json.org/), which describes the parameter tree and calculation settings of the D+ computation.
+It is unnecessary to write a state file yourself. State files can either be generated from within the python interface (with the function `export\_all\_parameters`),
+or created from the D+ GUI (by selecting File$>$Export All Parameters from within the D+ GUI).
+
+The overall flow of the Python API is as follows:
+\begin{enumerate}
+	\item {The data to be used for the calculation is built by the user in an
+		instance of the \texttt{CalculationInput} class (either
+		\texttt{GenerateInput} or \texttt{FitInput}). Inputs contain a program \texttt{State}, which includes both program preferences 
+		like \texttt{DomainPreferences}, and a parameter tree composed of \texttt{Models}.}
+	\item {The calculation input is then passed to a \texttt{CalculationRunner} class
+		(either \texttt{LocalRunner} or \texttt{WebRunner}), and the calculation
+		function is called (\texttt{generate}, \texttt{generate\_async},
+		\texttt{fit}, or \texttt{fit\_async}).}
+	\item {The \texttt{CalculationRunner} class returns a 		\texttt{CalculationResult} class.}
+\end{enumerate}
+
+\noindent Here is a very simple example of what this might look like in main.py:
+
+\begin{lstlisting}[style=pythonstyle]
+from dplus.CalculationInput import GenerateInput
+from dplus.CalculationRunner import LocalRunner
+
+calc_data = GenerateInput.load_from_state("mystate.state")
+runner = LocalRunner()
+result = runner.generate(calc_data)
+print(result.graph)
+\end{lstlisting}
+
+\noindent A detailed explanation of the class types and their usage follows.
+
+\subsection{CalculationRunner}\label{calculationrunner}
+
+There are two kinds of \texttt{CalculationRunner}s, Local and Web.
+
+The \texttt{LocalRunner} is intended for users who have the D+ executable files
+installed on their system. It takes two optional initialization
+arguments:
+
+\begin{itemize}
+	\tightlist
+	\item
+	\texttt{exe\_directory} is the folder location of the D+ executables.
+	By default, its value is \texttt{None}. On Windows, this value will 
+	lead to the python interface searching the registry for an installed D+ on its own, but on linux the executable directory \textit{must} be specified. 
+	\item
+	\texttt{session\_directory} is the folder where the arguments for the
+	calculation are stored, as well as the output results, amplitude
+	files, and pdb files, from the C++ executable. By default, its value
+	is \texttt{None}, and an automatically generated temporary folder will be used.
+\end{itemize}
+
+\begin{lstlisting}[style=pythonstyle]
+from dplus.CalculationRunner import LocalRunner
+
+exe_dir = r"C:\Program Files\D+\bin"
+sess_dir = r"sessions"
+runner = LocalRunner(exe_dir, sess_dir)
+
+#also possible:
+#runner = LocalRunner()
+#runner = LocalRunner(exe_dir)
+#runner = LocalRunner(session_directory=sess_dir)
+\end{lstlisting}
+
+The WebRunner is intended for users accessing the D+ server. It takes
+two required initialization arguments, with no default values:
+
+\begin{itemize}
+	\tightlist
+	\item
+	\texttt{url} is the address of the server.
+	\item
+	\texttt{token} is the authentication token granting access to the
+	server.
+\end{itemize}
+
+\begin{lstlisting}[style=pythonstyle]
+from dplus.CalculationRunner import WeblRunner
+
+url = r'http://localhost:8000/'
+token = '4bb25edc45acd905775443f44eae'
+runner = WebRunner(url, token)
+\end{lstlisting}
+
+Both runner classes have the same four methods:
+
+\texttt{generate(calc\_data)}, \texttt{generate\_async(calc\_data)}, \texttt{fit(calc\_data)}, and \texttt{fit\_async(calc\_data)}.
+
+All four methods take the same single argument, \texttt{calc\_data} - an
+instance of a \texttt{CalculationData} class.
+
+\texttt{generate} and \texttt{fit} return a \texttt{CalculationResult}.
+
+\texttt{generate\_async} and \texttt{fit\_async} return a \texttt{RunningJob}.
+
+When using \texttt{generate} or \texttt{fit} the program will wait until the call is finished and returned a result, before continuing. Their asynchronous counterparts (\texttt{generate\_async} and \texttt{fit\_async}) allow D+ 
+calculations to be run in the background (for example, the user can call \texttt{generate\_async}, tell the program to do other things, and then return and check if the computation is finished). 
+
+
+\subsection{RunningJob}\label{runningjob}
+
+The user should not be initializing this class. When returned from an
+async function (\texttt{generate\_async} or \texttt{fit\_async}) in \texttt{CalculationRunner}, the user can use the following
+methods to interact with the \texttt{RunningJob} class:
+
+\begin{itemize}
+	\tightlist
+	\item
+	\texttt{get\_status()}: get a JSON dictionary reporting the job's
+	current status
+	\item
+	\texttt{get\_result(calc\_data)}: get a \texttt{CalculationResult}.
+	Requires a copy of the \texttt{CalculationInput} used to create the job. Should
+	only be called when the job is completed. It is the user's responsibility
+	to verify job completion with \texttt{get\_status()} before calling.
+	\item
+	\texttt{abort()}: end a currently running job
+\end{itemize}
+
+\begin{lstlisting}[style=pythonstyle]
+from dplus.CalculationInput import GenerateInput
+from dplus.CalculationRunner import LocalRunner
+
+
+calc_data = GenerateInput.load_from_state("mystate.state")
+runner=LocalRunner()
+job = runner.generate_async(calc_data)
+start_time=datetime.datetime.now()
+status = job.get_status()
+while status['isRunning']:
+	status = job.get_status()
+	run_time = datetime.datetime.now() - start_time
+	if run_time > datetime.timedelta(seconds=50):
+		job.abort()
+		raise TimeoutError("Job took too long")
+result = job.get_result(calc_data)
+\end{lstlisting}
+
+\subsection{CalculationInput}\label{calculationinput}
+
+There are two kinds of \texttt{CalculationInput}, \texttt{FitInput}, and \texttt{GenerateInput}.
+
+\texttt{GenerateInput} contains an instance of a \texttt{State} class and an \texttt{x} (or a \texttt{q})
+vector. It is used to generate the intensity signal, \texttt{I}, of a given parameter tree (within the \texttt{State}).
+
+\texttt{FitInput} contains a \texttt{State} class, an \texttt{x} (or $q$) vector, and a \texttt{y} (or \texttt{I}) vector, representing a signal to be fitted.
+It is used to fit a parameter tree (within the \texttt{State} to the signal (\texttt{I(q)}).
+
+The \texttt{State} class is described in the next section.
+
+The \texttt{x} (or \texttt{q}) and \texttt{y} (or \texttt{I}) vectors are simply lists of floating point coordinates. They
+can be generated from parameters in the \texttt{State} class or loaded from a
+file.
+%{[}This section will be expanded on in future, when additional options for these vectors will be added{]}
+
+\texttt{CalculationInput} has the following methods:
+
+\begin{itemize}
+	\tightlist
+	\item
+	\texttt{get\_model}: get a model by either its \texttt{name} or its pointer,
+	\texttt{model\_ptr}.
+	\item
+	\texttt{get\_models\_by\_type}: returns a list of \texttt{Models} with
+	a given \texttt{type\_name}, for example, \texttt{UniformHollowCylinder}.
+	\item
+	\texttt{get\_mutable\_params}: returns a list of \texttt{Parameters}
+	in the \texttt{State} class, whose property \texttt{mutable} is \texttt{True}.
+	\item 
+	\texttt{get\_mutable\_parameter\_values}: returns a list of floats, matching the values of the \texttt{mutable parameters}.
+	\item
+	\texttt{set\_mutable\_parameter\_values}: given a list of floats, sets the \texttt{mutable parameters} of the \texttt{State} (in the order given by 
+	\texttt{get\_mutable\_parameter\_values}).
+	\item
+	\texttt{export\_all\_parameters}: given a filename, will save the calculation \texttt{State} to that file.
+\end{itemize}
+
+
+In addition, all \texttt{CalculationInputs} have the property \texttt{use\_gpu}, which can be set to \texttt{True} or \texttt{False} (running fitting with
+\texttt{use\_gpu} set to \texttt{False} is not recommended).
+
+A new instance of \texttt{GenerateInput} can be created simply by calling its constructor with a \texttt{State}:
+
+\begin{lstlisting}[style=pythonstyle]
+from dplus.CalculationInput import GenerateInput
+s=State()
+gen_input=GenerateInput(s)
+\end{lstlisting}
+
+
+%TODO add examples of args, json args
+In addition, \texttt{GenerateInput} has the following static methods to create an instance of
+\texttt{GenerateInput}:
+
+\begin{itemize}
+	\tightlist
+	\item
+	\texttt{load\_from\_state\_file(filename)} receives the location (or path) of a file that contains a serialized parameter tree (\texttt{State}).
+	\item
+	\texttt{load\_from\_PDB} receives the location (or path) of a PDB file, and
+	automatically creates a guess at the best \texttt{State} parameters based on the PDB file.
+\end{itemize}
+
+
+\begin{lstlisting}[style=pythonstyle]
+from dplus.CalculationInput import GenerateInput
+gen_input=GenerateInput.load_from_state_file('sphere.state')
+\end{lstlisting}
+
+A new instance of \texttt{StateInput} can be created by calling its constructor, and either:
+
+1. \texttt{x}, \texttt{y}: two arrays, an \texttt{x} array and a \texttt{y} array, or
+
+2. \texttt{graph}: a single dictionary, with \texttt{x} values as keys for the \texttt{y} values.
+
+
+\begin{lstlisting}[style=pythonstyle]
+from dplus.CalculationInput import FitInput, load_x_and_y_from_file
+
+x,y=load_x_and_y_from_file("signal_file.out")
+state=State()
+fit_input=FitInput(state, x=x, y=y)
+\end{lstlisting}
+
+\texttt{FitInput} also has the following static method to create an instance of \texttt{FitInput} 
+
+\begin{itemize}
+	\item \texttt{load\_from\_state\_file(filename)} receives the location (or path) of a file that contains a serialized parameter tree (state)
+\end{itemize}
+
+\begin{lstlisting}[style=pythonstyle]
+from dplus.CalculationInput import FitInput
+fit_input=FitInput.load_from_state_file('sphere.state')
+\end{lstlisting}
+
+\subsubsection{State}\label{state}
+
+The \texttt{state} class contains an instance of each of three classes:
+\texttt{DomainPreferences}, \texttt{FittingPreferences}, and \texttt{Domain}. They are described in
+the upcoming sections.
+
+It has the methods \texttt{get\_model}, 
+\texttt{get\_models\_by\_type},
+and \texttt{get\_mutable\_params},
+ 
+\texttt{get\_mutable\_parameter\_values},
+\texttt{set\_mutable\_parameter\_values}, and \texttt{export\_all\_parameters}, just as \texttt{CalculationInput} does. In fact, \texttt{CalculationInput} simply
+invokes these functions from \texttt{State} when they are called from
+\texttt{CalculationInput}.
+
+\texttt{State}, \emph{and every class and sub class contained within \texttt{State}} (for example, 
+\texttt{preferences}, \texttt{models}, \texttt{parameters}), all have the functions
+\texttt{load\_from\_dictionary} and \texttt{serialize}.
+
+\texttt{load\_from\_dictionary} sets the values of the various fields within a class
+to match those contained within a suitable dictionary. It can behave
+recursively as necessary, for example, with a model that has children.
+
+\texttt{serialize} saves the contents of a class to a dictionary. Note
+that there may be additional fields in the dictionary beyond those
+described in this document, because some defunct (outdated, irrelevant,
+or not-yet-implemented) fields are still saved in the serialized
+dictionary.
+
+\texttt{add\_model} is a convenience function to help add models to the parameter tree of a \texttt{State}. It receives the model and optionally 
+a population index (default 0), and will insert that model into the population.
+
+\texttt{add\_amplitude} is a convenience function specifically for adding instances of the \texttt{Amplitude} class, described below. 
+It creates an instance of an \texttt{AMP} file with the filename of the \texttt{Amplitude}. Then, in addition to calling \texttt{add\_model} with that \texttt{AMP} file, it also changes the \texttt{DomainPreferences} of the \texttt{State} (specifically, \texttt{grid\_size}, \texttt{q\_max}, and \texttt{use\_grid}), to match the properties of \texttt{Amplitude}.
+It returns the \texttt{AMP} file it created.
+
+
+\paragraph{DomainPreferences}\label{domainpreferences}
+
+The \texttt{DomainPreferences} class contains properties that are copied from the
+D+ interface. Their usage is explained in the D+ documentation.
+
+We create a new instance of \texttt{DomainPreferences} by calling the python
+initialization function:
+
+\texttt{dom\_pref=\ DomainPreferences()}
+
+There are no arguments given to the initialization function, and all the
+properties are set to default values:
+
+\begin{longtable}[]{@{}l>{\raggedright}p{3.75cm}>{\raggedright}p{8cm}@{\extracolsep{\fill}}}
+	\toprule
+		Property Name & Default Value & Allowed values \tabularnewline
+	\midrule
+	\endhead
+	\texttt{signal\_file} & ``'' & ``'', or a valid file location \tabularnewline
+	\texttt{Convergence} & 0.001 & \tabularnewline
+	\texttt{grid\_size} & 100 & Even integer greater than 20 \tabularnewline
+	\texttt{orientation\_iterations} & 100 & \tabularnewline
+	orientation\_method & \texttt{"Monte Carlo (Mersenne Twister)"} & \texttt{"Monte Carlo (Mersenne Twister)"}, \texttt{"Adaptive (VEGAS) Monte Carlo"}, \texttt{"Adaptive Gauss Kronrod"} \tabularnewline
+	\texttt{use\_grid} & \texttt{"False"} & \texttt{"True"}, \texttt{"False"} \tabularnewline
+	\texttt{q\_max} & 7.5 & Positive number. If a signal file is provided, must match the highest \texttt{x} (or \texttt{q}) value\tabularnewline
+	\bottomrule
+\end{longtable}
+
+Any property can then be easily changed, for example:
+
+\texttt{dom\_pref.q\_max=\ 10}
+
+If the user tries to set a property to an invalid value (for example,
+setting $q_{\text{max}}$ to something other than a positive number) they will get an error.
+
+If a signal file is provided, the value of $q_{\text{max}}$ will automatically be
+set to the highest x (or q) value in the signal file.
+
+\paragraph{Fitting Preferences}\label{fitting-preferences}
+
+The \texttt{FittingPreferences} class contains properties that are copied from
+the D+ interface. Their usage is explained in the D+ documentation.
+
+We create a new instance of \texttt{FittingPreferences} by calling the python
+initialization function:
+
+\texttt{fit\_pref=\ FittingPreferences()}
+
+There are no arguments given to the initialization function, and all the
+properties are set to default values:
+
+
+\afterpage{%
+	\clearpage% Flush earlier floats (otherwise order might not be correct)
+%	\thispagestyle{empty}% empty page style (?)
+	\begin{landscape}% Landscape page
+		\centering % Center table
+\begin{longtable}[l]{
+		@{\extracolsep{\fill}}p{3.5cm}
+		@{\extracolsep{\fill}} c% p{2.5cm}
+		@{\extracolsep{\fill}} p{6.3cm}
+		@{\extracolsep{\fill}} p{6.5cm} <{\raggedright}
+		@{\extracolsep{\fill}}}
+	\toprule
+	
+	Property Name	& 	Default Value	&  Allowed Values	& 	Required when	\tabularnewline
+	\midrule
+	\endhead
+	
+	\texttt{convergence}	& 	0.1	& 	Positive numbers	& 	\tabularnewline
+	
+	\texttt{der\_eps}	& 	0.1	& 	Positive numbers	& 	\tabularnewline
+	
+	\texttt{fitting\_iterations}	& 	20	& 	Positive integers & \tabularnewline
+	
+	\texttt{step\_size}	& 	0.01	& 	Positive numbers & 	\tabularnewline
+	
+	\texttt{loss\_function}	& 	\texttt{"Trivial Loss"}	& 	\texttt{"Trivial Loss"}, \texttt{"Huber Loss"}, \texttt{"Soft L One Loss"}, \texttt{"Cauchy
+	Loss"}, \texttt{"Arctan Loss"}, \texttt{"Tolerant Loss"}	& \tabularnewline
+	
+	\texttt{loss\_func\_param\_one}	& 	0.5	& 	Number	& 	Required for any types of \texttt{loss\_function}, except \texttt{"Trivial Loss"}	\tabularnewline
+	
+	\texttt{loss\_func\_param\_two}	& 	0.5	& 	Number	& 	Required when the \texttt{loss\_function} is \texttt{"Tolerant Loss"} \tabularnewline
+	
+	\texttt{x\_ray\_residuals\_type}	& 	\texttt{"Normal Residuals"}	& 	\texttt{"Normal Residuals"}, \texttt{"Ratio Residualsv}, \texttt{"Log Residuals"}	& \tabularnewline
+	
+	\texttt{minimizer\_type}	& \texttt{"Trust Region"}	& \texttt{"Line Search"}, \texttt{"Trust Region"}	& \tabularnewline
+	
+	\texttt{trust\_region\_strategy\_type} & \texttt{"Dogleg"} & \texttt{"Levenberg-Marquardt"}, \texttt{"Dogleg"} & \texttt{minimizer\_type} is \texttt{"Trust Region"}	\tabularnewline
+	
+	\texttt{dogleg\_type} &  \texttt{"Traditional Dogleg"} & \texttt{"Traditional Dogleg"}, \texttt{"Subspace Dogleg"} & 	\texttt{trust\_region\_strategy\_type} is \texttt{"Dogleg"} \tabularnewline
+	
+	\texttt{line\_search\_type} & \texttt{"Armijo"}	& \texttt{"Armijo"}, \texttt{"Wolfe"} & \texttt{minimizer\_type} is \texttt{"Line Search"} \tabularnewline
+	
+	\texttt{line\_search\_direction\_type} & \texttt{"Steepest Descent"} & \texttt{"Steepest Descent"}, \texttt{"Nonlinear Conjugate
+	Gradient"}, \texttt{"L-BFGS"}, \texttt{"BFGS"} & \texttt{minimizer\_type} is \texttt{"Line Search"}. If \texttt{line\_search\_type} is \texttt{"Armijo"},
+	cannot be \texttt{"BFGS"} or \texttt{"L-BFGS"}. \tabularnewline
+	
+	\texttt{nonlinear\_conjugate\_gradient\_type} & 	``'' & 	\texttt{"Fletcher Reevesv"}, \texttt{"Polak Ribirere"},\texttt{"Hestenes Stiefel"} & \texttt{linear\_search\_direction\_type} is \texttt{"Nonlinear Conjugate Gradient"}	\tabularnewline
+	\bottomrule
+\end{longtable}
+\label{Fittable}
+	\end{landscape}
+	\clearpage% Flush page
+}
+\newpage
+
+
+Any property can then be easily changed, for example,
+
+\texttt{fit\_pref.convergence=\ 0.5}
+
+If users try to set a property to an invalid value they will get an
+error.
+
+\paragraph{Domain}\label{domain}
+
+The Domain class describes the parameter tree.
+
+The root of the tree is the \texttt{Domain} class. This class contains an
+array of \texttt{Population} classes. Each \texttt{Population} can
+contain a number of \texttt{Model} classes. Some models have children, which are also models.
+
+\subparagraph{Models}\label{models}
+
+\texttt{Domain} and \texttt{Population} are two special kinds of models.
+
+The \texttt{Domain} model is the root of the parameter tree, which can contain
+multiple populations. Populations can contain standard types of models.
+
+The available standard model classes are:
+
+\begin{itemize}
+	\tightlist
+	\item
+	\texttt{UniformHollowCylinder}
+	\item
+	\texttt{Sphere}
+	\item
+	\texttt{SymmetricLayeredSlabs}
+	\item
+	\texttt{AsymmetricLayeredSlabs}
+	\item
+	\texttt{Helix}
+	\item
+	\texttt{DiscreteHelix}
+	\item
+	\texttt{SpacefillingSymmetry}
+	\item
+	\texttt{ManualSymmetry}
+	\item
+	\texttt{PDB} - a PDB file
+	\item
+	\texttt{AMP} - an amplitude grid file
+\end{itemize}
+
+You can create any model by calling its initialization.
+
+Please note that models are dynamically loaded from those available in D+. 
+Therefore, your code editor may underline the model in red even if the model exists.
+
+Models have \texttt{Location Parameters} and \texttt{Extra Parameters}. Some models (that support layers) also contain \texttt{Layer Parameters}.
+These are all collection of instances of the \texttt{Parameter} class, and can be accessed from 
+\texttt{model.location\_params}, \texttt{model.extra\_params}, and \texttt{model.layer\_params}, respectively.
+
+All of these can be modified. They are accessed using dictionaries
+
+Example:
+
+\begin{lstlisting}[style=pythonstyle]
+from dplus.DataModels.models import UniformHollowCylinder
+
+uhc=UniformHollowCylinder()
+uhc.layer_params[1]["Radius"].value=2.0
+uhc.extra_params["Height"].value=3.0
+uhc.location_params["x"].value=2
+\end{lstlisting}
+
+
+For additional information about which models have layers and what the various parameters available for each model are, please consult the D+ User's Manual.
+
+\textbf{Parameters}
+
+The \texttt{Parameter} class contains the following properties:
+
+value: a float whose default value is \texttt{0}
+
+sigma: a float whose default value is \texttt{0}
+
+mutable: a boolean whose default value is \texttt{False}
+
+constraints: an instance of the \texttt{Constraints} class, by default it is the
+default \texttt{Constraints}  (see below).
+
+Usage:
+
+p=Parameter()  - creates a parameter with value: 0, sigma: 0, mutable: \texttt{False}, and the default constraints.
+
+p=Parameter(7) - creates a parameter with value: 7, sigma: 0, mutable: \texttt{False}, and the default constraints.
+
+p=Parameter(sigma=2)   - creates a parameter with value: 0, sigma: 2, mutable: \texttt{False}, and the default constraints.
+
+p.value= 4  - modifies the value to be 4.
+
+p.mutable=True  - modified the value of mutable to be \texttt{True}.
+
+p.sigma=3 - modifies sigma to be 3.
+
+p.constraints=Constraints(min\_val=5) sets a \texttt{Constraints} instance whose minimum value (min\_val) is 5.
+
+\textbf{Constraints}
+
+The \texttt{Constraints} class contains the following properties:
+
+MaxValue: a float whose default value is \texttt{infinity}
+
+MinValue: a float whose default value is \texttt{-infinity}
+
+The usage is similar to \texttt{Parameter} class, for example:
+
+c=Constraints(min\_val=5) - sets a \texttt{Constraint} instance whose minimum value is 5 and its maximum value is the default (\texttt{infinity}).
+
+
+\subsection{CalculationResult}\label{calculationresult}
+
+The CalculationResult class is returned by the CalculationRunner. The
+user should generally not be instantiating the class themselves.
+
+The class has the following properties accessible:
+
+\begin{itemize}
+	\tightlist
+	\item
+	`graph': an OrderedDict whose keys are x (or q) values and whose values are y (or I)
+	values.
+	%TODO check if there is an option to have a list of x as well
+	\item
+	`y': The raw list of y (or I) values from the results JSON
+	\item
+	`headers': an OrderDict of headers, whose keys are ModelPtrs and whose
+	values are the header associated. This property is not necessarily
+	present in fitting results
+	\item
+	`parameter\_tree': A JSON of parameters (can be used to create a new
+	state with state's load\_from\_json). Only present in fitting, not
+	generate, results
+	\item
+	`error' : returns the JSON error report from the dplus run
+\end{itemize}
+
+In addition, Calculation results has the following public functions:
+
+\begin{itemize}
+	\tightlist
+	\item
+	`get\_amp(model\_ptr, destination\_folder)': returns the file location
+	of the amplitude file for a given model\_ptr. destination\_folder has a
+	default value of None, but if provided, the amplitude file will be
+	copied to that location, and then have its address returned
+	\item
+	`get\_pdb(mod\_ptr, destination\_folder)': returns the file location
+	of the pdb file for a given model\_ptr. destination\_folder has a
+	default value of None, but if provided, the pdb file will be copied to
+	that location, and then have its address returned
+\end{itemize}
+
+\subsubsection{Amplitude}\label{amplitude}
+
+Within the CalculationResult module there is an Amplitude class. It has
+a static method, `load', which receives a filename and $q_{\text{max}}$ value and
+creates an instance of the Amplitude class.
+
+Alternately one can create an empty instance of Amplitude and then call
+the function `read\_amp', which accomplishes the same thing.
+
+The Amplitude class contains two properties, `arr'
+that stores the Amplitude values, and
+`headers', which stores a list of headers.
+
+The function `save' saved the contents of 'arr' and headers to a new .amp
+file.
+
+\begin{lstlisting}[style=pythonstyle]
+my_amp=Amplitude.load('myamp.amp', 5)
+#insert various modifications of amplitude here
+my_amp.save('myamp-modified.amp')
+\end{lstlisting}
+
+\subsection{Additional Usage examples}\label{additional-usage-examples}
+
+From the Dplus GUI it is possible to create a state file by selecting
+File\textgreater{}Export All Parameters. Alternately one can create a
+State by hand, by adding populations, models, fittingpreferences, etc.
+In addition, there is an option for generating a pdb, load\_from\_pdb.
+It requires the address of the pdb file, and the value of $q_{\text{max}}$. It automatically populates the rest of the state with
+reasonable default values.
+
+\textbf{\emph{Example One}}
+
+\begin{lstlisting}[style=pythonstyle]
+from dplus.CalculationInput import FitInput
+from dplus.CalculationRunner import LocalRunner
+
+exe_directory = r"..\x64\release"
+sess_directory = r"session"
+runner= LocalRunner(exe_directory, sess_directory)
+
+
+input=FitInput.load_from_state('spherefit.state')
+result=runner.fit(input)
+print(result.graph)
+\end{lstlisting}
+
+\textbf{\emph{Example Two}}
+
+\begin{lstlisting}[style=pythonstyle]
+from dplus.CalculationInput import GenerateInput
+from dplus.CalculationRunner import LocalRunner
+from dplus.DataModels import ModelFactory, Population
+from dplus.State import State
+from models import UniformHollowCylinder
+
+sess_directory = r"session"
+runner= LocalRunner(session_directory=sess_directory)
+
+uhc=UniformHollowCylinder()
+s=State()
+s.Domain.populations[0].add_model(uhc)
+
+caldata = GenerateInput(s)
+result=runner.generate(caldata)
+print(result.graph)
+\end{lstlisting}
+
+\textbf{\emph{Example Three}}
+
+\begin{lstlisting}[style=pythonstyle]
+runner=LocalRunner()
+
+caldata=GenerateInput.load_from_PDB('1JFF.pdb', 5)
+result=API.generate(caldata)
+print(result.graph)
+\end{lstlisting}
+
+\textbf{\emph{Example Four}}
+
+\begin{lstlisting}[style=pythonstyle]
+API = test_local()
+input = GenerateInput.load_from_state('../example files/uhc.state')
+cylinder = input.get_model("Cylinder")
+
+print("Original radius is ", cylinder.layer_params[1]['Radius'].value)
+result = API.generate(input)
+
+fit_input = FitInput(input.state, result.graph)
+cylinder = fit_input.get_model("Cylinder")
+cylinder.layer_params[1]['Radius'].value = 2
+cylinder.layer_params[1]['Radius'].mutable = True
+
+fit_result = API.fit(fit_input)
+print(fit_result.parameter_tree)
+fit_input.combine_results(fit_result)
+print("Result radius is ", cylinder.layer_params[1]['Radius'].value)
+\end{lstlisting}
+
+\subsubsection{Python Fitting}\label{python-fitting}
+
+It is possible to fit a curve using the results from Generate and
+numpy's built in minimzation/curve fitting functions. This is a new
+functionality that is sill very much under development. An example
+follows:
+
+\begin{lstlisting}[style=pythonstyle]
+import os
+import json
+from dplus.CalculationInput import GenerateInput, FitInput
+from dplus.CalculationData import CalculationData
+from dplus.API import LocalCalculationAPI
+from dplus.CalculationResult import CalculationResult
+from dplus.Fit import Fitter
+from dplus.DataModels import State
+
+statePath = r"/home/avi1604/Downloads/FitTest/state.state"
+state = State()
+state.load_from_json(json.load(statePath))
+filename = state.DomainPreferences['SignalFile']
+x, y = FitInput._load_x_and_y_from_file(filename)
+fitInput = FitInput(state, x=x, y=y)
+
+exe_file = r"/home/avi1604/Downloads/bin"
+api = LocalCalculationAPI(exe_file)
+
+fitter = Fitter(api)
+result = fitter.run(fitInput)
+\end{lstlisting}
+
+\end{document}

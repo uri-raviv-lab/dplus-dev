@@ -1,0 +1,447 @@
+\documentclass[12pt,a4paper,openany,oneside,oldfontcommands]{memoir}
+%\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{units}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{gensymb}
+\usepackage{graphicx}
+\usepackage{memhfixc}
+\usepackage{wrapfig}
+\usepackage{pdflscape}
+\usepackage{afterpage}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{textcomp}
+\usepackage[version=3]{mhchem}
+
+\usepackage{listings}
+\usepackage{textcomp}
+\usepackage{siunitx}
+\usepackage{lipsum}
+
+\usepackage[obeyspaces]{url}
+
+\usepackage{subfiles}
+\usepackage{ltablex,tabularx}
+\usepackage{longtable,booktabs}
+
+
+%%%%%%%%%%%%%%%%%
+%% Margins
+%%%%%%%%%%%%%%%%%
+\settrimmedsize{297mm}{210mm}{*}
+\settrims{0pt}{0pt}
+\setlrmarginsandblock{2cm}{*}{1}
+\setulmarginsandblock{2cm}{*}{1}
+\setheadfoot{15pt}{15pt}
+\setheaderspaces{20pt}{*}{*}
+\checkandfixthelayout
+
+\usepackage{xr}
+
+\usepackage{hyperref}
+
+\usepackage[textsize=small,textwidth=\marginparwidth,disable]{todonotes}
+
+\usepackage{tikz}
+\usepackage{tikz-qtree}
+\usetikzlibrary{arrows}
+\usetikzlibrary{decorations.shapes} %,snakes
+\usetikzlibrary{automata}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.12}
+
+\usetikzlibrary{external}
+\usetikzlibrary{shadings}
+
+\DeclareGraphicsExtensions{.pdf,.eps,.png,.jpg}
+
+% % % % % % % % %
+% For textboxes
+% % % % % % % % %
+\usepackage[xcolor,tikz]{mdframed}
+\newmdenv
+[
+%linecolor=red,
+roundcorner=10pt,
+outerlinewidth=2,
+outerlinecolor=blue!70!black,
+%frametitle=Infobox,
+]{infobox}
+
+% % % % % % % % %
+% Define subdirectories
+% % % % % % % % %
+\makeatletter
+\def\input@path{{./tex/} {./} {../}}	% for chapters (*.tex)
+%or: \def\input@path{{/path/to/folder}{/path/to/other/folder}}
+\makeatother
+
+% % % % % % % % %
+%This doesn't seem to work. Shouldn't be needed in pgfplots 1.13 when it comes out.
+% % % % % % % % %
+ \usepackage{etoolbox}
+\makeatletter
+\patchcmd{\pgfplots@addplotimpl@file@streamit}{%
+  \openin\r@pgfplots@reada=#1
+}{%
+  \let\input@path\Ginput@path
+  \IfFileExists{#1}{\openin\r@pgfplots@reada=\@filef@und}{}%
+  \let\input@path\undefined
+}{}{\typeout{patch failed}\@undefined}
+\makeatother
+
+% % % % % % % % %
+% Add include paths for graphics
+% % % % % % % % %
+\graphicspath{ {./img/} {../img/} {./} {../} } % both for the main document, and for the subdocuments
+
+\lstdefinestyle{Luastyle}
+{
+  language         = {[5.0]Lua},
+  basicstyle       = \ttfamily,
+  showstringspaces = false,
+  upquote          = true,
+  breaklines       = true,
+  breakatwhitespace= true,
+  postbreak        = \raisebox{0ex}[0ex][0ex]{\ensuremath{\color{red}\hookrightarrow\space}},
+%  prebreak         = \raisebox{0ex}[0ex][0ex]{\ensuremath{\color{red}\hookleftarrow\space}},
+  keywordstyle     = \color{blue},
+  commentstyle     = \itshape\color{blue!30!black!50!green},
+  stringstyle      = \ttfamily\color{purple}\normalfont,
+  identifierstyle  = \color{black},
+  tabsize          = 4,
+  backgroundcolor  = \color{gray!10},
+%  literate         = {~} {$\sim$}{1},
+%  basicstyle       = \small
+  columns=fixed,basewidth=0.5em,
+}
+
+\lstdefinestyle{pythonstyle}
+{
+	language         = {Python},
+	basicstyle       = \ttfamily,
+	showstringspaces = false,
+	upquote          = true,
+	breaklines       = true,
+	breakatwhitespace= true,
+	postbreak        = \raisebox{0ex}[0ex][0ex]{\ensuremath{\color{red}\hookrightarrow\space}},
+	%  prebreak         = \raisebox{0ex}[0ex][0ex]{\ensuremath{\color{red}\hookleftarrow\space}},
+	keywordstyle     = \color{blue},
+	commentstyle     = \itshape\color{blue!30!black!50!green},
+	stringstyle      = \ttfamily\color{purple}\normalfont,
+	identifierstyle  = \color{black},
+	tabsize          = 4,
+	backgroundcolor  = \color{gray!10},
+	%  literate         = {~} {$\sim$}{1},
+	%  basicstyle       = \small
+	columns=fixed,basewidth=0.5em,
+}
+
+\lstdefinestyle{anomalousFile}
+{
+	language         = {bash},
+	basicstyle       = \ttfamily,
+	showstringspaces = false,
+	commentstyle     = \itshape\color{blue!30!black!50!green},
+	stringstyle      = \ttfamily\color{purple}\normalfont,
+	identifierstyle  = \color{black},
+	tabsize          = 4,
+	backgroundcolor  = \color{gray!10},
+	columns=fixed,basewidth=0.5em,
+}
+
+
+\usepackage{linegoal}
+
+\newsavebox{\mylisting}
+\makeatletter
+\newcommand{\lstInline}[2][,]{%
+  \begingroup%
+  \lstset{#1}% Set any keys locally
+  \begin{lrbox}{\mylisting}\lstinline!#2!\end{lrbox}% Store listing in \mylisting
+  \setlength{\@tempdima}{\linegoal}% Space left on line.
+  \ifdim\wd\mylisting>\@tempdima\hfill\\\fi% Insert line break
+  \lstinline!#2!% Reset listing
+  \endgroup%
+}
+\makeatother
+
+\newcommand{\avinote}[2][fancyline]{\todo[#1, color=blue!30]{\textbf{Avi}: #2}}
+\newcommand{\urinote}[2][fancyline]{\todo[#1, color=yellow!30]{\textbf{Uri}: #2}}
+\newcommand{\talnote}[2][fancyline]{\todo[#1, color=green!30]{\textbf{Tal}: #2}}
+\newcommand{\plane}[2]{#1\nobreakdash-#2~plane}
+
+
+
+\author{Avi Ginsburg, Uri Raviv}
+\title{D+ User's Manual}
+
+% % % % % % % % %
+% Bibliography section
+% % % % % % % % %
+\usepackage[
+%firstinits=true,
+%            bibencoding=inputenc,
+%            hyperref=auto,
+            backend=bibtex,
+            style=authoryear-ibid,
+            defernumbers=true,
+%            pagination=none,
+            %style=standard,
+%            refsection=chapter
+            ]
+{biblatex}
+\usepackage{filecontents}
+\begin{filecontents*}{\jobname.bib}
+
+
+@article{marsh1983corrections,
+	title={Corrections to table 2.2 B of volume IV of International Tables for X-ray Crystallography},
+	author={Marsh, RE and Slagle, KL},
+	journal={Acta Crystallographica Section A: Foundations of Crystallography},
+	volume={39},
+	number={1},
+	pages={173--173},
+	year={1983},
+	publisher={International Union of Crystallography}
+}
+
+
+
+@article{hamilton1974international,
+	title={International Tables for X-ray Crystallography, vol. IV},
+	author={Hamilton, WC},
+	journal={Birmingham: Kynoch Press.(Present distributor Kluwer Academic Publishers, Dordrecht. Table 2.2B.)},
+	pages={273--284},
+	year={1974}
+}
+
+@unpublished{PyMOL,
+	Annote = {PyMOL - The PyMOL Molecular Graphics System, Version 1.8, Schr{\"o}dinger, LLC.},
+	Author = {{Schr\"odinger, LLC}},
+	Date-Added = {2010-08-19 17:29:55 -0400},
+	Date-Modified = {2015-12-22 18:04:08 -0400},
+	Month = {November},
+	Title = {The {PyMOL} Molecular Graphics System, Version~1.8},
+	Year = {2015}
+}
+
+@article{ChenDz5180,
+	author = "Chen, Vincent B. and Arendall, III, W. Bryan and Headd, Jeffrey J. and Keedy, Daniel A. and Immormino, Robert M. and Kapral, Gary J. and Murray, Laura W. and Richardson, Jane S. and Richardson, David C.",
+	title = "{{\it MolProbity}: all-atom structure validation for macromolecular crystallography}",
+	journal = "Acta Crystallographica Section D",
+	year = "2010",
+	volume = "66",
+	number = "1",
+	pages = "12--21",
+	doi = {10.1107/S0907444909042073}
+}
+
+
+
+
+@misc{ceres-solver,
+	author = "Sameer Agarwal and Keir Mierle and Others",
+	title = "Ceres Solver",
+	howpublished = "\url{http://ceres-solver.org}",
+}
+
+
+
+
+@article{RGs2016,
+author = {Avi Ginsburg and Tal Ben-Nun and Roi Asor and Asaf Shemesh and Israel Ringel and Uri Raviv},
+title = {Reciprocal Grids: A Hierarchical Algorithm for Computing Solution X-ray Scattering Curves from Supramolecular Complexes at High Resolution},
+journal = {Journal of Chemical Information and Modeling},
+volume = {56},
+number = {8},
+pages = {1518-1527},
+year = {2016},
+doi = {10.1021/acs.jcim.6b00159},
+}
+@article{Dplus2017,
+author = {Avi Ginsburg and Tal Ben-Nun and Roi Asor and Asaf Shemesh, Lea Fink, Roee Tekoah, Yehonatan Levartovsky, Daniel Khaykelson, and Israel Ringel and Uri Raviv},
+title = {D+: Software for High-Resolution Hierarchical Modeling of Solution X-Ray Scattering from Complex Structures},
+journal = {Submitted},
+volume = {0},
+number = {0},
+pages = {0-0},
+year = {2018},
+
+}
+@article{fraser1978improved,
+  title={An improved method for calculating the contribution of solvent to the X-ray diffraction pattern of biological molecules},
+  author={Fraser, R.D.B. and MacRae, T.P. and Suzuki, E.},
+  journal={Journal of Applied Crystallography},
+  volume={11},
+  number={6},
+  pages={693--694},
+  year={1978},
+  publisher={International Union of Crystallography}
+}
+@article{pavlov,
+  title={Improved technique for calculating X-ray scattering intensity of biopolymers in solution: Evaluation of the form, volume, and surface of a particle},
+  author={Pavlov, M Yu and Fedorov, BA},
+  journal={Biopolymers},
+  volume={22},
+  number={6},
+  pages={1507--1522},
+  year={1983},
+  publisher={Wiley Online Library}
+}
+@article{szekely2010solution,
+  title={Solution x-ray scattering form factors of supramolecular self-assembled structures},
+  author={Sz{\'e}kely, Pablo and Ginsburg, Avi and Ben-Nun, Tal and Raviv, Uri},
+  journal={Langmuir},
+  volume={26},
+  number={16},
+  pages={13110--13129},
+  year={2010},
+  publisher={ACS Publications}
+}
+@article{Ben-NunX+,
+  author = "Ben-Nun, Tal and Ginsburg, Avi and Sz{\'{e}}kely, Pablo and Raviv, Uri",
+  title = "{{\it X+}: a comprehensive computationally accelerated structure analysis tool for solution x-ray scattering from supramolecular self-assemblies}",
+  journal = "Journal of Applied Crystallography",
+  year = "2010",
+  volume = "43",
+  number = "6",
+  pages = "1522--1531",
+  doi = {10.1107/S0021889810032772},
+}
+@book{Kittel2005,
+  author = "C. Kittel",
+  title = "Introducion to Solid State Physics.",
+  year = "2005",
+  publisher = "John Wiley and Sons"
+  }
+@book{als2011elements,
+  title={Elements of modern x-ray physics},
+  author={Als-Nielsen, Jens and McMorrow, Des},
+  year={2011},
+  publisher={John Wiley \& Sons}
+}
+  
+@article{schneidman2013accurate,
+	title={Accurate SAXS profile computation and its assessment by contrast variation experiments},
+	author={Schneidman-Duhovny, Dina and Hammel, Michal and Tainer, John A and Sali, Andrej},
+	journal={Biophysical journal},
+	volume={105},
+	number={4},
+	pages={962--974},
+	year={2013},
+	publisher={Elsevier}
+}
+
+@article{svergun1995crysol,
+	title={CRYSOL -- a program to evaluate X-ray solution scattering of biological macromolecules from atomic coordinates},
+	author={Svergun, D and Barberato, Claudio and Koch, Michel HJ},
+	journal = "Journal of Applied Crystallography",
+	volume={28},
+	number={6},
+	pages={768--773},
+	year={1995},
+	publisher={International Union of Crystallography}
+}
+
+@article{kronrod1964integration,
+ 	title={Integration With Accuracy Control},
+ 	author={Kronrod, AS},
+ 	journal={DOKLADY AKADEMII NAUK SSSR},
+ 	volume={154},
+ 	number={2},
+ 	pages={283},
+ 	year={1964},
+ 	publisher={MEZHDUNARODNAYA KNIGA 39 DIMITROVA UL., 113095 MOSCOW, RUSSIA}
+ }
+ @article{laurie1997calculation,
+ 	title={Calculation of Gauss-Kronrod quadrature rules},
+ 	author={Laurie, Dirk},
+ 	journal={Mathematics of Computation of the American Mathematical Society},
+ 	volume={66},
+ 	number={219},
+ 	pages={1133--1145},
+ 	year={1997}
+ }
+
+
+
+}
+\end{filecontents*}
+\addbibresource{\jobname.bib}
+
+% % % % % % % % %
+% Page styling section
+% % % % % % % % %
+
+%\copypagestyle{mine}{ruled}
+%\makeevenfoot{plain}{}{\thepage}{}
+%\makeoddfoot{plain}{}{\thepage}{}
+%\pagestyle{mine}
+\OnehalfSpacing % memior's equivalent to the setspace package
+
+\begin{document}
+
+% % % % % % % % %
+% Title page
+% % % % % % % % %
+\frontmatter
+\thispagestyle{empty} %\pagestyle{empty}
+\vspace*{\fill}
+\begin{center}
+\HUGE D+ \\
+\medskip
+\Large User's Manual (Version 4.1.0)
+\end{center}
+\vspace*{\fill}
+
+% % % % % % % % %
+% Table of Contents
+% % % % % % % % %
+\newpage
+\tableofcontents
+
+
+%\makepagestyle{companion}
+
+% % % % % % % % %
+% The Manual
+% % % % % % % % %
+\subfile{Preface}
+
+
+\mainmatter
+
+\pagenumbering{arabic}
+
+\subfile{Installation}
+
+\subfile{"Getting started"}
+
+\begin{refsection}
+\subfile{PDBFiles}
+\end{refsection}
+
+\begin{refsection}
+\subfile{Symmetries}
+\end{refsection}
+
+\subfile{Scripts}
+
+\subfile{IntegrationMethods}
+
+\subfile{ReciprocalGrids}
+
+\subfile{Examples}
+
+\subfile{RemoteCalculations}
+
+%\subfile{Python}
+
+\nocite{*}
+\printbibliography[]
+
+
+\end{document}

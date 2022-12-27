@@ -1,0 +1,68 @@
+
+\documentclass[../D+Manual.tex]{subfiles}
+\begin{document}
+
+\chapter{Integration Methods} \label{chp:integrationMethods}
+
+\begin{quote}
+	Art is an attempt to integrate evil.\\
+	\hspace*{\fill} \textit{Simone de Beauvoir}
+\end{quote}
+
+
+The generation of a model signal in D+ requires the calculation of
+
+\begin{equation}
+I\left(q\right) = \frac{1}{4\pi}\int_{\Omega_q}\left|F\left(\vec q\right)\right|^2 d\Omega_q
+\label{eq:OE}
+\end{equation}
+where the $\int_{\Omega_q}d\Omega_q$ integration (orientation average in reciprocal $q$-space) is done numerically. The solid-angle in reciprocal $q$-space, $\Omega_q$, is essentially two dimensions (containing the polar-angle $\theta_q = \left[0,\pi\right]$ and the azimuth-angle $\phi_q = \left[0,2\pi\right]$), defining the orientations.
+
+There are two options in the \texttt{Preferences} pane (see sec. \ref{sec:preferences}) that affect the results of the quadrature. The main items are \texttt{Integration Iterations} and \texttt{Convergence}. The  \texttt{Integration Iterations} parameter is the maximal number of evaluations (the default value is \texttt{10,000,000}), unless otherwise is specified in the following sections. The \texttt{Convergence} parameter, $\epsilon$, is a value that allows the evaluation to be stopped once converged.
+
+There are many quadrature (numerical integration) methods, each with its own set of advantages and disadvantages. D+ has a few methods to choose from.
+
+\section{Monte Carlo}
+
+The default methods is \texttt{Monte Carlo (Mersenne Twister)} integration. It is implemented both for a CPU and a GPU, although there are slight differences in the precise implementations. In this case the intensity is given by
+\begin{equation}
+I\left(q\right) = \frac{1}{w}\sum_{i}^{w}\left|F\left(\vec{q}_i\right)\right|^2
+\label{equ:OrientAvr}
+\end{equation}
+where $\vec{q}_{i}=\left(q, \theta_{q}^{i},\phi_{q}^{i}\right)$ and the values for $\theta_{q}^{i}$ and $\phi_{q}^{i}$ are chosen randomly. 
+
+The convergence parameter is
+\begin{equation}
+\left|1 - \frac{I_{w}}{I_{w-k}}\right| < \epsilon
+\end{equation}
+$w$ and $k$ are integers and $1\le k < w$. In practice, the intensity is compared to multiple previous points to determine convergence.
+
+Technical note: The random number generator used is Mersenne Twister (mt19937).
+
+\section{Adaptive (VEGAS) Monte Carlo}
+\label{sec:VEGAS}
+
+
+The basic idea of \texttt{Adaptive (VEGAS) Monte Carlo} integration is to divide the integration axes into sections such that the variance in the variance is minimized. This can speed up the convergence of the quadrature if the variance changes in parallel to one of the integration axes. If the structure is not parallel to either of the axes, then the speed-up will be less, and can be even slower than the classic Monte Carlo method.
+
+The convergence parameter is
+\begin{equation}
+\left|1 - \frac{I_{w}}{I_{w-k}}\right| < \epsilon
+\end{equation}
+Here too the intensity is compared with multiple previous points to determine convergence.
+
+This method is implemented for the GPU only at this point. VEGAS is particularly useful for computing the models of structures that have one dimension with significantly different length then the other dimensions (a rod-like or tubular structure, for example). The scattering amplitudes of these objects will be concentrated around one or two axes in reciprocal space, hence will benefit from the adaptive integration approach. When using \texttt{VEGAS}, the scattering \texttt{Amplitude} cannot be exported (see sec. \ref{sec:IntRes}).
+
+\section{Adaptive Gauss Kronrod}
+
+\texttt{Adaptive Gauss Kronrod} is a recursive method that subdivides the integration region as long as the current region has an estimated error greater than $\epsilon$. In this method, the \texttt{Integration Iterations} is not the number of evaluations, but rather the maximum recursion depth. Note that in contrast to the number of iterations which is very large (the default is \texttt{10,000,000}), the recursion depth should be \texttt{10} or \texttt{15}. \textbf{Make sure to change this value!}.
+
+The \texttt{Adaptive Gauss Kronrod} method used is a 7-point Gauss rule with a 15-point Kronrod rule \cite{kronrod1964integration,laurie1997calculation}. The error estimate is given by the relative difference between the two:
+
+\begin{equation}
+\left|1 - \frac{G_{7}}{K_{15}}\right| < \epsilon
+\end{equation}
+
+This method is deterministic and was implemented only for the CPU. It should be used for structures that have one dimension with significantly different length then the other dimensions. When using \texttt{Adaptive Gauss Krorrod}, usually the \texttt{Convergence} value can be ten times higher than the value in \texttt{Monte Carlo (Mersenne Twister)} for similar results. It is often enough to compute fewer $q$ points (about 10 or 20\%) to get faster results.     
+
+\end{document}

@@ -481,8 +481,7 @@ def g_r_from_s_q(q, s_q, rho, r_min=0, r_max=15, dr=0.01, factor=1, type='Simpso
         return r, g_r
 
 def g_r_from_model_slow(file, Lx, Ly, Lz, file_triple=None, radius=0, r_min=0, r_max = 15, dr = 0.01,
-                        Number_for_average =
-1):
+                        Number_for_average = 1):
     """Given a file of a structure and the box size, finds the radial distribution function."""
     vec, n = read_from_file(file, radius)
     vec_triple = triple(vec, Lx, Ly, Lz, file_triple)
@@ -626,6 +625,7 @@ def compute_gr(bins: dc.float64[M], thermal: dc.bool, vec_old: dc.float64[V, 4],
                u: dc.float64[4]=np.array([0, 0, 0, 0]), dr=0.01, r_min=0, r_max=15):
     rho: dc.float64
     r_0: dc.float64[4]
+    # rad: dc.float64[A, 2]
     g_r = np.zeros([Number_for_average_atoms * Number_for_average_conf, M])
 
     num = 0
@@ -649,15 +649,15 @@ def compute_gr(bins: dc.float64[M], thermal: dc.bool, vec_old: dc.float64[V, 4],
                     d = np.sqrt((row_j[0] - r_0[0]) ** 2 + (row_j[1] - r_0[1]) ** 2 + (row_j[2] - r_0[2]) ** 2)
                     if (d < r_min) | (r_max < d) | (d < 1e-10):
                         pass#continue
-                    else:
-                        num += 1
-                        for i in range(M):
-                            if bins[i] < d:
-                                pass
-                            else:
-                                if bins[i] >= d:
-                                    g_r[it_tot, i] += 1
-                                    break
+
+                    num += 1
+                    for i in range(M):
+                        if bins[i] < d:
+                            pass
+                        else:
+                            if bins[i] >= d:
+                                g_r[it_tot, i] += 1
+                                break
             else:
                 for j in range(vec_triple.shape[1]):
                     row = vec_triple[it_conf, j]
@@ -705,7 +705,7 @@ def compute_gr(bins: dc.float64[M], thermal: dc.bool, vec_old: dc.float64[V, 4],
     g_r[:] = np.sum(g_r, axis=0) / (Number_for_average_atoms * Number_for_average_conf)
     rho = 3 * np.sum(g_r[0]) / (4 * np.pi * bins[-1] ** 3)
 
-    return bins, g_r[0], rho  # , rad
+    return bins, g_r[0], rho#, rad
 
 # triple.compile()
 # compute_gr = precompute_gr.compile()

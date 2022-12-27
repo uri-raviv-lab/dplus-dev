@@ -1,0 +1,83 @@
+\documentclass[12pt,a4paper,openany,oneside,oldfontcommands]{memoir}
+%\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{units}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{gensymb}
+\usepackage{graphicx}
+\usepackage{memhfixc}
+\usepackage{wrapfig}
+\usepackage{pdflscape}
+\usepackage{afterpage}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{textcomp}
+\usepackage[version=3]{mhchem}
+
+\usepackage{listings}
+\usepackage{textcomp}
+\usepackage{siunitx}
+\usepackage{lipsum}
+
+\usepackage[obeyspaces]{url}
+
+\usepackage{subfiles}
+\usepackage{ltablex,tabularx}
+\usepackage{longtable,booktabs}
+
+
+\begin{document}
+\subsection{Anomalous scattering in the paper}
+\label{sec:AnomScat}
+In modern synchrotrons, the energy of the X-ray photons can be varied. If scattering experiments are repeated at multiple wavelengths, and the structure contains atoms whose resonant scattering terms, $f'$ and $f''$, respond to the energy scan, additional structural information can be derived. When modeling atomic models with anomalous scattering the scattering amplitude from an atom $j$ in units of $-r_0$, in vacuum, is given by \cite{als2011elements}:  
+\begin{equation}
+f^{va}_j\left(q, \lambda\right) = f^{0}_j\left(q\right) + f'_j\left(\lambda\right) + if''_j\left(\lambda\right).
+\label{Anomalous}
+\end{equation}
+Therefore, one needs to provide input in the form of $f'_j\left(\lambda\right)$ and $f''_j\left(\lambda\right)$ for all the atoms whose resonant scattering terms have a significant contribution to the scattering signal in the relevant conditions.
+In D+, this is done via a text file loaded when loading an atomic model.
+D+ uses the input without any sanity checks, so it is the users responsibility to ensure that proper values are used. In particular, note that in D+, $r_0$ is set to $1$ when $f^{0}_j\left(q\right)$ is computed. 
+Input is an $\left\lbrace f'_j, f''_j\right\rbrace$ pair with either a list of the atom indices in the PDB file or an ion type (Eq. \ref{Anomalous} will be applied to all ions of that type).
+This type of input may be obtained from X-ray fluorescence spectra and the computer program CHOOCH \cite{evans2001chooch}. See the User's Manual of D+ for more details and usage example.
+
+The anomalous scattering amplitude in solution from atom $j$ is: 
+\begin{equation*}
+f_j^{sa}\left(q,\lambda\right)=f^{va}_j(q,\lambda)-F^d_j(q)
+\end{equation*}
+and from a molecule:
+\begin{equation*}
+F^{as}_{\text{mol}}\left(\vec{q},\lambda\right)=\sum_{i=1}^n f_{i}^{sa}\left(q,\lambda\right)\cdot \exp\left(i\vec{q}\vec{r}_i\right).
+\end{equation*}
+	
+	
+	
+\section{Anomalous Scattering in the User's Manual} \label{sec:anomalousScattering}
+D+ can take anomalous scattering of atoms into account when computing scattering amplitudes of atomic models. Two additional correction terms should be added to get the atomic form factor energy dependence:
+\begin{equation*}
+	f(q,\lambda) = f^\circ(q) + f'(\lambda) + i f''(\lambda).
+\end{equation*}
+To enable this option for a given PDB file, choose \texttt{PDB File...} from the dropdown menu in the \texttt{Domain View} window.
+Check the \texttt{Anomalous} checkbox \textit{before} pressing the \texttt{Add} button.
+An additional \texttt{Open File} dialog will pop up after selecting the PDB file.
+Select the text file containing the relevant $f'$ and $f''$ values.
+The file should be formated using any combination of the lines below.
+
+%\lstset{style=anomalousFile,}
+
+\begin{lstlisting}
+# Energy    2345.82km
+# <f'>  <f''>   <atom identifier>
+1.2     2.3     Fe2+
+#<f'>   <f''>   <atom indices>
+1.3     3.4     125     256
+#<f'>   <f''>   <name of a group that's defined below>
+-3e4    +2.01   $(someRandomGroupName)
+#<name of a group>      <list of atom indices>
+$(someRandomGroupName)  252 472 7344 313
+\end{lstlisting}
+
+Lines that start with '\#' are considered comments and are ignored.
+%TODO add an example. What do you mean by atom indices (line in the pdb file?) and group name (CH, CH_2?)? 
+The \texttt{Example Files} subfolder of D+ includes more examples. 
+\end{document}

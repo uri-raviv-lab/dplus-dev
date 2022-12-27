@@ -1,0 +1,117 @@
+
+\documentclass[../D+Manual.tex]{subfiles}
+\begin{document}
+
+\chapter{Installation}
+\label{sec:install}
+
+\begin{quote}
+	Computers themselves, and software yet to be developed, will revolutionize the way we learn.\\
+	\hspace*{\fill} \textit{Steve Jobs}
+\end{quote}
+
+\section{Hardware architecture} \label{sec:hardware}
+
+D+ requires that the CPU is Intel® Advanced Vector Extensions (Intel® AVX) capable. D+ can also use graphics cards (or graphic processing units, GPUs) to accelerate calculations by factors that vary between $\times10$ to $\times1000$.
+A GPU is not required, but recommended for performance. 
+D+ utilizes NVIDIA GPUs, preferably the higher end products with reasonable (1:3) double- to single- precision floating point ratio (FP64 = $\nicefrac{1}{3}$ FP32) performance.
+The cards that are known/assumed to work well are
+\begin{enumerate}
+	\item GTX 980 (known)
+	\item Titan (known)
+	\item Titan Black (known)
+	\item Titan Z (assumed)
+	\item Tesla series (assumed)
+	\item Quadro K6000 (assumed)
+	\item Quadro K5200 (assumed)
+\end{enumerate}
+
+Cards that have low FP64:FP32 performance (1:32 for Maxwell architecture and therefore are not recommended, but will work for most computations) include:
+\begin{enumerate}
+	\item Titan X
+	\item Quadro M6000
+\end{enumerate}
+
+\section{Software} \label{sec:software}
+
+\subsection{Windows} \label{sec:windowsInstall}
+
+
+D+ is freely \href{https://scholars.huji.ac.il/uriraviv/book/d-0}{available} for academic use. You can \href{https://drive.google.com/file/d/1Nu7EhBsu0Hwu3VFXv8IoQmhSRk9u5hJs/view?usp=sharing}{download} the installer of D+ and install the program. 
+
+D+ has a few prerequisites: \href{http://www.microsoft.com/en-us/download/details.aspx?id=17718}{Microsoft .NET 4.0} and \href{http://www.microsoft.com/en-us/download/details.aspx?id=40784}{Visual C++ Redistributable Packages for Visual Studio 2013}.
+D+ is a 64 bit application due to memory usage and some library requirements; install the 64 bit versions of the Visual C++ Redistributable Packages.
+Also, if a GPU is installed, the proper driver should also be installed to enable CUDA (CUDA 8.0, at the time of writing).
+If the D+ installer (an msi file) is used, it will install the Visual C++ Redistributable Packages on its own. On Windows computers with CUDA enabled GPUs, the installer makes sure that the watchdog timer is not enabled. 
+
+Once all the above are installed, the files listed in Table \ref{tbl:installFiles} should be placed in the same directory (the default is \path{C:\Program Files\D+\bin}).
+The purposes for including some of these files are indicated Table \ref{tbl:installFiles}.
+There are differences in the version that uses a remote server for the computations.
+Usage of both versions is practically identical and therefore except for the few and minor differences mentioned in chapter \ref{chp:remoteCalculations}, the remainder of this manual pertains to both.
+
+\begin{table}[h!]
+	\centering
+	
+	\begin{tabularx}{\textwidth}{X X}
+	\toprule
+	\textbf{Filename} & \textbf{Purpose}\\
+	\midrule
+	\path{Bin/Aga.Controls.dll}                        & \\
+	\path{Bin/ceres.dll}                               & \\
+	\path{Bin/cudart64_80.dll}                         & Checks for the graphics card \\
+	\path{Bin/curand64_80.dll}                         & \\
+	\path{Bin/DebyeCalculator.exe}                     & Calculates the ``ground truth'' for atomic scattering\\
+	\path{Bin/DPlus.exe}                               & Launches D+ \\
+	\path{Bin/Fit.exe}                                 & \\
+	\path{Bin/Generate.exe}                            & \\
+	\path{Bin/GetAllMetadata.exe}                      & \\
+	\path{Bin/GLView.dll}                              & \\
+	\path{Bin/GraphToolkit.dll}                        & \\
+	\path{Bin/JSON.lua}                                & \\
+	\path{Bin/License.txt}                        & \\
+	\path{Bin/lua51.dll}                               & \\
+	\path{Bin/lua51-backend.dll}                       & \\
+	\path{Bin/LuaInterface.dll}                        & \\
+	\path{Bin/Microsoft.WindowsAPICodePack.dll}        & \\
+	\path{Bin/Microsoft.WindowsAPICodePack.Shell.dll}  & \\
+	\path{Bin/mscorlib.dll}                            & \\	
+	\path{Bin/Newtonsoft.Json.dll}                     & \\
+	\path{Bin/PDBReaderLib.dll}                        & \\
+	\path{Bin/PDBUnits.exe}                            & Helper tool that finds identical copies of segments in a larger PDB file \\
+	\path{Bin/Resources/atomicData.txt}               & Used by \path{Bin/PDBUnits.exe} \\
+	\path{Bin/SciLexer.dll}                            & \\
+	\path{Bin/SciLexer64.dll}                          & \\
+	\path{Bin/ScintillaNET.dll}                        & \\
+	\path{Bin/Suggest Parameters.exe}                  & A program that suggests parameters for D+ \\
+	\path{Bin/WeifenLuo.WinFormsUI.Docking.dll}        & \\
+	\path{Bin/xplusbackend.dll}                        & Handles the actual calculations\\
+	\path{Bin/xplusfrontend.dll}                       & \\
+	\path{Bin/xplusmodels.xrn}                         & \\
+	\path{Example Files/Examples}                          & Contains 7 Example subfolders. See Chap. \ref{chp:examples}. \\
+	\path{Example Files/Tutorials}                          & Contains 6 Tutorial subfolders. \\
+	\path{Example Files/AnomalousInputExample.txt}                          & Anomalous Input File. See Chap. \ref{sec:anomalousScattering}. \\
+	\path{Example Files/READ_ME.txt}                          & Explains how to use the examples. \\	
+	\path{LuaScripts/}                & Contains 4 examples of  \href{http://www.lua.org/}{Lua} scripts\\
+	\path{D+ Manual.pdf}                  & The User's Manual of D+ \\
+	\bottomrule
+	\end{tabularx}
+	\caption{
+	The installed files include both files for a local installation, as well as a remote (Windows) installation.
+	Depending on the options chosen at installation, you may only see a subset of these files.
+	}
+	\label{tbl:installFiles}
+\end{table}
+
+
+
+
+\subsection{Linux} \label{sec:linuxInstall}
+
+First note that there is no GUI for Linux.
+There are precompiled binaries for Ubuntu and CentOS that can be used by the Python API (see Chapter \ref{the-dplus-python-api}).
+Download the relevant file (\path{dplus.tar.bz2} or \path{dplus.centos.tar.bz2}) and \path{install.sh}.
+Run \path{$ install.sh} alongside the downloaded archive.
+Run \path{$ source ~/.bashrc} to set the proper environment variables.
+
+
+\end{document}

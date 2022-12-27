@@ -1,0 +1,239 @@
+
+\documentclass[../D+Manual.tex]{subfiles}
+\begin{document}
+
+\chapter{Lua Scripts} \label{chp:scripts}
+
+\begin{quote}
+	It's nice to finally get scripts offered to me that aren't the ones Tom Hanks wipes his butt with.\\
+	\hspace*{\fill} \textit{Jim Carrey}
+\end{quote}
+
+
+\lstset{style=Luastyle,}
+
+Scripting in D+ is done with the \href{http://www.lua.org/}{Lua language}.
+Scripts can be used to create \hyperref[chp:Symmetries]{Symmetries} (covered in chapter \ref{chp:Symmetries}) and to do repetitious work.
+It can also be used as a general \href{http://www.lua.org/}{\texttt{Lua}} environment.
+There are several examples available in the \path{./LuaScripts/} directory, where D+ is installed.
+This chapter will address the bound D+ functions that have been exposed for use.
+
+Most of the functions are gathered in a table called \lstinline|dplus|. The list of Dplus Lua commands are provided in the next section. Additional explanations and usage examples are provided in the two sections that follow. 
+
+\section{Complete List of Dplus Lua Commands }
+
+The list of D+  \href{http://www.lua.org/}{\texttt{Lua}} commands can be seen in the \texttt{Command Window} of D+ by typing \texttt{dplus.}, and holding the \texttt{Ctrl} and \texttt{Space} keys.
+
+In the following we present the complete list of D+ \href{http://www.lua.org/}{\texttt{Lua}} commands and their arguments or parameters. Optional parameters are marked with [brackets].
+
+
+\begin{lstlisting}
+dplus.openconsole()
+\end{lstlisting}
+Opens an external console window (for performance and debugging purposes)
+
+\begin{lstlisting}
+dplus.closeconsole()
+\end{lstlisting}
+Closes the external console window
+
+\begin{lstlisting}
+dplus.getparametertree()
+\end{lstlisting}
+Returns the current parameters as a parameter tree object
+
+\begin{lstlisting}
+dplus.setparametertree(param_tree)
+\end{lstlisting}
+Sets the parameter tree as the current parameters
+
+\begin{lstlisting}
+dplus.save(filename)
+\end{lstlisting}
+Saves parameters to .state file
+
+\begin{lstlisting}
+dplus.load(filename)
+\end{lstlisting}
+Loads parameters from .state file
+
+\begin{lstlisting}
+dplus.findmodel(name[, container])
+\end{lstlisting}
+Finds a (geometric) model by name, optionally with an external container (DLL) filename
+
+\begin{lstlisting}
+dplus.findamp(name[, container])
+\end{lstlisting}
+Finds an amplitude model by name, optionally with an external container (DLL) filename
+
+\begin{lstlisting}
+dplus.generate([param_tree, save_filename, should_save_amplitudes])
+\end{lstlisting}
+Generate using the given parameter tree (or nil for current parameters), optionally saving the result to a file. 'should\_save\_amplitudes' determines whether D+ should save the grid amplitudes while generating.
+
+\begin{lstlisting}
+dplus.fit(data, param_tree, properties)
+\end{lstlisting}
+Fit a given parameter tree (or nil for current parameters) to the given data table, using the fitting properties given in 'properties'.
+
+\begin{lstlisting}
+dplus.readdata(filename)
+\end{lstlisting}
+Reads data from a signal file to a Lua table
+
+\begin{lstlisting}
+dplus.writedata(filename, data)
+\end{lstlisting}
+Writes data from a Lua table to a signal file (TSV format)
+
+\begin{lstlisting}
+dplus.figure(title, xlabel, ylabel)
+\end{lstlisting}
+Opens a new figure with a given title, x, and y labels. Returns figure ID for use in dplus.showgraph*
+
+\begin{lstlisting}
+dplus.showgraph(data, figure_id, color)
+\end{lstlisting}
+Plots a signal filename (if data is a string) or table (if data is a Lua table) on a given figure ID, using a specific color (given as a string of the color name). If 'figure\_id' is nil, uses the last opened figure.
+
+\begin{lstlisting}
+dplus.{msgbox,mbox,message,messagebox}(message)
+\end{lstlisting}
+Opens a message box (good for user notifications)
+
+\begin{lstlisting}
+dplus.{sleep, wait}(time_ms)
+\end{lstlisting}
+Wait for the given amount of milliseconds
+
+
+\section{UI Related Functions}
+
+Some of the functions allow some basic control of the user interface. Of these, some have more complex uses and will be addressed in separate sections.
+
+\paragraph{Opening and closing the console}
+\begin{sloppypar}
+The console can be opened and closed via the commands \lstinline|dplus.openconsole()| and \lstinline|dplus.closeconsole()| respectively.
+\end{sloppypar}
+
+\paragraph{Saving and loading parameter files}
+The entire set of model, fitting and camera parameters can be saved to a file\footnote{The saved file is itself a \href{http://www.lua.org/}{\texttt{Lua}} script that contains the parameters in tables.}.
+\lstinline|dplus.save(string)| saves the current set of parameters to a file. For example,
+\begin{lstlisting}[basicstyle = \small,literate={'}{{'}}1,escapeinside={(*}{*)}]
+dplus.save("C:\\path\\to\\file.state")
+\end{lstlisting}
+will save the current state to \path{C:\path\to\file.state}. Likewise, 
+\begin{lstlisting}[basicstyle = \small,literate={'}{{'}}1,escapeinside={(*}{*)}]
+dplus.load("C:\\path\\to\\file.state")
+\end{lstlisting}
+loads the file into the UI and replaces any existing parameters.
+
+\paragraph{Reading scattering curve data files}
+Loading a signal to the \hyperref[sec:2DGraph]{\texttt{2D graph}} is achieved by
+\begin{lstlisting}
+dplus.readdata(filename)
+\end{lstlisting}
+
+\paragraph{Message boxes}
+A (blocking) dialog box with a specific message can be popped up with any of the following (without \lstinline{dplus.}):
+\lstinline{msgbox(string)},
+\lstinline{mbox(string)},
+\lstinline{message(string)}, or
+\lstinline{messagebox(string)}.
+
+
+\paragraph{Navigating Lua tables} \label{sec:par:printKeys}
+Owing to the fact that \href{http://www.lua.org/}{\texttt{Lua}} stores \textit{everything} in a Key-Value table, it is often necessary to find out what the keys are. Using the provided \lstinline{PrintKeys(table)} prints a list of the table keys in the \texttt{Command Window}.
+
+\paragraph{Waiting}
+Two identical functions for waiting are provided: \lstinline{sleep(ms)} and \lstinline{wait(ms)}. Both accept an integer and pause the script for that number of milliseconds.
+
+
+\section{Scripting Related Functions}
+
+When running repetitive tasks (such as generating all the permutations of four parameters at increments of $X$) several types of functions are needed, such as manipulating the parameters, generating models, saving results, etc.
+
+\paragraph{Obtaining the parameters from the GUI}
+\begin{sloppypar}
+While it is possible to create the parameters from scratch using a script, 
+a better method would be to obtain the parameters from the GUI, using  \lstinline{dplus.getparametertree()}. The \hyperref[sec:par:printKeys]{\texttt{PrintKeys}} function can be used to navigate and to obtained tree like so (in the Command Window):
+\end{sloppypar}
+
+\begin{lstlisting}[basicstyle = \small,literate={'}{{'}}1,escapeinside={(*}{*)}]
+myTree = dplus.getparametertree()
+dummyVar = PrintKeys(myTree)
+--[[ Prints:
+	Size: 4
+	Scale
+	ScaleMut
+	Geometry
+	Populations
+]]
+dummyVar = PrintKeys(myTree.Populations)
+--[[ Prints:
+	Size: 1
+	1
+]]
+dummyVar = PrintKeys(myTree.Populations[1])
+--[[ Prints:
+	Size: 3
+	PopulationSizeMut
+	PopulationSize
+	Models
+]]
+-- etc.
+\end{lstlisting}
+
+\paragraph{Setting the parameters to the GUI}
+After navigating the tree and changing one of the parameters like
+\begin{lstlisting}[basicstyle = \small,literate={'}{{'}}1,escapeinside={(*}{*)}]
+myTree.Populations[1].Models[1].Parameters[2][2] = math.pi^math.exp(1)
+\end{lstlisting}
+the GUI remains ignorant of the change until it's updated.
+One way of updating the GUI is to use
+\lstinline{dplus.setparametertree(myTree)}.
+NOTE: This clears all existing entities/models and creates new ones. If one of the models was a PDB model, then the PDB file will be read again.
+
+\paragraph{Updating the GUI's parameters}
+If all that needs to be done is change a few parameters without \textit{adding or removing} parameters, the better option would be to update the GUI parameters.
+This way, the aforementioned PDB model does not get reread and any information D+ has created for the model is not lost.
+This is done with \lstinline{dplus.updateparametertree(myTree)}.
+
+\paragraph{Generating models}
+Modifying parameters is all good, but using them to generate model signals is better.
+The command is \lstinline{dplus.generate} and has three different overloads (usage forms).
+All forms return a table which contains the ($x,y$) coordinates of the resulting scattering curve graph.
+The simple form is \lstinline{res = dplus.generate()}.
+This takes the parameters from the GUI and uses them to generate a model of a scattering curve signal.
+It is also possible to generate a model without updating the GUI via
+\lstinline{res = dplus.generate(myTree, saveFileName)}.
+There are some times when one might want to save the amplitude files of the generated model.
+This can be achieved by \lstinline{res = dplus.generate(myTree, saveFileName, true)}.
+
+\paragraph{Saving files}
+Generating $10^{35}$ models is better, but wouldn't it be amazing if the results were save to a file?
+Again, achieved like so (including a bit of error checking):
+\begin{lstlisting}[basicstyle = \small,literate={'}{{'}}1,escapeinside={(*}{*)}]
+res = dplus.generate()
+ddd = dplus.writedata(saveFileName, res)
+
+if not ddd then
+	print("There was a problem with file " .. saveFileName .. ".\n");
+end
+\end{lstlisting}
+
+\paragraph{Fitting}
+
+If saving $10^{35}$ files is amazing, fitting and selecting one file to save would be awesome.
+A \href{http://www.lua.org/}{Lua} interface for this purpose  exists and works. The challenge is to choose the right starting fitting parameters. D+ adopted \href{http://ceres-solver.org/}{\texttt{Ceres-Solver}} fitting algorithm using Riddler's method for derivation.
+
+\subsection{Miscellaneous}
+
+In \href{http://www.lua.org/}{Lua} assigning a table to a variable does not copy it.
+If we did \lstinline{a = myTree} and then changed a value either in \lstinline{a} or in \lstinline{myTree} the change will be apparent in the other variable.
+An actual copy function is provided and used as \lstinline{a = table.copy(myTree}).
+
+
+
+\end{document}
