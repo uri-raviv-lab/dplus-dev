@@ -271,6 +271,44 @@ def test_2d_intensity_hard_2():
     plt.imshow(result, origin='lower', aspect=aspect, norm=colors.LogNorm(vmin=0, vmax=np.max(np.max(result))))
     plt.show()
 
+
+def test_2D_cart2pol_calculate_intensity():
+    my_amp = Amplitude.load(join(file_dir, "intensity", "1jff.ampj"))
+    qZ = [-7.5, -5.833333333333333, -4.166666666666666, -2.5, -0.833333333333333, 0.8333333333333339, 2.5, 4.166666666666668, 5.833333333333334, 7.5]
+    qP = [-7.5, -5.833333333333333, -4.166666666666666, -2.5, -0.833333333333333, 0.8333333333333339, 2.5, 4.166666666666668, 5.833333333333334, 7.5]
+
+    qs = [[0 for t in range(len(qP))] for q in range(len(qZ))] 
+    thetas = [[0 for t in range(len(qP))] for q in range(len(qZ))] 
+    
+    result = [[0 for t in range(len(qP))] for q in range(len(qZ))] 
+    qZ_idx = 0
+    qP_idx = 0
+
+    for z in qZ:
+        for p in qP:
+            res = Amplitude.qZ_qPerp_to_q_theta(z, p)
+            q = res['q']
+            theta = res['theta']
+
+            qs[qZ_idx][qP_idx] = q
+            thetas[qZ_idx][qP_idx] = theta
+            if q<=7.5:
+                result[qZ_idx][qP_idx] = my_amp.calculate_intensity(q, theta)
+            
+            qP_idx += 1
+
+        qZ_idx += 1
+        qP_idx = 0
+
+    print("result")
+    print(result)
+    print("qs")
+    print(qs)
+    print("thetas")
+    print(thetas)
+
+    print("Done")
+
 def test_2d_cryst_intensity():
     my_amp = Amplitude.load(join(file_dir, "intensity", "my_sphere.ampj"))
     cryst_diff = my_amp.get_crystal_intensity(7.5, calculated_points=200)

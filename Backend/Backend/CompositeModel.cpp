@@ -263,6 +263,63 @@ VectorXd CompositeModel::CalculateVector(const std::vector<double>& q, int nLaye
 	return (scale * vec).array() + constant;
 }
 
+MatrixXd CompositeModel::CalculateMatrix(const std::vector<double>& q, int nLayers, VectorXd& p /*= VectorXd( ) */, progressFunc progress /*= NULL*/, void* progressArgs /*= NULL*/) 
+{
+	std::cout << "!!!!!!! CompositeModel::CalculateMatrix !!!!!!!" << std::endl;
+
+	size_t points = q.size();
+	MatrixXd mat = MatrixXd::Zero(points, points);
+	MatrixXd tmpmat;
+
+	FakeProgressArgs fpa;
+	fpa.realProgress = progress;
+	fpa.realProgressArgs = progressArgs;
+	fpa.minProgress = 0.0;
+	fpa.maxProgress = 1.0;
+
+	unsigned int totalModels = (unsigned int)_additives.size();
+
+	PreCalculate(p, nLayers);
+	if (_previous_intensity.size() > 1 &&
+		_previous_q_values.size() == q.size() &&
+		(_previous_q_values == Eigen::Map<const Eigen::ArrayXd>(q.data(), q.size())).all() // The q-values haven't changed
+		)
+		return scale * _previous_intensity + constant;
+	for (unsigned int i = 0; i < totalModels; i++)
+	{
+		fpa.minProgress = (double)i / (double)totalModels;
+		fpa.maxProgress = (double)(i + 1) / (double)totalModels;
+		if (progress && progressArgs)
+			progress(progressArgs, fpa.minProgress);
+		if (pStop && *pStop)
+			break;
+
+		
+		MatrixXd additive_i = _additives[i]->CalculateMatrix(q, _layers[i], _params[i], FakeProgressFunc, &fpa);
+		tmpmat = _weights[i] * additive_i;
+
+		// Multiply by all multipliers
+		for (auto mult : _multipliers[i])
+		{
+			MatrixXd calculated = mult->CalculateMatrix(q, _multLayers[mult], _multParams[mult]);
+			tmpmat *= calculated;
+		}
+
+		mat = mat + tmpmat;
+		
+	
+	}
+
+	if (progress && progressArgs)
+		progress(progressArgs, fpa.maxProgress);
+
+	_previous_intensity_2D = mat;
+	_previous_q_values = Eigen::Map<const Eigen::ArrayXd>(q.data(), q.size());
+
+
+	return (scale * mat).array() + constant;
+}
+
 VectorXd CompositeModel::Derivative(const std::vector<double>& x, VectorXd param, int nLayers, int ai) {
 	// TODO::Fit: Figure out which indexes refer to translation and rotation, use special derivatives
 	// h is so "large" because grids do not support that kind of small modifications

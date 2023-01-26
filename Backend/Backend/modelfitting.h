@@ -21,6 +21,7 @@ struct fitJobArgs {
 ErrorCode PerformModelFitting(fitJobArgs *args);
 
 ErrorCode PerformModelGeneration(fitJobArgs *args);
+ErrorCode PerformModelGeneration2D(fitJobArgs* args);
 
 #endif // __MODELFITTING_H
 

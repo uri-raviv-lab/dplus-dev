@@ -59,6 +59,10 @@ public:
 							   const std::vector<double>& x, 
 							   const FittingProperties& fp);
 
+	ErrorCode StartGenerate2DJob(LocalBackend* backend, JobPtr job, const ParameterTree& tree,
+		const std::vector<double>& x,
+		const FittingProperties& fp);
+
 	void StopJob(JobPtr job, bool bBlocking);
 
 	void WaitForJob(JobPtr job);

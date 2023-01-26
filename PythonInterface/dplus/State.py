@@ -264,7 +264,7 @@ class DomainPreferences:
             #	polling the backend for progress. Broken.
         }
 
-    def load_from_dictionary(self, in_dict):
+    def load_from_dictionary(self, in_dict, is2D=False):
         """
         sets the values of the various fields within a class to match those contained within a suitable dictionary.
 
@@ -281,7 +281,7 @@ class DomainPreferences:
             q_min = in_dict.get("qMin", 0)
             q_max = in_dict["qMax"]
             generated_points = in_dict.get("GeneratedPoints", 800)
-            self.signal = Signal.create_x_vector(q_max, q_min, generated_points)
+            self.signal = Signal.create_x_vector(q_max, q_min, generated_points, is2D=is2D)
 
         self.orientation_iterations = in_dict["OrientationIterations"]
         self.orientation_method = in_dict["OrientationMethod"]
@@ -613,14 +613,14 @@ class State:
         self.Domain = Domain()
         self.__filenames = []
 
-    def load_from_dictionary(self, json):
+    def load_from_dictionary(self, json, is2D=False):
         """
         sets the values of the various fields within a class to match those contained within a suitable dictionary. \
         It can behave recursively as necessary, for example with a model that has children.
 
         :param json: json dictionary
         """
-        self.DomainPreferences.load_from_dictionary(json["DomainPreferences"])
+        self.DomainPreferences.load_from_dictionary(json["DomainPreferences"], is2D)
         self.FittingPreferences.load_from_dictionary(json["FittingPreferences"])
         try:
             self.__Viewport = json["Viewport"]

@@ -279,6 +279,7 @@ public:
 
 
 	virtual VectorXd CalculateVector(const std::vector<double>& q, int nLayers, VectorXd& p, progressFunc progress = NULL, void* progressArgs = NULL);
+	virtual MatrixXd CalculateMatrix(const std::vector<double>& q, int nLayers, VectorXd& p, progressFunc progress = NULL, void* progressArgs = NULL);
 
 	virtual VectorXd CalculateVectorGPU(const std::vector<double>& q, int nLayers, VectorXd& p, progressFunc progress = NULL, void* progressArgs = NULL);
 

@@ -635,6 +635,13 @@ ErrorCode LocalBackend::HandleGenerate(JobPtr job, const ParameterTree& tree, co
 	return JobManager::GetInstance().StartGenerateJob(this, job, tree, x, fp);
 }
 
+ErrorCode LocalBackend::HandleGenerate2D(JobPtr job, const ParameterTree& tree, const std::vector<double>& x,
+	const FittingProperties& fp) {
+
+	std::cout << "!!!!!!! LocalBackend::HandleGenerate2D !!!!!!!" << std::endl;
+	return JobManager::GetInstance().StartGenerate2DJob(this, job, tree, x, fp);
+}
+
 void LocalBackend::HandleStop(JobPtr job) {
 	JobManager::GetInstance().StopJob(job, false);
 }
@@ -679,6 +686,15 @@ int LocalBackend::HandleGetGraphSize(JobPtr job) {
 	return (int)j.resultGraph.size();
 }
 
+void LocalBackend::HandleGet2DGraphSize(JobPtr job, int& rows, int &cols) {
+	Job j = JobManager::GetInstance().GetJobInformation(job);
+	if (j.uid == 0)
+		throw backend_exception(ERROR_JOBNOTFOUND, g_errorStrings[ERROR_JOBNOTFOUND]);
+
+	cols = (int)j.resultGraph2D.cols();
+	rows = (int)j.resultGraph2D.rows();
+}
+
 bool LocalBackend::HandleGetGraph(JobPtr job, OUT double *yPoints, int nPoints)
 {
 	if(!yPoints)
@@ -689,6 +705,18 @@ bool LocalBackend::HandleGetGraph(JobPtr job, OUT double *yPoints, int nPoints)
 		throw(backend_exception(ERROR_JOBNOTFOUND, g_errorStrings[ERROR_JOBNOTFOUND]));
 
 	memcpy(yPoints, &j.resultGraph[0], nPoints * sizeof(double));
+
+	return true;
+}
+
+bool LocalBackend::HandleGet2DGraph(JobPtr job, OUT MatrixXd &yPoints, int rows, int cols)
+{
+	
+	Job j = JobManager::GetInstance().GetJobInformation(job);
+	if (j.uid == 0)
+		throw(backend_exception(ERROR_JOBNOTFOUND, g_errorStrings[ERROR_JOBNOTFOUND]));
+
+	yPoints = j.resultGraph2D;
 
 	return true;
 }

@@ -26,14 +26,23 @@ class CalculationResult(object):
         self._headers = OrderedDict()
         self._get_amp_func = get_amp_func
 
-        if 'Graph' not in self._raw_result:
+        if 'Graph' in self._raw_result:
+            if len(self._calc_data.x) != len(self._raw_result['Graph']):
+                raise ValueError("Result graph size mismatch")
+            else:
+                self.signal = Signal(self._calc_data.x, self._raw_result['Graph'])
+
+        elif '2DGraph' in self._raw_result:
+            if len(self._calc_data.x) != len(self._raw_result['2DGraph'])  \
+            or all([len(self._calc_data.x) == len(g) for g in self._raw_result['2DGraph']]) == False:
+                raise ValueError("Result graph size mismatch")
+
+            self.signal = Signal(self._calc_data.x, self._raw_result['2DGraph'])
+        else:
             # sometimes fit doesn't return graph, also any time generate crashes
             print("No graph returned")
-        elif len(self._calc_data.x) != len(self._raw_result['Graph']):
-            raise ValueError("Result graph size mismatch")
-        else:
-            self.signal = Signal(self._calc_data.x, self._raw_result['Graph'])
-
+        
+        
 
     @property
     def processed_result(self):

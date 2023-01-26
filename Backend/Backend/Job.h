@@ -44,6 +44,7 @@ struct Job {
 	ParameterTree *tree;
 	ModelFitter *fitter;
 	std::vector<double> resultGraph, ffGraph, sfGraph, bgGraph;
+	Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> resultGraph2D;
 
 	// If there is a current job in progress
 	JobState state;

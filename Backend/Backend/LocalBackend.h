@@ -6,6 +6,12 @@
 #include <stdexcept>
 #include <string>
 #include "backend_exception.h"
+
+#include <Eigen/Eigenvalues>
+#include <Eigen/Geometry>
+
+using Eigen::MatrixXd;
+
 class LocalBackendParameterTreeConverter;
 
 class JsonWriter;
@@ -56,6 +62,9 @@ public:
 	virtual ErrorCode HandleGenerate(JobPtr job, const ParameterTree& tree, const std::vector<double>& x,
 		const FittingProperties& fp);
 
+	virtual ErrorCode HandleGenerate2D(JobPtr job, const ParameterTree& tree, const std::vector<double>& x,
+		const FittingProperties& fp);
+
 	virtual void HandleStop(JobPtr job);
 
 	// Retrieve data from backend
@@ -63,7 +72,9 @@ public:
 	virtual bool HandleGetLastErrorMessage(JobPtr job, wchar_t *message, size_t length);
 	virtual JobType HandleGetJobType(JobPtr job);
 	virtual int  HandleGetGraphSize(JobPtr job);
+	virtual void  HandleGet2DGraphSize(JobPtr job, int &rows, int &cols);
 	virtual bool HandleGetGraph(JobPtr job, OUT double *yPoints, int nPoints);
+	virtual bool HandleGet2DGraph(JobPtr job, OUT MatrixXd &yPoints, int rows, int cols);
 	virtual ErrorCode HandleGetResults(JobPtr job, OUT ParameterTree& tree);
 	virtual bool HandleGetFittingErrors(JobPtr job, OUT double *paramErrors,
 		OUT double *modelErrors, int nMutParams, int nPoints);

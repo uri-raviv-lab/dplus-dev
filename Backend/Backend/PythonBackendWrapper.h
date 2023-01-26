@@ -25,7 +25,9 @@ public:
 	
 	std::string GetJobStatus();
 	std::string GetGenerateResults();
+	std::string GetGenerate2DResults();
 	void StartGenerate(const std::string state, bool useGPU);
+	void StartGenerate2D(const std::string state, bool useGPU);
 
 	std::vector<ModelPtr> GetModelPtrs();
 	void SaveAmplitude(ModelPtr modelPtr, std::string path);

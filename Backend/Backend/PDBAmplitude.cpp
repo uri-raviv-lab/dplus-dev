@@ -1715,6 +1715,73 @@ VectorXd DebyeCalTester::CalculateVector(
 	return vecCPU;
 }
 
+MatrixXd DebyeCalTester::CalculateMatrix(
+	const std::vector<double>& q,
+	int nLayers,
+	VectorXd& p /*= VectorXd( ) */,
+	progressFunc progress /*= NULL*/,
+	void* progressArgs /*= NULL*/)
+{
+
+	size_t points = q.size();
+	VectorXd vecCPU = VectorXd::Zero(points);
+	VectorXd vecGPU = VectorXd::Zero(points);
+	std::vector<double> rVec(points);
+
+	progFunc = progress;
+	progArgs = progressArgs;
+
+	PreCalculate(p, nLayers);
+	clock_t cpuBeg, gpuBeg, cpuEnd, gpuEnd;
+
+	// Determine if we have and want to use a GPU
+	{
+		int devCount;
+		cudaError_t t = UseGPUDevice(&devCount);
+	}
+
+
+	if (g_useGPUAndAvailable) {
+		gpuBeg = clock();
+
+		vecGPU = CalculateVectorGPU(q, nLayers, p, progFunc, progArgs);
+		gpuEnd = clock();
+
+		printf("\n\n Timing:\n\tGPU %f seconds",
+			double(gpuEnd - gpuBeg) / CLOCKS_PER_SEC);
+
+		return vecGPU;
+	}
+
+	const double cProgMin = 0.0, cProgMax = 1.0;
+	int prog = 0;
+
+	if (progFunc)
+		progFunc(progArgs, cProgMin);
+	cpuBeg = clock();
+
+#pragma omp parallel for if(true || pdb->atomLocs.size() > 500000) schedule(dynamic, q.size() / 50)
+	for (int i = 0; i < q.size(); i++) {
+		if (pStop && *pStop)
+			continue;
+
+		vecCPU[i] = Calculate(q[i], nLayers, p);
+
+#pragma omp critical
+		{
+			if (progFunc)
+				progFunc(progArgs, (cProgMax - cProgMin) * (double(++prog) / double(q.size())) + cProgMin);
+		}
+	}	// for i
+
+	cpuEnd = clock();
+
+	printf("\n\n Timing:\n\tCPU %f seconds\n",
+		double(cpuEnd - cpuBeg) / CLOCKS_PER_SEC);
+
+	return vecCPU;
+}
+
 VectorXd DebyeCalTester::Derivative(const std::vector<double>& x, VectorXd param, int nLayers, int ai) {
 	throw backend_exception(ERROR_UNSUPPORTED, "The method or operation is not implemented.");
 }

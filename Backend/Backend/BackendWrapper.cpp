@@ -167,6 +167,10 @@ void BackendWrapper::CallBackendFunction(const string functionName, const Value 
 	{
 		GetGenerateResults(writer, backend);
 	}
+	else if (functionName == "GetGenerate2DResults")
+	{
+		GetGenerate2DResults(writer, backend);
+	}
 	else if (functionName == "StartFit")
 	{
 		StartFit(args, backend);
@@ -369,6 +373,61 @@ void BackendWrapper::StartGenerate(const rapidjson::Value &json, const LocalBack
 
 }
 
+void BackendWrapper::StartGenerate2D(const rapidjson::Value& json, const LocalBackendInfo& backend)
+{
+	std::cout << "!!!!!!! BackendWrapper::StartGenerate2D !!!!!!!" << std::endl;
+
+	std::cout << "backend version:" << BACKEND_VERSION << endl;
+
+	CheckCapabilities(g_useGPU);
+	string usgG = g_useGPU == true ? "True " : "False ";
+	std::cout << "Use GPU flag:" << usgG << endl;
+	const rapidjson::Value& xs = json["x"];
+	//Translate xs into a vector<double>
+	std::vector<double> x;
+
+	for (auto itr = xs.Begin(); itr != xs.End(); ++itr)
+	{
+		x.push_back((itr)->GetDouble());
+	}
+
+	rapidjson::Value state;
+	rapidjson::Document dummy_allocator;
+	state.CopyFrom(json["state"], dummy_allocator.GetAllocator()); // json["state"]
+
+	{
+		rapidjson::Value& domainPrefs = state["DomainPreferences"];
+		domainPrefs["qMax"].SetDouble(x.back());
+	}
+
+	try
+	{
+		ParameterTree pt = backend.Converter->FromStateJSON(state);
+		//build the fitting parameters from the json string
+		FittingProperties fp = FittingPropertiesFromStateJSON(state);
+		if (pt.GetNumSubModels() == 0)
+		{
+			throw backend_exception(ERROR_INVALIDARGS);
+		}
+
+
+		int rc = backend.local_backend->HandleGenerate2D(backend.job, pt, x, fp);
+		if (rc != OK)
+			throw backend_exception(rc);
+	}
+	catch (const std::exception& e)
+	{
+		throw backend_exception(ERROR_INVALIDPARAMTREE, e.what());
+	}
+	catch (backend_exception& be)
+	{
+		throw be;
+	}
+
+
+
+}
+
 void BackendWrapper::StartFit(const rapidjson::Value &json, const LocalBackendInfo &backend)
 {
 	std::cout << "backend version:" << BACKEND_VERSION << endl;
@@ -454,6 +513,32 @@ void BackendWrapper::WriteGraph(JsonWriter &writer, const LocalBackendInfo &back
 
 }
 
+void BackendWrapper::Write2DGraph(JsonWriter& writer, const LocalBackendInfo& backend)
+{
+	writer.StartArray();
+
+	int rows, cols;
+	backend.local_backend->HandleGet2DGraphSize(backend.job, rows, cols);
+	MatrixXd graph(rows,cols);
+
+	if (rows<1 || cols<1 || !backend.local_backend->HandleGet2DGraph(backend.job, graph, rows, cols)) {
+		throw backend_exception(ERROR_INVALIDARGS, g_errorStrings[ERROR_INVALIDARGS]);
+	}
+
+	for (int i = 0; i < rows; ++i)
+	{
+		writer.StartArray();
+		for (int j = 0; j < rows; ++j)
+		{
+			writer.Double(graph(i,j));
+		}
+		writer.EndArray();
+	}
+
+	writer.EndArray();
+
+}
+
 void BackendWrapper::GetGenerateResults(JsonWriter &writer, const LocalBackendInfo &backend)
 {
 	writer.StartObject();
@@ -494,6 +579,50 @@ void BackendWrapper::GetGenerateResults(JsonWriter &writer, const LocalBackendIn
 	//results
 	writer.Key("Graph");
 	WriteGraph(writer, backend);
+	writer.EndObject();
+}
+
+void BackendWrapper::GetGenerate2DResults(JsonWriter& writer, const LocalBackendInfo& backend)
+{
+	writer.StartObject();
+
+	//header
+	writer.Key("Headers");
+	writer.StartArray();
+
+	int len = 999999;		//hardcoded like this in original code ...
+	char* grry = new char[len];
+
+	// Going over all the models in the map, create a map in the json of state model ptr to model header string
+	auto stateModels = backend.Converter->GetStateModels();
+	for (auto itr = stateModels.begin(); itr != stateModels.end(); ++itr)
+	{
+		int internalModelPtr = backend.Converter->StateToInternal(*itr);
+
+		//If the internal model is not found (this is an existing behaviour), then just skip header for this model
+		try
+		{
+			backend.local_backend->HandleGetDomainHeader(backend.job, internalModelPtr, grry, len);
+		}
+		catch (backend_exception be)
+		{
+			if (be.GetErrorCode() == ERROR_MODELNOTFOUND)
+				continue;
+			throw;
+		}
+		writer.StartObject();
+		writer.Key("ModelPtr");
+		writer.Int(*itr);
+		writer.Key("Header");
+		writer.String(grry);
+		writer.EndObject();
+	}
+	writer.EndArray();
+
+	//results
+	// TODO: return 2D Graph instead of 1D.
+	writer.Key("2DGraph");
+	Write2DGraph(writer, backend);
 	writer.EndObject();
 }
 

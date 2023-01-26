@@ -14,8 +14,77 @@
 #include "../../Common/ZipLib/Source/ZipFile.h"
 
 typedef Eigen::Array<std::complex<FACC>, Eigen::Dynamic, 1> ArrayXcX;
+typedef Eigen::Array<FACC, Eigen::Dynamic, 1> ArrayXX;
+typedef Eigen::Array<std::complex<FACC>, Eigen::Dynamic, Eigen::Dynamic> MatXXc;
+
+using Eigen::MatrixXd;
 
 class JsonWriter;
+
+class EXPORTED_BE PolarCalculationData
+{
+public:
+	struct CartesianIndex
+	{
+		int qZIdx;
+		int qPerpIdx;
+	};
+
+	std::vector<CartesianIndex> carIndices;
+	double q;
+	std::vector<double> theta;
+	ArrayXcX cIntensities;
+	ArrayXX rIntensities;
+
+	PolarCalculationData(int thetaSize = 0)
+	{
+		q = 0;
+		theta = std::vector<double>(thetaSize);
+		cIntensities = ArrayXcX(thetaSize);
+		rIntensities = ArrayXX(thetaSize);
+		carIndices = std::vector<CartesianIndex>();
+	}
+
+	void addRIntensities(PolarCalculationData val)
+	{
+		for (int i = 0; i < theta.size(); i++)
+		{
+			rIntensities[i] += val.rIntensities[i];
+		}
+	}
+
+	void addCIntensities(PolarCalculationData val)
+	{
+		for (int i = 0; i < theta.size(); i++)
+		{
+			cIntensities[i] += val.cIntensities[i];
+		}
+	}
+
+	void DivRIntensities(double div)
+	{
+		for (int i = 0; i < rIntensities.size(); i++)
+		{
+			rIntensities[i] /= div;
+		}
+	}
+
+	void SqrComplexToReal()
+	{
+		for (int i = 0; i < theta.size(); i++)
+		{
+			rIntensities[i] = (cIntensities[i] * cIntensities[i]).real();
+		}
+	}
+
+	void addTheta(double _theta)
+	{
+		theta.push_back(_theta);
+		cIntensities.resize(theta.size());
+		rIntensities.resize(theta.size());
+	}
+};
+
 
 // Grid interface
 class EXPORTED_BE Grid {
@@ -134,6 +203,12 @@ public:
 
 	~JacobianSphereGrid();
 
+	static void qZ_qPerp_to_q_Theta(FACC qZ, FACC qPerp, FACC& q, FACC& theta);
+	static std::vector<PolarCalculationData*> QListToPolar(std::vector<double> Q, double qMin, double qMax);
+
+	static MatrixXd PolarQDataToCartesianMatrix(std::vector<PolarCalculationData*> qData, int originalQSize);
+	
+
 	virtual unsigned short GetDimX() const;                    // DimR
 	virtual unsigned short GetDimY(unsigned short x) const;    // DimPhi
 	virtual unsigned short GetDimZ(unsigned short x, unsigned short y) const; // DimTheta
@@ -145,6 +220,7 @@ public:
 
 	virtual int GetSplineBetweenPlanes(FACC q, FACC theta, FACC phi, OUT std::complex<double>& pl1, OUT std::complex<double>& pl2, OUT std::complex<double>& d1, OUT std::complex<double>& d2);
 	virtual ArrayXcX getAmplitudesAtPoints(const std::vector<FACC> & relevantQs, FACC theta, FACC phi);
+	virtual void getAmplitudesAtPoints2D(std::vector<PolarCalculationData*> relevantQData, FACC phi);
 
 	inline long long IndexFromIndices(int qi, long long ti, long long pi) const;
 	inline void IndicesFromIndex(long long index, int &qi, long long &ti, long long &pi);

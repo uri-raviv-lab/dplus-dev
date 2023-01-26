@@ -738,6 +738,23 @@ class EmbeddedLocalRunner(Runner):
         result = self.get_generate_results(calc_data)
         return result
 
+    def generate2D(self, calc_data, save_amp=True):
+        '''
+        Send to C++ function to run async dplus generate.
+
+        :param calc_data:  CalculationInput
+        '''
+        data = json.dumps(calc_data.args['args'])
+        # start from -qmax
+        self.wrapper.start_generate_2D(data, useGPU=calc_data.use_gpu)
+
+        status = self.wrapper.get_job_status()
+        while status and status['isRunning'] and status['code']==-1:
+            status = self.wrapper.get_job_status()
+            time.sleep(0.1)
+        result = self.get_generate_2D_results(calc_data)
+        return result
+
 
     def get_job_status(self):
         """
@@ -750,6 +767,14 @@ class EmbeddedLocalRunner(Runner):
         Send to C++ function to get the generate result.
         """
         result = self.wrapper.get_generate_results()
+        calc_result = GenerateResult(calc_data, result, job=None, get_amp_func=self.save_and_get_amp)
+        return calc_result
+
+    def get_generate_2D_results(self, calc_data):
+        """
+        Send to C++ function to get the generate result.
+        """
+        result = self.wrapper.get_generate_2D_results()
         calc_result = GenerateResult(calc_data, result, job=None, get_amp_func=self.save_and_get_amp)
         return calc_result
 

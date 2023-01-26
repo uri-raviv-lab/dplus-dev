@@ -19,11 +19,17 @@ cdef class BackendWrapper:
     def start_generate(self, state, useGPU):
         self._wrapper.StartGenerate(state, useGPU)
 
+    def start_generate_2D(self, state, useGPU):
+        self._wrapper.StartGenerate2D(state, useGPU)
+
     def get_job_status(self):
         return self._wrapper.GetJobStatus();
 
     def get_generate_results(self):
         return self._wrapper.GetGenerateResults();
+
+    def get_generate_2D_results(self):
+        return self._wrapper.GetGenerate2DResults();
 
     def save_amp(self, modelptr, path):
         self._wrapper.SaveAmplitude(modelptr, path.encode("utf-8"))

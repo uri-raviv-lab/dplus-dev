@@ -101,6 +101,7 @@ using Eigen::MatrixXd;
 using Eigen::Vector3d;
 
 // Forward declaration
+class PolarCalculationData;
 class Grid;
 class JsonWriter;
 
@@ -194,10 +195,13 @@ public:
 		void *progArgs = NULL, double progMin = 0.0, double progMax = 1.0, int *pStop = NULL);
 	virtual std::complex<FACC> getAmplitude(FACC qx, FACC qy, FACC qz);
 
+	virtual void getNewThetaPhiAndPhases(const std::vector<FACC>& relevantQs, FACC theta, FACC phi,
+		double& newTheta, double& newPhi, ArrayXcX& phases); // should this be private/protected?
 	virtual ArrayXcX getAmplitudesAtPoints(const std::vector<FACC> & relevantQs, FACC theta, FACC phi);
+	virtual void getAmplitudesAtPoints2D(std::vector<PolarCalculationData*> relevantQData, FACC phi);
 
 	ArrayXcX getAmplitudesAtPointsWithoutGrid(double newTheta, double newPhi, const std::vector<FACC> &relevantQs, Eigen::Ref<ArrayXcX> phases);
-
+	void getAmplitudesAtPointsWithoutGrid2D(std::vector<PolarCalculationData*> relevantQData, double newPhi, Eigen::Ref<ArrayXcX> phases, double scale);
 
 	virtual PDB_READER_ERRS getError() const;
 
@@ -394,6 +398,7 @@ protected:
 	VectorXd previousParameters;
 	std::string _previous_hash;
 	ArrayXd _previous_intensity;
+	MatrixXd _previous_intensity_2D;
 	ArrayXd _previous_q_values;
 
 	bool bDefUseGrid, bDefUseGPU;
@@ -440,22 +445,47 @@ public:
 		std::vector<T>& res,
 		T epsi, uint64_t iterations);
 
+	template <typename T>
+	PDB_READER_ERRS CalculateIntensity2DMatrix(const std::vector<T>& Q,
+		Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& res,
+		T epsi, uint64_t iterations);
+
 	template<typename T>
 	void setPreviousValues(std::vector<T> & res, const std::vector<T> & Q);
 
 	template<typename T>
+	void setPreviousValues2D(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& res, const std::vector<T>& Q);
+
+	template<typename T>
 	PDB_READER_ERRS DefaultCPUCalculation(clock_t &aveBeg, const std::vector<T> & Q, std::vector<T> & res, T &epsi, std::vector<unsigned int> &seeds, const uint64_t &iterations, const double &cProgMax, const double &cProgMin, int &prog, clock_t &aveEnd, const clock_t &gridBegin);
+
+	template<typename T>
+	PDB_READER_ERRS DefaultCPUCalculation2D(clock_t& aveBeg, const std::vector<T>& Q, 
+		Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& res, T& epsi, std::vector<unsigned int>& seeds, const uint64_t& iterations, const double& cProgMax, const double& cProgMin, int& prog, clock_t& aveEnd, const clock_t& gridBegin);
+
 
 	PDB_READER_ERRS gridComputation();
 
 	template<typename T>
 	PDB_READER_ERRS IntegrateLayersTogether(std::vector<unsigned int> &seeds, std::uniform_int_distribution<unsigned int> &sRan, std::mt19937 &seedGen, const std::vector<T> & Q, std::vector<T> & res, T &epsi, uint64_t &iterations, const double &cProgMax, const double &cProgMin, int &prog, clock_t &aveEnd, const clock_t &aveBeg, const clock_t &gridBegin);
 
+	template<typename T>
+	PDB_READER_ERRS IntegrateLayersTogether2D(std::vector<unsigned int>& seeds, std::uniform_int_distribution<unsigned int>& sRan, std::mt19937& seedGen, std::vector<PolarCalculationData*> qData, 
+		T& epsi, uint64_t& iterations, const double& cProgMax, const double& cProgMin, int& prog, clock_t& aveEnd, const clock_t& aveBeg, const clock_t& gridBegin);
+
 	template <typename T>
 	PDB_READER_ERRS PerformgGPUAllGridsMCOACalculations(const std::vector<T> &Q, std::vector<T> &res, uint64_t iterations, T epsi, clock_t &aveEnd, clock_t aveBeg, clock_t gridBegin);
+	
+	template <typename T>
+	PDB_READER_ERRS PerformgGPUAllGridsMCOACalculations2D(const std::vector<T>& Q, 
+		Eigen::Matrix < T, Eigen::Dynamic, Eigen::Dynamic>& res, uint64_t iterations, T epsi, clock_t& aveEnd, clock_t aveBeg, clock_t gridBegin);
 
 	template <typename T>
 	PDB_READER_ERRS PerformGPUHybridComputation(clock_t &gridBegin, const std::vector<T> &Q, clock_t &aveBeg, std::vector<T> &res, T epsi, uint64_t iterations, clock_t &aveEnd);
+
+	template <typename T>
+	PDB_READER_ERRS PerformGPUHybridComputation2D(clock_t& gridBegin, const std::vector<T>& Q, clock_t& aveBeg, 
+		Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& res, T epsi, uint64_t iterations, clock_t& aveEnd);
 
 
 
@@ -488,6 +518,7 @@ public:
 
 
 	virtual VectorXd CalculateVector(const std::vector<double>& q, int nLayers, VectorXd& p, progressFunc progress = NULL, void *progressArgs = NULL);
+	virtual MatrixXd CalculateMatrix(const std::vector<double>& q, int nLayers, VectorXd& p, progressFunc progress = NULL, void* progressArgs = NULL);
 
 	virtual VectorXd Derivative(const std::vector<double>& x, VectorXd param, int nLayers, int ai);
 
@@ -510,7 +541,10 @@ public:
 
 	template <typename T>
 	void AverageIntensitiesBetweenLayers(const std::vector<T> &relevantQs, std::vector<T> &reses, size_t layerInd, FACC epsi, unsigned int seed, uint64_t iterations);
-};
+
+	//template <typename T>
+	void AverageIntensitiesBetweenLayers2D(std::vector<PolarCalculationData*> calculation, size_t layerInd, FACC epsi, unsigned int seed, uint64_t iterations);
+	};
 
 template<class FLOAT_TYPE>
 Eigen::Matrix<FLOAT_TYPE, 3, 3, 0, 3, 3> EulerD(Radian theta, Radian phi, Radian psi) {

@@ -106,6 +106,36 @@ static void GenerateJobThread(void *args) {
 	JobManager::GetInstance().CompleteJob(localArgs.backend, localArgs.jobID, localArgs.fp.bProgressReport, err, errMsg);
 }
 
+static void Generate2DJobThread(void* args) {
+
+	std::cout << "!!!!!!! Generate2DJobThread !!!!!!!" << std::endl;
+
+	if (!args)
+		return;
+	fitJobArgs* gja = (fitJobArgs*)args;
+	fitJobArgs localArgs = *gja;
+
+	// Delete the just-now created argument structure (because we have a local copy)
+	delete gja; gja = NULL;
+
+	ErrorCode err = OK;
+	std::string errMsg = "";
+
+	try
+	{
+		err = PerformModelGeneration2D(&localArgs);
+	}
+	catch (backend_exception& be)
+	{
+		err = (ErrorCode)be.GetErrorCode();
+		errMsg = be.GetErrorMessage();
+		//throw be;
+	}
+
+	// Update the job in the manager
+	JobManager::GetInstance().CompleteJob(localArgs.backend, localArgs.jobID, localArgs.fp.bProgressReport, err, errMsg);
+}
+
 ErrorCode JobManager::StartGenerateJob(LocalBackend *backend, JobPtr job, const ParameterTree& tree,
 									   const std::vector<double>& x, 
 								       const FittingProperties& fp) {
@@ -172,6 +202,81 @@ ErrorCode JobManager::StartGenerateJob(LocalBackend *backend, JobPtr job, const 
 		gja->fp = fp;
 
 		jobThreads[job] = new thread(GenerateJobThread, gja);
+	}
+
+	return OK;
+}
+
+ErrorCode JobManager::StartGenerate2DJob(LocalBackend* backend, JobPtr job, const ParameterTree& tree,
+	const std::vector<double>& x,
+	const FittingProperties& fp) {
+
+	std::cout << "!!!!!!! JobManager::StartGenerate2DJob !!!!!!!" << std::endl;
+
+	Job j = GetJobInformation(job);
+	if (!j.uid)
+		return ERROR_JOBNOTFOUND;
+
+	// Validate the param/model tree. If incorrect, return ERROR_INVALIDPARAMTREE
+	if (!ValidateParamTree(job, tree))
+		return ERROR_INVALIDPARAMTREE;
+
+	{
+		lock_guard<mutex> joblock(*j.jobMutex);
+
+		if (j.state != JS_IDLE)
+			return ERROR_JOBRUNNING;
+
+		// Reset parameters
+		j.type = JT_GENERATE;
+		j.progress = 0.0;
+		j.resultGraph.clear();
+		j.resultGraph2D = Eigen::Array<double, Eigen::Dynamic, Eigen::Dynamic>();
+		j.error = 0;
+		j.errorMsg[0] = L'\0';
+		if (j.pStop)
+			*j.pStop = false;
+
+		//reset job status
+		j.jobStatus.code = -1;
+		j.jobStatus.isRunning = true;
+		j.jobStatus.progress = 0.0;
+
+		// Set model(s) to generate
+		if (j.tree)
+			delete j.tree;
+		j.tree = new ParameterTree(tree);
+
+		// Get the root model from the tree
+		IModel* topModel = NULL;
+		ModelPtr mptr = j.tree->GetNodeModel();
+		if (j.uidToModel.find(mptr) != j.uidToModel.end())
+			topModel = j.uidToModel[mptr];
+
+		// Print to log
+		LogMessage(L"%llu: Started generating job %d (%ls) by %s.\n",
+			(unsigned long long)time(NULL), job, j.description, j.instigator);
+		LogMessage(L"%llu: Models in memory: %d; Amplitudes in memory: %d.\n",
+			(unsigned long long)time(NULL), j.uidToModel.size(), j.uidToAmp.size());
+
+		// Update job state prior to running it
+		j.state = JS_RUNNING;
+		j.lastAccess = j.beginning = time(NULL);
+		UpdateJob(j);
+	}
+
+	// Create a thread for the job and run it
+	{
+		lock_guard<mutex> lock(jobMutex);
+
+		// This structure is deleted immediately inside the thread (after copy)
+		fitJobArgs* gja = new fitJobArgs;
+		gja->backend = backend;
+		gja->jobID = job;
+		gja->x = x;
+		gja->fp = fp;
+
+		jobThreads[job] = new thread(Generate2DJobThread, gja);
 	}
 
 	return OK;

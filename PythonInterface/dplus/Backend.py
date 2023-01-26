@@ -39,6 +39,13 @@ class Backend:
         except RuntimeError as re:
             be = BackendError(re)
             raise be
+
+    def start_generate_2D(self, data, useGPU):
+        try:
+            self._wrapper.start_generate_2D(data.encode("utf-8"), useGPU)
+        except RuntimeError as re:
+            be = BackendError(re)
+            raise be
     
     def get_job_status(self):
         try:
@@ -51,6 +58,14 @@ class Backend:
     def get_generate_results(self):
         try:
             results = self._wrapper.get_generate_results()
+            return json.loads(results)
+        except RuntimeError as re:
+            be = BackendError(re)
+            raise be
+
+    def get_generate_2D_results(self):
+        try:
+            results = self._wrapper.get_generate_2D_results()
             return json.loads(results)
         except RuntimeError as re:
             be = BackendError(re)

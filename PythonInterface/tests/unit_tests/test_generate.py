@@ -1,6 +1,8 @@
 import os
 import numpy as np
 import time
+import matplotlib.pyplot as plt
+import matplotlib.colors as colors
 
 from dplus.CalculationInput import CalculationInput
 from dplus.CalculationRunner import EmbeddedLocalRunner
@@ -44,4 +46,33 @@ def test_generate_2():
     runner = EmbeddedLocalRunner()
     res = runner.generate(calc_input)
     print(res)
+    plt.plot(res.signal.x, res.signal.y)
+    plt.show()
 
+def test_generate_2D():
+    #state_file_path = os.path.join(root_path, "files_for_tests", "helix.state")
+    state_file_path = os.path.join(root_path, "files_for_tests", "sphere.state")
+    calc_input = CalculationInput.load_from_state_file(state_file_path, USE_GPU, is2D=True)
+    runner = EmbeddedLocalRunner()
+    res = runner.generate2D(calc_input)
+
+    for row in res.y:
+        str = ""
+        for v in row:
+            str += f"{v}, "
+        print(str)
+
+    plt.imshow(list(res.y), origin='lower', norm=colors.LogNorm(vmin=0, vmax=max(max(list(res.y)))))
+    plt.show()
+
+
+
+def test_scripted_symmetry():
+    state_file_path = r'C:\temp\scriptedSymmetry.state'
+    calc_input = CalculationInput.load_from_state_file(state_file_path, USE_GPU)
+    runner = EmbeddedLocalRunner()
+    res = runner.generate(calc_input)
+    print(res)
+
+if __name__ == '__main__':
+    test_generate_2D()

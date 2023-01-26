@@ -42,12 +42,15 @@ protected:
 	void checkAVX();
 	void checkGPU();
 	void WriteGraph(JsonWriter &writer, const LocalBackendInfo &backend);
+	void Write2DGraph(JsonWriter& writer, const LocalBackendInfo& backend);
 
 	void GetAllModelMetadata(JsonWriter &writer, const LocalBackendInfo &backend);
 	void GetJobStatus(JsonWriter &writer, const LocalBackendInfo &backend);
 	void Stop(const LocalBackendInfo &backend);
 	void StartGenerate(const rapidjson::Value &json, const LocalBackendInfo &backend);
+	void StartGenerate2D(const rapidjson::Value& json, const LocalBackendInfo& backend);
 	void GetGenerateResults(JsonWriter &writer, const LocalBackendInfo &backend);
+	void GetGenerate2DResults(JsonWriter& writer, const LocalBackendInfo& backend);
 	void StartFit(const rapidjson::Value &json, const LocalBackendInfo &backend);
 	void GetFitResults(JsonWriter &writer, const LocalBackendInfo &backend);
 	void SetGPUFlag(const rapidjson::Value &json);

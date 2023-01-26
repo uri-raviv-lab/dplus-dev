@@ -105,6 +105,29 @@ void PythonBackendWrapper::StartGenerate(const std::string state, bool useGPU)
 	}
 }
 
+void PythonBackendWrapper::StartGenerate2D(const std::string state, bool useGPU)
+{
+	std::cout << "!!!!!!! PythonBackendWrapper::StartGenerate2D !!!!!!!" << std::endl;
+
+	rapidjson::Document doc;
+	
+	try
+	{
+		doc.Parse(state.c_str());
+		if (doc.HasParseError())
+		{
+			throw backend_exception(ERROR_ILLEGAL_JSON);
+		}
+		g_useGPU = useGPU;
+
+		BackendWrapper::StartGenerate2D(doc, _info);
+	}
+	catch (backend_exception& be)
+	{
+		throw ConvertException(be);
+	}
+}
+
 std::string PythonBackendWrapper::GetJobStatus()
 {
 	JsonWriter writer;
@@ -128,6 +151,22 @@ std::string PythonBackendWrapper::GetGenerateResults()
 	{
 		BackendWrapper::GetGenerateResults(writer, _info);
 		return writer.GetString();
+	}
+	catch (backend_exception& be)
+	{
+		throw ConvertException(be);
+	}
+}
+
+std::string PythonBackendWrapper::GetGenerate2DResults()
+{
+	JsonWriter writer;
+
+	try
+	{
+		BackendWrapper::GetGenerate2DResults(writer, _info);
+		const char* str = writer.GetString();
+		return str;
 	}
 	catch (backend_exception& be)
 	{

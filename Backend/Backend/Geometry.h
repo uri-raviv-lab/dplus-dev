@@ -101,6 +101,8 @@ public:
 	// or a GPU if possible
 	virtual VectorXd CalculateVector(const std::vector<double>& q, int nLayers, VectorXd& p,
 								 	 progressFunc progress = NULL, void *progressArgs = NULL);
+	virtual MatrixXd CalculateMatrix(const std::vector<double>& q, int nLayers, VectorXd& p,
+		progressFunc progress = NULL, void* progressArgs = NULL);
 
 	// Computes the derivative of the model on an entire vector. Default
 	// is numerical derivation (may use analytic derivation)

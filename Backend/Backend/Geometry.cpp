@@ -1,11 +1,14 @@
 //#define NOMINMAX
 //#include "Windows.h"	//For messagebox debugging
+#include <iostream>
 
 #include "Geometry.h"
 #include "Quadrature.h" // For Quadrature
 
 #include "Eigen/LU" // For matrix inverse
 #include "mathfuncs.h" // For gaussianSig
+
+
 
 Geometry::Geometry(std::string name, int extras, int nlp, 
 			 int minlayers, int maxlayers, EDProfile edp, int disp) : 
@@ -250,6 +253,56 @@ VectorXd Geometry::CalculateVector(const std::vector<double>& q, int nLayers, Ve
 	return res;
 }
 
+MatrixXd Geometry::CalculateMatrix(const std::vector<double>& q, int nLayers, VectorXd& p,
+	progressFunc progressReport, void* progressArgs) 
+{
+	std::cout << "!!!!!!! Geometry::CalculateMatrix !!!!!!!" << std::endl;
+
+	VectorXd res(q.size());
+	PreCalculate(p, nLayers);
+
+	int size = (int)q.size();
+	bool error = false;
+	int progress = 0;
+
+	// When CailleModel is extended, use this code piece before calling Geometry::CalculateVector
+	/*if(GetPeakType() == SHAPE_CAILLE)
+		SetX(x);*/
+
+		// 1st tier of parallelization
+#pragma omp parallel for shared(progress) if(bParallelizeVector)//if(GetPeakType() != SHAPE_CAILLE)
+	for (int i = 0; i < size; i++) {
+		progress++;
+
+		// Report progress
+		if (progressReport)
+			progressReport(progressArgs, (double)progress / (double)size);
+
+		double cury;
+		if (error)
+			continue;
+
+		if (pStop && *pStop) {
+			error = true;
+			continue;
+		}
+		Eigen::VectorXd dummy;
+		// we shouldn't have to do this; however, using "cury = Calculate(q[i],  nLayers);"
+		// causes an assertion failure (in Eigen because of the VectorXd() and there is 
+		// a line in Eigen stating "ei_assert(dim > 0);" we therefore shouldn't have a 0
+		// dimension VectorXd. Any other solutions?)
+		cury = Calculate(q[i], nLayers, dummy);
+		if (cury != cury) {
+			error = true;
+			continue;
+		}
+
+		res[i] = cury;
+	}
+
+	return res;
+}
+
 // Numerical derivation helper function
 static inline VectorXd derF(IModel *mod, const std::vector<double>& x, VectorXd& p, 
 							int nLayers, int ai, double h, double m) {  
@@ -454,6 +507,58 @@ VectorXd PolydisperseModel::CalculateVector(const std::vector<double> &q, int nL
 	}
 	return intensity / Z;
 }
+
+
+MatrixXd PolydisperseModel::CalculateMatrix(const std::vector<double>& q, int nLayers, Eigen::VectorXd& a,
+	progressFunc progress, void* progressArgs) 
+{
+	std::cout << "!!!!!!! PolydisperseModel::CalculateMatrix !!!!!!!" << std::endl;
+
+	int points = pdResolution;
+	VectorXd b = a, a1 = a, x = VectorXd::Zero(points), intensity = VectorXd::Zero(q.size());
+
+	if (a1.size() == 0) {	// Outermost PD layer
+		b = a1 = p;
+	}
+
+	int param = polyInd;
+	double sig = polySigma;
+	double Z = 0.0;
+	if (param < 0 || sig < 1.0e-7)
+		return model->CalculateVector(q, nLayers, a, progress);
+
+	for (int i = 0; i < points; i++) {
+		if (pStop && *pStop)
+			return VectorXd::Zero(q.size());
+
+		x[i] = a1[param] - 2.0 * sig + double(i) / double(points - 1) * 4.0 * sig; // taking 2 sigma on each side
+		if (x[i] < 0.0)	// don't use...
+			continue;
+		double ga = 0.0;
+
+		// Later on, this will use a generic PDProfile class, so that each PD
+		// can have its own arbitrary pattern
+		switch (pdFunction) {
+		default:
+			break;
+		case SHAPE_GAUSSIAN:
+			ga = gaussianSig(sig, a1[param], 1.0, 0.0, x[i]);
+			break;
+		case SHAPE_LORENTZIAN:
+			ga = lorentzian(sig, a1[param], 1.0, 0.0, x[i]);
+			break;
+		case SHAPE_LORENTZIAN_SQUARED: // Actually this is Uniform
+			ga = 1.0 / (double)points;
+			break;
+		}
+
+		Z += ga;
+		b[param] = x[i];
+		intensity += ga * model->CalculateVector(q, nLayers, b);
+	}
+	return intensity / Z;
+}
+
 
 VectorXd FFModel::Derivative(const std::vector<double>& x, VectorXd param, int nLayers, int ai) {
 	double h = 1.0e-9;

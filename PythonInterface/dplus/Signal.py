@@ -43,7 +43,10 @@ class Signal:
 
     @property
     def q_min(self):
-        return self.x[0]  # the first value of x
+        if self.q_min == None:
+            return self.x[0]   # the first value of x
+        return self.q_min
+        
 
     @property
     def q_max(self):
@@ -71,7 +74,7 @@ class Signal:
         return graph
 
     @classmethod
-    def create_x_vector(cls, q_max=7.5, q_min=0, generated_points=800):
+    def create_x_vector(cls, q_max=7.5, q_min=0, generated_points=800, is2D=False):
         '''
         create Signal instance from the received params
 
@@ -82,7 +85,7 @@ class Signal:
 
         '''
         q_max = float(q_max)
-        q_min = float(q_min)
+        cls.q_min = float(q_min)
         generated_points = int(generated_points)
 
         if generated_points <= 0:
@@ -96,14 +99,19 @@ class Signal:
             raise ValueError("q_max must be greater than zero")
 
         if q_min < 0:
-            raise ValueError("q_min must be greater than zero")
+            raise ValueError("q_min must be greater than zero if not 2D")
         if q_min > q_max:
             raise ValueError("q_min must be smaller than q_max")
 
         generated_points += 1
+
+        min_generated_point = q_min
+        if is2D:
+            min_generated_point = 0-q_max
+
         qvec = []
         for i in range(generated_points):
-            val = q_min + (((q_max - q_min) * float(i)) / (generated_points - 1))
+            val = min_generated_point + (((q_max - min_generated_point) * float(i)) / (generated_points - 1))
             qvec.append(val)
         return cls(qvec)
 

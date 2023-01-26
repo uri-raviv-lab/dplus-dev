@@ -350,3 +350,64 @@ ErrorCode PerformModelGeneration(fitJobArgs *args) {
 
 	return OK;
 }
+
+
+ErrorCode PerformModelGeneration2D(fitJobArgs* args) {
+
+	std::cout << "!!!!!!! PerformModelGeneration2D !!!!!!!" << std::endl;
+
+	// Scheme:
+	// 0. Argument validation (e.g., requested GPU but backend doesn't have it, return ERROR_UNSUPPORTED)
+	if (!args)
+		return ERROR_INVALIDARGS;
+
+	Job job = JobManager::GetInstance().GetJobInformation(args->jobID);
+
+	ParameterTree pt = *job.tree;
+	if (job.uidToModel.find(pt.GetNodeModel()) == job.uidToModel.end())
+		return ERROR_MODELNOTFOUND;
+
+	IModel* topModel = job.uidToModel[pt.GetNodeModel()];
+
+	VectorXd p;
+	VectorXi pMut;
+	cons pMin, pMax;
+
+	// 1. Create vector p, pmut from the model/parameter tree.
+	// Create polydisperse models and model modifiers (electron density profile wrappers) 
+	// as necessary. Return new (or old) fit model.
+
+	IModel* finalModel = CreateModelFromParamTree(&job, pt, job.pStop, p, pMut, pMin, pMax);
+
+	if (!finalModel)
+		return ERROR_INVALIDARGS;
+
+	
+
+
+
+	// 3. GENERATION
+	//   Call CalculateVector
+	bool bStopped = false;
+
+	MatrixXd y = finalModel->CalculateMatrix(args->x, 0, p,
+		(args->fp.bProgressReport ? &NotifyGenerateProgress : NULL), args);
+	if (job.pStop && *job.pStop)
+		bStopped = true;
+	job.resultGraph2D = y; 
+
+	job.progress = 1.0;
+
+	JobManager::GetInstance().UpdateJob(job);
+
+	std::cout << "5" << std::endl;
+	// Destroy any remnants of model modifiers
+	if (finalModel != topModel)
+		delete finalModel;
+
+	// 4. If stopped, return ERROR_STOPPED. Else, done!
+	if (bStopped)
+		return ERROR_STOPPED;
+
+	return OK;
+}

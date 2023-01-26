@@ -805,23 +805,24 @@ PDB_READER_ERRS DomainModel::CalculateIntensityVector(const std::vector<T>& Q,
 		for (auto &subAmp : _amps)
 		{
 			canIntegratePointsBetweenLayersTogether &=
-				subAmp->GetUseGridAnyChildren()
+				subAmp->GetUseGridAnyChildren();
 				//subAmp->GetUseGridWithChildren() // Has to use a grid and not be hybrid (for now)
 				// The minimal requirement should be that all the leaves have grids
 				//&
 				// Has to be the JacobianSphereGrid (may also be a half grid in the future)
 				//dynamic_cast<JacobianSphereGrid*>(subAmp->GetInternalGridPointer()) != nullptr;
 				// This doesn't work if doing a hybrid calculation. I need to think of another test.
-				;
+				
 		}
 
 		if (canIntegratePointsBetweenLayersTogether)
 		{
 			return IntegrateLayersTogether(seeds, sRan, seedGen, Q, res, epsi, iterations, cProgMax, cProgMin, prog, aveEnd, aveBeg, gridBegin);
-
 		}
 
+		
 		return DefaultCPUCalculation(aveBeg, Q, res, epsi, seeds, iterations, cProgMax, cProgMin, prog, aveEnd, gridBegin);
+
 	}
 
 	if (orientationMethod == OA_ADAPTIVE_GK)
@@ -834,6 +835,155 @@ PDB_READER_ERRS DomainModel::CalculateIntensityVector(const std::vector<T>& Q,
 			return STOPPED;
 
 		return DefaultCPUCalculation(aveBeg, Q, res, epsi, seeds, iterations, cProgMax, cProgMin, prog, aveEnd, gridBegin);
+	}
+
+	return UNIMPLEMENTED; //we should never get here, but it's good to cover bases
+}
+
+template <typename T>
+PDB_READER_ERRS DomainModel::CalculateIntensity2DMatrix(const std::vector<T>& Q,
+	Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& res, T epsi, uint64_t iterations)
+{
+	std::cout << "!!!!!!! DomainModel::CalculateIntensity2DMatrix !!!!!!!" << std::endl;
+	clock_t gridBegin, aveBeg, aveEnd;
+
+	/*
+	FILE origSTDOUT = *stdout;
+
+	static FILE* nul = fopen( "NUL", "w" );
+	*stdout = *nul;
+	setvbuf( stdout, NULL, _IONBF, 0 );
+	*/
+
+	if (only_scale_changed
+		&& _previous_hash == Hash()
+		&& _previous_intensity_2D.rows() > 1
+		&& _previous_q_values.size() == Q.size() && (_previous_q_values == Eigen::Map<const Eigen::Array<T, Eigen::Dynamic, 1>>(Q.data(), Q.size()).template cast<double>()).all())
+	{
+		res = _previous_intensity_2D.cast<T>();
+		return PDB_OK;
+	}
+	_previous_intensity_2D = MatrixXd(0, 0);
+	_previous_q_values.resize(0);
+
+	gridBegin = clock();
+	aveBeg = clock();
+
+	// Determine if we have and want to use a GPU
+	{
+		int devCount;
+		cudaError_t t = UseGPUDevice(&devCount);
+		g_useGPUAndAvailable = (devCount > 0 && bDefUseGPU && t == cudaSuccess);
+	}
+
+	//split by calculation type:
+	if (orientationMethod == OA_ADAPTIVE_MC_VEGAS)
+	{
+		if (!g_useGPUAndAvailable) //cpu
+			throw backend_exception(ERROR_UNIMPLEMENTED_CPU, g_errorStrings[ERROR_UNIMPLEMENTED_CPU]);
+
+		PDB_READER_ERRS errRes = PerformGPUHybridComputation2D(gridBegin, Q, aveBeg, res, epsi, iterations, aveEnd);
+		if (errRes == PDB_OK)
+			setPreviousValues2D(res, Q);
+		else
+		{
+			if (errRes == ERROR_WITH_GPU_CALCULATION_TRY_CPU) //space filling
+				throw backend_exception(ERROR_UNIMPLEMENTED_CPU, g_errorStrings[ERROR_UNIMPLEMENTED_CPU]);
+			throw backend_exception(ERROR_GENERAL, g_errorStrings[ERROR_GENERAL]);
+		}
+
+		return errRes;
+
+	}
+
+	//some additional initialization needed for MC and GK
+	srand((unsigned int)(time(NULL)));
+	std::vector<unsigned int> seeds(Q.size());
+	const double cProgMin = 0.3, cProgMax = 1.0;
+
+	int prog = 0;
+	std::mt19937 seedGen;
+	std::uniform_int_distribution<unsigned int> sRan(0, UINT_MAX);
+	seedGen.seed(static_cast<unsigned int>(std::time(0)));
+
+	for (unsigned int i = 0; i < Q.size(); i++)
+		seeds[i] = sRan(seedGen);
+
+	if (orientationMethod == OA_MC)
+	{
+		if (!GetUseGridWithChildren() && g_useGPUAndAvailable) //use gpu without use grid at the top level--
+			//this also includes use gpu without use grid *at all* - using gpu will always treat leaves as grids
+		{
+			PDB_READER_ERRS errRes = PerformGPUHybridComputation2D(gridBegin, Q, aveBeg, res, epsi, iterations, aveEnd);
+			if (errRes == PDB_OK)
+				setPreviousValues2D(res, Q);
+			if (errRes != ERROR_WITH_GPU_CALCULATION_TRY_CPU)
+				return errRes;
+			// Else, continue
+		}
+
+		if (bDefUseGrid) {
+			gridComputation();
+		}
+		if (pStop && *pStop)
+			return STOPPED;
+
+		if (g_useGPUAndAvailable && bDefUseGrid && GetUseGridWithChildren()) //use gpu with use grid at top level node
+			// not that bDefUseGrid immediately means GetUseGridWithChildren()
+			// hence the extra check is redundant, presumably to shield against something having gone wrong
+		{
+			PDB_READER_ERRS errRes = PerformgGPUAllGridsMCOACalculations2D(Q, res, iterations, epsi, aveEnd, aveBeg, gridBegin);
+			if (errRes == PDB_OK)
+			{
+				setPreviousValues2D(res, Q);
+			}
+			if (errRes != ERROR_WITH_GPU_CALCULATION_TRY_CPU)
+				return errRes;
+			// Else, continue on the CPU
+		}
+
+		//cpu:
+
+		// MC only: Attempt to do orientation averaging between layers
+		bool canIntegratePointsBetweenLayersTogether = true;
+		for (auto& subAmp : _amps)
+		{
+			canIntegratePointsBetweenLayersTogether &=
+				subAmp->GetUseGridAnyChildren();
+			//subAmp->GetUseGridWithChildren() // Has to use a grid and not be hybrid (for now)
+			// The minimal requirement should be that all the leaves have grids
+			//&
+			// Has to be the JacobianSphereGrid (may also be a half grid in the future)
+			//dynamic_cast<JacobianSphereGrid*>(subAmp->GetInternalGridPointer()) != nullptr;
+			// This doesn't work if doing a hybrid calculation. I need to think of another test.
+
+		}
+
+		std::vector<PolarCalculationData*> polarData = JacobianSphereGrid::QListToPolar(Q, qMin, qMax);
+
+		if (canIntegratePointsBetweenLayersTogether)
+		{
+
+			IntegrateLayersTogether2D(seeds, sRan, seedGen, polarData, epsi, iterations, cProgMax, cProgMin, prog, aveEnd, aveBeg, gridBegin);
+			res = JacobianSphereGrid::PolarQDataToCartesianMatrix(polarData, Q.size());
+			return PDB_OK;
+
+		}
+
+		return DefaultCPUCalculation2D(aveBeg, Q, res, epsi, seeds, iterations, cProgMax, cProgMin, prog, aveEnd, gridBegin);
+
+	}
+
+	if (orientationMethod == OA_ADAPTIVE_GK)
+	{
+		if (bDefUseGrid) {
+			gridComputation();
+		}
+
+		if (pStop && *pStop)
+			return STOPPED;
+
+		return DefaultCPUCalculation2D(aveBeg, Q, res, epsi, seeds, iterations, cProgMax, cProgMin, prog, aveEnd, gridBegin);
 	}
 
 	return UNIMPLEMENTED; //we should never get here, but it's good to cover bases
@@ -913,6 +1063,88 @@ PDB_READER_ERRS DomainModel::DefaultCPUCalculation(clock_t &aveBeg, const std::v
 	return PDB_OK;
 }
 
+template<typename T>
+PDB_READER_ERRS DomainModel::DefaultCPUCalculation2D(clock_t& aveBeg, const std::vector<T>& Q, 
+	Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& res, T& epsi, std::vector<unsigned int>& seeds, const uint64_t& iterations, const double& cProgMax, const double& cProgMin, int& prog, clock_t& aveEnd, const clock_t& gridBegin)
+{
+	std::cout << "DomainModel::DefaultCPUCalculation2D"<<std::endl;
+	aveBeg = clock();
+
+	bool noException = true;
+	int exceptionInt = 0;
+	std::string exceptionString = "";
+
+#ifdef GAUSS_LEGENDRE_INTEGRATION
+#pragma omp parallel sections
+	{
+#pragma omp section
+		{
+			SetupIntegral(theta_, wTheta, 0.0, M_PI, int(sqrt(double(iterations))));
+		}
+#pragma omp section
+		{
+			SetupIntegral(phi_, wPhi, 0.0, 2.0 * M_PI, int(sqrt(double(iterations))));
+		}
+	}
+#endif
+	// TODO::Spherical - Simple trapezoidal integration should be considered, maybe spline
+
+	FACC qZ, qPerp, q, theta;
+#pragma omp parallel for schedule(dynamic, Q.size() / 50)
+	for (int i = 0; i < Q.size(); i++)
+	{
+		for (int j = 0; j < Q.size(); j++)
+		{
+			if (pStop && *pStop)
+				continue;
+
+			if (!noException)
+				continue;
+
+			// TODO: swap i,j ?
+			qZ = Q[i];
+			qPerp = Q[j];
+			JacobianSphereGrid::qZ_qPerp_to_q_Theta(qZ, qPerp, q, theta);
+
+			try // This try/catch combo is here because of OMP
+			{
+				res(i,j) = CalculateIntensity(q, epsi, seeds[i], iterations);
+			}
+			catch (backend_exception& ex)
+			{
+				exceptionInt = ex.GetErrorCode();
+				exceptionString = ex.GetErrorMessage();
+				noException = false;
+			}
+#pragma omp critical
+			{
+				if (progFunc)
+					progFunc(progArgs, (cProgMax - cProgMin) * (double(++prog) / double(Q.size())) + cProgMin);
+			}
+ 		}
+	}
+
+	if (!noException)
+		throw backend_exception(exceptionInt, exceptionString.c_str());
+
+	if (pStop && *pStop)
+		return STOPPED;
+
+	aveEnd = clock();
+
+	std::cout << "Took " << double(aveBeg - gridBegin) / CLOCKS_PER_SEC << " seconds to calculate the grids." << std::endl;
+	std::cout << "Took " << double(aveEnd - aveBeg) / CLOCKS_PER_SEC << " seconds to calculate the orientational average." << std::endl;
+
+	/*
+	*stdout = origSTDOUT;
+	*/
+	_previous_hash = Hash();
+	_previous_intensity_2D = res.template cast<double>();
+	_previous_q_values = Eigen::Map<const Eigen::Array<T, Eigen::Dynamic, 1>>(Q.data(), Q.size()).template cast<double>();
+
+	return PDB_OK;
+}
+
 
 template<typename T>
 void DomainModel::setPreviousValues(std::vector<T> & res, const std::vector<T> & Q)
@@ -920,6 +1152,14 @@ void DomainModel::setPreviousValues(std::vector<T> & res, const std::vector<T> &
 	_previous_hash = Hash();
 	_previous_intensity = (Eigen::Map < Eigen::Array<T, Eigen::Dynamic, 1> >(res.data(), res.size())).template cast<double>();
 	_previous_q_values = Eigen::Map<const Eigen::Array<T, Eigen::Dynamic, 1> >(Q.data(), Q.size()).template cast<double>();
+}
+
+template<typename T>
+void DomainModel::setPreviousValues2D(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& res, const std::vector<T>& Q)
+{
+//	_previous_hash = Hash();
+//	_previous_intensity_2D = res.template cast<double>();
+//	_previous_q_values = Eigen::Map<const Eigen::Array<T, Eigen::Dynamic, 1> >(Q.data(), Q.size()).template cast<double>();
 }
 
 template<typename T>
@@ -991,6 +1231,72 @@ PDB_READER_ERRS DomainModel::IntegrateLayersTogether(std::vector<unsigned int> &
 	_previous_hash = Hash();
 	_previous_intensity = (Eigen::Map < Eigen::Array<T, Eigen::Dynamic, 1> >(res.data(), res.size())).template cast<double>();
 	_previous_q_values = Eigen::Map<const Eigen::Array<T, Eigen::Dynamic, 1>>(Q.data(), Q.size()).template cast<double>();
+	return PDB_OK;
+}
+
+
+template<typename T>
+PDB_READER_ERRS DomainModel::IntegrateLayersTogether2D(std::vector<unsigned int>& seeds, std::uniform_int_distribution<unsigned int>& sRan, std::mt19937& seedGen, std::vector<PolarCalculationData*> qData, 
+	 T& epsi, uint64_t& iterations, const double& cProgMax, const double& cProgMin, int& prog, clock_t& aveEnd, const clock_t& aveBeg, const clock_t& gridBegin)
+{
+	seeds.resize(1 + gridSize / 2);
+	for (size_t i = 0; i < seeds.size(); i++)
+		seeds[i] = sRan(seedGen);
+
+	T stepSize = 2 * qMax / gridSize;
+	int tmpLayer = 0;
+	auto qtmpBegin = qData[0]->q;
+	while (qtmpBegin > (tmpLayer + 1) * stepSize) // Minimum q val
+		tmpLayer++;
+
+#pragma omp parallel for schedule(dynamic, 1)
+	for (int layerInd = tmpLayer; layerInd < gridSize / 2; layerInd++)
+	{
+		if (pStop && *pStop)
+			continue;
+
+		auto qBegin = qData.begin();
+		auto qEnd = qBegin + 1;
+
+		while (qBegin != qData.end() && (* qBegin)->q <= layerInd * stepSize) // Minimum q val
+			qBegin++;
+
+		if (qBegin != qData.end())
+			qEnd = qBegin + 1;
+		while (qEnd != qData.end() && qEnd + 1 != qData.end() && (* qEnd)->q <= (layerInd + 1) * stepSize) // Maximum q val
+			qEnd++;
+		if (qEnd == qData.end() || qEnd + 1 != qData.end())
+			qEnd--;
+
+		std::vector<PolarCalculationData*> relevantQData(qBegin, qEnd + 1);
+
+		if (relevantQData.size() == 0)
+			continue;
+
+
+		// Integrate until converged
+		AverageIntensitiesBetweenLayers2D(relevantQData, layerInd, epsi, seeds[layerInd], iterations);
+
+		// Report progress
+#pragma omp critical
+		{
+			if (progFunc)
+				progFunc(progArgs, (cProgMax - cProgMin) * (double(++prog) / double(gridSize / 2)) + cProgMin);
+		}
+
+	}
+
+	if (pStop && *pStop)
+		return STOPPED;
+
+	aveEnd = clock();
+
+	std::cout << "Took " << double(aveBeg - gridBegin) / CLOCKS_PER_SEC << " seconds to calculate the grids." << std::endl;
+	std::cout << "Took " << double(aveEnd - aveBeg) / CLOCKS_PER_SEC << " seconds to calculate the orientational average." << std::endl;
+
+	_previous_hash = Hash();
+	// Think about it: // _previous_intensity_2D = (Eigen::Map < Eigen::Array<T, Eigen::Dynamic, 1> >(res.data(), res.size())).template cast<double>();
+	//_previous_q_values = Eigen::Map<const Eigen::Array<T, Eigen::Dynamic, 1>>(Q.data(), Q.size()).template cast<double>();
 	return PDB_OK;
 }
 
@@ -1355,6 +1661,32 @@ VectorXd DomainModel::CalculateVector(const std::vector<double>& q, int nLayers,
 	memcpy(vec.data(), &rVec[0], points * sizeof(double));
 
 	return vec;
+}
+
+MatrixXd DomainModel::CalculateMatrix(const std::vector<double>& q, int nLayers, VectorXd& p /*= VectorXd( ) */, progressFunc progress /*= NULL*/, void* progressArgs /*= NULL*/) 
+{
+	std::cout << "!!!!!!! DomainModel::CalculateMatrix !!!!!!!" << std::endl;
+	
+	size_t points = q.size();
+	MatrixXd mat = MatrixXd::Zero(points, points);
+	MatrixXd rMat = MatrixXd::Zero(points, points);
+
+	progFunc = progress;
+	progArgs = progressArgs;
+
+	PreCalculate(p, nLayers);
+
+	if (CalculateIntensity2DMatrix(q, rMat, eps, oIters) != PDB_OK) {
+		// On error
+		mat = MatrixXd::Constant(points, points, -1.0);
+		return mat;
+	}
+
+	// Copy data from rVec to vec
+	//memcpy(mat.data(), &rMat[0], points * sizeof(double));
+	mat = rMat;
+
+	return mat;
 }
 
 VectorXd DomainModel::Derivative(const std::vector<double>& x, VectorXd param, int nLayers, int ai) {
@@ -1916,6 +2248,285 @@ PDB_READER_ERRS DomainModel::PerformGPUHybridComputation(clock_t &gridBegin, con
 }
 
 template <typename T>
+PDB_READER_ERRS DomainModel::PerformGPUHybridComputation2D(clock_t& gridBegin, const std::vector<T>& Q, clock_t& aveBeg, 
+	Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& res, T epsi, uint64_t iterations, clock_t& aveEnd)
+{
+#ifndef USE_JACOBIAN_SPHERE_GRID
+	return ERROR_WITH_GPU_CALCULATION_TRY_CPU;
+#endif
+
+	gridBegin = clock();
+	int devCount;
+	cudaError_t t = UseGPUDevice(&devCount);
+	if (devCount <= 0 || !g_useGPUAndAvailable || t != cudaSuccess) {
+		printf("No GPU backend. Calculating on CPU.\n");
+		return ERROR_WITH_GPU_CALCULATION_TRY_CPU;
+	}
+
+	// Locate and create the GPU calculator
+	gpuGridcalculator_t gpuCalcHybridGen = (gpuGridcalculator_t)GPUCreateCalculatorHybrid;
+	//GetProcAddress((HMODULE)g_gpuModule, "GPUCreateCalculatorHybrid");
+	if (!gpuCalcHybridGen) {
+		printf("ERROR: Cannot find hybrid generator function\n");
+		return ERROR_WITH_GPU_CALCULATION_TRY_CPU;
+	}
+
+	// Report indeterminate progress (for now)
+	// TODO::Later: Meaningful progress bar in direct method
+	if (progFunc)
+		progFunc(progArgs, 0.0);
+
+	IGPUGridCalculator* hybridCalc = gpuCalcHybridGen();
+
+	// Flatten the symmetry/primitive tree to a single vector
+	std::vector<Amplitude*> flatVec;
+	std::vector<LocRotScale> flatLocrot;
+	std::vector<VectorXd> flatParams;
+
+	Eigen::Matrix4f tmat = Eigen::Matrix4f::Identity();
+	FlattenTree<true>(_amps, _ampParams, _ampLayers, tmat, flatVec, flatLocrot, flatParams);
+#ifdef _DEBUG
+	{
+		for (int ll = 0; ll < flatLocrot.size(); ll++) {
+			std::cout << "[" << flatLocrot[ll].first.x << ", " << flatLocrot[ll].first.y << ", " << flatLocrot[ll].first.z << "]  ["
+				<< flatLocrot[ll].first.alpha << ", " << flatLocrot[ll].first.beta << ", " << flatLocrot[ll].first.gamma <<
+				"] scale: " << flatLocrot[ll].second << std::endl;
+		}
+	}
+#endif // _DEBUG
+	bool allImplemented = true;
+	for (int i = 0; i < flatVec.size(); ++i)
+	{
+		IGPUGridCalculable* tst = dynamic_cast<IGPUGridCalculable*>(flatVec[i]);
+		if (!tst) {
+			allImplemented = false;
+			break;
+		}
+	}
+	if (!allImplemented) {
+		printf("Not all models have been implemented to work as hybrid on a GPU. Continuing on CPU.\n");
+		return ERROR_WITH_GPU_CALCULATION_TRY_CPU;
+	}
+
+	// An ugly but efficient fixed-height tree built from maps. Tree groups amplitudes by:
+	// 1. type
+	// 2. parameters (number of layers, then parameters themselves)
+	// 3. orientation (alpha, then beta, then gamma)
+	// 4(unordered). translation
+	typedef std::map<std::string,
+		std::map<VectorXd,
+		std::map<float4, std::vector<float4>, rotation_ulp_less>,
+		paramvec_less> > AmpCalcTree;
+
+	typedef std::map<VectorXd,
+		std::map<float4, std::vector<float4>, rotation_ulp_less>,
+		paramvec_less> ParamOrientTree;
+
+	/*
+	/// Maps a param vector to a pointer to an Amplitude
+	typedef std::map<VectorXd, Amplitude*, paramvec_less> VecToAmp;
+	*/
+
+	typedef std::map<UniqueModels, Amplitude*, UniqueModels_less> AmpsToCalc;
+	/// var[workspaceid][hash][paramVec] is a pointer to an Amplitude
+	typedef std::vector<AmpsToCalc> WorkspacesToCalc;
+
+	// The work is divided to P (numWorkspaces) trees of parallel processing
+	const unsigned int numWorkspaces = devCount;
+	std::vector<AmpCalcTree> ampTrees(numWorkspaces);
+	std::vector<GridWorkspace> workspaces(numWorkspaces);
+	std::map<std::string, Amplitude*> hashToAmp;
+	WorkspacesToCalc myAmps;
+	// TODO::Hybrid - Hash should include the models parameters to distinguish between models
+
+
+	std::vector<float> Qfloat(Q.size());
+	for (int i = 0; i < Q.size(); ++i)
+		Qfloat[i] = (float)Q[i];
+
+	unsigned int ampsPerWorkspace = flatVec.size() / numWorkspaces;
+
+	int curGPU = 0;
+	int numAmpsToCalc = 0;
+	myAmps.resize(numWorkspaces);
+	// The loop that generates the trees and workspaces
+	for (unsigned int p = 0; p < numWorkspaces; p++)
+	{
+		unsigned int lastAmp = ((p == numWorkspaces - 1) ? flatVec.size() : ((p + 1) * ampsPerWorkspace));
+
+		for (unsigned int i = p * ampsPerWorkspace; i < lastAmp; ++i)
+		{
+			std::string hash = flatVec[i]->Hash();
+			hashToAmp[hash] = flatVec[i];
+			myAmps[p][std::make_tuple(hash, flatParams[i])] = flatVec[i];
+			LocationRotation locrot = flatLocrot[i].first;
+
+			// OPTIMIZATION: Conserve rotations and translations by letting 
+			// rotation/translation-invariant models modify their Locrots
+			// EXAMPLES: A sphere is invariant to rotation, a cylinder is invariant to one of the angles
+			double aa = locrot.alpha, bb = locrot.beta, gg = locrot.gamma;
+			IGPUCalculable* gpuModel = dynamic_cast<IGPUCalculable*>(flatVec[i]);
+			if (gpuModel)
+				gpuModel->CorrectLocationRotation(locrot.x, locrot.y, locrot.z,
+					aa, bb, gg);
+			locrot.alpha = Radian(aa);
+			locrot.beta = Radian(bb);
+			locrot.gamma = Radian(gg);
+
+			//std::cout << "Model " << i << ": " << flatVec[i]->GetName() << " - XYZABG " 
+			//		  << locrot.x << " " << locrot.y << " " << locrot.z << " " << locrot.alpha << " " << locrot.beta << " " << locrot.gamma << std::endl; 
+
+			ampTrees[p][hash]
+				[flatParams[i]]
+			[make_float4(locrot.alpha, locrot.beta, locrot.gamma, flatLocrot[i].second)].
+				push_back(make_float4(locrot.x, locrot.y, locrot.z, 0.));
+		}
+
+		// Obtain the maximal number of translations
+		unsigned int maxTranslations = 0;
+		for (AmpCalcTree::iterator iter = ampTrees[p].begin(); iter != ampTrees[p].end(); ++iter)
+			for (ParamOrientTree::iterator piter = iter->second.begin(); piter != iter->second.end(); ++piter)
+				for (auto oiter = piter->second.begin(); oiter != piter->second.end(); ++oiter)
+				{
+					if (oiter->second.size() > maxTranslations)
+						maxTranslations = oiter->second.size();
+				}
+		// END of maximal translations
+
+		// This should/could be obtained by allocating a grid and obtaining the numbers from the instance.
+		// I don't want to allocate so much memory.
+		double stepSize = qMax / double(gridSize / 2);
+		int actualSz = (gridSize / 2) + 3 /*Extras*/;
+		long long kk = actualSz;
+		int thetaDivisions = 3;
+		int phiDivisions = 6;
+		long long totalsz = (phiDivisions * kk * (kk + 1) * (3 + thetaDivisions + 2 * thetaDivisions * kk)) / 6;
+		totalsz++;	// Add the origin
+		totalsz *= 2;	// Complex
+
+		bool bsuccess = hybridCalc->Initialize(curGPU, Qfloat, totalsz, thetaDivisions, phiDivisions, actualSz + 1, qMax,
+			stepSize, workspaces[p]);
+		hybridCalc->SetNumChildren(workspaces[p], myAmps[p].size());
+
+		for (auto hiter = myAmps[p].begin(); hiter != myAmps[p].end(); ++hiter)
+		{
+			numAmpsToCalc++;
+			int childNum = 0;
+			bool bsuccess = hybridCalc->Initialize(curGPU, Qfloat,
+				totalsz, thetaDivisions, phiDivisions, actualSz + 1, qMax, stepSize,
+				//std::get<1>(hiter->first).size(), std::get<1>(hiter->first).data(),
+				workspaces[p].children[childNum++]);
+		}
+		curGPU++;
+		if (curGPU == devCount)
+			curGPU = 0;
+	} // for(unsigned int p = 0; p < numWorkspaces; p++)
+
+	printf("End of hybrid init...\n");
+
+	int numAmpsCalced = 0;
+
+	// Calculate all of the grids up to the point where there are no grids used
+	for (unsigned int p = 0; p < numWorkspaces; p++)
+	{
+		int childNum = 0;
+		for (auto iter = myAmps[p].begin(); iter != myAmps[p].end(); ++iter)
+		{
+			// Don't need to call PreCalculate, it was already called in DomainModel::CalculateVector
+			//inIter->second->PreCalculate(VectorXd(inIter->first) /*Needs to be copied, otherwise will be const and can't pass by reference*/
+			//	, inIter->first.size());
+			IGPUGridCalculable* gpuModel = dynamic_cast<IGPUGridCalculable*>(iter->second);
+			if (gpuModel)
+			{
+				gpuModel->SetModel(workspaces[p].children[childNum]);	// Running this in a separate loop may increase performance (maybe?)
+				gpuModel->CalculateGridGPU(workspaces[p].children[childNum]);
+
+				std::string	hash = std::get<0>(iter->first);
+				VectorXd	parv = std::get<1>(iter->first);
+
+				std::vector<float4> rots;
+				int rotIndex = 0;
+				// Copy the keys (rotations)
+				std::transform(ampTrees[p][hash][parv].begin(),
+					ampTrees[p][hash][parv].end(),
+					std::back_inserter(rots),
+					first(ampTrees[p][hash][parv]));
+
+				hybridCalc->AddRotations(workspaces[p].children[childNum], rots);
+
+				for (auto rotI = ampTrees[p][hash][parv].begin();
+					rotI != ampTrees[p][hash][parv].end();
+					++rotI)
+				{
+					hybridCalc->AddTranslations(workspaces[p].children[childNum], rotIndex++,
+						rotI->second);
+
+				}
+				childNum++;
+			}
+			else {
+				// TODO::Hybrid We can call Amplitude::CalculateGrid and transfer the grid back and forth 
+				//				as an alternative to making all of the Amplitudes extend IGPUGridCalculable.
+				printf("Model not IGPUGridCalculable.\n");
+			}
+
+			if (pStop && *pStop) {
+				for (int j = 0; j < workspaces.size(); j++) {
+					hybridCalc->FreeWorkspace(workspaces[j]);
+				}
+				delete hybridCalc;
+				return STOPPED;
+			} // if pStop
+			numAmpsCalced++;
+		} // for iter = myAmps[p].begin(); iter != myAmps[p].end(); ++iter
+	} // for unsigned int p = 0; p < numWorkspaces; p++
+	printf("End of hybrid grid calculation.\n");
+
+	// TODO::Hybrid Figure out how to construct full amplitude
+	int ii = 0;
+	ii++;
+	if (workspaces.size() > 1) {
+		printf("\nWARNING!!! NO IMPLEMENTATION FOR MULTIPLE GPU SUPPORT YET!!! BREAKING!\n\n");
+		for (int j = 0; j < workspaces.size(); j++) {
+			hybridCalc->FreeWorkspace(workspaces[j]);
+		}
+		delete hybridCalc;
+		return ERROR_WITH_GPU_CALCULATION_TRY_CPU;
+	}
+
+	// Consolidate ampTrees[p][hash][ampParams][rotation].[translations] and myAmps[p][hash][ampParams].[*Amplitudes]
+
+	// TODO::Hybrid Orientation Average
+
+	// Master
+	workspaces[0].intMethod = orientationMethod;
+	aveBeg = clock();
+
+	bool bDone = hybridCalc->ComputeIntensity(workspaces, (double*)res.data(), epsi, iterations,
+		progFunc, progArgs, 0.3f, 1.0f, pStop);
+
+	// Do we want to think about saving the amplitudes back to the CPU?
+	for (int j = 0; j < workspaces.size(); j++) {
+		hybridCalc->FreeWorkspace(workspaces[j]);
+	}
+	delete hybridCalc;
+	aveEnd = clock();
+
+	// This is to release the device (duh!). Important to allow the GPU to power
+	// down and cool off. Otherwise the room gets hot...
+	cudaDeviceReset();
+
+	if (bDone)
+	{
+		std::cout << "Took " << double(aveBeg - gridBegin) / CLOCKS_PER_SEC << " seconds to calculate the grids." << std::endl;
+		std::cout << "Took " << double(aveEnd - aveBeg) / CLOCKS_PER_SEC << " seconds to calculate the orientational average." << std::endl;
+		return PDB_OK;	// When done
+	}
+	return ERROR_WITH_GPU_CALCULATION_TRY_CPU;
+}
+
+
+template <typename T>
 PDB_READER_ERRS DomainModel::PerformgGPUAllGridsMCOACalculations(const std::vector<T> &Q, std::vector<T> &res, uint64_t iterations, T epsi, clock_t &aveEnd, clock_t aveBeg, clock_t gridBegin)
 {
 #ifndef USE_JACOBIAN_SPHERE_GRID
@@ -1996,6 +2607,88 @@ PDB_READER_ERRS DomainModel::PerformgGPUAllGridsMCOACalculations(const std::vect
 }
 
 template <typename T>
+PDB_READER_ERRS DomainModel::PerformgGPUAllGridsMCOACalculations2D(const std::vector<T>& Q, 
+	Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& res, uint64_t iterations, T epsi, clock_t& aveEnd, clock_t aveBeg, clock_t gridBegin)
+{
+////#ifndef USE_JACOBIAN_SPHERE_GRID
+////	return ERROR_WITH_GPU_CALCULATION_TRY_CPU;
+////#endif
+////	int devCount;
+////	cudaError_t t = UseGPUDevice(&devCount);
+////	if (devCount <= 0 || t != cudaSuccess) {
+////		printf("No compatible GPU detected. Proceeding with CPU.\n");
+////		return ERROR_WITH_GPU_CALCULATION_TRY_CPU;
+////	}
+////
+////	GPUSumGridsJacobSphr_t gpuSumGrids = (GPUSumGridsJacobSphr_t)GPUSumGridsJacobSphrDD;// GetProcAddress((HMODULE)g_gpuModule, "GPUSumGridsJacobSphrDF");
+////	if (!gpuSumGrids)
+////	{
+////		printf("ERROR: Cannot find sum grids function in GPU DLL.\n");
+////		return ERROR_WITH_GPU_CALCULATION_TRY_CPU;
+////	}
+////
+////	GPUCalculateMCOA_t gpuCalcMCOA = (GPUCalculateMCOA_t)GPUCalcMCOAJacobSphrDD;// GetProcAddress((HMODULE)g_gpuModule, "GPUCalcMCOAJacobSphrDF");
+////	if (!gpuCalcMCOA)
+////	{
+////		printf("ERROR: Cannot find MC OA function in GPU DLL.\n");
+////		return ERROR_WITH_GPU_CALCULATION_TRY_CPU;
+////	}
+////
+////	// Create grid on GPU that is the sum of all of _amps including translation/orientation, keeping the result
+////	std::vector<double*> grids;
+////	std::vector<double*> derivatives;
+////	std::vector<double> trans, rots;
+////	for (int i = 0; i < _amps.size(); i++) {
+////		double x, y, z;
+////		double a, b, g;
+////		grids.push_back(_amps[i]->GetDataPointer());
+////		derivatives.push_back(((JacobianSphereGrid*)(_amps[i]->GetInternalGridPointer()))->GetInterpolantPointer());
+////		_amps[i]->GetTranslationRotationVariables(x, y, z, a, b, g);
+////		trans.push_back(x);
+////		trans.push_back(y);
+////		trans.push_back(z);
+////		rots.push_back(a);
+////		rots.push_back(b);
+////		rots.push_back(g);
+////	}
+////
+////	JacobianSphereGrid* grd;
+////	JacobianSphereGrid tmpGrid((_amps.size() > 1 ? gridSize : 1), qMax);	// 
+////	long long voxels;
+////	if (_amps.size() > 1) {
+////		grd = &tmpGrid;
+////		voxels = grd->GetRealSize() / (sizeof(double) * 2);
+////		gpuSumGrids(voxels, grd->GetDimY(1) - 1, grd->GetDimZ(1, 1), grd->GetStepSize(), grids.data(),
+////			derivatives.data(), trans.data(), rots.data(), _amps.size(), grd->GetDataPointer(),
+////			progFunc, progArgs, 0.3, 0.35, pStop);
+////
+////		// Calculate splines on GPU
+////		tmpGrid.CalculateSplines();
+////	}
+////	else {
+////		grd = (JacobianSphereGrid*)(_amps[0]->GetInternalGridPointer());
+////		voxels = grd->GetRealSize() / (sizeof(double) * 2);
+////	}
+////	// Calculate the Orientation Average
+////	int re = gpuCalcMCOA(voxels, grd->GetDimY(1) - 1, grd->GetDimZ(1, 1), grd->GetStepSize(), grd->GetDataPointer(),
+////		grd->GetInterpolantPointer(), (double*)Q.data(), (double*)res.data(), Q.size(), iterations, epsi,
+////		progFunc, progArgs, 0.35, 1.0, pStop);
+////
+////	if (pStop && *pStop)
+////		return STOPPED;
+////
+////	aveEnd = clock();
+////
+////	std::cout << "Took " << double(aveBeg - gridBegin) / CLOCKS_PER_SEC << " seconds to calculate the grids." << std::endl;
+////	std::cout << "Took " << double(aveEnd - aveBeg) / CLOCKS_PER_SEC << " seconds to calculate the orientational average." << std::endl;
+////
+////	// Reset the GPU to clear memory
+//
+	return PDB_OK;
+}
+
+
+template <typename T>
 void DomainModel::AverageIntensitiesBetweenLayers(const std::vector<T> &TrelevantQs, std::vector<T> &reses, size_t layerInd, FACC epsi, unsigned int seed, uint64_t iterations)
 {
 	typedef Eigen::Array<T, Eigen::Dynamic, 1> ArrayT;
@@ -2067,6 +2760,114 @@ void DomainModel::AverageIntensitiesBetweenLayers(const std::vector<T> &Trelevan
 		ArrayT::Map(&reses[0], relevantQs.size()) = (runningIntensitySum / iterations).cast<T>();
 		return;
 
+	} // elif orientationMethod == OA_MC
+
+	printf("Integration of multiple points not implemented on the CPU for the chosen method");
+	throw backend_exception(ERROR_GENERAL, "Integration of multiple points not implemented on the CPU for the chosen method");
+}
+
+//template <typename T> // should PolarCalculationData be template? is there any case were q is float instead of double?
+void DomainModel::AverageIntensitiesBetweenLayers2D(std::vector<PolarCalculationData*> relevantQData, size_t layerInd, FACC epsi, unsigned int seed, uint64_t iterations)
+{
+	//typedef Eigen::Array<T, Eigen::Dynamic, 1> ArrayT;
+
+	int q;
+	if (orientationMethod == OA_ADAPTIVE_GK)
+	{
+		throw std::logic_error("The method or operation is not implemented for Gauss Kronrod.");
+		//return GaussKron2DSphereRecurs(q, epsi, iterations, 0);
+	}
+	else if (orientationMethod == OA_MC)
+	{
+		unsigned long long minIter = 100ULL;
+		// resHistory is a matrix of PolarCalculationData. only rIntensities are relevant
+		Eigen::Array<PolarCalculationData, Eigen::Dynamic, Eigen::Dynamic> resHistory;
+		resHistory.resize(relevantQData.size(), 4);
+
+		std::mt19937 rng;
+		rng.seed(seed);
+
+		std::uniform_real_distribution<FACC> ranU2(0.0, 2.0);
+		std::complex<FACC> phase, im(0.0, 1.0);
+
+		Eigen::Array<PolarCalculationData, Eigen::Dynamic, 1> runningIntensitySum(relevantQData.size());
+		for (int q = 0; q < relevantQData.size(); q++)
+		{
+			runningIntensitySum[q] = PolarCalculationData(relevantQData[q]->theta.size());
+			std::fill(runningIntensitySum[q].rIntensities.begin(), runningIntensitySum[q].rIntensities.end(), 0);
+		}
+		
+
+		for (uint64_t i = 0; i < iterations; i++)
+		{
+			FACC phi, u2, v2;
+
+			u2 = ranU2(rng);
+			v2 = ranU2(rng);
+			phi = u2 * M_PI;
+			
+
+			std::vector<PolarCalculationData> ampSums(relevantQData.size()); 
+			for (int a = 0; a < relevantQData.size(); a++)
+			{
+				ampSums[a] = PolarCalculationData(relevantQData[a]->theta.size());
+				ampSums[a].cIntensities.setZero();
+			}
+
+			for (int j = 0; j < _amps.size(); j++)
+			{
+				_amps[j]->getAmplitudesAtPoints2D(relevantQData, phi);
+				for (int a = 0; a < relevantQData.size(); a++)
+				{
+					ampSums[a].addCIntensities(*(relevantQData[a]));
+				}
+			}
+
+			for (int a = 0; a < ampSums.size(); a++)
+			{
+				ampSums[a].SqrComplexToReal();
+				runningIntensitySum[a].addRIntensities(ampSums[a]);
+			}
+
+			if (epsi > 0.0) {
+				if (i % minIter == 0)
+				{
+					int position = (i / minIter) % resHistory.cols();
+					// Convergence Place TODO FIXME
+					// Convergence test
+					for (int i = 0; i < resHistory.col(position).size(); i++)
+					{
+						resHistory.col(position)[i].rIntensities = runningIntensitySum[i].rIntensities / FACC(i + 1);
+					}
+					
+					if (i >= 4 * minIter)
+					{
+						bool converged = true;
+
+						for (int j = 0; converged && j < resHistory.cols(); j++)
+							for (int q = 0; q < resHistory.col(j).size() ; q++)
+								converged &= ((1.0 - (resHistory.col(j)[q].rIntensities / resHistory.col(0)[q].rIntensities)).abs() < epsi).all();
+
+						if (converged)
+						{
+							//ArrayT::Map(&reses[0], relevantQs.size()) = resHistory.col(position).cast<T>();
+							for (int i = 0; i < relevantQData.size(); i++)
+							{
+								relevantQData[i]->rIntensities = resHistory.col(position)[i].rIntensities;
+							}
+							return;
+						}
+					}
+				}
+			} // if i >=...
+
+		} // for
+		//ArrayT::Map(&reses[0], relevantQs.size()) = (runningIntensitySum / iterations).cast<T>();
+		for (int i = 0; i < relevantQData.size(); i++)
+		{
+			relevantQData[i]->rIntensities = runningIntensitySum[i].rIntensities / iterations;
+		}
+		return;
 	} // elif orientationMethod == OA_MC
 
 	printf("Integration of multiple points not implemented on the CPU for the chosen method");
@@ -2716,7 +3517,8 @@ bool Amplitude::GetUseGridWithChildren() const {
 	return bUseGrid;
 }
 
-ArrayXcX Amplitude::getAmplitudesAtPoints(const std::vector<FACC> & relevantQs, FACC theta, FACC phi)
+void Amplitude::getNewThetaPhiAndPhases(const std::vector<FACC>& relevantQs, FACC theta, FACC phi,
+	double &newTheta, double &newPhi, ArrayXcX &phases)
 {
 	// First, take orientation of object into account, i.e. change theta and phi to newTheta and newPhi
 	FACC st = sin(theta);
@@ -2725,22 +3527,29 @@ ArrayXcX Amplitude::getAmplitudesAtPoints(const std::vector<FACC> & relevantQs, 
 	FACC cp = cos(phi);
 	const auto Q = relevantQs[0];
 
-	Eigen::Vector3d Qcart(Q * st*cp, Q * st * sp, Q*ct), Qt;
+	Eigen::Vector3d Qcart(Q * st * cp, Q * st * sp, Q * ct), Qt;
 	Eigen::Matrix3d rot;
 	Eigen::Vector3d R(tx, ty, tz);
 	Qt = (Qcart.transpose() * RotMat) / Q;
 
-	double newTheta = acos(Qt.z());
-	double newPhi = atan2(Qt.y(), Qt.x());
+	newTheta = acos(Qt.z());
+	newPhi = atan2(Qt.y(), Qt.x());
 
 	if (newPhi < 0.0)
 		newPhi += M_PI * 2.;
 
-	ArrayXcX phases = (
+	phases = (
 		std::complex<FACC>(0., 1.) *
 		(Qt.dot(R) *
 			Eigen::Map<const Eigen::ArrayXd>(relevantQs.data(), relevantQs.size()))
 		).exp();
+}
+
+ArrayXcX Amplitude::getAmplitudesAtPoints(const std::vector<FACC> & relevantQs, FACC theta, FACC phi)
+{
+	double newTheta, newPhi;
+	ArrayXcX phases;
+	getNewThetaPhiAndPhases(relevantQs, theta, phi, newTheta, newPhi, phases);
 
 	ArrayXcX reses(relevantQs.size());
 	reses.setZero();
@@ -2755,8 +3564,58 @@ ArrayXcX Amplitude::getAmplitudesAtPoints(const std::vector<FACC> & relevantQs, 
 		}
 	}
 
-
 	return scale * getAmplitudesAtPointsWithoutGrid(newTheta, newPhi, relevantQs, phases);
+
+}
+
+void Amplitude::getAmplitudesAtPoints2D(vector<PolarCalculationData*> relevantQData, FACC phi)
+{
+	double newTheta, newPhi, currTheta;
+	ArrayXcX phases;
+	std::vector<FACC> relevantQs;
+	int q, t;
+	
+
+
+	for (q = 0; q < relevantQData.size(); q++)
+	{
+		relevantQs.push_back(relevantQData[q]->q);
+	}
+
+	for (q = 0; q < relevantQData.size(); q++)
+	{
+		for (t = 0; t < relevantQData[q]->theta.size(); t++)
+		{
+			currTheta = relevantQData[q]->theta[t];
+			getNewThetaPhiAndPhases(relevantQs, currTheta, phi, newTheta, newPhi, phases);
+			relevantQData[q]->theta[t] = newTheta;
+		}
+	}
+
+	if (GetUseGridWithChildren())
+	{
+		JacobianSphereGrid* jgrid = dynamic_cast<JacobianSphereGrid*>(grid);
+		if (jgrid)
+		{
+			getNewThetaPhiAndPhases(relevantQs, relevantQData[0]->theta[0], phi, newTheta, newPhi, phases);
+			// Get amplitudes from grid
+			jgrid->getAmplitudesAtPoints2D(relevantQData, newPhi);
+			for (int i = 0; i < relevantQData.size(); i++)
+			{
+				relevantQData[i]->cIntensities = relevantQData[i]->cIntensities * phases[i];
+			}
+		}
+	}
+	else
+	{
+		// just to get newPhi and phases. Theta doesn't matter.
+		getNewThetaPhiAndPhases(relevantQs, relevantQData[0]->theta[0], phi, newTheta, newPhi, phases);
+		
+		// pass 'scale' as an argument instead of multiplying the result vector by scale, as done in 1D
+		getAmplitudesAtPointsWithoutGrid2D(relevantQData, newPhi, phases, scale);
+	}
+
+	
 
 }
 
@@ -2773,6 +3632,25 @@ ArrayXcX Amplitude::getAmplitudesAtPointsWithoutGrid(double newTheta, double new
 		reses(q) = calcAmplitude(relevantQs[q] * st*cp, relevantQs[q] * st * sp, relevantQs[q] * ct);
 
 	return reses * phases;
+}
+
+void Amplitude::getAmplitudesAtPointsWithoutGrid2D(std::vector<PolarCalculationData*> qData, double newPhi, Eigen::Ref<ArrayXcX> phases, double scale)
+{
+	FACC sp = sin(newPhi);
+	FACC cp = cos(newPhi);
+	FACC st, ct, currQ, currTheta;
+	
+	for (size_t q = 0; q < qData.size(); q++)
+	{
+		currQ = qData[q]->q;
+		for (size_t t = 0; t < qData[q]->theta.size(); t++)
+		{
+			currTheta = qData[q]->theta[t];
+			st = sin(currTheta);
+			ct = cos(currTheta);
+			qData[q]->cIntensities[t] = calcAmplitude(currQ * st * cp, currQ * st * sp, currQ * ct) * phases[t] * scale;
+		}
+	}
 }
 
 bool Amplitude::GetHasAnomalousScattering()

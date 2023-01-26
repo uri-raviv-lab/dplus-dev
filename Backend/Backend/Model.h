@@ -91,6 +91,9 @@ public:
 	virtual VectorXd CalculateVector(const std::vector<double>& q, int nLayers, VectorXd& p,
 		progressFunc progress = NULL, void *progressArgs = NULL) = 0;
 
+	virtual MatrixXd CalculateMatrix(const std::vector<double>& q, int nLayers, VectorXd& p,
+		progressFunc progress = NULL, void* progressArgs = NULL) = 0;
+
 	// Computes the derivative of the model on an entire vector. Default
 	// is numerical derivation (may use analytic derivation)
 	virtual VectorXd Derivative(const std::vector<double>& x, VectorXd param, 
@@ -189,6 +192,9 @@ public:
 	virtual Eigen::VectorXd CalculateVector(const std::vector<double>& q, int nLayers, VectorXd& p,
 		progressFunc progress = NULL, void *progressArgs = NULL);
 
+	virtual Eigen::MatrixXd CalculateMatrix(const std::vector<double>& q, int nLayers, VectorXd& p,
+		progressFunc progress = NULL, void* progressArgs = NULL);
+
 	virtual IModel *GetInnerModel();
 
 protected:
@@ -236,6 +242,7 @@ protected:
 	std::string _previous_hashes;
 	Eigen::ArrayXd _previous_parameters;
 	Eigen::ArrayXd _previous_intensity;
+	Eigen::MatrixXd _previous_intensity_2D;
 	Eigen::ArrayXd _previous_q_values;
 
 
@@ -271,6 +278,7 @@ public:
 
 
 	virtual VectorXd CalculateVector( const std::vector<double>& q, int nLayers , VectorXd& p, progressFunc progress = NULL, void *progressArgs = NULL);
+	virtual MatrixXd CalculateMatrix(const std::vector<double>& q, int nLayers, VectorXd& p, progressFunc progress = NULL, void* progressArgs = NULL);
 
 	virtual VectorXd Derivative( const std::vector<double>& x, VectorXd param, int nLayers, int ai );
 
