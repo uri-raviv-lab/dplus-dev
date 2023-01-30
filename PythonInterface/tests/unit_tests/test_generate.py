@@ -52,6 +52,7 @@ def test_generate_2():
 def test_generate_2D():
     #state_file_path = os.path.join(root_path, "files_for_tests", "uhc.state")
     #state_file_path = os.path.join(root_path, "files_for_tests", "sphere50points.state")
+    #state_file_path = os.path.join(root_path, "files_for_tests", "1jff.state")
     state_file_path = os.path.join(root_path, "files_for_tests", "helix.state")
     calc_input = CalculationInput.load_from_state_file(state_file_path, USE_GPU, is2D=True)
     runner = EmbeddedLocalRunner()

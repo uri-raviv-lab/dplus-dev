@@ -280,7 +280,7 @@ MatrixXd CompositeModel::CalculateMatrix(const std::vector<double>& q, int nLaye
 	unsigned int totalModels = (unsigned int)_additives.size();
 
 	PreCalculate(p, nLayers);
-	if (_previous_intensity.size() > 1 &&
+	if (_previous_intensity_2D.rows() > 1 &&
 		_previous_q_values.size() == q.size() &&
 		(_previous_q_values == Eigen::Map<const Eigen::ArrayXd>(q.data(), q.size())).all() // The q-values haven't changed
 		)
