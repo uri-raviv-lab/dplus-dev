@@ -620,7 +620,6 @@ void BackendWrapper::GetGenerate2DResults(JsonWriter& writer, const LocalBackend
 	writer.EndArray();
 
 	//results
-	// TODO: return 2D Graph instead of 1D.
 	writer.Key("2DGraph");
 	Write2DGraph(writer, backend);
 	writer.EndObject();

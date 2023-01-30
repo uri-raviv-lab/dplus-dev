@@ -387,7 +387,7 @@ ErrorCode PerformModelGeneration2D(fitJobArgs* args) {
 
 
 	// 3. GENERATION
-	//   Call CalculateVector
+	//   Call CalculateMatrix
 	bool bStopped = false;
 
 	MatrixXd y = finalModel->CalculateMatrix(args->x, 0, p,

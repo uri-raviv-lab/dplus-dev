@@ -50,17 +50,18 @@ def test_generate_2():
     plt.show()
 
 def test_generate_2D():
-    #state_file_path = os.path.join(root_path, "files_for_tests", "helix.state")
-    state_file_path = os.path.join(root_path, "files_for_tests", "sphere.state")
+    #state_file_path = os.path.join(root_path, "files_for_tests", "uhc.state")
+    #state_file_path = os.path.join(root_path, "files_for_tests", "sphere50points.state")
+    state_file_path = os.path.join(root_path, "files_for_tests", "helix.state")
     calc_input = CalculationInput.load_from_state_file(state_file_path, USE_GPU, is2D=True)
     runner = EmbeddedLocalRunner()
     res = runner.generate2D(calc_input)
 
-    for row in res.y:
-        str = ""
-        for v in row:
-            str += f"{v}, "
-        print(str)
+    # for row in res.y:
+    #     str = ""
+    #     for v in row:
+    #         str += f"{v}, "
+    #     print(str)
 
     plt.imshow(list(res.y), origin='lower', norm=colors.LogNorm(vmin=0, vmax=max(max(list(res.y)))))
     plt.show()

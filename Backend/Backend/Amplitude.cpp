@@ -966,6 +966,10 @@ PDB_READER_ERRS DomainModel::CalculateIntensity2DMatrix(const std::vector<T>& Q,
 
 			IntegrateLayersTogether2D(seeds, sRan, seedGen, polarData, epsi, iterations, cProgMax, cProgMin, prog, aveEnd, aveBeg, gridBegin);
 			res = JacobianSphereGrid::PolarQDataToCartesianMatrix(polarData, Q.size());
+			
+			_previous_intensity_2D = (Eigen::Map < Eigen::Array<T, Eigen::Dynamic, 1> >(res.data(), res.size())).template cast<double>();
+			_previous_q_values = Eigen::Map<const Eigen::Array<T, Eigen::Dynamic, 1>>(Q.data(), Q.size()).template cast<double>();
+			
 			return PDB_OK;
 
 		}
@@ -1074,6 +1078,8 @@ PDB_READER_ERRS DomainModel::DefaultCPUCalculation2D(clock_t& aveBeg, const std:
 	int exceptionInt = 0;
 	std::string exceptionString = "";
 
+	res.setZero();
+
 #ifdef GAUSS_LEGENDRE_INTEGRATION
 #pragma omp parallel sections
 	{
@@ -1102,13 +1108,15 @@ PDB_READER_ERRS DomainModel::DefaultCPUCalculation2D(clock_t& aveBeg, const std:
 				continue;
 
 			// TODO: swap i,j ?
-			qZ = Q[i];
-			qPerp = Q[j];
+			qZ = Q[j];
+			qPerp = Q[i];
 			JacobianSphereGrid::qZ_qPerp_to_q_Theta(qZ, qPerp, q, theta);
+			//std::cout <<"qZ="<<qZ<<", qP="<<qPerp<<", q="<<q<<", theta=" << theta << std::endl;
 
 			try // This try/catch combo is here because of OMP
 			{
-				res(i,j) = CalculateIntensity(q, epsi, seeds[i], iterations);
+				if (q <= qMax && q>= qMin)
+					res(i,j) = CalculateIntensity(q, theta, epsi, seeds[i], iterations);
 			}
 			catch (backend_exception& ex)
 			{
@@ -1157,9 +1165,9 @@ void DomainModel::setPreviousValues(std::vector<T> & res, const std::vector<T> &
 template<typename T>
 void DomainModel::setPreviousValues2D(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& res, const std::vector<T>& Q)
 {
-//	_previous_hash = Hash();
-//	_previous_intensity_2D = res.template cast<double>();
-//	_previous_q_values = Eigen::Map<const Eigen::Array<T, Eigen::Dynamic, 1> >(Q.data(), Q.size()).template cast<double>();
+	_previous_hash = Hash();
+	_previous_intensity_2D = res.template cast<double>();
+	_previous_q_values = Eigen::Map<const Eigen::Array<T, Eigen::Dynamic, 1> >(Q.data(), Q.size()).template cast<double>();
 }
 
 template<typename T>
@@ -1239,6 +1247,7 @@ template<typename T>
 PDB_READER_ERRS DomainModel::IntegrateLayersTogether2D(std::vector<unsigned int>& seeds, std::uniform_int_distribution<unsigned int>& sRan, std::mt19937& seedGen, std::vector<PolarCalculationData*> qData, 
 	 T& epsi, uint64_t& iterations, const double& cProgMax, const double& cProgMin, int& prog, clock_t& aveEnd, const clock_t& aveBeg, const clock_t& gridBegin)
 {
+	std::cout << "--------- DomainModel::IntegrateLayersTogether2D ---------" << std::endl;
 	seeds.resize(1 + gridSize / 2);
 	for (size_t i = 0; i < seeds.size(); i++)
 		seeds[i] = sRan(seedGen);
@@ -1295,8 +1304,7 @@ PDB_READER_ERRS DomainModel::IntegrateLayersTogether2D(std::vector<unsigned int>
 	std::cout << "Took " << double(aveEnd - aveBeg) / CLOCKS_PER_SEC << " seconds to calculate the orientational average." << std::endl;
 
 	_previous_hash = Hash();
-	// Think about it: // _previous_intensity_2D = (Eigen::Map < Eigen::Array<T, Eigen::Dynamic, 1> >(res.data(), res.size())).template cast<double>();
-	//_previous_q_values = Eigen::Map<const Eigen::Array<T, Eigen::Dynamic, 1>>(Q.data(), Q.size()).template cast<double>();
+
 	return PDB_OK;
 }
 
@@ -1422,7 +1430,12 @@ double DomainModel::GaussLegPhi(double q, double st, double ct, double pMin, dou
 		GaussLegPhi(q, st, ct, apb2, pMax, epsilon, maxDepth - 1, minDepth - 1);
 }
 
-FACC DomainModel::CalculateIntensity(FACC q, FACC epsi, unsigned int seed, uint64_t iterations) {
+FACC DomainModel::CalculateIntensity(FACC q, FACC epsi, unsigned int seed, uint64_t iterations) 
+{
+	return CalculateIntensity(q, -1, epsi, seed, iterations);
+}
+
+FACC DomainModel::CalculateIntensity(FACC q, FACC thetaIn, FACC epsi, unsigned int seed, uint64_t iterations) {
 	FACC res = 0.0;
 
 	if (q == 0.0) {
@@ -1477,14 +1490,20 @@ FACC DomainModel::CalculateIntensity(FACC q, FACC epsi, unsigned int seed, uint6
 			FACC theta, phi, st, sp, cp, ct, u2, v2;
 
 #ifndef WOLFRAM_RANDOM_POINTS_ON_SPHERE
-			theta = thRan(rng);
+			if (thetaIn < 0)
+				theta = thRan(rng);
+			else
+				theta = thetaIn;
 			phi = phRan(rng);
 #else
 			// See http://mathworld.wolfram.com/SpherePointPicking.html
 			u2 = ranU2(rng);
 			v2 = ranU2(rng);
 			phi = u2 * M_PI;
-			theta = acos(v2 - 1.0);
+			if (thetaIn < 0)
+				theta = acos(v2 - 1.0);
+			else
+				theta = thetaIn;
 #endif
 			st = sin(theta);
 			sp = sin(phi);
@@ -1682,8 +1701,6 @@ MatrixXd DomainModel::CalculateMatrix(const std::vector<double>& q, int nLayers,
 		return mat;
 	}
 
-	// Copy data from rVec to vec
-	//memcpy(mat.data(), &rMat[0], points * sizeof(double));
 	mat = rMat;
 
 	return mat;
@@ -2769,7 +2786,7 @@ void DomainModel::AverageIntensitiesBetweenLayers(const std::vector<T> &Trelevan
 //template <typename T> // should PolarCalculationData be template? is there any case were q is float instead of double?
 void DomainModel::AverageIntensitiesBetweenLayers2D(std::vector<PolarCalculationData*> relevantQData, size_t layerInd, FACC epsi, unsigned int seed, uint64_t iterations)
 {
-	//typedef Eigen::Array<T, Eigen::Dynamic, 1> ArrayT;
+	//std::cout << "--------- DomainModel::AverageIntensitiesBetweenLayers2D -----------" << std::endl;
 
 	int q;
 	if (orientationMethod == OA_ADAPTIVE_GK)
@@ -3570,6 +3587,7 @@ ArrayXcX Amplitude::getAmplitudesAtPoints(const std::vector<FACC> & relevantQs, 
 
 void Amplitude::getAmplitudesAtPoints2D(vector<PolarCalculationData*> relevantQData, FACC phi)
 {
+	// This happens too many times to print //std::cout << " ---------- Amplitude::getAmplitudesAtPoints2D -------------" << std::endl;
 	double newTheta, newPhi, currTheta;
 	ArrayXcX phases;
 	std::vector<FACC> relevantQs;
@@ -3636,6 +3654,7 @@ ArrayXcX Amplitude::getAmplitudesAtPointsWithoutGrid(double newTheta, double new
 
 void Amplitude::getAmplitudesAtPointsWithoutGrid2D(std::vector<PolarCalculationData*> qData, double newPhi, Eigen::Ref<ArrayXcX> phases, double scale)
 {
+	std::cout << " ::::::::::::::: getAmplitudesAtPointsWithoutGrid2D ::::::::::::: " << std::endl;
 	FACC sp = sin(newPhi);
 	FACC cp = cos(newPhi);
 	FACC st, ct, currQ, currTheta;

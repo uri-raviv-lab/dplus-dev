@@ -639,7 +639,8 @@ ErrorCode LocalBackend::HandleGenerate2D(JobPtr job, const ParameterTree& tree, 
 	const FittingProperties& fp) {
 
 	std::cout << "!!!!!!! LocalBackend::HandleGenerate2D !!!!!!!" << std::endl;
-	return JobManager::GetInstance().StartGenerate2DJob(this, job, tree, x, fp);
+	ErrorCode ret = JobManager::GetInstance().StartGenerate2DJob(this, job, tree, x, fp);
+	return ret;
 }
 
 void LocalBackend::HandleStop(JobPtr job) {

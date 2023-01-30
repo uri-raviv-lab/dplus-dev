@@ -418,6 +418,7 @@ protected:
 
 	PDB_READER_ERRS state;
 
+	FACC CalculateIntensity(FACC q, FACC theta, FACC epsi, unsigned int seed, uint64_t iterations);
 	FACC CalculateIntensity(FACC q, FACC epsi, unsigned int seed, uint64_t iterations);
 
 	virtual double Calculate(double q, int nLayers, VectorXd& p);
