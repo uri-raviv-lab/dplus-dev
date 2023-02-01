@@ -470,6 +470,8 @@ public:
 	template<typename T>
 	PDB_READER_ERRS IntegrateLayersTogether(std::vector<unsigned int> &seeds, std::uniform_int_distribution<unsigned int> &sRan, std::mt19937 &seedGen, const std::vector<T> & Q, std::vector<T> & res, T &epsi, uint64_t &iterations, const double &cProgMax, const double &cProgMin, int &prog, clock_t &aveEnd, const clock_t &aveBeg, const clock_t &gridBegin);
 
+	void HandleQ0(std::vector<PolarCalculationData*> qData);
+
 	template<typename T>
 	PDB_READER_ERRS IntegrateLayersTogether2D(std::vector<unsigned int>& seeds, std::uniform_int_distribution<unsigned int>& sRan, std::mt19937& seedGen, std::vector<PolarCalculationData*> qData, 
 		T& epsi, uint64_t& iterations, const double& cProgMax, const double& cProgMin, int& prog, clock_t& aveEnd, const clock_t& aveBeg, const clock_t& gridBegin);

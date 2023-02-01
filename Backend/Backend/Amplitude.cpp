@@ -974,6 +974,7 @@ PDB_READER_ERRS DomainModel::CalculateIntensity2DMatrix(const std::vector<T>& Q,
 
 		}
 
+		// Can this ever happen? because it happens only if useGrid==false, but if so, we dont even get up to here.
 		return DefaultCPUCalculation2D(aveBeg, Q, res, epsi, seeds, iterations, cProgMax, cProgMin, prog, aveEnd, gridBegin);
 
 	}
@@ -1242,6 +1243,23 @@ PDB_READER_ERRS DomainModel::IntegrateLayersTogether(std::vector<unsigned int> &
 	return PDB_OK;
 }
 
+void DomainModel::HandleQ0(std::vector<PolarCalculationData*> qData)
+{
+	for (int q = 0; q < qData.size(); q++)
+	{
+		if (qData[q]->q == 0)
+		{
+			std::complex<FACC> amp(0.0, 0.0);
+			for (unsigned int j = 0; j < _amps.size(); j++)
+				amp += _amps[j]->getAmplitude(0, 0, 0);
+
+			qData[q] = new PolarCalculationData(1);
+			qData[q]->q = 0;
+			qData[q]->theta[0] = 0;
+			qData[q]->cIntensities[0] = real(amp * conj(amp));
+		}
+	}
+}
 
 template<typename T>
 PDB_READER_ERRS DomainModel::IntegrateLayersTogether2D(std::vector<unsigned int>& seeds, std::uniform_int_distribution<unsigned int>& sRan, std::mt19937& seedGen, std::vector<PolarCalculationData*> qData, 
@@ -1285,6 +1303,7 @@ PDB_READER_ERRS DomainModel::IntegrateLayersTogether2D(std::vector<unsigned int>
 
 		// Integrate until converged
 		AverageIntensitiesBetweenLayers2D(relevantQData, layerInd, epsi, seeds[layerInd], iterations);
+
 
 		// Report progress
 #pragma omp critical
@@ -2842,7 +2861,7 @@ void DomainModel::AverageIntensitiesBetweenLayers2D(std::vector<PolarCalculation
 
 			for (int a = 0; a < ampSums.size(); a++)
 			{
-				ampSums[a].SqrComplexToReal();
+				ampSums[a].multByConjAndConvertToReal();
 				runningIntensitySum[a].addRIntensities(ampSums[a]);
 			}
 

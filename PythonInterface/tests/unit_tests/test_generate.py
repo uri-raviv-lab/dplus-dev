@@ -52,17 +52,21 @@ def test_generate_2():
 def test_generate_2D():
     #state_file_path = os.path.join(root_path, "files_for_tests", "uhc.state")
     #state_file_path = os.path.join(root_path, "files_for_tests", "sphere200points.state")
-    #state_file_path = os.path.join(root_path, "files_for_tests", "1jff.state")
-    state_file_path = os.path.join(root_path, "files_for_tests", "helix.state")
+    state_file_path = os.path.join(root_path, "files_for_tests", "1jff.state")
+    #state_file_path = os.path.join(root_path, "files_for_tests", "helix.state")
     calc_input = CalculationInput.load_from_state_file(state_file_path, USE_GPU, is2D=True)
     runner = EmbeddedLocalRunner()
     res = runner.generate2D(calc_input)
 
-    # for row in res.y:
-    #     str = ""
-    #     for v in row:
-    #         str += f"{v}, "
-    #     print(str)
+    res_file = os.path.join(root_path, "files_for_tests", "1jff_res.csv")
+    f = open(res_file, 'w')
+    for row in res.y:
+        str = ""
+        for v in row:
+            str += f"{v}, "
+        str += '\n'
+        f.write(str)
+    f.close()
 
     plt.imshow(list(res.y), origin='lower', norm=colors.LogNorm(vmin=0, vmax=max(max(list(res.y)))))
     plt.show()

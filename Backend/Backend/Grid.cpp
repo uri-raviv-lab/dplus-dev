@@ -623,7 +623,14 @@ std::vector<PolarCalculationData*> JacobianSphereGrid::QListToPolar(std::vector<
 		for (int j = 0; j < Q.size(); j++)
 		{
 			qPerp = Q[j];
-			JacobianSphereGrid::qZ_qPerp_to_q_Theta(qZ, qPerp, q, theta);
+			if (qPerp == 0 && qZ == 0)
+			{
+				q = theta = 0;
+			}
+			else
+			{
+				JacobianSphereGrid::qZ_qPerp_to_q_Theta(qZ, qPerp, q, theta);
+			}
 
 			if (q > qMax || q < qMin) // q will always be positive
 			{

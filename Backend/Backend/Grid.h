@@ -61,19 +61,11 @@ public:
 		}
 	}
 
-	void DivRIntensities(double div)
-	{
-		for (int i = 0; i < rIntensities.size(); i++)
-		{
-			rIntensities[i] /= div;
-		}
-	}
-
-	void SqrComplexToReal()
+	void multByConjAndConvertToReal()
 	{
 		for (int i = 0; i < theta.size(); i++)
 		{
-			rIntensities[i] = (cIntensities[i] * cIntensities[i]).real();
+			rIntensities[i] = real(cIntensities[i] * conj(cIntensities[i]));
 		}
 	}
 
