@@ -5,7 +5,7 @@
   "Fitting_UpdateGraph": true,
   "GeneratedPoints": 100,
   "GridSize": 20,
-  "OrientationIterations": 10,
+  "OrientationIterations": 10000,
   "OrientationMethod": "Monte Carlo (Mersenne Twister)",
   "ResolutionSigma": 0.02,
   "UpdateInterval": 500,
@@ -119,7 +119,7 @@
       "ExtraMutables": [ false, false, false, false, false, false, false, false, false, false ],
       "ExtraParameters": [ 1, 334, 1, 0.2, 0.14, 0.28, 0, 0, 0, 4 ],
       "ExtraSigma": [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
-      "Filename": "C:\\Sources\\dplus-dev\\PythonInterface\\tests\\unit_tests\\files_for_tests\\1jff.pdb",
+      "Filename": "D:\\GitHub\\dplus-dev\\PythonInterface\\tests\\unit_tests\\files_for_tests\\1jff.pdb",
       "Location": {
         "alpha": 0,
         "beta": 0,

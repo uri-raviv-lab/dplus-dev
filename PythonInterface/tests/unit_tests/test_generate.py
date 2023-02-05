@@ -50,17 +50,28 @@ def test_generate_2():
     plt.show()
 
 def test_generate_2D():
+    from time import time
     #state_file_path = os.path.join(root_path, "files_for_tests", "uhc.state")
     #state_file_path = os.path.join(root_path, "files_for_tests", "sphere200points.state")
     state_file_path = os.path.join(root_path, "files_for_tests", "1jff.state")
-    #state_file_path = os.path.join(root_path, "files_for_tests", "helix.state")
+    # state_file_path = os.path.join(root_path, "files_for_tests", "helix.state")
     calc_input = CalculationInput.load_from_state_file(state_file_path, USE_GPU, is2D=True)
     runner = EmbeddedLocalRunner()
+    time_1 = time()
     res = runner.generate2D(calc_input)
-
-    res_file = os.path.join(root_path, "files_for_tests", "1jff_res.csv")
-    f = open(res_file, 'w')
-    for row in res.y:
+    time_2 = time()
+    # res = runner.generate(calc_input)
+    my_amp = runner.get_amp(calc_input.Domain.populations[0].children[0].model_ptr)
+    time_3 = time()
+    out = my_amp.get_intensity(calc_input.DomainPreferences.q_max, 101, max_iter=10000)
+    time_4 = time()
+    print(time_2 - time_1)
+    print(time_4 - time_3)
+    diff = np.array(res.y) - np.array(out)
+    # res_file = os.path.join(root_path, "files_for_tests", "1jff_res.csv")
+    diff_file = os.path.join(root_path, "files_for_tests", "1jff_diff.csv")
+    f = open(diff_file, 'w')
+    for row in diff:
         str = ""
         for v in row:
             str += f"{v}, "
@@ -68,7 +79,10 @@ def test_generate_2D():
         f.write(str)
     f.close()
 
-    plt.imshow(list(res.y), origin='lower', norm=colors.LogNorm(vmin=0, vmax=max(max(list(res.y)))))
+    # plt.imshow(list(res.y), origin='lower', norm=colors.LogNorm(vmin=0, vmax=max(max(list(res.y)))))
+    # plt.imshow(out, origin='lower', norm=colors.LogNorm(vmin=0, vmax=np.max(out)))
+    plt.imshow(diff, origin='lower', norm=colors.LogNorm(vmin=0, vmax=np.max(diff)))
+    plt.colorbar()
     plt.show()
 
 
