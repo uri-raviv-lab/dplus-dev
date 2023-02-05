@@ -3,7 +3,7 @@
   "Convergence": 0.001,
   "Fitting_UpdateDomain": false,
   "Fitting_UpdateGraph": true,
-  "GeneratedPoints": 100,
+  "GeneratedPoints": 800,
   "GridSize": 20,
   "OrientationIterations": 10,
   "OrientationMethod": "Monte Carlo (Mersenne Twister)",

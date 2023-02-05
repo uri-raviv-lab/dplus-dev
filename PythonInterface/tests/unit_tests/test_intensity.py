@@ -274,8 +274,13 @@ def test_2d_intensity_hard_2():
 
 def test_2D_cart2pol_calculate_intensity():
     my_amp = Amplitude.load(join(file_dir, "intensity", "1jff.ampj"))
-    qZ = [-7.5, -5.833333333333333, -4.166666666666666, -2.5, -0.833333333333333, 0.8333333333333339, 2.5, 4.166666666666668, 5.833333333333334, 7.5]
-    qP = [-7.5, -5.833333333333333, -4.166666666666666, -2.5, -0.833333333333333, 0.8333333333333339, 2.5, 4.166666666666668, 5.833333333333334, 7.5]
+
+    q_min=-7.5
+    q_max=7.5
+    generated_points = 100
+
+    qZ = np.linspace(q_min, q_max, generated_points + 1)
+    qP = np.linspace(q_min, q_max, generated_points + 1)
 
     qs = [[0 for t in range(len(qP))] for q in range(len(qZ))] 
     thetas = [[0 for t in range(len(qP))] for q in range(len(qZ))] 
@@ -300,14 +305,14 @@ def test_2D_cart2pol_calculate_intensity():
         qZ_idx += 1
         qP_idx = 0
 
-    print("result")
-    print(result)
-    print("qs")
-    print(qs)
-    print("thetas")
-    print(thetas)
+    # qs_csv = join(file_dir, "output", "qs.csv")
+    # thetas_csv = join(file_dir, "output", "thetas.csv")
+    # result_csv = join(file_dir, "output", "result.csv")
 
-    print("Done")
+    plt.imshow(list(result), origin='lower', norm=colors.LogNorm(vmin=0, vmax=max(max(list(result)))))
+    plt.show()
+
+    
 
 def test_2d_cryst_intensity():
     my_amp = Amplitude.load(join(file_dir, "intensity", "my_sphere.ampj"))
