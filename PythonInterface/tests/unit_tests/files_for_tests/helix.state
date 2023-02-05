@@ -5,7 +5,7 @@
   "Fitting_UpdateGraph": true,
   "GeneratedPoints": 100,
   "GridSize": 20,
-  "OrientationIterations": 10,
+  "OrientationIterations": 10000,
   "OrientationMethod": "Monte Carlo (Mersenne Twister)",
   "ResolutionSigma": 0.02,
   "UpdateInterval": 500,
