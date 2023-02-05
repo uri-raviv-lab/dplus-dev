@@ -281,3 +281,69 @@ class CalculationInput(State):
                     for layer in ManSym.serialize()['Parameters']:
                         dol.writerow([layer_num, *layer])
                         layer_num += 1
+
+
+def suggest_parameters(x, y, z, q, use_GPU=False):
+    '''Given model size in direction x, y, z and qmax, return the suggested parameters to input into the state as a
+    dictionary.'''
+
+    import numpy as np
+    import sys
+    suggested_params = {'Generation_params': {'Grid_size': int(20), 'Integration_method': 'Monte Carlo (Mersenne '
+                                              'Twister)', 'Integration_iterations': int(1e6), 'Convergence': 1e-3,
+                                              'Generated_points': int(q * 100)},
+                        'Fitting Parameters': {'Fitting_method': 'Levenberg-Marquardt', 'Iterations': 6,
+                                               'Convergence': 1e-2, 'Ratio_residuals': 'Trivial Loss', 'Step_size':
+                                                   0.1, 'Der_eps': 0.1},
+                        'Required Memory': 0
+                        }
+
+    maxLen = np.sqrt(x**2 + y**2 + z**2)
+    density = maxLen / np.pi
+
+    defSize = 2 * q * density + 3
+
+    defSize /= 10
+    defSize += 1
+    defSize *= 10
+
+    smallest = x
+    largest = x
+    if largest < y:
+        largest = y
+    if largest < z:
+        largest = z
+
+    if smallest > y:
+        smallest = y
+    if smallest > z:
+        smallest = z
+
+    should_be_adaptive = (largest > 5. * smallest)
+
+    suggested_params['Generation_params']['Grid_size'] = int(defSize)
+
+    i = (defSize / 2) + 3
+    totalSize = (6 * i * (i + 1) * (3 + 3 + 2 * 6 * i)) / 6
+    totalSize += 1
+    totalSize *= 2
+
+    numBytes = 8 * totalSize  # 8 is from the size of a double in cpp
+
+    mbs = float(numBytes) / (1024. * 1024.)
+    suggested_params['Required Memory'] = int(mbs)
+
+    if (mbs > 1000.):
+        print("Caution: You should consider using the hybrid method.")
+    elif (mbs > 250.):
+        print("Note: You may want to consider using the hybrid method.")
+
+    if use_GPU:
+        suggested_params['Generation_params']['Integration_method'] = 'Adaptive (VEGAS) Monte Carlo'
+    else:
+        if should_be_adaptive:
+            suggested_params['Generation_params']['Integration_method'] = 'Adaptive Gauss Kronrod'
+        else:
+            suggested_params['Generation_params']['Integration_method'] = 'Monte Carlo (Mersenne Twister)'
+
+    return suggested_params

@@ -1,17 +1,18 @@
 import numpy as np
 from scipy.integrate import simpson
 from scipy.fft import dst, fftfreq
+import scipy.stats as stats
 import csv
 import math
 import dace as dc
 
-V = dc.symbol('V')
+V = dc.symbol('V', dc.int64)
 W = dc.symbol('W')
 Y = dc.symbol('Y')
 M = dc.symbol('M')
 TV = dc.symbol('TV')
 Q = dc.symbol('Q')
-L = dc.symbol('L')
+L = dc.symbol('L', dc.int64)
 U = dc.symbol('U')
 S = dc.symbol('S')
 NFC = dc.symbol('NFC')
@@ -357,7 +358,7 @@ def S_Q_from_I(I_q, f_q, N):
 
 
 def S_Q_from_model_slow(filename: str, q_min: dc.float64 = 0, q_max: dc.float64 = 100, dq: dc.float64 = 0.01
-                        , thermal: dc.float64 = 0, Number_for_average_conf: dc.int64 = 1, u=np.array([0, 0, 0, 0])):
+                        , thermal: np.bool_ = False, Number_for_average_conf: dc.int64 = 1, u=np.array([0, 0, 0, 0])):
     """Given a .dol or .pdb filename and a q-range, returns the orientation averaged structure factor."""
 
     r_mat, n = read_from_file(filename)
@@ -405,7 +406,7 @@ def S_Q_from_model_slow(filename: str, q_min: dc.float64 = 0, q_max: dc.float64 
 
 
 def S_Q_from_model(filename: str, q_min: dc.float64 = 0, q_max: dc.float64 = 100, dq: dc.float64 = 0.01
-                   , thermal: dc.bool = False, Number_for_average_conf: dc.int64 = 1, u: dc.float64[4] = np.array([0,0,0,0])):
+                   , thermal: np.bool_ = False, Number_for_average_conf: dc.int64 = 1, u: dc.float64[4] = np.array([0,0,0,0])):
     """Given a .dol or .pdb filename and a q-range, returns the orientation averaged structure factor."""
 
     r_mat, n = read_from_file(filename)
@@ -425,7 +426,7 @@ def S_Q_from_model(filename: str, q_min: dc.float64 = 0, q_max: dc.float64 = 100
         if thermal:
             r_mat[:] = thermalize(np.copy(r_mat_old), u)
         S_Q_pretemp = np.copy(S_Q[it])
-        R[it], S_Q[it, :] = compute_sq(q, S_Q_pretemp, r_mat)
+        R[it], S_Q[it, :] = compute_sq(q, S_Q_pretemp, r_mat, L=n)
         # R_temp, S_Q_temp = compute_sq(q, S_Q_pretemp, r_mat)
         # R[it] = R_temp
         # S_Q[it, :] = S_Q_temp
@@ -439,6 +440,65 @@ def S_Q_from_model(filename: str, q_min: dc.float64 = 0, q_max: dc.float64 = 100
     rho /= Number_for_average_conf
 
     return q, S_Q[0], rho
+
+
+def S_Q_average_box(xyz, qmax, q_points, size_min, size_max, mean, sigma, file_path=r'.\S_Q_average', qmin=0,
+                    normalize=1, make_fig=1, num_of_s_q_shown=-1, slow=0):
+
+    num_s_q = int(size_max - size_min)
+    if num_of_s_q_shown < 0:
+        num_of_s_q_shown = num_s_q
+    S_q_all = np.zeros([num_s_q, q_points])
+
+    if (file_path[-3:] == 'dol') | (file_path[-3:] == 'out'):
+        file_path = file_path[:-4]
+
+    if slow:
+        for i in range(size_min, size_max):
+            ind = int(i - size_min)
+            build_crystal(xyz, i, i, i, file_path + '_box_size_' + str(i) + r'.dol')  # If files already exist,
+            # this line can be commented out
+            q, s_q_temp, _ = S_Q_from_model_slow(file_path + '_box_size_' + str(i) + r'.dol',q_min=qmin, q_max=qmax)
+            write_to_out(file_path + '_box_size_' + str(i) +'.out', q, s_q_temp)
+            if normalize:
+                S_q_all[ind] = s_q_temp / s_q_temp[0]
+            else:
+                S_q[ind] = s_q_temp
+            print('Done with', i)
+    else:
+        for i in range(size_min, size_max):
+            ind = int(i - size_min)
+            build_crystal(xyz, i, i, i, file_path + '_box_size_' + str(i) + r'.dol')  # If files already exist,
+            # this line can be commented out
+            q, s_q_temp, _ = S_Q_from_model(file_path + '_box_size_' + str(i) + r'.dol', q_min=qmin,
+                                                 q_max=qmax)
+            write_to_out(file_path + '_box_size_' + str(i) + '.out', q, s_q_temp)
+            if normalize:
+                S_q_all[ind] = s_q_temp / s_q_temp[0]
+            else:
+                S_q_all[ind] = s_q_temp
+            print('Done with', i)
+
+    weight = stats.norm.pdf(range(size_min, size_max), mean, sigma)
+    S_q_final = np.average(S_q_all, weights=weight, axis=0)
+    write_to_out(file_path + '_no_box.out', q, S_q_final)
+
+    if make_fig:
+        import matplotlib.pyplot as plt
+        fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True)
+        ax1.semilogy(q, S_q_final, lw=3, label='averaged')
+        for k in range(num_s_q-num_of_s_q_shown, num_s_q):
+            ax2.semilogy(q, S_q_all[k], label=str(k + size_min), lw=3)
+        ax1.legend(fontsize=14, loc='upper right')
+        ax2.legend(fontsize=14, loc='upper right', ncols=2)
+        ax2.set_xlabel('q $[nm^{-1}]$', size=14)
+        ax1.set_ylabel('S(q) [a.u.]', size=14)
+        ax2.set_ylabel('S(q) [a.u.]', size=14)
+        ax1.tick_params(which='both', labelsize=11, color='k')
+        ax2.tick_params(which='both', labelsize=11, color='k')
+        plt.savefig(file_path + '.png')
+
+    return q, S_q_final, S_q_all
 
 
 def s_q_from_g_r(r, g_r, rho, q_min=0, q_max=50, dq=0.01, factor=1, type='Simpson'):
@@ -505,7 +565,8 @@ def g_r_from_s_q(q, s_q, rho, r_min=0, r_max=15, dr=0.01, factor=1, type='Simpso
         return r, g_r
 
 def g_r_from_model_slow(file, Lx, Ly, Lz, file_triple=None, radius=0, r_min=0, r_max = 15, dr = 0.01,
-                        Number_for_average_atoms = 1, Number_for_average_conf=1, thermal=0, u=np.array([0., 0., 0., 0.])):
+                        Number_for_average_atoms = 1, Number_for_average_conf=1, thermal=False, u=np.array([0., 0., 0.,
+                                                                                                        0.])):
     """Given a file of a structure and the box size, finds the radial distribution function."""
     vec, n = read_from_file(file, radius)
     vec_triple = triple(vec, Lx, Ly, Lz, file_triple)
@@ -663,9 +724,9 @@ def g_r_from_model_slow(file, Lx, Ly, Lz, file_triple=None, radius=0, r_min=0, r
 
 def g_r_from_model(file: str, Lx: dc.float64, Ly: dc.float64, Lz: dc.float64,
                    radius: dc.float64 = 0, r_min: dc.float64 = 0, r_max: dc.float64 = 15, dr: dc.float64 = 0.01,
-                   Number_for_average_atoms: dc.int64 = 1
-                   , thermal: dc.bool = 0, u: dc.float64[4] = np.array([0., 0., 0., 0.]),
-                   Number_for_average_conf: dc.int64 = 1, file_triple: str = ''):
+                   Number_for_average_atoms: dc.int64 = 1, thermal: np.bool_ = False,
+                   u: dc.float64[4] = np.array([0., 0., 0., 0.]), Number_for_average_conf: dc.int64 = 1,
+                   file_triple:str = ''):
     """Given a (dol/pdb) file of a structure and the box size, finds the radial distribution function. It is possible to
      enter thermal fluctuations by giving 'u' and thermal = 1. u is either int or 3 vector [ux, uy, uz], i.e. if int,
       same displacement in all directions else the given displacement in each directions. The displacement is given
@@ -695,11 +756,11 @@ def g_r_from_model(file: str, Lx: dc.float64, Ly: dc.float64, Lz: dc.float64,
                       Number_for_average_conf=Number_for_average_conf)
 
 
-@dc.program(auto_optimize=True)
+@dc.program(auto_optimize=True, regenerate_code=False)
 def compute_sq(q: dc.float64[Q], S_Q: dc.float64[Q], r_mat: dc.float64[L, 4]):
     qr: dc.float64[Q]
 
-    R = 0
+    R = 0.0
     for i in range(L - 1):
         r_i = r_mat[i]
         if i == 0:
@@ -723,8 +784,8 @@ def compute_sq(q: dc.float64[Q], S_Q: dc.float64[Q], r_mat: dc.float64[L, 4]):
 Number_for_average_atoms = dc.symbol('Number_for_average_atoms')
 Number_for_average_conf = dc.symbol('Number_for_average_conf')
 
-@dc.program(auto_optimize=True)
-def compute_gr(bins: dc.float64[M], thermal: dc.bool, vec_old: dc.float64[V, 4], Lx: dc.float64, Ly: dc.float64,
+@dc.program(auto_optimize=True, regenerate_code=False)
+def compute_gr(bins: dc.float64[M], thermal: np.bool_, vec_old: dc.float64[V, 4], Lx: dc.float64, Ly: dc.float64,
                Lz: dc.float64, file_triple: str, vec_triple: dc.float64[NFC, TV, 4], vec: dc.float64[V, 4], radius=0,
                u: dc.float64[4]=np.array([0, 0, 0, 0]), dr=0.01, r_min=0, r_max=15):
     rho: dc.float64
@@ -820,20 +881,53 @@ if __name__ == '__main__':
     matplotlib.use('TkAgg')
     import matplotlib.pyplot as plt
 
+    file_single = r'.\cube_g_r_test.dol'
+    xyz = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+    build_crystal(xyz, 10, 10, 10, file_single)
+    Lx, Ly, Lz = 9., 9., 9.
+
+    r_slow, g_r_slow, _, _ = g_r_from_model_slow(file_single, Lx, Ly, Lz, r_max=5)
+    r_dace, g_r_dace, _ = g_r_from_model(file_single, Lx, Ly, Lz, r_max=5)
+
+    q_slow, s_q_slow, _ = S_Q_from_model_slow(file_single, q_max=20)
+    q_dace, s_q_dace, _ = S_Q_from_model(file_single, q_max=20)
+
+    plt.figure()
+    plt.plot(r_dace, g_r_dace, label='DaCe')
+    plt.plot(r_slow, g_r_slow, label='No DaCe')
+    plt.legend()
+    plt.show()
+
+    plt.figure()
+    plt.semilogy(q_dace, s_q_dace, label='DaCe')
+    plt.semilogy(q_slow, s_q_slow, label='No DaCe')
+    plt.legend()
+    plt.show()
+
+    q_final_dace, S_q_final_dace, S_Q_all_dace = S_Q_average_box(xyz, 20, 2002, 7, 13, 10, 2, r'.\s_q_example.dol',
+                                                                 slow=0)
+    q_final_slow, S_q_final_slow, S_Q_all_slow = S_Q_average_box(xyz, 20, 2002, 7, 13, 10, 2, r'.\s_q_example.dol',
+                                                           slow=1)
+    exit()
+
+    import matplotlib
+    matplotlib.use('TkAgg')
+    import matplotlib.pyplot as plt
+
     file_single = r'D:\Eytan\g_r_test\DOL\cube_g_r_test.dol'
     build_crystal(np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]]), 10, 10, 10, file_single)
     # file_single = r'D:\Eytan\g_r_test\DOL\thermal_cube.dol'
     file_triple = r'D:\Eytan\g_r_test\DOL\thermal_cube_triple.dol'
     vec, n = read_from_file(file_single, 0.01)
     # write_to_dol(file_single[:-4] + '_test.dol', vec)
-    Lx = 9
-    Ly = 9
-    Lz = 9
+    Lx = 9.0
+    Ly = 9.0
+    Lz = 9.0
 
     # vec_thermalized = thermalize(np.copy(vec), np.array([0.2, 0.2, 0.2, 0]))
     # vec_3 = triple(np.copy(vec), Lx, Ly, Lz)#, file_triple)
 
-    r, g_r, rho, rad = g_r_from_model_slow(file_single, Lx, Ly, Lz, thermal=1, Number_for_average_conf=150, u=0.05,
+    r, g_r, rho, rad = g_r_from_model_slow(file_single, Lx, Ly, Lz, thermal=True, Number_for_average_conf=150, u=0.05,
                                            r_max=5)
     r_slow, g_r_slow, rho_slow, rad_slow = g_r_from_model_slow(file_single, Lx, Ly, Lz, r_max=5)
     plt.plot(r, g_r)
