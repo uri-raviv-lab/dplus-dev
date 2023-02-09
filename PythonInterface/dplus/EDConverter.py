@@ -96,7 +96,7 @@ def different_atoms(file):
 
 
 def convert(ed=333, a=['H', 'O'], pdb='fake', n=[2, 1]):
-    if not ed or not (pdb and a and n):
+    if not ed or (pdb != 'fake' and np.size(a) and np.size(n)):
         raise ValueError("Invalid input parameters. ed={ed}, pdb={pdb}, a={a}, n={n}")
     elif pdb != 'fake':
         atoms, occur = different_atoms(pdb)
@@ -105,21 +105,52 @@ def convert(ed=333, a=['H', 'O'], pdb='fake', n=[2, 1]):
         result = find_coeff(np.array(a), np.array(n), ed)
     return result
 
+def main():
+    args = {'ed': 333, 'a': np.array([]), 'n': np.array([]), 'pdb': 'fake'}
+    print('---------------------------------Conversion of ED to scattering length of '
+          'electrons---------------------------------\n')
+    args['ed'] = np.float64(input('\nWhat is the system electron density? '))
+    pdb_or_atoms = input('\nEnter whether you want to enter a PDB file ("P") or a list of atoms ("A"): ')
+    while not ((pdb_or_atoms == 'A') or (pdb_or_atoms == 'P')):
+        # print(pdb_or_atoms, type(pdb_or_atoms), pdb_or_atoms == 'P')
+        pdb_or_atoms = input('\nYou entered the wrong argument, you can only either enter "A" or "P", what is your '
+                             'choice? ')
+    if pdb_or_atoms == 'A':
+        add_atom = True
+        while add_atom:
+            args['a'] = np.append(args['a'], input("\nWhat atom do you want to add? "))
+            args['n'] = np.append(args['n'], int(input("\nHow many repetitions does the atom have? ")))
+            add_atom = int(input('\nDo you want to add another atom? (0 - No, 1 - Yes) '))
+            # print(type(add_atom))
+
+    elif pdb_or_atoms == 'P':
+        args['pdb'] = input('\nWhat is the location of the pdb file? ')
+    # print(args['ed'], args['a'], args['pdb'], args['n'])
+    # try:
+    print(args['pdb'])
+    result = convert(args['ed'], args['a'], args['pdb'], args['n'])
+    # except:
+    #     input('\nPress any key to close')
+
+    print('\nThe conversion coefficient is: ', result.coeff)
+    print('\nThe electron scattering length is now: ', result.eED)
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(
-        description='Conversion of ED to scattering length of electrons.')
-    parser.add_argument('--ed', type=float, default=333,
-                        help='The electron density of the what you wish to convert.')
-    parser.add_argument(
-        '--a', type=str, default=['H', 'O'], nargs='+', help='The atoms in the molecular formula.')
-    parser.add_argument('--n', type=int, default=[2, 1], nargs='+', help='Number of occurrences of each atom in '
-                                                                         'the molecular formula (in the same order as '
-                                                                         'the atoms were given).')
-    parser.add_argument('--pdb', type=str, default='', help='The .pdb file of the molecule you want to convert. If a '
-                                                            '.pdb file is given, A and N do not need to be given.')
-    args = parser.parse_args()
+    main()
+    input('\nPress any key to close')
+    # parser = argparse.ArgumentParser(
+    #     description='Conversion of ED to scattering length of electrons.')
+    # parser.add_argument('--ed', type=float, default=333,
+    #                     help='The electron density of what you wish to convert.')
+    # parser.add_argument(
+    #     '--a', type=str, default=['H', 'O'], nargs='+', help='The atoms in the molecular formula.')
+    # parser.add_argument('--n', type=int, default=[2, 1], nargs='+', help='Number of occurrences of each atom in '
+    #                                                                      'the molecular formula (in the same order as '
+    #                                                                      'the atoms were given).')
+    # parser.add_argument('--pdb', type=str, default='fake', help='The .pdb file of the molecule you want to convert. '
+    #                                                             'If a .pdb file is given, A and N do not need to be '
+    #                                                             'given.')
+    # args = parser.parse_args()
+    #
+    # result = convert(args.ed, args.a, args.pdb, args.n)
 
-    result = convert(args.ed, args.a, args.pdb, args.n)
-    print('The conversion coefficient is:', result.coeff)
-    print('The electron scattering length is now:', result.eED)
