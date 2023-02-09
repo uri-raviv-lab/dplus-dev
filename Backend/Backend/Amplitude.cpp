@@ -965,6 +965,7 @@ PDB_READER_ERRS DomainModel::CalculateIntensity2DMatrix(const std::vector<T>& Q,
 		{
 
 			IntegrateLayersTogether2D(seeds, sRan, seedGen, polarData, epsi, iterations, cProgMax, cProgMin, prog, aveEnd, aveBeg, gridBegin);
+			HandleQ0(polarData);
 			res = JacobianSphereGrid::PolarQDataToCartesianMatrix(polarData, Q.size());
 			
 			_previous_intensity_2D = (Eigen::Map < Eigen::Array<T, Eigen::Dynamic, 1> >(res.data(), res.size())).template cast<double>();
@@ -1253,10 +1254,11 @@ void DomainModel::HandleQ0(std::vector<PolarCalculationData*> qData)
 			for (unsigned int j = 0; j < _amps.size(); j++)
 				amp += _amps[j]->getAmplitude(0, 0, 0);
 
-			qData[q] = new PolarCalculationData(1);
-			qData[q]->q = 0;
 			qData[q]->theta[0] = 0;
-			qData[q]->cIntensities[0] = real(amp * conj(amp));
+			qData[q]->rIntensities = ArrayXX(1);
+			qData[q]->rIntensities[0] = real(amp * conj(amp));
+
+			return;
 		}
 	}
 }
@@ -1266,6 +1268,19 @@ PDB_READER_ERRS DomainModel::IntegrateLayersTogether2D(std::vector<unsigned int>
 	 T& epsi, uint64_t& iterations, const double& cProgMax, const double& cProgMin, int& prog, clock_t& aveEnd, const clock_t& aveBeg, const clock_t& gridBegin)
 {
 	std::cout << "--------- DomainModel::IntegrateLayersTogether2D ---------" << std::endl;
+	//for (int q = 0; q < qData.size(); q++)
+	//{
+	//	for (int q = 0; q < qData.size(); q++)
+	//	{
+	//		for (int t = 0; t < qData[q]->theta.size(); t++)
+	//		{
+	//			FACC res = CalculateIntensity(qData[q]->q, qData[q]->theta[t], epsi, seeds[q]/*?*/, iterations);
+	//			qData[q]->rIntensities[t] = res;
+	//			std::cout << "gen q=" << qData[q]->q << ", theta=" << qData[q]->theta[t] << ", res=" << res << std::endl;
+	//		}
+	//	}
+	//}
+	
 	seeds.resize(1 + gridSize / 2);
 	for (size_t i = 0; i < seeds.size(); i++)
 		seeds[i] = sRan(seedGen);
@@ -1285,12 +1300,12 @@ PDB_READER_ERRS DomainModel::IntegrateLayersTogether2D(std::vector<unsigned int>
 		auto qBegin = qData.begin();
 		auto qEnd = qBegin + 1;
 
-		while (qBegin != qData.end() && (* qBegin)->q <= layerInd * stepSize) // Minimum q val
+		while (qBegin != qData.end() && abs((* qBegin)->q) <= layerInd * stepSize) // Minimum q val
 			qBegin++;
 
 		if (qBegin != qData.end())
 			qEnd = qBegin + 1;
-		while (qEnd != qData.end() && qEnd + 1 != qData.end() && (* qEnd)->q <= (layerInd + 1) * stepSize) // Maximum q val
+		while (qEnd != qData.end() && qEnd + 1 != qData.end() && abs((* qEnd)->q) <= (layerInd + 1) * stepSize) // Maximum q val
 			qEnd++;
 		if (qEnd == qData.end() || qEnd + 1 != qData.end())
 			qEnd--;
@@ -1300,6 +1315,11 @@ PDB_READER_ERRS DomainModel::IntegrateLayersTogether2D(std::vector<unsigned int>
 		if (relevantQData.size() == 0)
 			continue;
 
+		for (int p = 0; p < relevantQData.size(); p++)
+		{
+			relevantQData[p]->cIntensities.setZero();
+			relevantQData[p]->rIntensities.setZero();
+		}
 
 		// Integrate until converged
 		AverageIntensitiesBetweenLayers2D(relevantQData, layerInd, epsi, seeds[layerInd], iterations);
@@ -2826,13 +2846,13 @@ void DomainModel::AverageIntensitiesBetweenLayers2D(std::vector<PolarCalculation
 		std::uniform_real_distribution<FACC> ranU2(0.0, 2.0);
 		std::complex<FACC> phase, im(0.0, 1.0);
 
-		Eigen::Array<PolarCalculationData, Eigen::Dynamic, 1> runningIntensitySum(relevantQData.size());
+		std::vector<PolarCalculationData> runningIntensitySum(relevantQData.size());
 		for (int q = 0; q < relevantQData.size(); q++)
 		{
 			runningIntensitySum[q] = PolarCalculationData(relevantQData[q]->theta.size());
 			std::fill(runningIntensitySum[q].rIntensities.begin(), runningIntensitySum[q].rIntensities.end(), 0);
 		}
-		
+
 
 		for (uint64_t i = 0; i < iterations; i++)
 		{
@@ -3634,6 +3654,20 @@ void Amplitude::getAmplitudesAtPoints2D(vector<PolarCalculationData*> relevantQD
 		JacobianSphereGrid* jgrid = dynamic_cast<JacobianSphereGrid*>(grid);
 		if (jgrid)
 		{
+			//for (q = 0; q < qData.size(); q++)
+			//{
+			//	FACC currQ = qData[q]->q;
+			//	for (t = 0; t < qData[q]->theta.size(); t++)
+			//	{
+			//		FACC currT = qData[q]->theta[t];
+			//		FACC res = jgrid->CalculateIntensity(currQ, currT, epsi, seed, iterations);
+			//		qData[q]->rIntensities[t] = res;
+			//		std::cout << "GEN q=" << currQ << ", theta=" << currT << ", res=" << res << std::endl;
+			//		/*currTheta = relevantQData[q]->theta[t];
+			//		getNewThetaPhiAndPhases(relevantQs, currTheta, phi, newTheta, newPhi, phases);
+			//		relevantQData[q]->theta[t] = newTheta;*/
+			//	}
+			//}
 			getNewThetaPhiAndPhases(relevantQs, relevantQData[0]->theta[0], phi, newTheta, newPhi, phases);
 			// Get amplitudes from grid
 			jgrid->getAmplitudesAtPoints2D(relevantQData, newPhi);
