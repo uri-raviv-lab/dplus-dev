@@ -844,7 +844,6 @@ template <typename T>
 PDB_READER_ERRS DomainModel::CalculateIntensity2DMatrix(const std::vector<T>& Q,
 	Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& res, T epsi, uint64_t iterations)
 {
-	std::cout << "!!!!!!! DomainModel::CalculateIntensity2DMatrix !!!!!!!" << std::endl;
 	clock_t gridBegin, aveBeg, aveEnd;
 
 	/*
@@ -959,12 +958,10 @@ PDB_READER_ERRS DomainModel::CalculateIntensity2DMatrix(const std::vector<T>& Q,
 
 		}
 
-		std::vector<PolarCalculationData*> polarData = JacobianSphereGrid::QListToPolar(Q, qMin, qMax);
-
 		if (canIntegratePointsBetweenLayersTogether)
 		{
-
-			IntegrateLayersTogether2D(seeds, sRan, seedGen, polarData, epsi, iterations, cProgMax, cProgMin, prog, aveEnd, aveBeg, gridBegin);
+			std::vector<PolarCalculationData*> polarData = JacobianSphereGrid::QListToPolar(Q, qMin, qMax);
+			Calculate2DIntensityWithGrid(seeds, sRan, seedGen, polarData, epsi, iterations, cProgMax, cProgMin, prog, aveEnd, aveBeg, gridBegin);
 			HandleQ0(polarData);
 			res = JacobianSphereGrid::PolarQDataToCartesianMatrix(polarData, Q.size());
 			
@@ -972,10 +969,8 @@ PDB_READER_ERRS DomainModel::CalculateIntensity2DMatrix(const std::vector<T>& Q,
 			_previous_q_values = Eigen::Map<const Eigen::Array<T, Eigen::Dynamic, 1>>(Q.data(), Q.size()).template cast<double>();
 			
 			return PDB_OK;
-
 		}
 
-		// Can this ever happen? because it happens only if useGrid==false, but if so, we dont even get up to here.
 		return DefaultCPUCalculation2D(aveBeg, Q, res, epsi, seeds, iterations, cProgMax, cProgMin, prog, aveEnd, gridBegin);
 
 	}
@@ -1073,7 +1068,6 @@ template<typename T>
 PDB_READER_ERRS DomainModel::DefaultCPUCalculation2D(clock_t& aveBeg, const std::vector<T>& Q, 
 	Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& res, T& epsi, std::vector<unsigned int>& seeds, const uint64_t& iterations, const double& cProgMax, const double& cProgMin, int& prog, clock_t& aveEnd, const clock_t& gridBegin)
 {
-	std::cout << "DomainModel::DefaultCPUCalculation2D"<<std::endl;
 	aveBeg = clock();
 
 	bool noException = true;
@@ -1097,7 +1091,7 @@ PDB_READER_ERRS DomainModel::DefaultCPUCalculation2D(clock_t& aveBeg, const std:
 #endif
 	// TODO::Spherical - Simple trapezoidal integration should be considered, maybe spline
 
-	FACC qZ, qPerp, q, theta;
+	
 #pragma omp parallel for schedule(dynamic, Q.size() / 50)
 	for (int i = 0; i < Q.size(); i++)
 	{
@@ -1108,17 +1102,14 @@ PDB_READER_ERRS DomainModel::DefaultCPUCalculation2D(clock_t& aveBeg, const std:
 
 			if (!noException)
 				continue;
-
-			// TODO: swap i,j ?
-			qZ = Q[j];
-			qPerp = Q[i];
-			JacobianSphereGrid::qZ_qPerp_to_q_Theta(qZ, qPerp, q, theta);
-			//std::cout <<"qZ="<<qZ<<", qP="<<qPerp<<", q="<<q<<", theta=" << theta << std::endl;
+			
+			FACC q, theta;
+			JacobianSphereGrid::qZ_qPerp_to_q_Theta(Q[i], Q[j], q, theta);
 
 			try // This try/catch combo is here because of OMP
 			{
 				if (q <= qMax && q>= qMin)
-					res(i,j) = CalculateIntensity(q, theta, epsi, seeds[i], iterations);
+					res(i,j) = CalculateIntensity(q, theta, epsi, 0, iterations);
 			}
 			catch (backend_exception& ex)
 			{
@@ -1255,8 +1246,8 @@ void DomainModel::HandleQ0(std::vector<PolarCalculationData*> qData)
 				amp += _amps[j]->getAmplitude(0, 0, 0);
 
 			qData[q]->theta[0] = 0;
-			qData[q]->rIntensities = ArrayXX(1);
-			qData[q]->rIntensities[0] = real(amp * conj(amp));
+			qData[q]->intensities = ArrayXX(1);
+			qData[q]->intensities[0] = real(amp * conj(amp));
 
 			return;
 		}
@@ -1264,86 +1255,20 @@ void DomainModel::HandleQ0(std::vector<PolarCalculationData*> qData)
 }
 
 template<typename T>
-PDB_READER_ERRS DomainModel::IntegrateLayersTogether2D(std::vector<unsigned int>& seeds, std::uniform_int_distribution<unsigned int>& sRan, std::mt19937& seedGen, std::vector<PolarCalculationData*> qData, 
+PDB_READER_ERRS DomainModel::Calculate2DIntensityWithGrid(std::vector<unsigned int>& seeds, std::uniform_int_distribution<unsigned int>& sRan, std::mt19937& seedGen, std::vector<PolarCalculationData*> qData, 
 	 T& epsi, uint64_t& iterations, const double& cProgMax, const double& cProgMin, int& prog, clock_t& aveEnd, const clock_t& aveBeg, const clock_t& gridBegin)
 {
-	std::cout << "--------- DomainModel::IntegrateLayersTogether2D ---------" << std::endl;
-	//for (int q = 0; q < qData.size(); q++)
-	//{
-	//	for (int q = 0; q < qData.size(); q++)
-	//	{
-	//		for (int t = 0; t < qData[q]->theta.size(); t++)
-	//		{
-	//			FACC res = CalculateIntensity(qData[q]->q, qData[q]->theta[t], epsi, seeds[q]/*?*/, iterations);
-	//			qData[q]->rIntensities[t] = res;
-	//			std::cout << "gen q=" << qData[q]->q << ", theta=" << qData[q]->theta[t] << ", res=" << res << std::endl;
-	//		}
-	//	}
-	//}
-	
-	seeds.resize(1 + gridSize / 2);
-	for (size_t i = 0; i < seeds.size(); i++)
-		seeds[i] = sRan(seedGen);
+	JacobianSphereGrid* jgrid = (JacobianSphereGrid*)_amps[0]->grid;
 
-	T stepSize = 2 * qMax / gridSize;
-	int tmpLayer = 0;
-	auto qtmpBegin = qData[0]->q;
-	while (qtmpBegin > (tmpLayer + 1) * stepSize) // Minimum q val
-		tmpLayer++;
-
-#pragma omp parallel for schedule(dynamic, 1)
-	for (int layerInd = tmpLayer; layerInd < gridSize / 2; layerInd++)
+	for (int q = 0; q < qData.size(); q++)
 	{
-		if (pStop && *pStop)
-			continue;
-
-		auto qBegin = qData.begin();
-		auto qEnd = qBegin + 1;
-
-		while (qBegin != qData.end() && abs((* qBegin)->q) <= layerInd * stepSize) // Minimum q val
-			qBegin++;
-
-		if (qBegin != qData.end())
-			qEnd = qBegin + 1;
-		while (qEnd != qData.end() && qEnd + 1 != qData.end() && abs((* qEnd)->q) <= (layerInd + 1) * stepSize) // Maximum q val
-			qEnd++;
-		if (qEnd == qData.end() || qEnd + 1 != qData.end())
-			qEnd--;
-
-		std::vector<PolarCalculationData*> relevantQData(qBegin, qEnd + 1);
-
-		if (relevantQData.size() == 0)
-			continue;
-
-		for (int p = 0; p < relevantQData.size(); p++)
+		for (int t = 0; t < qData[q]->theta.size(); t++)
 		{
-			relevantQData[p]->cIntensities.setZero();
-			relevantQData[p]->rIntensities.setZero();
+			FACC res = jgrid->CalculateIntensity(qData[q]->q, qData[q]->theta[t], epsi, 0, iterations);
+			qData[q]->intensities[t] = res;
 		}
-
-		// Integrate until converged
-		AverageIntensitiesBetweenLayers2D(relevantQData, layerInd, epsi, seeds[layerInd], iterations);
-
-
-		// Report progress
-#pragma omp critical
-		{
-			if (progFunc)
-				progFunc(progArgs, (cProgMax - cProgMin) * (double(++prog) / double(gridSize / 2)) + cProgMin);
-		}
-
 	}
-
-	if (pStop && *pStop)
-		return STOPPED;
-
-	aveEnd = clock();
-
-	std::cout << "Took " << double(aveBeg - gridBegin) / CLOCKS_PER_SEC << " seconds to calculate the grids." << std::endl;
-	std::cout << "Took " << double(aveEnd - aveBeg) / CLOCKS_PER_SEC << " seconds to calculate the orientational average." << std::endl;
-
-	_previous_hash = Hash();
-
+	
 	return PDB_OK;
 }
 
@@ -1548,7 +1473,11 @@ FACC DomainModel::CalculateIntensity(FACC q, FACC thetaIn, FACC epsi, unsigned i
 			sp = sin(phi);
 			cp = cos(phi);
 #ifdef WOLFRAM_RANDOM_POINTS_ON_SPHERE
-			ct = (v2 - 1.0);
+			if (thetaIn < 0)
+				ct = (v2 - 1.0);
+			else
+				ct = cos(theta);
+
 #else
 			ct = cos(theta);
 #endif
@@ -1722,9 +1651,7 @@ VectorXd DomainModel::CalculateVector(const std::vector<double>& q, int nLayers,
 }
 
 MatrixXd DomainModel::CalculateMatrix(const std::vector<double>& q, int nLayers, VectorXd& p /*= VectorXd( ) */, progressFunc progress /*= NULL*/, void* progressArgs /*= NULL*/) 
-{
-	std::cout << "!!!!!!! DomainModel::CalculateMatrix !!!!!!!" << std::endl;
-	
+{	
 	size_t points = q.size();
 	MatrixXd mat = MatrixXd::Zero(points, points);
 	MatrixXd rMat = MatrixXd::Zero(points, points);
@@ -2822,113 +2749,6 @@ void DomainModel::AverageIntensitiesBetweenLayers(const std::vector<T> &Trelevan
 	throw backend_exception(ERROR_GENERAL, "Integration of multiple points not implemented on the CPU for the chosen method");
 }
 
-//template <typename T> // should PolarCalculationData be template? is there any case were q is float instead of double?
-void DomainModel::AverageIntensitiesBetweenLayers2D(std::vector<PolarCalculationData*> relevantQData, size_t layerInd, FACC epsi, unsigned int seed, uint64_t iterations)
-{
-	//std::cout << "--------- DomainModel::AverageIntensitiesBetweenLayers2D -----------" << std::endl;
-
-	int q;
-	if (orientationMethod == OA_ADAPTIVE_GK)
-	{
-		throw std::logic_error("The method or operation is not implemented for Gauss Kronrod.");
-		//return GaussKron2DSphereRecurs(q, epsi, iterations, 0);
-	}
-	else if (orientationMethod == OA_MC)
-	{
-		unsigned long long minIter = 100ULL;
-		// resHistory is a matrix of PolarCalculationData. only rIntensities are relevant
-		Eigen::Array<PolarCalculationData, Eigen::Dynamic, Eigen::Dynamic> resHistory;
-		resHistory.resize(relevantQData.size(), 4);
-
-		std::mt19937 rng;
-		rng.seed(seed);
-
-		std::uniform_real_distribution<FACC> ranU2(0.0, 2.0);
-		std::complex<FACC> phase, im(0.0, 1.0);
-
-		std::vector<PolarCalculationData> runningIntensitySum(relevantQData.size());
-		for (int q = 0; q < relevantQData.size(); q++)
-		{
-			runningIntensitySum[q] = PolarCalculationData(relevantQData[q]->theta.size());
-			std::fill(runningIntensitySum[q].rIntensities.begin(), runningIntensitySum[q].rIntensities.end(), 0);
-		}
-
-
-		for (uint64_t i = 0; i < iterations; i++)
-		{
-			FACC phi, u2, v2;
-
-			u2 = ranU2(rng);
-			v2 = ranU2(rng);
-			phi = u2 * M_PI;
-			
-
-			std::vector<PolarCalculationData> ampSums(relevantQData.size()); 
-			for (int a = 0; a < relevantQData.size(); a++)
-			{
-				ampSums[a] = PolarCalculationData(relevantQData[a]->theta.size());
-				ampSums[a].cIntensities.setZero();
-			}
-
-			for (int j = 0; j < _amps.size(); j++)
-			{
-				_amps[j]->getAmplitudesAtPoints2D(relevantQData, phi);
-				for (int a = 0; a < relevantQData.size(); a++)
-				{
-					ampSums[a].addCIntensities(*(relevantQData[a]));
-				}
-			}
-
-			for (int a = 0; a < ampSums.size(); a++)
-			{
-				ampSums[a].multByConjAndConvertToReal();
-				runningIntensitySum[a].addRIntensities(ampSums[a]);
-			}
-
-			if (epsi > 0.0) {
-				if (i % minIter == 0)
-				{
-					int position = (i / minIter) % resHistory.cols();
-					// Convergence Place TODO FIXME
-					// Convergence test
-					for (int i = 0; i < resHistory.col(position).size(); i++)
-					{
-						resHistory.col(position)[i].rIntensities = runningIntensitySum[i].rIntensities / FACC(i + 1);
-					}
-					
-					if (i >= 4 * minIter)
-					{
-						bool converged = true;
-
-						for (int j = 0; converged && j < resHistory.cols(); j++)
-							for (int q = 0; q < resHistory.col(j).size() ; q++)
-								converged &= ((1.0 - (resHistory.col(j)[q].rIntensities / resHistory.col(0)[q].rIntensities)).abs() < epsi).all();
-
-						if (converged)
-						{
-							//ArrayT::Map(&reses[0], relevantQs.size()) = resHistory.col(position).cast<T>();
-							for (int i = 0; i < relevantQData.size(); i++)
-							{
-								relevantQData[i]->rIntensities = resHistory.col(position)[i].rIntensities;
-							}
-							return;
-						}
-					}
-				}
-			} // if i >=...
-
-		} // for
-		//ArrayT::Map(&reses[0], relevantQs.size()) = (runningIntensitySum / iterations).cast<T>();
-		for (int i = 0; i < relevantQData.size(); i++)
-		{
-			relevantQData[i]->rIntensities = runningIntensitySum[i].rIntensities / iterations;
-		}
-		return;
-	} // elif orientationMethod == OA_MC
-
-	printf("Integration of multiple points not implemented on the CPU for the chosen method");
-	throw backend_exception(ERROR_GENERAL, "Integration of multiple points not implemented on the CPU for the chosen method");
-}
 
 bool DomainModel::GetHasAnomalousScattering()
 {
@@ -3624,71 +3444,7 @@ ArrayXcX Amplitude::getAmplitudesAtPoints(const std::vector<FACC> & relevantQs, 
 
 }
 
-void Amplitude::getAmplitudesAtPoints2D(vector<PolarCalculationData*> relevantQData, FACC phi)
-{
-	// This happens too many times to print //std::cout << " ---------- Amplitude::getAmplitudesAtPoints2D -------------" << std::endl;
-	double newTheta, newPhi, currTheta;
-	ArrayXcX phases;
-	std::vector<FACC> relevantQs;
-	int q, t;
-	
 
-
-	for (q = 0; q < relevantQData.size(); q++)
-	{
-		relevantQs.push_back(relevantQData[q]->q);
-	}
-
-	for (q = 0; q < relevantQData.size(); q++)
-	{
-		for (t = 0; t < relevantQData[q]->theta.size(); t++)
-		{
-			currTheta = relevantQData[q]->theta[t];
-			getNewThetaPhiAndPhases(relevantQs, currTheta, phi, newTheta, newPhi, phases);
-			relevantQData[q]->theta[t] = newTheta;
-		}
-	}
-
-	if (GetUseGridWithChildren())
-	{
-		JacobianSphereGrid* jgrid = dynamic_cast<JacobianSphereGrid*>(grid);
-		if (jgrid)
-		{
-			//for (q = 0; q < qData.size(); q++)
-			//{
-			//	FACC currQ = qData[q]->q;
-			//	for (t = 0; t < qData[q]->theta.size(); t++)
-			//	{
-			//		FACC currT = qData[q]->theta[t];
-			//		FACC res = jgrid->CalculateIntensity(currQ, currT, epsi, seed, iterations);
-			//		qData[q]->rIntensities[t] = res;
-			//		std::cout << "GEN q=" << currQ << ", theta=" << currT << ", res=" << res << std::endl;
-			//		/*currTheta = relevantQData[q]->theta[t];
-			//		getNewThetaPhiAndPhases(relevantQs, currTheta, phi, newTheta, newPhi, phases);
-			//		relevantQData[q]->theta[t] = newTheta;*/
-			//	}
-			//}
-			getNewThetaPhiAndPhases(relevantQs, relevantQData[0]->theta[0], phi, newTheta, newPhi, phases);
-			// Get amplitudes from grid
-			jgrid->getAmplitudesAtPoints2D(relevantQData, newPhi);
-			for (int i = 0; i < relevantQData.size(); i++)
-			{
-				relevantQData[i]->cIntensities = relevantQData[i]->cIntensities * phases[i];
-			}
-		}
-	}
-	else
-	{
-		// just to get newPhi and phases. Theta doesn't matter.
-		getNewThetaPhiAndPhases(relevantQs, relevantQData[0]->theta[0], phi, newTheta, newPhi, phases);
-		
-		// pass 'scale' as an argument instead of multiplying the result vector by scale, as done in 1D
-		getAmplitudesAtPointsWithoutGrid2D(relevantQData, newPhi, phases, scale);
-	}
-
-	
-
-}
 
 ArrayXcX Amplitude::getAmplitudesAtPointsWithoutGrid(double newTheta, double newPhi, const std::vector<FACC> &relevantQs, Eigen::Ref<ArrayXcX> phases)
 {
@@ -3705,25 +3461,6 @@ ArrayXcX Amplitude::getAmplitudesAtPointsWithoutGrid(double newTheta, double new
 	return reses * phases;
 }
 
-void Amplitude::getAmplitudesAtPointsWithoutGrid2D(std::vector<PolarCalculationData*> qData, double newPhi, Eigen::Ref<ArrayXcX> phases, double scale)
-{
-	std::cout << " ::::::::::::::: getAmplitudesAtPointsWithoutGrid2D ::::::::::::: " << std::endl;
-	FACC sp = sin(newPhi);
-	FACC cp = cos(newPhi);
-	FACC st, ct, currQ, currTheta;
-	
-	for (size_t q = 0; q < qData.size(); q++)
-	{
-		currQ = qData[q]->q;
-		for (size_t t = 0; t < qData[q]->theta.size(); t++)
-		{
-			currTheta = qData[q]->theta[t];
-			st = sin(currTheta);
-			ct = cos(currTheta);
-			qData[q]->cIntensities[t] = calcAmplitude(currQ * st * cp, currQ * st * sp, currQ * ct) * phases[t] * scale;
-		}
-	}
-}
 
 bool Amplitude::GetHasAnomalousScattering()
 {

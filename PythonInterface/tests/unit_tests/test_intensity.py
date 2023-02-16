@@ -32,7 +32,27 @@ def test_easy_1():
 
     runner = EmbeddedLocalRunner()
     calc_res = runner.generate(calc_in)
+    
     my_amp = Amplitude.load(join(file_dir, 'intensity', 'my_sphere.ampj'))
+    q = np.linspace(0, my_amp.grid.q_max, calc_in.DomainPreferences.generated_points+1)
+    result = []
+    for i in q:
+        res = my_amp.calculate_intensity(i)
+        result.append(res)
+    print(calc_res.y == pytest.approx(result))
+    assert calc_res.y == pytest.approx(result)
+
+def test_1D_instead_2D():
+
+    model = "sphere"
+
+    state_name = model + ".state"
+    state_file_path = os.path.join(file_dir, state_name)
+    calc_in = CalculationInput.load_from_state_file(state_file_path, use_gpu=False)
+
+    runner = EmbeddedLocalRunner()
+    calc_res = runner.generate(calc_in)
+    my_amp = runner.get_amp(calc_in.Domain.populations[0].children[0].model_ptr)
     q = np.linspace(0, my_amp.grid.q_max, calc_in.DomainPreferences.generated_points+1)
     result = []
     for i in q:
@@ -273,46 +293,15 @@ def test_2d_intensity_hard_2():
 
 
 def test_2D_cart2pol_calculate_intensity():
-    my_amp = Amplitude.load(join(file_dir, "intensity", "1jff.ampj"))
-
     q_min=-7.5
     q_max=7.5
     generated_points = 100
 
-    qZ = np.linspace(q_min, q_max, generated_points + 1)
-    qP = np.linspace(q_min, q_max, generated_points + 1)
-
-    qs = [[0 for t in range(len(qP))] for q in range(len(qZ))] 
-    thetas = [[0 for t in range(len(qP))] for q in range(len(qZ))] 
-    
-    result = [[0 for t in range(len(qP))] for q in range(len(qZ))] 
-    qZ_idx = 0
-    qP_idx = 0
-
-    for z in qZ:
-        for p in qP:
-            res = Amplitude.qZ_qPerp_to_q_theta(z, p)
-            q = res['q']
-            theta = res['theta']
-
-            qs[qZ_idx][qP_idx] = q
-            thetas[qZ_idx][qP_idx] = theta
-            if q<=7.5:
-                result[qZ_idx][qP_idx] = my_amp.calculate_intensity(q, theta)
-            
-            qP_idx += 1
-
-        qZ_idx += 1
-        qP_idx = 0
-
-    # qs_csv = join(file_dir, "output", "qs.csv")
-    # thetas_csv = join(file_dir, "output", "thetas.csv")
-    # result_csv = join(file_dir, "output", "result.csv")
-
-    plt.imshow(list(result), origin='lower', norm=colors.LogNorm(vmin=0, vmax=max(max(list(result)))))
-    plt.show()
-
-    
+    state_file_path = os.path.join(file_dir, "sphere5points.state")
+    calc_input = CalculationInput.load_from_state_file(state_file_path, False)
+    runner = EmbeddedLocalRunner()
+    res = runner.generate(calc_input)
+    print(res)
 
 def test_2d_cryst_intensity():
     my_amp = Amplitude.load(join(file_dir, "intensity", "my_sphere.ampj"))
@@ -367,3 +356,6 @@ def test_read_write_2D():
         file_2_text = file_2.readlines()
         for line_1, line_2 in zip(file_1_text, file_2_text):
             assert line_1 == line_2
+
+if __name__=="__main__":
+    test_1D_instead_2D()

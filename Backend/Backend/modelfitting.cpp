@@ -354,8 +354,6 @@ ErrorCode PerformModelGeneration(fitJobArgs *args) {
 
 ErrorCode PerformModelGeneration2D(fitJobArgs* args) {
 
-	std::cout << "!!!!!!! PerformModelGeneration2D !!!!!!!" << std::endl;
-
 	// Scheme:
 	// 0. Argument validation (e.g., requested GPU but backend doesn't have it, return ERROR_UNSUPPORTED)
 	if (!args)
@@ -400,7 +398,6 @@ ErrorCode PerformModelGeneration2D(fitJobArgs* args) {
 
 	JobManager::GetInstance().UpdateJob(job);
 
-	std::cout << "5" << std::endl;
 	// Destroy any remnants of model modifiers
 	if (finalModel != topModel)
 		delete finalModel;

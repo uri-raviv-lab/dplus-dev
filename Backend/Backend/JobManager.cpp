@@ -108,8 +108,6 @@ static void GenerateJobThread(void *args) {
 
 static void Generate2DJobThread(void* args) {
 
-	std::cout << "!!!!!!! Generate2DJobThread !!!!!!!" << std::endl;
-
 	if (!args)
 		return;
 	fitJobArgs* gja = (fitJobArgs*)args;
@@ -210,8 +208,6 @@ ErrorCode JobManager::StartGenerateJob(LocalBackend *backend, JobPtr job, const 
 ErrorCode JobManager::StartGenerate2DJob(LocalBackend* backend, JobPtr job, const ParameterTree& tree,
 	const std::vector<double>& x,
 	const FittingProperties& fp) {
-
-	std::cout << "!!!!!!! JobManager::StartGenerate2DJob !!!!!!!" << std::endl;
 
 	Job j = GetJobInformation(job);
 	if (!j.uid)

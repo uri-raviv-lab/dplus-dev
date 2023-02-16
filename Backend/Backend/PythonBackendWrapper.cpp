@@ -107,7 +107,6 @@ void PythonBackendWrapper::StartGenerate(const std::string state, bool useGPU)
 
 void PythonBackendWrapper::StartGenerate2D(const std::string state, bool useGPU)
 {
-	std::cout << "!!!!!!! PythonBackendWrapper::StartGenerate2D !!!!!!!" << std::endl;
 
 	rapidjson::Document doc;
 	

@@ -375,8 +375,6 @@ void BackendWrapper::StartGenerate(const rapidjson::Value &json, const LocalBack
 
 void BackendWrapper::StartGenerate2D(const rapidjson::Value& json, const LocalBackendInfo& backend)
 {
-	std::cout << "!!!!!!! BackendWrapper::StartGenerate2D !!!!!!!" << std::endl;
-
 	std::cout << "backend version:" << BACKEND_VERSION << endl;
 
 	CheckCapabilities(g_useGPU);

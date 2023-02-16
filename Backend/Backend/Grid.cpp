@@ -667,7 +667,7 @@ MatrixXd JacobianSphereGrid::PolarQDataToCartesianMatrix(std::vector<PolarCalcul
 	{
 		for (int i = 0; i < qData[q]->carIndices.size(); i++)
 		{
-			resultMat(qData[q]->carIndices[i].qZIdx, qData[q]->carIndices[i].qPerpIdx) = qData[q]->rIntensities[i];
+			resultMat(qData[q]->carIndices[i].qZIdx, qData[q]->carIndices[i].qPerpIdx) = qData[q]->intensities[i];
 		}
 	}
 
@@ -721,48 +721,6 @@ ArrayXcX JacobianSphereGrid::getAmplitudesAtPoints(const std::vector<FACC> & rel
 	return reses;
 } //getAmplitudesAtPoints
 
-void JacobianSphereGrid::getAmplitudesAtPoints2D(std::vector<PolarCalculationData*> relevantQData, FACC phi)
-{
-	size_t i = 0;
-
-	std::complex<double> pl1, pl2;
-	std::complex<double> d1, d2;
-
-	double frac;
-	double  qForSpline = relevantQData[0]->q;
-
-	int planeIndex;	
-	double curQ, curTheta; 
-
-	for (int q=0;q<relevantQData.size(); q++)
-	{
-		curQ = relevantQData[q]->q;
-		
-		for (int t = 0; t < relevantQData[q]->theta.size(); t++)
-		{
-			curTheta = relevantQData[q]->theta[t];
-			planeIndex = GetSplineBetweenPlanes(qForSpline, curTheta, phi, pl1, pl2, d1, d2);
-			
-			double frc = (curQ / stepSize);
-			// Make sure there aren't any floating point rounding issues
-			//  (e.g. int(0.99999999999999989) --> 0 instead of 1)
-			double* fptr = &frc;
-			(*((long long*)fptr)) += 8;
-
-
-			frac = frc - double(planeIndex);
-
-			//this is equation 37 in Ginsburg et al 2019 (F(q) = Fb2...)
-			//frac = "t"
-			//pl1 = Fb2, d1=db2, pl2 = Fa1, d2=da1
-			std::complex<FACC> myres = pl1 + d1 * frac +
-				(3.0 * (pl2 - pl1) - 2.0 * d1 - d2) * (frac * frac) +
-				(2.0 * (pl1 - pl2) + d1 + d2) * (frac * frac * frac);
-
-			relevantQData[q]->cIntensities[t] = myres;
-		}
-	} 
-}
 
 double* JacobianSphereGrid::GetDataPointer() {
 	return data.data();

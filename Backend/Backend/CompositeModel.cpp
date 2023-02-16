@@ -265,8 +265,6 @@ VectorXd CompositeModel::CalculateVector(const std::vector<double>& q, int nLaye
 
 MatrixXd CompositeModel::CalculateMatrix(const std::vector<double>& q, int nLayers, VectorXd& p /*= VectorXd( ) */, progressFunc progress /*= NULL*/, void* progressArgs /*= NULL*/) 
 {
-	std::cout << "!!!!!!! CompositeModel::CalculateMatrix !!!!!!!" << std::endl;
-
 	size_t points = q.size();
 	MatrixXd mat = MatrixXd::Zero(points, points);
 	MatrixXd tmpmat;

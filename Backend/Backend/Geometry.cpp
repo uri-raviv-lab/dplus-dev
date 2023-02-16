@@ -256,8 +256,6 @@ VectorXd Geometry::CalculateVector(const std::vector<double>& q, int nLayers, Ve
 MatrixXd Geometry::CalculateMatrix(const std::vector<double>& q, int nLayers, VectorXd& p,
 	progressFunc progressReport, void* progressArgs) 
 {
-	std::cout << "!!!!!!! Geometry::CalculateMatrix !!!!!!!" << std::endl;
-
 	VectorXd res(q.size());
 	PreCalculate(p, nLayers);
 
@@ -512,7 +510,6 @@ VectorXd PolydisperseModel::CalculateVector(const std::vector<double> &q, int nL
 MatrixXd PolydisperseModel::CalculateMatrix(const std::vector<double>& q, int nLayers, Eigen::VectorXd& a,
 	progressFunc progress, void* progressArgs) 
 {
-	std::cout << "!!!!!!! PolydisperseModel::CalculateMatrix !!!!!!!" << std::endl;
 
 	int points = pdResolution;
 	VectorXd b = a, a1 = a, x = VectorXd::Zero(points), intensity = VectorXd::Zero(q.size());

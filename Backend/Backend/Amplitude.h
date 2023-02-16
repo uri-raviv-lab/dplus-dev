@@ -198,11 +198,9 @@ public:
 	virtual void getNewThetaPhiAndPhases(const std::vector<FACC>& relevantQs, FACC theta, FACC phi,
 		double& newTheta, double& newPhi, ArrayXcX& phases); // should this be private/protected?
 	virtual ArrayXcX getAmplitudesAtPoints(const std::vector<FACC> & relevantQs, FACC theta, FACC phi);
-	virtual void getAmplitudesAtPoints2D(std::vector<PolarCalculationData*> relevantQData, FACC phi);
 
 	ArrayXcX getAmplitudesAtPointsWithoutGrid(double newTheta, double newPhi, const std::vector<FACC> &relevantQs, Eigen::Ref<ArrayXcX> phases);
-	void getAmplitudesAtPointsWithoutGrid2D(std::vector<PolarCalculationData*> relevantQData, double newPhi, Eigen::Ref<ArrayXcX> phases, double scale);
-
+	
 	virtual PDB_READER_ERRS getError() const;
 
 	/**
@@ -473,7 +471,7 @@ public:
 	void HandleQ0(std::vector<PolarCalculationData*> qData);
 
 	template<typename T>
-	PDB_READER_ERRS IntegrateLayersTogether2D(std::vector<unsigned int>& seeds, std::uniform_int_distribution<unsigned int>& sRan, std::mt19937& seedGen, std::vector<PolarCalculationData*> qData, 
+	PDB_READER_ERRS Calculate2DIntensityWithGrid(std::vector<unsigned int>& seeds, std::uniform_int_distribution<unsigned int>& sRan, std::mt19937& seedGen, std::vector<PolarCalculationData*> qData, 
 		T& epsi, uint64_t& iterations, const double& cProgMax, const double& cProgMin, int& prog, clock_t& aveEnd, const clock_t& aveBeg, const clock_t& gridBegin);
 
 	template <typename T>
@@ -545,8 +543,6 @@ public:
 	template <typename T>
 	void AverageIntensitiesBetweenLayers(const std::vector<T> &relevantQs, std::vector<T> &reses, size_t layerInd, FACC epsi, unsigned int seed, uint64_t iterations);
 
-	//template <typename T>
-	void AverageIntensitiesBetweenLayers2D(std::vector<PolarCalculationData*> calculation, size_t layerInd, FACC epsi, unsigned int seed, uint64_t iterations);
 	};
 
 template<class FLOAT_TYPE>

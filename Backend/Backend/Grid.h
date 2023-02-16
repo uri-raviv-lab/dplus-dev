@@ -33,15 +33,13 @@ public:
 	std::vector<CartesianIndex> carIndices;
 	double q;
 	std::vector<double> theta;
-	ArrayXcX cIntensities;
-	ArrayXX rIntensities;
+	ArrayXX intensities;
 
 	PolarCalculationData(int thetaSize = 0)
 	{
 		q = 0;
 		theta = std::vector<double>(thetaSize);
-		cIntensities = ArrayXcX(thetaSize);
-		rIntensities = ArrayXX(thetaSize);
+		intensities = ArrayXX(thetaSize);
 		carIndices = std::vector<CartesianIndex>();
 	}
 
@@ -49,31 +47,14 @@ public:
 	{
 		for (int i = 0; i < theta.size(); i++)
 		{
-			rIntensities[i] += val.rIntensities[i];
-		}
-	}
-
-	void addCIntensities(PolarCalculationData val)
-	{
-		for (int i = 0; i < theta.size(); i++)
-		{
-			cIntensities[i] += val.cIntensities[i];
-		}
-	}
-
-	void multByConjAndConvertToReal()
-	{
-		for (int i = 0; i < theta.size(); i++)
-		{
-			rIntensities[i] = real(cIntensities[i] * conj(cIntensities[i]));
+			intensities[i] += val.intensities[i];
 		}
 	}
 
 	void addTheta(double _theta)
 	{
 		theta.push_back(_theta);
-		cIntensities.resize(theta.size());
-		rIntensities.resize(theta.size());
+		intensities.resize(theta.size());
 	}
 };
 
@@ -212,7 +193,6 @@ public:
 
 	virtual int GetSplineBetweenPlanes(FACC q, FACC theta, FACC phi, OUT std::complex<double>& pl1, OUT std::complex<double>& pl2, OUT std::complex<double>& d1, OUT std::complex<double>& d2);
 	virtual ArrayXcX getAmplitudesAtPoints(const std::vector<FACC> & relevantQs, FACC theta, FACC phi);
-	virtual void getAmplitudesAtPoints2D(std::vector<PolarCalculationData*> relevantQData, FACC phi);
 
 	inline long long IndexFromIndices(int qi, long long ti, long long pi) const;
 	inline void IndicesFromIndex(long long index, int &qi, long long &ti, long long &pi);
