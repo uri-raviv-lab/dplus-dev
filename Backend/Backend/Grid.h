@@ -193,6 +193,7 @@ public:
 
 	virtual int GetSplineBetweenPlanes(FACC q, FACC theta, FACC phi, OUT std::complex<double>& pl1, OUT std::complex<double>& pl2, OUT std::complex<double>& d1, OUT std::complex<double>& d2);
 	virtual ArrayXcX getAmplitudesAtPoints(const std::vector<FACC> & relevantQs, FACC theta, FACC phi);
+	virtual std::complex<FACC> getAmplitudeAtPoint(FACC q, FACC theta, FACC phi);
 
 	inline long long IndexFromIndices(int qi, long long ti, long long pi) const;
 	inline void IndicesFromIndex(long long index, int &qi, long long &ti, long long &pi);

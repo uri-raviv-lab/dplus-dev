@@ -71,6 +71,7 @@ public:
 	virtual bool AssemblePDBFile(std::vector<std::string> &lines, std::vector<Eigen::Vector3f> &locs, bool electronPDB=false);
 	
 	virtual ArrayXcX getAmplitudesAtPoints(const std::vector<FACC> & relevantQs, FACC theta, FACC phi) = 0;
+	virtual std::complex<FACC> getAmplitudeAtPoint(FACC q, FACC theta, FACC phi) = 0;
 
 	/**
 	 * @name	GetUseGridWithChildren
@@ -170,6 +171,7 @@ public:
 	virtual bool ImplementedHybridGPU();
 
 	virtual ArrayXcX getAmplitudesAtPoints(const std::vector<FACC> & relevantQs, FACC theta, FACC phi);
+	virtual std::complex<FACC> getAmplitudeAtPoint(FACC q, FACC theta, FACC phi);
 
 };
 

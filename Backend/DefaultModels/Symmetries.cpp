@@ -568,6 +568,88 @@ void GridSymmetry::OrganizeParameters(const VectorXd& p, int nLayers) {
 		return scale * getAmplitudesAtPointsWithoutGrid(newTheta, newPhi, relevantQs, phases);
 	}
 
+
+	std::complex<FACC> GridSymmetry::getAmplitudeAtPoint(FACC q, FACC theta, FACC phi)
+	{
+		// First, take orientation of object into account, i.e. change theta and phi to newTheta and newPhi
+		FACC st = sin(theta);
+		FACC ct = cos(theta);
+		FACC sp = sin(phi);
+		FACC cp = cos(phi);
+
+		Eigen::Vector3d Qcart(q * st * cp, q * st * sp, q * ct), Qt;
+		Eigen::Matrix3d rot;
+		Eigen::Vector3d R(tx, ty, tz);
+		Qt = (Qcart.transpose() * RotMat) / q;
+
+		double newTheta = acos(Qt.z());
+		double newPhi = atan2(Qt.y(), Qt.x());
+
+		if (newPhi < 0.0)
+			newPhi += M_PI * 2.;
+
+		std::complex<FACC> phases = exp(std::complex<FACC>(0., 1.) * (Qt.dot(R) * q));
+
+		if (GetUseGridWithChildren())
+		{
+			JacobianSphereGrid* jgrid = dynamic_cast<JacobianSphereGrid*>(grid);
+
+			if (jgrid)
+			{
+				// Get amplitudes from grid
+				return jgrid->getAmplitudeAtPoint(q, newTheta, newPhi) * phases;
+			}
+		}
+
+		if (GetUseGridAnyChildren())
+		{
+			const std::complex<FACC> Im(0.0, 1.0), One(1.0, 0.0);
+
+			std::complex<FACC> result = 0;
+
+			for (auto& child : _amps)
+				result += child->getAmplitudeAtPoint(q, newTheta, newPhi);
+
+			st = sin(newTheta);
+			ct = cos(newTheta);
+			sp = sin(newPhi);
+			cp = cos(newPhi);
+
+
+			Eigen::Vector3d qVector(
+				q * st * cp,
+				q * st * sp,
+				q * ct);
+			// assuming q = alpha * a* + beta * b* +gamma * c* - calculation of alpha, beta, gamma
+			double dotA = qVector.dot(av);  //qx * av[0] + qy * av[1] + qz * av[2];
+			double dotB = qVector.dot(bv);  //qx * bv[0] + qy * bv[1] + qz * bv[2];
+			double dotC = qVector.dot(cv);  //qx * cv[0] + qy * cv[1] + qz * cv[2];
+
+			//here I need to take to given projection and find the structure factor. Then to multiply calcAmplitude by it.
+			// The structure factor is given by a factor dependant of a* times a factor by b* times a factor by c*
+			// Each is given by \sum_{n=1}^{Rep_a}\Exp ( i \alpha n )
+			if (closeToZero(dotA) || Na == 1.0)
+				result *= Na;
+			else
+				result *= (One - exp(Im * dotA * Na)) / (One - exp(Im * dotA));
+
+			if (closeToZero(dotB) || Nb == 1.0)
+				result *= Nb;
+			else
+				result *= (One - exp(Im * dotB * Nb)) / (One - exp(Im * dotB));
+
+			if (closeToZero(dotC) || Nc == 1.0)
+				result *= Nc;
+			else
+				result *= (One - exp(Im * dotC * Nc)) / (One - exp(Im * dotC));
+
+			return result * scale;
+
+		} // if GetUseGridAnyChildren
+
+		return scale * getAmplitudeAtPointWithoutGrid(newTheta, newPhi, q, phases);
+	}
+
 	//////////////////////////////////////////////////////////////////////////
 
 	static Eigen::Matrix3d EulerDMat(Radian theta, Radian phi, Radian psi) {
@@ -1081,4 +1163,78 @@ void GridSymmetry::OrganizeParameters(const VectorXd& p, int nLayers) {
 
 
 		return scale * getAmplitudesAtPointsWithoutGrid(newTheta, newPhi, relevantQs, phases);
+	}
+
+	std::complex<FACC> ManualSymmetry::getAmplitudeAtPoint(FACC q, FACC theta, FACC phi)
+	{
+		// First, take orientation of object into account, i.e. change theta and phi to newTheta and newPhi
+		FACC st = sin(theta);
+		FACC ct = cos(theta);
+		FACC sp = sin(phi);
+		FACC cp = cos(phi);
+
+		Eigen::Vector3d Qcart(q * st * cp, q * st * sp, q * ct), Qt;
+		Eigen::Matrix3d rot;
+		Eigen::Vector3d R(tx, ty, tz);
+		Qt = (Qcart.transpose() * RotMat) / q;
+
+		double newTheta = acos(Qt.z());
+		double newPhi = atan2(Qt.y(), Qt.x());
+
+		if (newPhi < 0.0)
+			newPhi += M_PI * 2.;
+
+		std::complex<FACC> phase = exp(std::complex<FACC>(0., 1.) * (Qt.dot(R) * q));
+
+		if (GetUseGridWithChildren())
+		{
+			JacobianSphereGrid* jgrid = dynamic_cast<JacobianSphereGrid*>(grid);
+
+			if (jgrid)
+			{
+				// Get amplitudes from grid
+				return jgrid->getAmplitudeAtPoint(q, newTheta, newPhi) * phase;
+			}
+		}
+
+		if (GetUseGridAnyChildren())
+		{
+			int rows = trans.size();
+
+			Vector3d qnew;
+			std::complex<FACC> res;
+
+			for (auto& orientation : translationsPerOrientation)
+			{
+
+				qnew = Vector3d(Qt.transpose() * orientation.first).normalized();;
+
+				newTheta = acos(qnew.z());
+				newPhi = atan2(qnew.y(), qnew.x());
+
+				if (newPhi < 0.0)
+					newPhi += M_PI * 2.;
+
+				for (auto& subAmp : _amps)
+				{
+					res += subAmp->getAmplitudeAtPoint(q, newTheta, newPhi);
+				}
+
+				Eigen::Vector3d qDirection(st * cp, st * sp, ct);
+				phase = 0;
+				for (auto& trans : orientation.second)
+				{
+					std::complex<FACC> tPhase = std::complex<FACC>(0., 1.) * (qDirection.dot(trans));
+					phase += exp(q * tPhase);
+				}
+
+				res *= phase;
+			}
+
+			return res * scale;
+
+		} // if GetUseGridAnyChildren
+
+
+		return scale * getAmplitudeAtPointWithoutGrid(newTheta, newPhi, q, phase);
 	}

@@ -1110,5 +1110,10 @@ ArrayXcX LuaSymmetry::getAmplitudesAtPoints(const std::vector<FACC> & relevantQs
 	return scale * getAmplitudesAtPointsWithoutGrid(newTheta, newPhi, relevantQs, phases);
 }
 
+std::complex<FACC> LuaSymmetry::getAmplitudeAtPoint(FACC q, FACC theta, FACC phi)
+{
+	throw backend_exception(ERROR_UNSUPPORTED, "The method or operation is not implemented.");
+}
+
 
 

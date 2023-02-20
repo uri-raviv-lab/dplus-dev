@@ -198,9 +198,11 @@ public:
 	virtual void getNewThetaPhiAndPhases(const std::vector<FACC>& relevantQs, FACC theta, FACC phi,
 		double& newTheta, double& newPhi, ArrayXcX& phases); // should this be private/protected?
 	virtual ArrayXcX getAmplitudesAtPoints(const std::vector<FACC> & relevantQs, FACC theta, FACC phi);
+	virtual std::complex<FACC> getAmplitudeAtPoint(FACC q, FACC theta, FACC phi);
 
 	ArrayXcX getAmplitudesAtPointsWithoutGrid(double newTheta, double newPhi, const std::vector<FACC> &relevantQs, Eigen::Ref<ArrayXcX> phases);
-	
+	std::complex<FACC> getAmplitudeAtPointWithoutGrid(double newTheta, double newPhi, FACC q, std::complex<FACC> phases);
+
 	virtual PDB_READER_ERRS getError() const;
 
 	/**

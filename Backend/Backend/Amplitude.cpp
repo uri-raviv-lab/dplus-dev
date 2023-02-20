@@ -1198,8 +1198,17 @@ PDB_READER_ERRS DomainModel::IntegrateLayersTogether(std::vector<unsigned int> &
 			qBegin++;
 
 		qEnd = qBegin + 1;
+		if (qEnd == Q.end())
+		{
+			qEnd--;
+		}
 		while (qEnd + 1 != Q.end() && *qEnd <= (layerInd + 1) * stepSize) // Maximum q val
 			qEnd++;
+		
+		// If we didn't get to the end of the vector, we got to the end of the group (because *qEnd > (layerInd + 1) * stepSize).
+		// so take one step back so that the last item in the vector won't be greater than (layerInd + 1) * stepSize.
+		// But if its the last item in the vector, it probably isn't greater than (layerInd + 1) * stepSize. 
+		// maybe there should be another condition? can the last item in the vector be outside the relevantQs group? 
 		if (qEnd + 1 != Q.end())
 			qEnd--;
 
@@ -1652,6 +1661,7 @@ VectorXd DomainModel::CalculateVector(const std::vector<double>& q, int nLayers,
 
 MatrixXd DomainModel::CalculateMatrix(const std::vector<double>& q, int nLayers, VectorXd& p /*= VectorXd( ) */, progressFunc progress /*= NULL*/, void* progressArgs /*= NULL*/) 
 {	
+	printf("!! DomainModel::CalculateMatrix !! \n");
 	size_t points = q.size();
 	MatrixXd mat = MatrixXd::Zero(points, points);
 	MatrixXd rMat = MatrixXd::Zero(points, points);
@@ -3427,8 +3437,6 @@ ArrayXcX Amplitude::getAmplitudesAtPoints(const std::vector<FACC> & relevantQs, 
 	ArrayXcX phases;
 	getNewThetaPhiAndPhases(relevantQs, theta, phi, newTheta, newPhi, phases);
 
-	ArrayXcX reses(relevantQs.size());
-	reses.setZero();
 	if (GetUseGridWithChildren())
 	{
 		JacobianSphereGrid* jgrid = dynamic_cast<JacobianSphereGrid*>(grid);
@@ -3442,6 +3450,44 @@ ArrayXcX Amplitude::getAmplitudesAtPoints(const std::vector<FACC> & relevantQs, 
 
 	return scale * getAmplitudesAtPointsWithoutGrid(newTheta, newPhi, relevantQs, phases);
 
+}
+
+std::complex<FACC> Amplitude::getAmplitudeAtPoint(FACC q, FACC theta, FACC phi)
+{
+	double newTheta, newPhi;
+	std::complex<FACC> phase;
+	
+	// First, take orientation of object into account, i.e. change theta and phi to newTheta and newPhi
+	FACC st = sin(theta);
+	FACC ct = cos(theta);
+	FACC sp = sin(phi);
+	FACC cp = cos(phi);
+
+	Eigen::Vector3d Qcart(q * st * cp, q * st * sp, q * ct), Qt;
+	Eigen::Matrix3d rot;
+	Eigen::Vector3d R(tx, ty, tz);
+	Qt = (Qcart.transpose() * RotMat) / q;
+
+	newTheta = acos(Qt.z());
+	newPhi = atan2(Qt.y(), Qt.x());
+
+	if (newPhi < 0.0)
+		newPhi += M_PI * 2.;
+
+	phase = exp( std::complex<FACC>(0., 1.) * (Qt.dot(R) * q) );
+	
+	if (GetUseGridWithChildren())
+	{
+		JacobianSphereGrid* jgrid = dynamic_cast<JacobianSphereGrid*>(grid);
+
+		if (jgrid)
+		{
+			// Get amplitudes from grid
+			return jgrid->getAmplitudeAtPoint(q, newTheta, newPhi) * phase;
+		}
+	}
+
+	return scale * getAmplitudeAtPointWithoutGrid(newTheta, newPhi, q, phase);
 }
 
 
@@ -3459,6 +3505,18 @@ ArrayXcX Amplitude::getAmplitudesAtPointsWithoutGrid(double newTheta, double new
 		reses(q) = calcAmplitude(relevantQs[q] * st*cp, relevantQs[q] * st * sp, relevantQs[q] * ct);
 
 	return reses * phases;
+}
+
+std::complex<FACC> Amplitude::getAmplitudeAtPointWithoutGrid(double newTheta, double newPhi, FACC q, std::complex<FACC> phase)
+{
+	FACC st = sin(newTheta);
+	FACC ct = cos(newTheta);
+	FACC sp = sin(newPhi);
+	FACC cp = cos(newPhi);
+
+	std::complex<FACC> res = calcAmplitude(q * st * cp, q * st * sp, q * ct);
+
+	return res * phase;
 }
 
 

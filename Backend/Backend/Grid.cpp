@@ -722,6 +722,37 @@ ArrayXcX JacobianSphereGrid::getAmplitudesAtPoints(const std::vector<FACC> & rel
 } //getAmplitudesAtPoints
 
 
+std::complex<FACC> JacobianSphereGrid::getAmplitudeAtPoint(FACC q, FACC theta, FACC phi)
+{
+	size_t i = 0;
+
+	std::complex<double> pl1, pl2;
+	std::complex<double> d1, d2;
+
+	double frac;
+
+	int planeIndex;
+
+	planeIndex = GetSplineBetweenPlanes(q, theta, phi, pl1, pl2, d1, d2);
+
+	double frc = (q / stepSize);
+	// Make sure there aren't any floating point rounding issues
+	//  (e.g. int(0.99999999999999989) --> 0 instead of 1)
+	double* fptr = &frc;
+	(*((long long*)fptr)) += 8;
+
+	frac = frc - double(planeIndex);
+
+	//this is equation 37 in Ginsburg et al 2019 (F(q) = Fb2...)
+	//frac = "t"
+	//pl1 = Fb2, d1=db2, pl2 = Fa1, d2=da1
+	std::complex<FACC> myres = pl1 + d1 * frac +
+		(3.0 * (pl2 - pl1) - 2.0 * d1 - d2) * (frac * frac) +
+		(2.0 * (pl1 - pl2) + d1 + d2) * (frac * frac * frac);
+
+	return myres;
+}
+
 double* JacobianSphereGrid::GetDataPointer() {
 	return data.data();
 

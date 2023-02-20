@@ -71,6 +71,7 @@ class JsonWriter;
 		virtual void calculateGrid(FACC qMax, int sections = 150, progressFunc progFunc = NULL, void *progArgs = NULL, double progMin = 0.0, double progMax = 1.0, int *pStop = NULL);
 
 		virtual ArrayXcX getAmplitudesAtPoints(const std::vector<FACC> & relevantQs, FACC theta, FACC phi);
+		virtual std::complex<FACC> getAmplitudeAtPoint(FACC q, FACC theta, FACC phi);
 
 	};
 
@@ -131,6 +132,7 @@ class JsonWriter;
 		virtual bool ImplementedHybridGPU();
 
 		virtual ArrayXcX getAmplitudesAtPoints(const std::vector<FACC> & relevantQs, FACC theta, FACC phi);
+		virtual std::complex<FACC> getAmplitudeAtPoint(FACC q, FACC theta, FACC phi);
 
 	};
 
