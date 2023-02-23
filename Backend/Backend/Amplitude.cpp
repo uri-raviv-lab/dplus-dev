@@ -36,6 +36,7 @@
 #include "../../Conversions/JsonWriter.h"
 #include <rapidjson/writer.h>
 #include <rapidjson/stringbuffer.h>
+//#include <boost/stacktrace.hpp>
 
 
 #ifdef _WIN32
@@ -960,8 +961,9 @@ PDB_READER_ERRS DomainModel::CalculateIntensity2DMatrix(const std::vector<T>& Q,
 
 		if (canIntegratePointsBetweenLayersTogether)
 		{
-			std::vector<PolarCalculationData*> polarData = JacobianSphereGrid::QListToPolar(Q, qMin, qMax);
-			Calculate2DIntensityWithGrid(seeds, sRan, seedGen, polarData, epsi, iterations, cProgMax, cProgMin, prog, aveEnd, aveBeg, gridBegin);
+			std::vector<PolarQData> polarData = JacobianSphereGrid::QListToPolar(Q, qMin, qMax);
+			IntegrateLayersTogether2D(seeds, sRan, seedGen, polarData, epsi, iterations, cProgMax, cProgMin, prog, aveEnd, aveBeg, gridBegin);
+			//Calculate2DIntensityWithGrid(seeds, sRan, seedGen, polarData, epsi, iterations, cProgMax, cProgMin, prog, aveEnd, aveBeg, gridBegin);
 			HandleQ0(polarData);
 			res = JacobianSphereGrid::PolarQDataToCartesianMatrix(polarData, Q.size());
 			
@@ -1244,19 +1246,17 @@ PDB_READER_ERRS DomainModel::IntegrateLayersTogether(std::vector<unsigned int> &
 	return PDB_OK;
 }
 
-void DomainModel::HandleQ0(std::vector<PolarCalculationData*> qData)
+void DomainModel::HandleQ0(std::vector<PolarQData>& qData)
 {
 	for (int q = 0; q < qData.size(); q++)
 	{
-		if (qData[q]->q == 0)
+		if (qData[q].q == 0)
 		{
 			std::complex<FACC> amp(0.0, 0.0);
 			for (unsigned int j = 0; j < _amps.size(); j++)
 				amp += _amps[j]->getAmplitude(0, 0, 0);
 
-			qData[q]->theta[0] = 0;
-			qData[q]->intensities = ArrayXX(1);
-			qData[q]->intensities[0] = real(amp * conj(amp));
+			qData[q].intensityData[0].result = real(amp * conj(amp));
 
 			return;
 		}
@@ -1264,20 +1264,83 @@ void DomainModel::HandleQ0(std::vector<PolarCalculationData*> qData)
 }
 
 template<typename T>
-PDB_READER_ERRS DomainModel::Calculate2DIntensityWithGrid(std::vector<unsigned int>& seeds, std::uniform_int_distribution<unsigned int>& sRan, std::mt19937& seedGen, std::vector<PolarCalculationData*> qData, 
+PDB_READER_ERRS DomainModel::Calculate2DIntensityWithGrid(std::vector<unsigned int>& seeds, std::uniform_int_distribution<unsigned int>& sRan, std::mt19937& seedGen, std::vector<PolarQData*> qData, 
 	 T& epsi, uint64_t& iterations, const double& cProgMax, const double& cProgMin, int& prog, clock_t& aveEnd, const clock_t& aveBeg, const clock_t& gridBegin)
 {
 	JacobianSphereGrid* jgrid = (JacobianSphereGrid*)_amps[0]->grid;
 
 	for (int q = 0; q < qData.size(); q++)
 	{
-		for (int t = 0; t < qData[q]->theta.size(); t++)
+		for (int i = 0; i < qData[q]->intensityData.size(); i++)
 		{
-			FACC res = jgrid->CalculateIntensity(qData[q]->q, qData[q]->theta[t], epsi, 0, iterations);
-			qData[q]->intensities[t] = res;
+			qData[q]->intensityData[i]->result = 
+				jgrid->CalculateIntensity(qData[q]->q, qData[q]->intensityData[i]->theta, epsi, 0, iterations);
 		}
 	}
 	
+	return PDB_OK;
+}
+
+template<typename T>
+PDB_READER_ERRS DomainModel::IntegrateLayersTogether2D(std::vector<unsigned int>& seeds, std::uniform_int_distribution<unsigned int>& sRan, std::mt19937& seedGen, std::vector<PolarQData>& qData, 
+	 T& epsi, uint64_t& iterations, const double& cProgMax, const double& cProgMin, int& prog, clock_t& aveEnd, const clock_t& aveBeg, const clock_t& gridBegin)
+{	
+	seeds.resize(1 + gridSize / 2);
+	for (size_t i = 0; i < seeds.size(); i++)
+		seeds[i] = sRan(seedGen);
+
+	T stepSize = 2 * qMax / gridSize;
+	int tmpLayer = 0;
+	auto qtmpBegin = qData[0].q;
+	while (qtmpBegin > (tmpLayer + 1) * stepSize) // Minimum q val
+		tmpLayer++;
+
+#pragma omp parallel for schedule(dynamic, 1)
+	for (int layerInd = tmpLayer; layerInd < gridSize / 2; layerInd++)
+	{
+		if (pStop && *pStop)
+			continue;
+
+		auto qBegin = qData.begin();
+		auto qEnd = qBegin + 1;
+
+		while (qBegin != qData.end() && abs((* qBegin).q) <= layerInd * stepSize) // Minimum q val
+			qBegin++;
+
+		if (qBegin != qData.end())
+			qEnd = qBegin + 1;
+		while (qEnd != qData.end() && qEnd + 1 != qData.end() && abs((* qEnd).q) <= (layerInd + 1) * stepSize) // Maximum q val
+			qEnd++;
+		if (qEnd == qData.end() || qEnd + 1 != qData.end())
+			qEnd--;
+		
+		
+		std::vector<PolarQData> relevantQData(qBegin, qEnd + 1);
+		if (relevantQData.size() == 0)
+			continue;
+
+		AverageIntensitiesBetweenLayers2D(relevantQData, layerInd, epsi, seeds[layerInd], iterations);
+		std::copy(relevantQData.begin(), relevantQData.end(), qBegin);
+
+		// Report progress
+#pragma omp critical
+		{
+			if (progFunc)
+				progFunc(progArgs, (cProgMax - cProgMin) * (double(++prog) / double(gridSize / 2)) + cProgMin);
+		}
+
+	}
+
+	if (pStop && *pStop)
+		return STOPPED;
+
+	aveEnd = clock();
+
+	std::cout << "Took " << double(aveBeg - gridBegin) / CLOCKS_PER_SEC << " seconds to calculate the grids." << std::endl;
+	std::cout << "Took " << double(aveEnd - aveBeg) / CLOCKS_PER_SEC << " seconds to calculate the orientational average." << std::endl;
+
+	_previous_hash = Hash();
+
 	return PDB_OK;
 }
 
@@ -1661,7 +1724,6 @@ VectorXd DomainModel::CalculateVector(const std::vector<double>& q, int nLayers,
 
 MatrixXd DomainModel::CalculateMatrix(const std::vector<double>& q, int nLayers, VectorXd& p /*= VectorXd( ) */, progressFunc progress /*= NULL*/, void* progressArgs /*= NULL*/) 
 {	
-	printf("!! DomainModel::CalculateMatrix !! \n");
 	size_t points = q.size();
 	MatrixXd mat = MatrixXd::Zero(points, points);
 	MatrixXd rMat = MatrixXd::Zero(points, points);
@@ -2759,6 +2821,99 @@ void DomainModel::AverageIntensitiesBetweenLayers(const std::vector<T> &Trelevan
 	throw backend_exception(ERROR_GENERAL, "Integration of multiple points not implemented on the CPU for the chosen method");
 }
 
+//template <typename T> // should PolarCalculationData be template? is there any case were q is float instead of double?
+void DomainModel::AverageIntensitiesBetweenLayers2D(std::vector<PolarQData>& relevantQData, size_t layerInd, FACC epsi, unsigned int seed, uint64_t iterations)
+{
+	//printf("!!!!!!!!!! &relevantQData[0]=%x !!!!!!!!!\n", &relevantQData[0]);
+	if (orientationMethod == OA_ADAPTIVE_GK)
+	{
+		throw std::logic_error("The method or operation is not implemented for Gauss Kronrod.");
+		//return GaussKron2DSphereRecurs(q, epsi, iterations, 0);
+	}
+	else if (orientationMethod == OA_MC)
+	{
+		unsigned long long minIter = 100ULL;
+		
+		std::mt19937 rng;
+		rng.seed(seed);
+
+		std::uniform_real_distribution<FACC> ranU2(0.0, 2.0);
+		std::complex<FACC> phase, im(0.0, 1.0);
+
+		for (int q = 0; q < relevantQData.size(); q++)
+		{
+			relevantQData[q].ResetRunningIntensitySums();
+		}
+
+		for (uint64_t i = 0; i < iterations; i++)
+		{
+			//printf("\niteration %d\n", i);
+			FACC phi, u2;
+
+			u2 = ranU2(rng);
+			phi = u2 * M_PI;
+
+			for (int q = 0; q < relevantQData.size(); q++)
+			{
+				FACC Q = relevantQData[q].q;
+				//printf("\tq=%f\n", Q);
+				for (int t = 0; t < relevantQData[q].intensityData.size(); t++)
+				{
+					FACC theta = relevantQData[q].intensityData[t].theta;
+					
+					std::complex<FACC> ampSum = 0;
+
+					// DELETE THIS:
+					// phi = 4.924951;
+
+					for (int j = 0; j < _amps.size(); j++)
+						ampSum += _amps[j]->getAmplitudeAtPoint(Q, theta, phi);
+
+					FACC intensity = (ampSum * conj(ampSum)).real();
+					relevantQData[q].intensityData[t].runningIntensitySum += intensity;
+					if (q == 0) printf("thread=%d, i=%d (0x%x)=%f\n", omp_get_thread_num(), i, &(relevantQData[q].intensityData[t].runningIntensitySum), relevantQData[q].intensityData[t].runningIntensitySum);
+
+					/*if (theta == M_PI/2) printf("AMPL i=%d, q=%f, theta=%f, phi=%f, ampSum=(%f,%f), intensity=%f, runningIntensitySum=%f\n",
+						i, Q, theta, phi, ampSum.real(), ampSum.imag(), intensity, relevantQData[q]->intensityData[t]->runningIntensitySum);*/
+
+					if ((epsi > 0.0)  && (i % minIter == 0))
+						relevantQData[q].intensityData[t].AddIntensitySumToResHistory(i + 1);
+				}
+			}
+
+			if ( (epsi > 0.0) && (i % minIter == 0) )
+			{
+					// Convergence test
+				if (i >= 4 * minIter)
+				{
+					bool converged = true;
+
+					for (int q = 0; converged && q < relevantQData.size(); q++)
+						converged &= relevantQData[q].IsConverged(epsi);
+
+					if (converged)
+					{
+						for (int q = 0; q < relevantQData.size(); q++)
+							relevantQData[q].ConvergeWithHistory();
+						//printf("!!!!!!!!!! &relevantQData[0]=%x DONE !!!!!!!!!\n", &relevantQData[0]);
+						return;
+					}
+
+				}
+			}
+		} // for iterations
+
+		for (int q = 0; q < relevantQData.size(); q++)
+			relevantQData[q].Converge(iterations);
+		
+		//printf("!!!!!!!!!! &relevantQData[0]=%x DONE !!!!!!!!!\n", &relevantQData[0]);
+		return;
+
+	} // elif orientationMethod == OA_MC
+
+	printf("Integration of multiple points not implemented on the CPU for the chosen method");
+	throw backend_exception(ERROR_GENERAL, "Integration of multiple points not implemented on the CPU for the chosen method");
+}
 
 bool DomainModel::GetHasAnomalousScattering()
 {

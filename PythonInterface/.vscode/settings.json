@@ -5,7 +5,13 @@
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true,
     "cSpell.words": [
+        "cmap",
         "coeff",
-        "Dplus"
+        "colorbar",
+        "Dplus",
+        "edgecolors",
+        "linewidths",
+        "matplotlib",
+        "pcolormesh"
     ]
 }

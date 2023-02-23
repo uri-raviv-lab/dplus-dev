@@ -21,7 +21,7 @@ using Eigen::MatrixXd;
 
 class JsonWriter;
 
-class EXPORTED_BE PolarCalculationData
+class EXPORTED_BE IntensityCalcData
 {
 public:
 	struct CartesianIndex
@@ -30,31 +30,115 @@ public:
 		int qPerpIdx;
 	};
 
-	std::vector<CartesianIndex> carIndices;
-	double q;
-	std::vector<double> theta;
-	ArrayXX intensities;
+	FACC theta;
+	FACC runningIntensitySum;
+	CartesianIndex carIndex;
+	FACC result;
 
-	PolarCalculationData(int thetaSize = 0)
+private:
+	static const int resHistorySize = 4;
+	std::vector<FACC> resHistory;
+	int resHistoryIndex;
+	
+
+public:
+	IntensityCalcData(FACC _theta, int qZIdx, int qPIdx)
 	{
-		q = 0;
-		theta = std::vector<double>(thetaSize);
-		intensities = ArrayXX(thetaSize);
-		carIndices = std::vector<CartesianIndex>();
+		theta = _theta;
+		runningIntensitySum = 0;
+		result = 0;
+		resHistory = std::vector<FACC>(4);
+		resHistoryIndex = -1;
+		carIndex.qZIdx = qZIdx;
+		carIndex.qPerpIdx = qPIdx;
+	}
+	void AddIntensitySumToResHistory(int divider)
+	{
+		resHistoryIndex++;
+		resHistoryIndex %= resHistorySize;
+		resHistory[resHistoryIndex] = runningIntensitySum / FACC(divider);
+	}
+	void ConvergeWithHistory()
+	{
+		result = resHistory[resHistoryIndex];
+	}
+	bool IsConverged(FACC epsi)
+	{
+		FACC diff = 0;
+		for (int i = 0; i < resHistorySize; i++)
+		{
+			diff = 1.0 - abs(resHistory[i] / resHistory[0]);
+			if (diff > epsi)
+				return false;
+		}
+
+		return true;
+		
+	}
+	void Converge(int iterations)
+	{
+		result = runningIntensitySum / FACC(iterations);
+		//printf("theta=%f, result=%f\n", theta, result);
+	}
+};
+
+class EXPORTED_BE PolarQData
+{
+public:
+
+	FACC q;
+	std::vector<IntensityCalcData> intensityData;
+
+	PolarQData(FACC _q)
+	{
+		q = _q;
+		intensityData.clear();
 	}
 
-	void addRIntensities(PolarCalculationData val)
+	PolarQData()
 	{
-		for (int i = 0; i < theta.size(); i++)
+		q = 0.0;
+		intensityData.clear();
+	}
+
+	void AddTheta(FACC theta, int qZIdx, int qPIdx)
+	{
+		intensityData.push_back(IntensityCalcData(theta, qZIdx, qPIdx));
+	}
+
+	bool IsConverged(FACC epsi)
+	{
+		for (int i = 0; i < intensityData.size(); i++)
 		{
-			intensities[i] += val.intensities[i];
+			if (!intensityData[i].IsConverged(epsi))
+				return false;
+		}
+
+		return true;
+	}
+
+	void Converge(int iterations)
+	{
+		//printf("Converging. q=%f\n", q);
+		for (int i = 0; i < intensityData.size(); i++)
+		{
+			intensityData[i].Converge(iterations);
+		}
+	}
+	void ConvergeWithHistory()
+	{
+		for (int i = 0; i < intensityData.size(); i++)
+		{
+			intensityData[i].ConvergeWithHistory();
 		}
 	}
 
-	void addTheta(double _theta)
+	void ResetRunningIntensitySums()
 	{
-		theta.push_back(_theta);
-		intensities.resize(theta.size());
+		for (int i = 0; i < intensityData.size(); i++)
+		{
+			intensityData[i].runningIntensitySum = 0;
+		}
 	}
 };
 
@@ -177,9 +261,9 @@ public:
 	~JacobianSphereGrid();
 
 	static void qZ_qPerp_to_q_Theta(FACC qZ, FACC qPerp, FACC& q, FACC& theta);
-	static std::vector<PolarCalculationData*> QListToPolar(std::vector<double> Q, double qMin, double qMax);
+	static std::vector<PolarQData> QListToPolar(std::vector<double> Q, double qMin, double qMax);
 
-	static MatrixXd PolarQDataToCartesianMatrix(std::vector<PolarCalculationData*> qData, int originalQSize);
+	static MatrixXd PolarQDataToCartesianMatrix(std::vector<PolarQData> qData, int originalQSize);
 	
 
 	virtual unsigned short GetDimX() const;                    // DimR

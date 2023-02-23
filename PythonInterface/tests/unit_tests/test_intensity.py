@@ -42,25 +42,6 @@ def test_easy_1():
     print(calc_res.y == pytest.approx(result))
     assert calc_res.y == pytest.approx(result)
 
-def test_1D_instead_2D():
-
-    model = "sphere"
-
-    state_name = model + ".state"
-    state_file_path = os.path.join(file_dir, state_name)
-    calc_in = CalculationInput.load_from_state_file(state_file_path, use_gpu=False)
-
-    runner = EmbeddedLocalRunner()
-    calc_res = runner.generate(calc_in)
-    my_amp = runner.get_amp(calc_in.Domain.populations[0].children[0].model_ptr)
-    q = np.linspace(0, my_amp.grid.q_max, calc_in.DomainPreferences.generated_points+1)
-    result = []
-    for i in q:
-        res = my_amp.calculate_intensity(i)
-        result.append(res)
-    print(calc_res.y == pytest.approx(result))
-    assert calc_res.y == pytest.approx(result)
-
 def test_easy_2():
     sp = Sphere()
     sp.layer_params[1]['radius'].value = 3
@@ -80,6 +61,26 @@ def test_easy_2():
 
     result = my_amp.get_intensity_q_theta(q)
     print(calc_res.y == pytest.approx(result))
+    assert calc_res.y == pytest.approx(result)
+
+def test_intensity_1jff():
+
+    model = "1jff"
+
+    state_name = model + ".state"
+    state_file_path = os.path.join(file_dir, state_name)
+    calc_in = CalculationInput.load_from_state_file(state_file_path, use_gpu=False)
+
+    runner = EmbeddedLocalRunner()
+    calc_res = runner.generate(calc_in)
+    my_amp = runner.get_amp(calc_in.Domain.populations[0].children[0].model_ptr)
+    q = np.linspace(0, my_amp.grid.q_max, calc_in.DomainPreferences.generated_points+1)
+    result = []
+    for i in q:
+        res = my_amp.calculate_intensity(i, max_iter=calc_in.DomainPreferences.orientation_iterations)
+        result.append(res)
+    print(calc_res.y == pytest.approx(result))
+    diff = np.array(calc_res.y) - np.array(result)
     assert calc_res.y == pytest.approx(result)
 
 def test_easy_without_ampj_file():

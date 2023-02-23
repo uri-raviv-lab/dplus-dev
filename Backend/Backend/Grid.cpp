@@ -612,10 +612,10 @@ void JacobianSphereGrid::qZ_qPerp_to_q_Theta(FACC qZ, FACC qPerp, FACC& q, FACC&
 	theta = abs( atan2(qPerp, qZ) );
 }
 
-std::vector<PolarCalculationData*> JacobianSphereGrid::QListToPolar(std::vector<double> Q, double qMin, double qMax)
+std::vector<PolarQData> JacobianSphereGrid::QListToPolar(std::vector<double> Q, double qMin, double qMax)
 {
 	double qZ, qPerp, q, theta;
-	std::map<double, PolarCalculationData*> theMap;
+	std::map<double, PolarQData> theMap;
 
 	for (int i = 0; i < Q.size(); i++)
 	{
@@ -640,17 +640,15 @@ std::vector<PolarCalculationData*> JacobianSphereGrid::QListToPolar(std::vector<
 
 			if (theMap.find(q) == theMap.end())
 			{
-				theMap[q] = new PolarCalculationData(0);
-				theMap[q]->q = q;
+				theMap[q] = PolarQData(q);
 			}
 
-			theMap[q]->addTheta(theta);
-			theMap[q]->carIndices.push_back({ i, j });
+			theMap[q].AddTheta(theta, i, j);
 		}
 	}
 
-	std::vector<PolarCalculationData*> resultVec;
-	for (std::map<double, PolarCalculationData*>::iterator it = theMap.begin(); it != theMap.end(); ++it)
+	std::vector<PolarQData> resultVec;
+	for (std::map<double, PolarQData>::iterator it = theMap.begin(); it != theMap.end(); ++it)
 	{
 		resultVec.push_back(it->second);
 	}
@@ -658,16 +656,17 @@ std::vector<PolarCalculationData*> JacobianSphereGrid::QListToPolar(std::vector<
 	return resultVec;
 }
 
-MatrixXd JacobianSphereGrid::PolarQDataToCartesianMatrix(std::vector<PolarCalculationData*> qData, int originalQSize)
+MatrixXd JacobianSphereGrid::PolarQDataToCartesianMatrix(std::vector<PolarQData> qData, int originalQSize)
 {
 	MatrixXd resultMat(originalQSize, originalQSize);
 	resultMat.setZero();
 
 	for (int q = 0; q < qData.size(); q++)
 	{
-		for (int i = 0; i < qData[q]->carIndices.size(); i++)
+		for (int i = 0; i < qData[q].intensityData.size(); i++)
 		{
-			resultMat(qData[q]->carIndices[i].qZIdx, qData[q]->carIndices[i].qPerpIdx) = qData[q]->intensities[i];
+			resultMat(qData[q].intensityData[i].carIndex.qZIdx, qData[q].intensityData[i].carIndex.qPerpIdx) = 
+				qData[q].intensityData[i].result;
 		}
 	}
 

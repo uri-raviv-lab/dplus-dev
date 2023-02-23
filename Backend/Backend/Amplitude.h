@@ -101,7 +101,7 @@ using Eigen::MatrixXd;
 using Eigen::Vector3d;
 
 // Forward declaration
-class PolarCalculationData;
+class PolarQData;
 class Grid;
 class JsonWriter;
 
@@ -470,11 +470,16 @@ public:
 	template<typename T>
 	PDB_READER_ERRS IntegrateLayersTogether(std::vector<unsigned int> &seeds, std::uniform_int_distribution<unsigned int> &sRan, std::mt19937 &seedGen, const std::vector<T> & Q, std::vector<T> & res, T &epsi, uint64_t &iterations, const double &cProgMax, const double &cProgMin, int &prog, clock_t &aveEnd, const clock_t &aveBeg, const clock_t &gridBegin);
 
-	void HandleQ0(std::vector<PolarCalculationData*> qData);
+	void HandleQ0(std::vector<PolarQData>& qData);
 
 	template<typename T>
-	PDB_READER_ERRS Calculate2DIntensityWithGrid(std::vector<unsigned int>& seeds, std::uniform_int_distribution<unsigned int>& sRan, std::mt19937& seedGen, std::vector<PolarCalculationData*> qData, 
+	PDB_READER_ERRS Calculate2DIntensityWithGrid(std::vector<unsigned int>& seeds, std::uniform_int_distribution<unsigned int>& sRan, std::mt19937& seedGen, std::vector<PolarQData*> qData, 
 		T& epsi, uint64_t& iterations, const double& cProgMax, const double& cProgMin, int& prog, clock_t& aveEnd, const clock_t& aveBeg, const clock_t& gridBegin);
+
+	template<typename T>
+	PDB_READER_ERRS IntegrateLayersTogether2D(std::vector<unsigned int>& seeds, std::uniform_int_distribution<unsigned int>& sRan, std::mt19937& seedGen, std::vector<PolarQData>& qData, 
+		T& epsi, uint64_t& iterations, const double& cProgMax, const double& cProgMin, int& prog, clock_t& aveEnd, const clock_t& aveBeg, const clock_t& gridBegin);
+
 
 	template <typename T>
 	PDB_READER_ERRS PerformgGPUAllGridsMCOACalculations(const std::vector<T> &Q, std::vector<T> &res, uint64_t iterations, T epsi, clock_t &aveEnd, clock_t aveBeg, clock_t gridBegin);
@@ -545,6 +550,8 @@ public:
 	template <typename T>
 	void AverageIntensitiesBetweenLayers(const std::vector<T> &relevantQs, std::vector<T> &reses, size_t layerInd, FACC epsi, unsigned int seed, uint64_t iterations);
 
+	//template <typename T>
+	void AverageIntensitiesBetweenLayers2D(std::vector<PolarQData>& calculation, size_t layerInd, FACC epsi, unsigned int seed, uint64_t iterations);
 	};
 
 template<class FLOAT_TYPE>
