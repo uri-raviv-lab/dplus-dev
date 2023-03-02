@@ -2847,7 +2847,6 @@ void DomainModel::AverageIntensitiesBetweenLayers2D(std::vector<PolarQData>& rel
 
 		for (uint64_t i = 0; i < iterations; i++)
 		{
-			//printf("\niteration %d\n", i);
 			FACC phi, u2;
 
 			u2 = ranU2(rng);
@@ -2856,25 +2855,18 @@ void DomainModel::AverageIntensitiesBetweenLayers2D(std::vector<PolarQData>& rel
 			for (int q = 0; q < relevantQData.size(); q++)
 			{
 				FACC Q = relevantQData[q].q;
-				//printf("\tq=%f\n", Q);
 				for (int t = 0; t < relevantQData[q].intensityData.size(); t++)
 				{
 					FACC theta = relevantQData[q].intensityData[t].theta;
 					
 					std::complex<FACC> ampSum = 0;
 
-					// DELETE THIS:
-					// phi = 4.924951;
 
 					for (int j = 0; j < _amps.size(); j++)
 						ampSum += _amps[j]->getAmplitudeAtPoint(Q, theta, phi);
 
 					FACC intensity = (ampSum * conj(ampSum)).real();
 					relevantQData[q].intensityData[t].runningIntensitySum += intensity;
-					if (q == 0) printf("thread=%d, i=%d (0x%x)=%f\n", omp_get_thread_num(), i, &(relevantQData[q].intensityData[t].runningIntensitySum), relevantQData[q].intensityData[t].runningIntensitySum);
-
-					/*if (theta == M_PI/2) printf("AMPL i=%d, q=%f, theta=%f, phi=%f, ampSum=(%f,%f), intensity=%f, runningIntensitySum=%f\n",
-						i, Q, theta, phi, ampSum.real(), ampSum.imag(), intensity, relevantQData[q]->intensityData[t]->runningIntensitySum);*/
 
 					if ((epsi > 0.0)  && (i % minIter == 0))
 						relevantQData[q].intensityData[t].AddIntensitySumToResHistory(i + 1);

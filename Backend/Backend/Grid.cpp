@@ -408,7 +408,7 @@ FACC JacobianSphereGrid::CalculateIntensity(FACC q, FACC _theta, FACC epsi, unsi
 		return real(amp * conj(amp));
 	}
 
-	unsigned long long minIter = /*iterations / */20;
+	unsigned long long minIter = iterations / 20;
 	std::vector<FACC> results;
 	results.resize(std::min(iterations, results.max_size()), 0.0);
 
@@ -608,7 +608,7 @@ int JacobianSphereGrid::GetSplineBetweenPlanes(FACC q, FACC th, FACC ph, OUT std
 
 void JacobianSphereGrid::qZ_qPerp_to_q_Theta(FACC qZ, FACC qPerp, FACC& q, FACC& theta)
 {
-	q = sqrt( pow(qZ,2) + pow(qPerp,2)  );
+	q = sqrt( pow(qZ,2.0) + pow(qPerp,2.0)  );
 	theta = abs( atan2(qPerp, qZ) );
 }
 

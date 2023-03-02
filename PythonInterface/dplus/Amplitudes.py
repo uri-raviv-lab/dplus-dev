@@ -472,7 +472,7 @@ class Amplitude():
                     calculated_points=100,
                     q_max=None,
                     phi_min=0, phi_max=2*math.pi,
-                    epsilon=1e-3, seed=0, max_iter=1000000):
+                    epsilon=1e-3, max_iter=1000000):
 
         if not q_max:
             q_max = q_min
@@ -492,6 +492,9 @@ class Amplitude():
 
         arr_intensity = [[0 for qPerp in range(calculated_points)] for qZ in range(calculated_points)] 
 
+        import random
+        MAX_INT = 4294967295
+
         qZ_idx = 0
         for qZ in qZ_list:
             qPerp_idx = 0
@@ -500,6 +503,7 @@ class Amplitude():
                 q = q_theta_dict['q']
                 theta = q_theta_dict['theta']
                 if q_min <= q <= q_max: # q is always positive
+                    seed = random.randint(0, MAX_INT)
                     res = self.grid.get_intensity(q, theta, epsilon, seed, max_iter, phi_min, phi_max)
                     arr_intensity[qZ_idx][qPerp_idx] = res
                 qPerp_idx += 1
