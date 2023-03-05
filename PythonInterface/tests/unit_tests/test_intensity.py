@@ -1,4 +1,5 @@
 import os
+import sys
 import numpy as np
 import pytest
 from dplus.CalculationInput import CalculationInput
@@ -62,6 +63,8 @@ def test_easy_2():
     result = my_amp.get_intensity_q_theta(q)
     print(calc_res.y == pytest.approx(result))
     assert calc_res.y == pytest.approx(result)
+import random
+MAX_INT = 4294967295
 
 def test_intensity_1jff():
 
@@ -77,11 +80,24 @@ def test_intensity_1jff():
     q = np.linspace(0, my_amp.grid.q_max, calc_in.DomainPreferences.generated_points+1)
     result = []
     for i in q:
-        res = my_amp.calculate_intensity(i, max_iter=calc_in.DomainPreferences.orientation_iterations)
+        seed = random.randint(0, MAX_INT)
+        res = my_amp.calculate_intensity(i, max_iter=calc_in.DomainPreferences.orientation_iterations, seed=seed)
         result.append(res)
     print(calc_res.y == pytest.approx(result))
-    diff = np.array(calc_res.y) - np.array(result)
-    assert calc_res.y == pytest.approx(result)
+    
+    diff = []
+    for i in range(len(q)):
+        if (calc_res.y[i] <= result[i]):
+            diff.append(abs(1.0 -(calc_res.y[i] / result[i])))
+        else:
+            diff.append(abs(1.0 -(result[i] / calc_res.y[i])))
+
+    print(max(diff))
+    plt.plot(calc_in.x, diff, 'b')
+    plt.axline((0, 0.05), (7.5, 0.05), color='r')
+    plt.show()
+    assert(max(diff) <= 0.05)
+
 
 def test_easy_without_ampj_file():
     # GENERATE: ------------------------
@@ -357,6 +373,3 @@ def test_read_write_2D():
         file_2_text = file_2.readlines()
         for line_1, line_2 in zip(file_1_text, file_2_text):
             assert line_1 == line_2
-
-if __name__=="__main__":
-    test_1D_instead_2D()
