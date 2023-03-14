@@ -1075,6 +1075,9 @@ PDB_READER_ERRS DomainModel::DefaultCPUCalculation2D(clock_t& aveBeg, const std:
 	bool noException = true;
 	int exceptionInt = 0;
 	std::string exceptionString = "";
+	std::mt19937 seedGen;
+	std::uniform_int_distribution<unsigned int> sRan(0, UINT_MAX);
+	seedGen.seed(static_cast<unsigned int>(std::time(0)));
 
 	res.setZero();
 
@@ -1110,8 +1113,11 @@ PDB_READER_ERRS DomainModel::DefaultCPUCalculation2D(clock_t& aveBeg, const std:
 
 			try // This try/catch combo is here because of OMP
 			{
-				if (q <= qMax && q>= qMin)
-					res(i,j) = CalculateIntensity(q, theta, epsi, 0, iterations);
+				if (q <= qMax && q >= qMin)
+				{
+					unsigned int seed = sRan(seedGen);
+					res(i, j) = CalculateIntensity(q, theta, epsi, seed, iterations);
+				}
 			}
 			catch (backend_exception& ex)
 			{
