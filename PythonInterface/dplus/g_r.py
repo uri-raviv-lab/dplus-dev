@@ -5,6 +5,8 @@ import scipy.stats as stats
 import csv
 import math
 import dace as dc
+from dace import dtypes
+
 
 V = dc.symbol('V', dc.int64)
 W = dc.symbol('W')
@@ -184,6 +186,22 @@ def read_from_file(filename, r=0.1):
     return vec, n
 
 
+def draw_symmetry(filepath):
+    import matplotlib.pyplot as plt
+
+    lattice, _ = read_from_file(filepath)
+    fig = plt.figure()
+    ax = fig.add_subplot(projection='3d')
+    ax.scatter(lattice[:, 0], lattice[:, 1], lattice[:, 2], 'k')
+    ax.set_xlabel('x [nm]')
+    ax.set_ylabel('y [nm]')
+    ax.set_zlabel('z [nm]')
+    plt.grid()
+    plt.show()
+
+    return
+
+
 def to_1d(mat):
     sq = mat ** 2
     vec = np.sqrt(np.sum(sq, axis=1))
@@ -332,6 +350,64 @@ def different_atoms(file):
     return atom_list, atom_reps
 
 
+def Amp_of_SF(dol_filename, ampj_filename, grid_size, q_max = 1, q_min = 0):
+    a = Amplitude(grid_size, q_max, q_min)
+    dol_f = read_from_file(dol_filename)[0][:, :3]
+    a.fill(fill_SF, dol_f)
+    if not ampj_filename[-5:] == '.ampj':
+        a.save(ampj_filename + ".ampj")
+    else:
+        a.save(ampj_filename)
+
+
+def fillmultigrid(q, theta, phi, SF, FF, N):
+    if q > FF.helper_grid.q_max:
+        ind = [SF.helper_grid.index_from_angles(q, theta, phi), FF.helper_grid.index_from_angles(q, theta, phi)]
+        amps = SF._values
+        am_s = complex(amps[ind[0]*2], amps[ind[0]*2 + 1])
+        ampf = FF._values
+        am_f = complex(ampf[ind[1]*2], ampf[ind[1]*2 + 1])
+        return am_s * am_f * np.sqrt(N)
+    try:
+        return SF.get_interpolation(q, theta, phi) * FF.get_interpolation(q, theta, phi) * np.sqrt(N)
+    except:
+        theta = np.pi - 10e-15
+        return SF.get_interpolation(q, theta, phi) * FF.get_interpolation(q, theta, phi) * np.sqrt(N)
+
+
+def Amp_multi(SF_Ampj, FF_Ampj, Mult_amp, N = 1):
+    if not SF_Ampj[-5:] == '.ampj':
+        SF_Ampj += '.ampj'
+    if not FF_Ampj[-5:] == '.ampj':
+        FF_Ampj += '.ampj'
+    if not Mult_amp[-5:] == '.ampj':
+        Mult_amp += '.ampj'
+
+    SF = Amplitude.load(SF_Ampj)
+    FF = Amplitude.load(FF_Ampj)
+    grid_min_size = np.max([SF.helper_grid.grid_size, FF.helper_grid.grid_size])
+    q_min_size = np.max([SF.helper_grid.q_min, FF.helper_grid.q_min])
+    q_max_size = np.min([SF.helper_grid.q_max, FF.helper_grid.q_max])
+    multi_amp = Amplitude(grid_min_size, q_max_size, q_min_size)
+    multi_amp.fill(fillmultigrid, SF, FF, N)
+    multi_amp.save(Mult_amp)
+
+
+def fillmultigrid(q, theta, phi, SF, FF, N):
+    if q > FF.helper_grid.q_max:
+        ind = [SF.helper_grid.index_from_angles(q, theta, phi), FF.helper_grid.index_from_angles(q, theta, phi)]
+        amps = SF._values
+        am_s = complex(amps[ind[0]*2], amps[ind[0]*2 + 1])
+        ampf = FF._values
+        am_f = complex(ampf[ind[1]*2], ampf[ind[1]*2 + 1])
+        return am_s * am_f * np.sqrt(N)
+    try:
+        return SF.get_interpolation(q, theta, phi) * FF.get_interpolation(q, theta, phi) * np.sqrt(N)
+    except:
+        theta = np.pi - 10e-15
+        return SF.get_interpolation(q, theta, phi) * FF.get_interpolation(q, theta, phi) * np.sqrt(N)
+
+
 def S_Q_from_I(I_q, f_q, N):
     """Given the intensity I_q, the subunit form-factor f_q, and number of subunits N, returns the structure factor.
     I_q and f_q have to be np.arrays. From CalculationResult, this can be attained through
@@ -406,19 +482,20 @@ def S_Q_from_model_slow(filename: str, q_min: dc.float64 = 0, q_max: dc.float64 
 
 
 def S_Q_from_model(filename: str, q_min: dc.float64 = 0, q_max: dc.float64 = 100, dq: dc.float64 = 0.01
-                   , thermal: np.bool_ = False, Number_for_average_conf: dc.int64 = 1, u: dc.float64[4] = np.array([0,0,0,0])):
+                   , thermal: np.bool_ = False, Number_for_average_conf: dc.int64 = 1,
+                   u: dc.float64[4] = np.array([0,0,0,0])):#, use_GPU: np.bool_ = True):
     """Given a .dol or .pdb filename and a q-range, returns the orientation averaged structure factor."""
 
     r_mat, n = read_from_file(filename)
     r_mat = np.copy(r_mat)
     if thermal:
         r_mat_old = r_mat
-    q = np.arange(q_min, q_max + dq, dq)
+    q = np.arange(q_min, q_max + dq/2, dq)
     q_len = q.shape[0]
     if thermal:
         r_mat_old = r_mat
-    S_Q = np.zeros([Number_for_average_conf, q_len])
-    S_Q[:] += n
+    S_Q = n * np.ones([Number_for_average_conf, q_len])
+    # S_Q[:] += n
     R = np.zeros(Number_for_average_conf)
     rho = 0
     it = 0
@@ -426,12 +503,13 @@ def S_Q_from_model(filename: str, q_min: dc.float64 = 0, q_max: dc.float64 = 100
         if thermal:
             r_mat[:] = thermalize(np.copy(r_mat_old), u)
         S_Q_pretemp = np.copy(S_Q[it])
-        R[it], S_Q[it, :] = compute_sq(q, S_Q_pretemp, r_mat, L=n)
-        # R_temp, S_Q_temp = compute_sq(q, S_Q_pretemp, r_mat)
-        # R[it] = R_temp
-        # S_Q[it, :] = S_Q_temp
+        R[it], S_Q[it, :] = compute_sq(q, S_Q_pretemp, r_mat, Q=q_len, L=n)
+        # if use_GPU:
+        #     R[it], S_Q[it, :] = compute_sq_GPU(q, S_Q_pretemp, r_mat, Q=q_len, L=n)
+        # else:
+        #     R[it], S_Q[it, :] = compute_sq_CPU(q, S_Q_pretemp, r_mat, Q=q_len, L=n)
         it += 1
-    R_fin = np.sum(R, axis=0) / 2
+    R_fin = np.max(R) / 2
     S_Q /= n
     S_Q[:] = np.sum(S_Q, axis=0) / Number_for_average_conf
     # R /= 2
@@ -443,13 +521,14 @@ def S_Q_from_model(filename: str, q_min: dc.float64 = 0, q_max: dc.float64 = 100
 
 
 def S_Q_average_box(xyz, qmax, q_points, size_min, size_max, mean, sigma, file_path=r'.\S_Q_average', qmin=0,
-                    normalize=1, make_fig=1, num_of_s_q_shown=-1, slow=0):
+                    normalize=1, make_fig=1, num_of_s_q_shown=-1, slow=0, thermal=False, u=np.array([0, 0, 0, 0])):#,
+    # use_GPU=True):
 
     num_s_q = int(size_max - size_min)
     if num_of_s_q_shown < 0:
         num_of_s_q_shown = num_s_q
     S_q_all = np.zeros([num_s_q, q_points])
-
+    dqn= (qmax - qmin) / (q_points - 1)
     if (file_path[-3:] == 'dol') | (file_path[-3:] == 'out'):
         file_path = file_path[:-4]
 
@@ -458,7 +537,8 @@ def S_Q_average_box(xyz, qmax, q_points, size_min, size_max, mean, sigma, file_p
             ind = int(i - size_min)
             build_crystal(xyz, i, i, i, file_path + '_box_size_' + str(i) + r'.dol')  # If files already exist,
             # this line can be commented out
-            q, s_q_temp, _ = S_Q_from_model_slow(file_path + '_box_size_' + str(i) + r'.dol',q_min=qmin, q_max=qmax)
+            q, s_q_temp, _ = S_Q_from_model_slow(file_path + '_box_size_' + str(i) + r'.dol',q_min=qmin, q_max=qmax,
+                                                 thermal=thermal, u=u)
             write_to_out(file_path + '_box_size_' + str(i) +'.out', q, s_q_temp)
             if normalize:
                 S_q_all[ind] = s_q_temp / s_q_temp[0]
@@ -470,8 +550,8 @@ def S_Q_average_box(xyz, qmax, q_points, size_min, size_max, mean, sigma, file_p
             ind = int(i - size_min)
             build_crystal(xyz, i, i, i, file_path + '_box_size_' + str(i) + r'.dol')  # If files already exist,
             # this line can be commented out
-            q, s_q_temp, _ = S_Q_from_model(file_path + '_box_size_' + str(i) + r'.dol', q_min=qmin,
-                                                 q_max=qmax)
+            q, s_q_temp, _ = S_Q_from_model(file_path + '_box_size_' + str(i) + r'.dol', q_min=qmin, q_max=qmax, dq=dqn,
+                                            thermal=thermal, u=u)#, use_GPU=use_GPU)
             write_to_out(file_path + '_box_size_' + str(i) + '.out', q, s_q_temp)
             if normalize:
                 S_q_all[ind] = s_q_temp / s_q_temp[0]
@@ -497,6 +577,7 @@ def S_Q_average_box(xyz, qmax, q_points, size_min, size_max, mean, sigma, file_p
         ax1.tick_params(which='both', labelsize=11, color='k')
         ax2.tick_params(which='both', labelsize=11, color='k')
         plt.savefig(file_path + '.png')
+        plt.close()
 
     return q, S_q_final, S_q_all
 
@@ -750,13 +831,62 @@ def g_r_from_model(file: str, Lx: dc.float64, Ly: dc.float64, Lz: dc.float64,
     vec_old = np.copy(vec)
 
     bins = np.arange(r_min, r_max + dr, dr)
-    return compute_gr(bins, thermal, vec_old, Lx, Ly, Lz, file_triple,
-                      vec_triple, vec, radius, u, dr, r_min, r_max,
+    return compute_gr(bins, vec_old, Lx, Ly, Lz, file_triple, vec_triple, vec, radius, dr, r_min, r_max,
                       Number_for_average_atoms=Number_for_average_atoms,
                       Number_for_average_conf=Number_for_average_conf)
 
 
-@dc.program(auto_optimize=True, regenerate_code=False)
+@dc.program(auto_optimize=True, regenerate_code=True, device=dtypes.DeviceType.CPU)
+def compute_sq_CPU(q: dc.float64[Q], S_Q: dc.float64[Q], r_mat: dc.float64[L, 4]):
+    qr: dc.float64[Q]
+
+    R = 0.0
+    for i in range(L - 1):
+        r_i = r_mat[i]
+        if i == 0:
+            r = np.sqrt(np.sum(r_i ** 2))
+            if r > R:
+                R = r
+        for j in range(i + 1, L):
+            r_j = r_mat[j]
+            if i == 0:
+                r = np.sqrt(np.sum(r_j ** 2))
+                if r > R:
+                    R = r
+            r = np.sqrt(np.sum((r_i - r_j) ** 2))
+            qr = q * r
+            S_Q[0] += 2
+
+            S_Q[1:] += 2 * np.sin(qr[1:]) / qr[1:]
+
+    return R, S_Q
+
+@dc.program(auto_optimize=True, regenerate_code=True, device=dtypes.DeviceType.GPU)
+def compute_sq_GPU(q: dc.float64[Q], S_Q: dc.float64[Q], r_mat: dc.float64[L, 4]):
+    qr: dc.float64[Q]
+
+    R = 0.0
+    for i in range(L - 1):
+        r_i = r_mat[i]
+        if i == 0:
+            r = np.sqrt(np.sum(r_i ** 2))
+            if r > R:
+                R = r
+        for j in range(i + 1, L):
+            r_j = r_mat[j]
+            if i == 0:
+                r = np.sqrt(np.sum(r_j ** 2))
+                if r > R:
+                    R = r
+            r = np.sqrt(np.sum((r_i - r_j) ** 2))
+            qr = q * r
+            S_Q[0] += 2
+
+            S_Q[1:] += 2 * np.sin(qr[1:]) / qr[1:]
+
+    return R, S_Q
+
+@dc.program(auto_optimize=True, regenerate_code=True)
 def compute_sq(q: dc.float64[Q], S_Q: dc.float64[Q], r_mat: dc.float64[L, 4]):
     qr: dc.float64[Q]
 
@@ -784,10 +914,10 @@ def compute_sq(q: dc.float64[Q], S_Q: dc.float64[Q], r_mat: dc.float64[L, 4]):
 Number_for_average_atoms = dc.symbol('Number_for_average_atoms')
 Number_for_average_conf = dc.symbol('Number_for_average_conf')
 
-@dc.program(auto_optimize=True, regenerate_code=False)
-def compute_gr(bins: dc.float64[M], thermal: np.bool_, vec_old: dc.float64[V, 4], Lx: dc.float64, Ly: dc.float64,
+@dc.program(auto_optimize=True, regenerate_code=True)
+def compute_gr(bins: dc.float64[M], vec_old: dc.float64[V, 4], Lx: dc.float64, Ly: dc.float64,
                Lz: dc.float64, file_triple: str, vec_triple: dc.float64[NFC, TV, 4], vec: dc.float64[V, 4], radius=0,
-               u: dc.float64[4]=np.array([0, 0, 0, 0]), dr=0.01, r_min=0, r_max=15):
+               dr=0.01, r_min=0, r_max=15):
     rho: dc.float64
     r_0: dc.float64[4]
     # rad: dc.float64[A, 2]
@@ -870,11 +1000,6 @@ def compute_gr(bins: dc.float64[M], thermal: np.bool_, vec_old: dc.float64[V, 4]
 
     return bins, g_r[0], rho#, rad
 
-# triple.compile()
-# compute_gr = precompute_gr.compile()
-# compute_sq = precompute_sq.compile()
-# thermalize = prethermalize.compile()
-
 
 if __name__ == '__main__':
     import matplotlib
@@ -890,7 +1015,7 @@ if __name__ == '__main__':
     r_dace, g_r_dace, _ = g_r_from_model(file_single, Lx, Ly, Lz, r_max=5)
 
     q_slow, s_q_slow, _ = S_Q_from_model_slow(file_single, q_max=20)
-    q_dace, s_q_dace, _ = S_Q_from_model(file_single, q_max=20)
+    q_dace, s_q_dace, _ = S_Q_from_model(file_single, q_max=20)#, use_GPU=True)
 
     plt.figure()
     plt.plot(r_dace, g_r_dace, label='DaCe')
