@@ -479,7 +479,9 @@ class Amplitude():
             q_min = 0
         
         if q_max > self.grid.q_max:
-            raise ValueError('q_max > grid.q_max !')
+            q_max -= 1e-3
+            if q_max > self.grid.q_max:
+                raise ValueError('q_max > grid.q_max !')
         
         if q_min > q_max:
             raise ValueError('q_min > q_max !')

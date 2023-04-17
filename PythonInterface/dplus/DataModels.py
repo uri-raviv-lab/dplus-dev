@@ -701,11 +701,15 @@ class ModelWithLayers(Model):
 
 class ModelWithFile(Model):
     '''
-    D+ has few models which have a file. For example: PDB, AMP and ScriptedSymmetry
+    D+ has few models which have a file. For example: PDB, EPDB, AMP and ScriptedSymmetry
     '''
 
     def __init__(self, filename=""):
         self.filenames = []
+        tester = Path(filename)
+        while not tester.is_file():
+            filename = input('File could not be found, try again: ')
+            tester = Path(filename)
         self._filename = filename
         self._anomfilename=""
         super().__init__()
@@ -1035,6 +1039,9 @@ class Population(ModelWithChildren):
         :param model: model to add to the population
         '''
         self.models.append(model)
+
+    def add_population(self):
+        self.append(Population())
 
     def serialize(self):
         """

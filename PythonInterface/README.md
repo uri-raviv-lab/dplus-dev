@@ -367,7 +367,8 @@ The available standard model classes are:
 You can create any model by calling its initialization. 
 
 Please note that models are dynamically loaded from those available in D+. 
-Therefore, your code editor may underline the model in red even if the model exists.
+Therefore, your code editor may underline the model in red even if the model exists. Also, unlike in D+, the 
+parameters `alpha`, `beta`, `gamma` need to be given in radians.
 
 All models have `location_params` (Location Parameters) and  `extra_params` (Extra Parameters). 
 Some models (that support layers) also contain `layer_params`.
@@ -1016,10 +1017,9 @@ dest_folder = result.get_amp(uhc.model_ptr, session)
 ## g(r) module
 
 The g(r) module is a complementary module to D+ and is helpful if one wants to further analyse data using the radial 
-distribution function or the structure factor.It has multiple functions, part of which have been parallelized using 
-DaCe (*Ben-Nun, T., de-Fine-Licht, J., Ziogas, A. N., Schneider, T. and Hoefler, T., Stateful Dataflow Multigraphs: A 
-Data-Centric Model for Performance Portability on Heterogeneous Architectures, 2019, Proceedings of the 
-International Conference for High Performance Computing, Networking, Storage and Analysis*).
+distribution function or the structure factor. It has multiple functions, part of which have been parallelized using 
+DaCe (*Ben-Nun et al., Stateful Dataflow Multigraphs: A Data-Centric Model for Performance Portability on 
+Heterogeneous Architectures, 2019, Proceedings of the International Conference for High Performance Computing, Networking, Storage and Analysis*).
 
 It can be called like all the other modules, i.e.:
 ```python
@@ -1027,15 +1027,17 @@ It can be called like all the other modules, i.e.:
 ```
 The available functions inside the module are:
 
-| Function Name      | Function Info                                                                       | Input                                                                                                           | Output      |
-|--------------------|-------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------|-------------|
-| `g_r_from_model`   | finds the RDF of a given dol file                                                   | file, Lx, Ly, Lz, file_triple, radius, r_max, dr, Number_for_average_atoms, thermal, u, Number_for_average_conf | r, g_r, rho 
-| `g_r_from_s_q`     | from s(q), finds the rdf                                                            | q, s_q, rho, r_min, r_max, dr, factor, type                                                                     |r, g_r        
-| `S_Q_from_I`       | finds the structure factor from the intensity and the subunit form-factor           | I_q, f_q, N                                                                                                      | s_q                       
-| `S_Q_from_model`   | finds the structure factor of a given dol file                                      | filename, q_min , q_max, dq, thermal, Number_for_average_conf, u                                                | q, s_q, rho                    
-| `s_q_from_g_r`     | from the rdf, finds the structure factor                                            | r, g_r, rho, q_min, q_max, dq, factor, type                                                                     | q, s_q    
-| `build_crystal`    | receives lattice parameters and number of repetitions and from it builds a dol file | lattice, rep_a, rep_b, rep_c, dol_out, ran, move_to_GC                                                          | N/A
-
+| Function Name     | Function Info                                                                                                                   | Input                                                                                                                       | Output      |
+|-------------------|---------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------|-------------|
+| `g_r_from_model`  | finds the RDF of a given dol file                                                                                               | file, Lx, Ly, Lz, file_triple, radius, r_max, dr, Number_for_average_atoms, thermal, u, Number_for_average_conf             | r, g_r, rho 
+| `g_r_from_s_q`    | from s(q), finds the rdf                                                                                                        | q, s_q, rho, r_min, r_max, dr, factor, type                                                                                 | r, g_r        
+| `S_Q_from_I`      | finds the structure factor from the intensity and the subunit form-factor                                                       | I_q, f_q, N                                                                                                                 | s_q                       
+| `S_Q_from_model`  | finds the structure factor of a given dol file                                                                                  | filename, q_min , q_max, dq, thermal, Number_for_average_conf, u                                                            | q, s_q, rho                    
+| `s_q_from_g_r`    | from the rdf, finds the structure factor                                                                                        | r, g_r, rho, q_min, q_max, dq, factor, type                                                                                 | q, s_q    
+| `S_Q_average_box` | receivess lattice parameters, minimum and maximum box sizes, distribution mean and std and returns the S(q) without box effects | xyz, qmax, q_points, size_min, size_max, mean, sigma, file_path, qmin, normalize, make_fig, num_of_s_q_shown, slow          | q, S_q_final, S_q_all
+| `build_crystal`   | receives lattice parameters and number of repetitions and from it builds a dol file                                             | lattice, rep_a, rep_b, rep_c, dol_out, ran, move_to_GC                                                                      | places
+| `MC_Sim`   | given the appropriate parameters, calculates a MC Metropolis simulation according to either a Hook or Lennard-Jones potential   | filepath, filepath_last, file_dol, temperature, MaxDistance, rest_distance, Kb, step_size, iterations, sigma, my_pot, *args | Energy_Vector, Distance_Vector, Lattice_Number
+| `Amp_multi`   | receives two Amplitudes, multiplies and then saves them                                                                         | SF_Ampj, FF_Ampj, Mult_amp, N | N/A
 ## ED converter
 
 In D+'s geometric models or pdb, one can add the electron density (ED) of a solvent or of the geometric shape to take 
