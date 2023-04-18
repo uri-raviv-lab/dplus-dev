@@ -10,7 +10,7 @@ jobs:
     name: Build the DPlus Installer
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           lfs: true
       - name: Update Version
@@ -26,7 +26,7 @@ jobs:
           .\boost-setup.exe /DIR=boost /SILENT | Out-Null
           move boost\lib64-msvc-14.3 boost\lib64
       - name: Set up CUDA
-        uses: Jimver/cuda-toolkit@v0.2.7
+        uses: Jimver/cuda-toolkit@v0.2.10
         id: cuda-toolkit
         with:
           cuda: '11.7.0'
@@ -50,7 +50,7 @@ jobs:
         run: |
           msbuild Dplus.sln /p:Configuration=ReleaseWithDebugInfo /p:Platform=x64 /t:Backend\Backend:Rebuild
       - name: Setup Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: 3.9
           architecture: x64

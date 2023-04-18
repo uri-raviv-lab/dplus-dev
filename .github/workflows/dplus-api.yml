@@ -10,7 +10,7 @@ jobs:
     name: Create the manylinux wheels for all supported Python versions
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Build docker image
         working-directory: PythonInterface
         run: docker build -f Dockerfile.manylinux .. -t dplus-api-manylinux:latest --build-arg GITHUB_VERSION=${{ github.ref }}
@@ -32,18 +32,18 @@ jobs:
     runs-on: windows-latest  # Required for Visual Studio 2019
     strategy:
       matrix:
-        python-version: [ '3.8', '3.9', '3.10' ]
+        python-version: [ '3.8', '3.9', '3.10', '3.11' ]
     name: Create the Windows Wheel for Python ${{ matrix.python-version }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Install boost
         run: |
           Invoke-WebRequest https://boost.teeks99.com/bin/1.79.0/boost_1_79_0-msvc-14.3-64.exe -OutFile boost-setup.exe
           .\boost-setup.exe /DIR=boost /SILENT | Out-Null
           move boost\lib64-msvc-14.3 boost\lib64
       - name: Set up CUDA
-        uses: Jimver/cuda-toolkit@v0.2.7
+        uses: Jimver/cuda-toolkit@v0.2.10
         id: cuda-toolkit
         with:
           cuda: '11.7.0'
@@ -56,7 +56,7 @@ jobs:
         run: |
           msbuild Dplus.sln /p:Configuration=Release /p:Platform=x64 /t:Backend\Backend:Rebuild
       - name: Setup Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
           architecture: x64
