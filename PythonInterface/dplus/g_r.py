@@ -2,6 +2,7 @@ import numpy as np
 from numpy.random import default_rng, Generator, PCG64, randint, random, normal
 from scipy.integrate import simpson
 from scipy.fft import dst, fftfreq
+from scipy.constants import k as Kb
 import scipy.stats as stats
 import csv
 import math
@@ -1070,7 +1071,7 @@ def Randomize_step(Step_Size, Sigma, dim, where_true):
 
     return xyz
 
-def print_states(filepath, k_spring, temperature, MaxDistance, rest_distance, Kb, step_size, iterations, state_energy,
+def print_states(filepath, k_spring, temperature, MaxDistance, rest_distance, step_size, iterations, state_energy,
                  positions, run_number):
     filename = filepath + r'.\pyNew_State_' + str(run_number) + r'.dol'
 
@@ -1088,11 +1089,12 @@ def print_states(filepath, k_spring, temperature, MaxDistance, rest_distance, Kb
             outfile.writerow([i, *positions[i], 0, 0, 0])
     return
 
-def print_last_state(filepath, k_spring, temperature, MaxDistance, rest_distance, Kb, step_size, iterations,
+def print_last_state(filepath, k_spring, temperature, MaxDistance, rest_distance, step_size, iterations,
                      acceptance_rate, state_energy, positions, run_number):
-    filename = filepath + r'.\pyNew_Last_State_' + str(run_number) + r'.dol'
+    if filepath[-3:] != 'dol':
+        filepath += '.dol'
 
-    with open(filename, 'w', newline='', encoding='utf-8') as file:
+    with open(filepath, 'w', newline='', encoding='utf-8') as file:
         outfile = csv.writer(file, delimiter='\t', quoting=csv.QUOTE_NONNUMERIC)
         outfile.writerow(['# k_spring:', k_spring])
         outfile.writerow(['# temperature:', temperature])
@@ -1107,9 +1109,8 @@ def print_last_state(filepath, k_spring, temperature, MaxDistance, rest_distance
             outfile.writerow([i, *positions[i], 0, 0, 0])
     return
 
-def MC_Sim(filepath, filepath_last, file_dol, temperature, MaxDistance, rest_distance, Kb, step_size, iterations,
-           sigma, my_pot, *args):
-    Initial_Positions, Lattice_Number = read_from_file(file_dol, 0)
+def MC_Sim(dol_in, dol_out, temperature, MaxDistance, rest_distance, step_size, iterations, sigma, my_pot, *args):
+    Initial_Positions, Lattice_Number = read_from_file(dol_in, 0)
     Initial_Positions = Initial_Positions[:, :3]
     where_true = np.any(Initial_Positions, axis=0)
     dim = np.sum(where_true)
@@ -1132,7 +1133,7 @@ def MC_Sim(filepath, filepath_last, file_dol, temperature, MaxDistance, rest_dis
     Energy_Vector = np.append(Energy_Vector, New_State_energy)
 
     # creating one new random step
-    Chosen_Atom = my_gen.integers(Lattice_Number, size=iterations)  # choose the atom that moves
+    Chosen_Atom = my_gen.integers(Lattice_Number, size=int(iterations))  # choose the atom that moves
     rand_num = my_gen.random(iterations)
 
     ## creating new state
@@ -1169,9 +1170,7 @@ def MC_Sim(filepath, filepath_last, file_dol, temperature, MaxDistance, rest_dis
             number_of_accepted_states += 1  # counting each accepted state
             # printing the state every 10, 000 accepted states
             if number_of_accepted_states % 500 == 0:
-                print(i)
-                print_states(filepath, args, temperature, MaxDistance, rest_distance, Kb, step_size, iterations,
-                             New_State_energy, New_Positions, i)
+                print('accepted %i states' %(number_of_accepted_states))
         else:
             # if the change is not accepted then you save the last state as the new state
             New_Positions = np.copy(Last_Positions)
@@ -1182,7 +1181,7 @@ def MC_Sim(filepath, filepath_last, file_dol, temperature, MaxDistance, rest_dis
     acceptance_rate = number_of_accepted_states / iterations
 
     # printing the last state
-    print_last_state(filepath_last, args, temperature, MaxDistance, rest_distance, Kb, step_size, iterations,
+    print_last_state(dol_out, args, temperature, MaxDistance, rest_distance, step_size, iterations,
                      acceptance_rate, New_State_energy, New_Positions, i)
 
     return Energy_Vector, Distance_Vector, Lattice_Number

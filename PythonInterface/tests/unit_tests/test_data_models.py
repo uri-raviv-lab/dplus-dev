@@ -1,6 +1,7 @@
 
 from dplus.CalculationRunner import EmbeddedLocalRunner
-from dplus.DataModels.models import Sphere, SpacefillingSymmetry
+from dplus.DataModels.models import Sphere, SpacefillingSymmetry#, ManualSymmetry
+from dplus.DataModels import ManualSymmetry
 from dplus.CalculationInput import CalculationInput
 from tests.test_settings import USE_GPU, session
 import math
@@ -79,4 +80,8 @@ def test_model_building():
 
     chi_sq = _chi_a_squ(result, result1)
 
-    print(chi_sq) 
+    print(chi_sq)
+
+def test_read_from_dol():
+	## Needs to be worked on
+    return

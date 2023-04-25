@@ -1,6 +1,7 @@
 import math
 import numpy as np
 import sys
+import os
 import csv
 from pathlib import Path
 from collections.abc import MutableSequence
@@ -8,7 +9,6 @@ from collections import UserDict
 from copy import deepcopy
 from dplus.FileReaders import _handle_infinity_for_json
 from dplus.metadata import meta_models, hardcode_models, _type_to_int, _models_with_files_index_dict, _int_to_type
-
 
 def make_name_pythonic(name, is_cls=False):
     if is_cls:
@@ -706,13 +706,33 @@ class ModelWithFile(Model):
 
     def __init__(self, filename=""):
         self.filenames = []
-        tester = Path(filename)
-        while not tester.is_file():
-            filename = input('File could not be found, try again: ')
-            tester = Path(filename)
-        self._filename = filename
-        self._anomfilename=""
-        super().__init__()
+        # tester = Path(filename)
+        try:
+            if not os.path.isfile(filename):
+                print('File could not be found, try again: ')
+                for line in sys.stdin:
+                    # filename = line
+                    # tester = os.path.exists(line)
+                    # print(line[:-1], tester,os.path.exists(line[:-1]))#, tester.is_file())
+                    if not os.path.isfile(line[:-1]):
+                        print('File could not be found, try again: ')
+                        continue
+                    else:
+                        break
+
+            self._filename = filename
+            self._anomfilename = ""
+            super().__init__()
+        except:
+            self._filename = filename
+            self._anomfilename = ""
+            super().__init__()
+
+        # filename = getRealFilename() # input('File could not be found, try again: ')
+            # tester = Path(filename)
+        # self._filename = filename
+        # self._anomfilename=""
+        # super().__init__()
 
     @property
     def filename(self):
@@ -1337,3 +1357,6 @@ for model in hardcode_models:
 for model in meta_models:
     ModelFactory.add_model(model)
 
+# def getRealFilename():
+#     fn = input('File could not be found, try again: ')
+#     return fn
