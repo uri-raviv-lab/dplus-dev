@@ -1,12 +1,12 @@
 ﻿
-This document was last updated on August 8 2022, for dplus-v4.6.1.0
+This document was last updated on May 5 2023, for dplus-v5.1.0.0
 
 # The Dplus Python API
 
 
 The D+ Python API allows using the D+ backend from Python, instead of the ordinary D+ application.
 
-The Python API works on both Windows and Linux.
+The Python API works on both Windows <s>and Linux</s>.
 
 ## Installation
 
