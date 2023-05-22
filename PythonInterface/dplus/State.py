@@ -752,7 +752,8 @@ class State:
         """
           returns a list of `Models` from the Domain field with a given `type_name`.
 
-          :param itype: a string or list of model type(s) , e.g. UniformHollowCylinder.
+          :param itype: a string of model type , e.g. Sphere, if string has multiple words, add spaces in between,
+          i.e. Uniform Hollow Cylinder.
           :rtype: list of instances of 'Model'
           """
         if type(itype) != list:
