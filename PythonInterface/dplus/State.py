@@ -748,18 +748,21 @@ class State:
                     dict_res[model.model_ptr] = model
         return add_parent, dict_res
 
-    def get_models_by_type(self, type):
+    def get_models_by_type(self, itype):
         """
           returns a list of `Models` from the Domain field with a given `type_name`.
 
-          :param type: a string of model type , e.g. UniformHollowCylinder.
+          :param itype: a string of model type , e.g. Sphere, if string has multiple words, add spaces in between,
+          i.e. Uniform Hollow Cylinder.
           :rtype: list of instances of 'Model'
           """
-
+        if type(itype) != list:
+            itype = [itype]
         models = []
         for population in self.Domain.children:
             for model in population.children:
-                self.get_model_by_type_recursive(model, type, models)
+                for i in range(len(itype)):
+                    self.get_model_by_type_recursive(model, itype[i], models)
                 # if model.type_name == type:
                 #     models.append(model)
         return models
