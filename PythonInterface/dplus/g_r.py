@@ -15,6 +15,7 @@ W = dc.symbol('W')
 Y = dc.symbol('Y')
 M = dc.symbol('M')
 TV = dc.symbol('TV')
+TF = dc.symbol('TF')
 Q = dc.symbol('Q')
 L = dc.symbol('L', dc.int64)
 U = dc.symbol('U')
@@ -48,7 +49,7 @@ def rad_balls(r, g_r):
     return rad_n
 
 
-def build_crystal(lattice, rep_a, rep_b, rep_c, dol_out, ran=0, move_to_GC=1):
+def build_crystal(lattice, rep_a, rep_b, rep_c, dol_out='', ran=0, move_to_GC=1):
     """Given lattice vectors a, b, c and the number of repetitions of each vector, builds a .dol file at location
      dol_out (dol_out must contain both the location and the file name). If lattice constants are used,
      then the angles must be given in radians."""
@@ -87,14 +88,15 @@ def build_crystal(lattice, rep_a, rep_b, rep_c, dol_out, ran=0, move_to_GC=1):
     if move_to_GC:
         places = MoveToGC(places)
 
-    if dol_out[-4:] != '.dol':
-        dol_out += '.dol'
+    if dol_out:
+        if dol_out[-4:] != '.dol':
+            dol_out += '.dol'
 
-    with open(dol_out, 'w', newline='', encoding='utf-8') as file:
-        dolfile = csv.writer(file, delimiter='\t', quoting=csv.QUOTE_NONNUMERIC)
-        # dolfile.writerow(['## vec a = ', a, 'rep a = ', rep_a, 'vec b = ', b, 'rep b = ', rep_b, 'vec c = ', c, 'rep c = ', rep_c])
-        for i in range(0, np.shape(places)[0]):
-            dolfile.writerow([i, *places[i], 0, 0, 0])
+        with open(dol_out, 'w', newline='', encoding='utf-8') as file:
+            dolfile = csv.writer(file, delimiter='\t', quoting=csv.QUOTE_NONNUMERIC)
+            # dolfile.writerow(['## vec a = ', a, 'rep a = ', rep_a, 'vec b = ', b, 'rep b = ', rep_b, 'vec c = ', c, 'rep c = ', rep_c])
+            for i in range(0, np.shape(places)[0]):
+                dolfile.writerow([i, *places[i], 0, 0, 0])
 
     return places
 
@@ -250,25 +252,31 @@ def find_N(r, g_r, rho, r_min=0, r_max=0.56402):
 
 # @dc.program()
 # def triple(mat_single: dc.float64[V, 4], Lx: dc.float64, Ly: dc.float64[1], Lz: dc.float64[1], file_triple: str = ''):
-def triple(mat_single, Lx, Ly, Lz, file_triple: str = None):
-    ms = mat_single.shape[0] #: dc.int64
-    mat_triple = np.zeros([27*ms, 4])
-    # mat_triple: dc.float64[27*V, 4] = np.zeros([27*V, 4])
-    lx_t: dc.float64[3] = np.array([-Lx, 0., Lx])
-    ly_t: dc.float64[3] = np.array([-Ly, 0., Ly])
-    lz_t: dc.float64[3] = np.array([-Lz, 0., Lz])
-    for dim_1 in range(3):
-        for dim_2 in range(3):
-            for dim_3 in range(3):
-                # print(dim_1, dim_2, dim_3)
-                # it[:] = dc.int32((9 * dim_1 + 3 * dim_2 + dim_3) * V)
-                it = dc.int32((9 * dim_1 + 3 * dim_2 + dim_3) * ms)
-                # itpn[:] = dc.int32((9 * dim_1 + 3 * dim_2 + dim_3 + 1) * V)
-                itpn = dc.int32((9 * dim_1 + 3 * dim_2 + dim_3 + 1) * ms)
-                # print(itpn)
-                mat_triple[it:itpn] += mat_single + np.array([lx_t[dim_1], ly_t[dim_2], lz_t[dim_3], .0])
+def triple(mat_single, size_or_reps, file_triple: str = '', cube=True, lattice_vecs=np.zeros(6), thermal: np.bool_ = False,
+                   u: dc.float64[4] = np.array([0., 0., 0., 0.])):
+    if cube:
+        ms = mat_single.shape[0]  #: dc.int64
+        mat_triple = np.zeros([27 * ms, 4])
+        Lx, Ly, Lz = size_or_reps[0], size_or_reps[1], size_or_reps[2]
+        lx_t: dc.float64[3] = np.array([-Lx, 0., Lx])
+        ly_t: dc.float64[3] = np.array([-Ly, 0., Ly])
+        lz_t: dc.float64[3] = np.array([-Lz, 0., Lz])
+        for dim_1 in range(3):
+            for dim_2 in range(3):
+                for dim_3 in range(3):
+                    it = dc.int32((9 * dim_1 + 3 * dim_2 + dim_3) * ms)
+                    itpn = dc.int32((9 * dim_1 + 3 * dim_2 + dim_3 + 1) * ms)
+                    mat_triple[it:itpn] += mat_single + np.array([lx_t[dim_1], ly_t[dim_2], lz_t[dim_3], .0])
+                    if file_triple:
+                        write_to_dol(file_triple, mat_triple)
 
+    else:
+        a, b, c, alpha, beta, gamma = lattice_vecs[0], lattice_vecs[1], lattice_vecs[2], lattice_vecs[3],\
+            lattice_vecs[4], lattice_vecs[5]
+        new_repx, new_repy, new_repz = size_or_reps[0] * 3, size_or_reps[1] * 3, size_or_reps[2] * 3
+        mat_triple = build_crystal(lattice_vecs, new_repx, new_repy, new_repz, file_triple)
     # for i in range(3):
+
     #     for j in range(3):
     #         for k in range(3):
     #             # if (trans[i] != 0) & (trans[j] != 0) & (trans[k] != 0):
@@ -283,10 +291,10 @@ def triple(mat_single, Lx, Ly, Lz, file_triple: str = None):
     #             # mat_triple[it:it+n] = mat_single + np.array([trans[i] * Lx, trans[j] * Ly, trans[k] * Lz, 0.])
     #             # it += V
     #             # it = it + n
-    if file_triple != None:
-        write_to_dol(file_triple, mat_triple)
-
+    if thermal:
+        mat_triple = thermalize(np.copy(mat_triple), u)
     return mat_triple
+
 
 @dc.program
 def thermalize_dace(vec: dc.float64[V, U], u: dc.float64[U]):
@@ -648,22 +656,22 @@ def g_r_from_s_q(q, s_q, rho, r_min=0, r_max=15, dr=0.01, factor=1, type='Simpso
 
         return r, g_r
 
-def g_r_from_model_slow(file, Lx, Ly, Lz, file_triple=None, radius=0, r_min=0, r_max = 15, dr = 0.01,
+def g_r_from_model_slow(file, size_or_reps, file_triple=None, radius=0, r_min=0, r_max = 15, dr = 0.01,
                         Number_for_average_atoms = 1, Number_for_average_conf=1, thermal=False, u=np.array([0., 0., 0.,
                                                                                                         0.])):
     """Given a file of a structure and the box size, finds the radial distribution function."""
     vec, n = read_from_file(file, radius)
-    vec_triple = triple(vec, Lx, Ly, Lz, file_triple)
+    vec_triple = triple(vec, size_or_reps, file_triple)
     vec_triple = np.zeros([Number_for_average_conf, 27 * n, 4])
     if not thermal:
-        vec_triple[0] = triple(vec, Lx, Ly, Lz)
+        vec_triple[0] = triple(vec, size_or_reps)
     elif Number_for_average_conf != 1:
         for conf in range(Number_for_average_conf):
             vec = thermalize(np.copy(vec), u)
-            vec_triple[conf] = triple(vec, Lx, Ly, Lz)
+            vec_triple[conf] = triple(vec, size_or_reps)
     else:
         vec = thermalize(np.copy(vec), u)
-        vec_triple[0] = triple(vec, Lx, Ly, Lz)
+        vec_triple[0] = triple(vec, size_or_reps)
 
     num = 0
     it_tot = 0
@@ -806,11 +814,11 @@ def g_r_from_model_slow(file, Lx, Ly, Lz, file_triple=None, radius=0, r_min=0, r
 
     return bins[r_range], g_r[0, r_range], rho, rad
 
-def g_r_from_model(file: str, Lx: dc.float64, Ly: dc.float64, Lz: dc.float64,
-                   radius: dc.float64 = 0, r_min: dc.float64 = 0, r_max: dc.float64 = 15, dr: dc.float64 = 0.01,
-                   Number_for_average_atoms: dc.int64 = 1, thermal: np.bool_ = False,
-                   u: dc.float64[4] = np.array([0., 0., 0., 0.]), Number_for_average_conf: dc.int64 = 1,
-                   file_triple:str = ''):
+def g_r_from_model(file: str, size_or_reps: dc.float64[3], radius: dc.float64 = 0, r_min: dc.float64 = 0,
+                   r_max: dc.float64 = 15, dr: dc.float64 = 0.01, Number_for_average_atoms: dc.int64 = 1,
+                   thermal: np.bool_ = False, u: dc.float64[4] = np.array([0., 0., 0., 0.]), Number_for_average_conf:
+        dc.int64 = 1, file_triple: str = '', cube: np.bool_ = True, lattice_vecs: dc.float64[6] = np.array([0., 0.,
+                                                                                                            0., 0., 0., 0.])):
     """Given a (dol/pdb) file of a structure and the box size, finds the radial distribution function. It is possible to
      enter thermal fluctuations by giving 'u' and thermal = 1. u is either int or 3 vector [ux, uy, uz], i.e. if int,
       same displacement in all directions else the given displacement in each directions. The displacement is given
@@ -819,22 +827,31 @@ def g_r_from_model(file: str, Lx: dc.float64, Ly: dc.float64, Lz: dc.float64,
     vec, n = read_from_file(file, radius)
     vec = np.copy(vec)
     if not thermal:
-        vec_triple = np.zeros([1, 27 * n, 4])
-        vec_triple[0] = triple(vec, Lx, Ly, Lz)#, file_triple)
+        if cube:
+            vec_triple = np.zeros([1, 27 * n, 4])
+        else:
+            vec_triple = np.zeros([1, 27 * n, 3])
+        vec_triple[0] = triple(vec, size_or_reps, file_triple, cube, lattice_vecs)
     elif Number_for_average_conf != 1:
-        vec_triple = np.zeros([Number_for_average_conf, 27 * n, 4])
+        if cube:
+            vec_triple = np.zeros([Number_for_average_conf, 27 * n, 4])
+        else:
+            vec_triple = np.zeros([Number_for_average_conf, 27 * n, 3])
         for conf in range(Number_for_average_conf):
-            vec = thermalize(np.copy(vec), u)
-            vec_triple[conf] = triple(vec, Lx, Ly, Lz)
+            # vec = thermalize(np.copy(vec), u)
+            vec_triple[conf] = triple(vec, size_or_reps, file_triple, cube, lattice_vecs, thermal, u)
     else:
-        vec_triple = np.zeros([Number_for_average_conf, 27*n, 4])
+        if cube:
+            vec_triple = np.zeros([Number_for_average_conf, 27 * n, 4])
+        else:
+            vec_triple = np.zeros([Number_for_average_conf, 27 * n, 3])
         for conf in range(Number_for_average_conf):
-            vec = thermalize(np.copy(vec), u)
-            vec_triple[conf] = triple(vec, Lx, Ly, Lz)
+            # vec = thermalize(np.copy(vec), u)
+            vec_triple[conf] = triple(vec, size_or_reps, file_triple, cube, lattice_vecs, thermal, u)
     vec_old = np.copy(vec)
 
-    bins = np.arange(r_min, r_max + dr, dr)
-    return compute_gr(bins, vec_old, Lx, Ly, Lz, file_triple, vec_triple, vec, radius, dr, r_min, r_max,
+    bins = np.linspace(r_min, r_max, int((r_max - r_min) / dr), endpoint=False)
+    return compute_gr(np.copy(bins), vec_old, file_triple, vec_triple, vec, radius, dr, r_min, r_max,
                       Number_for_average_atoms=Number_for_average_atoms,
                       Number_for_average_conf=Number_for_average_conf)
 
@@ -918,9 +935,8 @@ Number_for_average_atoms = dc.symbol('Number_for_average_atoms')
 Number_for_average_conf = dc.symbol('Number_for_average_conf')
 
 @dc.program(auto_optimize=True, regenerate_code=True)
-def compute_gr(bins: dc.float64[M], vec_old: dc.float64[V, 4], Lx: dc.float64, Ly: dc.float64,
-               Lz: dc.float64, file_triple: str, vec_triple: dc.float64[NFC, TV, 4], vec: dc.float64[V, 4], radius=0,
-               dr=0.01, r_min=0, r_max=15):
+def compute_gr(bins: dc.float64[M], vec_old: dc.float64[V, 4], file_triple: str, vec_triple: dc.float64[NFC, TV, TF],
+               vec: dc.float64[V, 4], radius=0, dr=0.01, r_min=0, r_max=15):
     rho: dc.float64
     r_0: dc.float64[4]
     # rad: dc.float64[A, 2]
@@ -1071,23 +1087,23 @@ def Randomize_step(Step_Size, Sigma, dim, where_true):
 
     return xyz
 
-def print_states(filepath, k_spring, temperature, MaxDistance, rest_distance, step_size, iterations, state_energy,
-                 positions, run_number):
-    filename = filepath + r'.\pyNew_State_' + str(run_number) + r'.dol'
-
-    with open(filename, 'w', newline='', encoding='utf-8') as file:
-        outfile = csv.writer(file, delimiter='\t', quoting=csv.QUOTE_NONNUMERIC)
-        outfile.writerow(['# k_spring:', k_spring])
-        outfile.writerow(['# temperature:', temperature])
-        outfile.writerow(['# MaxDistance:', MaxDistance])
-        outfile.writerow(['# rest_distance:', rest_distance])
-        outfile.writerow(['# Kb:', Kb])
-        outfile.writerow(['# step_size:', step_size])
-        outfile.writerow(['# iterations:', iterations])
-        outfile.writerow(['# Last_state_enrgy:', state_energy])
-        for i in range(positions.shape[0]):
-            outfile.writerow([i, *positions[i], 0, 0, 0])
-    return
+# def print_states(filepath, k_spring, temperature, MaxDistance, rest_distance, step_size, iterations, state_energy,
+#                  positions, run_number):
+#     filename = filepath + r'.\pyNew_State_' + str(run_number) + r'.dol'
+#
+#     with open(filename, 'w', newline='', encoding='utf-8') as file:
+#         outfile = csv.writer(file, delimiter='\t', quoting=csv.QUOTE_NONNUMERIC)
+#         outfile.writerow(['# k_spring:', k_spring])
+#         outfile.writerow(['# temperature:', temperature])
+#         outfile.writerow(['# MaxDistance:', MaxDistance])
+#         outfile.writerow(['# rest_distance:', rest_distance])
+#         outfile.writerow(['# Kb:', Kb])
+#         outfile.writerow(['# step_size:', step_size])
+#         outfile.writerow(['# iterations:', iterations])
+#         outfile.writerow(['# Last_state_enrgy:', state_energy])
+#         for i in range(positions.shape[0]):
+#             outfile.writerow([i, *positions[i], 0, 0, 0])
+#     return
 
 def print_last_state(filepath, k_spring, temperature, MaxDistance, rest_distance, step_size, iterations,
                      acceptance_rate, state_energy, positions, run_number):
@@ -1110,6 +1126,21 @@ def print_last_state(filepath, k_spring, temperature, MaxDistance, rest_distance
     return
 
 def MC_Sim(dol_in, dol_out, temperature, MaxDistance, rest_distance, step_size, iterations, sigma, my_pot, *args):
+    '''
+    :param dol_in: filepath to .dol to do the simulation on
+    :param dol_out: filepath of the final model
+    :param temperature: simulation temperature in K
+    :param MaxDistance: maximal distance a molecule can move (in nm)
+    :param rest_distance: the rest distance between two molecules (in nm)
+    :param step_size: the center of the gaussian distribution according to which the molecule will move (in nm)
+    :param iterations: number of iterations to run
+    :param sigma: the sampling limit around step_size
+    :param my_pot: 'Hook' or 'LJ' (for Lennard-Jones)
+    :param args: for Hook, the spring constant, for LJ, epsilon and sigma (V=4*eps*((sig/r)**12-(sig/r)**6))
+
+    :return: Energy_Vector, Distance_Vector
+    '''
+
     Initial_Positions, Lattice_Number = read_from_file(dol_in, 0)
     Initial_Positions = Initial_Positions[:, :3]
     where_true = np.any(Initial_Positions, axis=0)
@@ -1147,7 +1178,7 @@ def MC_Sim(dol_in, dol_out, temperature, MaxDistance, rest_distance, step_size, 
         xyz = Randomize_step(step_size, sigma, dim, where_true)
         New_Positions[Chosen_Atom[i]] += xyz
 
-        # calculate distance only on connectd atoms
+        # calculate distance only on connected atoms
         New_distance_matrix = Calc_Distance_Matrix_AS_Bound_version(New_Positions, MaxDistance)
 
         # stop the simulation if the lattice is broken
@@ -1169,7 +1200,7 @@ def MC_Sim(dol_in, dol_out, temperature, MaxDistance, rest_distance, step_size, 
         if (New_State_energy < Last_State_energy) or (p < rand_num[i]):  # the condition to accept or deny new state
             number_of_accepted_states += 1  # counting each accepted state
             # printing the state every 10, 000 accepted states
-            if number_of_accepted_states % 500 == 0:
+            if number_of_accepted_states % 1e4 == 0:
                 print('accepted %i states' %(number_of_accepted_states))
         else:
             # if the change is not accepted then you save the last state as the new state
@@ -1184,7 +1215,7 @@ def MC_Sim(dol_in, dol_out, temperature, MaxDistance, rest_distance, step_size, 
     print_last_state(dol_out, args, temperature, MaxDistance, rest_distance, step_size, iterations,
                      acceptance_rate, New_State_energy, New_Positions, i)
 
-    return Energy_Vector, Distance_Vector, Lattice_Number
+    return Energy_Vector, Distance_Vector
 
 
 if __name__ == '__main__':
@@ -1192,62 +1223,92 @@ if __name__ == '__main__':
     matplotlib.use('TkAgg')
     import matplotlib.pyplot as plt
 
-    file_single = r'.\cube_g_r_test.dol'
-    xyz = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
-    build_crystal(xyz, 10, 10, 10, file_single)
-    Lx, Ly, Lz = 9., 9., 9.
+    deg2rad = np.pi / 180
 
-    r_slow, g_r_slow, _, _ = g_r_from_model_slow(file_single, Lx, Ly, Lz, r_max=5)
-    r_dace, g_r_dace, _ = g_r_from_model(file_single, Lx, Ly, Lz, r_max=5)
+    filename = r'./Beck.dol'
+    xyz_Beck = np.array([0.54338, 3.55503, 1.19651, 90 * deg2rad, 101.18 * deg2rad, 90 * deg2rad])
+    beck_mat = build_crystal(xyz_Beck, 15, 15, 15, filename)
+    reps = np.array([15, 15, 15])
+    R = 0.25
+    rmax = 4
+    sigma = np.array([0.1, 0.1, 0.1])
 
-    q_slow, s_q_slow, _ = S_Q_from_model_slow(file_single, q_max=20)
-    q_dace, s_q_dace, _ = S_Q_from_model(file_single, q_max=20)#, use_GPU=True)
+    r_model, g_r_model, _ = g_r_from_model(filename, reps, radius=R, r_min=R, r_max=rmax, cube=False, lattice_vecs=xyz_Beck)
+    r_model_2, g_r_model_2, _ = g_r_from_model(filename, reps, radius=R, r_min=R, r_max=rmax, cube=False,
+                                            lattice_vecs=xyz_Beck)
+    r_model_3, g_r_model_3, _ = g_r_from_model(filename, reps, radius=R, r_min=R, r_max=rmax, cube=False,
+                                            lattice_vecs=xyz_Beck)
+    r_model_4, g_r_model_4, _ = g_r_from_model(filename, reps, radius=R, r_min=R, r_max=rmax, cube=False,
+                                            lattice_vecs=xyz_Beck)
+    # r_model_therm, g_r_model_therm, _ = g_r_from_model(filename, reps, radius=R, r_min=R, r_max=rmax, cube=False,
+    #                                                    lattice_vecs=xyz_Beck, Number_for_average_conf=100, thermal=True,
+    #                                                    u=sigma)
 
-    plt.figure()
-    plt.plot(r_dace, g_r_dace, label='DaCe')
-    plt.plot(r_slow, g_r_slow, label='No DaCe')
-    plt.legend()
-    plt.show()
+    # plt.plot(r_model_therm, g_r_model_therm, label='With fluctuations', lw=3)
+    plt.plot(r_model, g_r_model, label='With radius', lw=3)
+    plt.plot(r_model_2, g_r_model_2, label='With radius 2', lw=3)
+    plt.plot(r_model_3, g_r_model_3, label='With radius 3', lw=3)
+    plt.plot(r_model_4, g_r_model_4, label='With radius 4', lw=3)
+    plt.xlabel('r [nm]', size=14)
+    plt.ylabel('$\\rho(r)/\\rho_{b}$', size=14)
+    plt.legend(fontsize=14, loc='upper left')
 
-    plt.figure()
-    plt.semilogy(q_dace, s_q_dace, label='DaCe')
-    plt.semilogy(q_slow, s_q_slow, label='No DaCe')
-    plt.legend()
-    plt.show()
-
-    q_final_dace, S_q_final_dace, S_Q_all_dace = S_Q_average_box(xyz, 20, 2002, 7, 13, 10, 2, r'.\s_q_example.dol',
-                                                                 slow=0)
-    q_final_slow, S_q_final_slow, S_Q_all_slow = S_Q_average_box(xyz, 20, 2002, 7, 13, 10, 2, r'.\s_q_example.dol',
-                                                           slow=1)
-    exit()
-
-    import matplotlib
-    matplotlib.use('TkAgg')
-    import matplotlib.pyplot as plt
-
-    file_single = r'D:\Eytan\g_r_test\DOL\cube_g_r_test.dol'
-    build_crystal(np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]]), 10, 10, 10, file_single)
-    # file_single = r'D:\Eytan\g_r_test\DOL\thermal_cube.dol'
-    file_triple = r'D:\Eytan\g_r_test\DOL\thermal_cube_triple.dol'
-    vec, n = read_from_file(file_single, 0.01)
-    # write_to_dol(file_single[:-4] + '_test.dol', vec)
-    Lx = 9.0
-    Ly = 9.0
-    Lz = 9.0
-
-    # vec_thermalized = thermalize(np.copy(vec), np.array([0.2, 0.2, 0.2, 0]))
-    # vec_3 = triple(np.copy(vec), Lx, Ly, Lz)#, file_triple)
-
-    r, g_r, rho, rad = g_r_from_model_slow(file_single, Lx, Ly, Lz, thermal=True, Number_for_average_conf=150, u=0.05,
-                                           r_max=5)
-    r_slow, g_r_slow, rho_slow, rad_slow = g_r_from_model_slow(file_single, Lx, Ly, Lz, r_max=5)
-    plt.plot(r, g_r)
-    plt.plot(r_slow, g_r_slow)
-
-
-    # q, s_q, rho_2 = S_Q_from_model(file_single, q_max=12)
-    # q_slow, s_q_slow, rho_2_slow = S_Q_from_model(file_single, q_max=12)
-    # plt.figure()
-    # plt.semilogy(q, s_q)
-    # plt.semilogy(q_slow, s_q_slow)
+    # file_single = r'.\cube_g_r_test.dol'
+    # xyz = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+    # build_crystal(xyz, 10, 10, 10, file_single)
+    # Lx, Ly, Lz = 9., 9., 9.
     #
+    # # r_slow, g_r_slow, _, _ = g_r_from_model_slow(file_single, Lx, Ly, Lz, r_max=5)
+    # r_dace, g_r_dace, _ = g_r_from_model(file_single, [Lx, Ly, Lz], r_max=5)
+    #
+    # # q_slow, s_q_slow, _ = S_Q_from_model_slow(file_single, q_max=20)
+    # # q_dace, s_q_dace, _ = S_Q_from_model(file_single, q_max=20)#, use_GPU=True)
+    #
+    # plt.figure()
+    # plt.plot(r_dace, g_r_dace, label='DaCe')
+    # # plt.plot(r_slow, g_r_slow, label='No DaCe')
+    # plt.legend()
+    plt.show()
+
+    # plt.figure()
+    # plt.semilogy(q_dace, s_q_dace, label='DaCe')
+    # plt.semilogy(q_slow, s_q_slow, label='No DaCe')
+    # plt.legend()
+    # plt.show()
+    #
+    # q_final_dace, S_q_final_dace, S_Q_all_dace = S_Q_average_box(xyz, 20, 2002, 7, 13, 10, 2, r'.\s_q_example.dol',
+    #                                                              slow=0)
+    # q_final_slow, S_q_final_slow, S_Q_all_slow = S_Q_average_box(xyz, 20, 2002, 7, 13, 10, 2, r'.\s_q_example.dol',
+    #                                                        slow=1)
+    # exit()
+    #
+    # import matplotlib
+    # matplotlib.use('TkAgg')
+    # import matplotlib.pyplot as plt
+    #
+    # file_single = r'D:\Eytan\g_r_test\DOL\cube_g_r_test.dol'
+    # build_crystal(np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]]), 10, 10, 10, file_single)
+    # # file_single = r'D:\Eytan\g_r_test\DOL\thermal_cube.dol'
+    # file_triple = r'D:\Eytan\g_r_test\DOL\thermal_cube_triple.dol'
+    # vec, n = read_from_file(file_single, 0.01)
+    # # write_to_dol(file_single[:-4] + '_test.dol', vec)
+    # Lx = 9.0
+    # Ly = 9.0
+    # Lz = 9.0
+    #
+    # # vec_thermalized = thermalize(np.copy(vec), np.array([0.2, 0.2, 0.2, 0]))
+    # # vec_3 = triple(np.copy(vec), Lx, Ly, Lz)#, file_triple)
+    #
+    # r, g_r, rho, rad = g_r_from_model_slow(file_single, Lx, Ly, Lz, thermal=True, Number_for_average_conf=150, u=0.05,
+    #                                        r_max=5)
+    # r_slow, g_r_slow, rho_slow, rad_slow = g_r_from_model_slow(file_single, Lx, Ly, Lz, r_max=5)
+    # plt.plot(r, g_r)
+    # plt.plot(r_slow, g_r_slow)
+    #
+    #
+    # # q, s_q, rho_2 = S_Q_from_model(file_single, q_max=12)
+    # # q_slow, s_q_slow, rho_2_slow = S_Q_from_model(file_single, q_max=12)
+    # # plt.figure()
+    # # plt.semilogy(q, s_q)
+    # # plt.semilogy(q_slow, s_q_slow)
+    # #

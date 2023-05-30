@@ -314,8 +314,8 @@ void BackendWrapper::StartGenerate(const rapidjson::Value &json, const LocalBack
 {
 	std::cout <<"backend version:"<<BACKEND_VERSION<< endl;
 
-	 CheckCapabilities(g_useGPU);
-	 string usgG = g_useGPU == true ? "True " : "False ";
+	CheckCapabilities(g_useGPU);
+	string usgG = g_useGPU == true ? "True " : "False ";
 	std::cout << "Use GPU flag:" << usgG<< endl;
 	const rapidjson::Value &xs = json["x"];
 	//Translate xs into a vector<double>
