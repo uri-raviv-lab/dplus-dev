@@ -374,8 +374,8 @@ def different_atoms(file):
 
 
 def fill_SF(q, theta, phi, dol_lat):
-    from dplus.Amplitudes import sph2cart as sp2cr
-    qs = sp2cr(q, theta, phi)
+    from dplus.Amplitudes import sph2cart
+    qs = sph2cart(q, theta, phi)
     N = len(dol_lat)
     some = 0
     for i in range(len(dol_lat)):
@@ -410,14 +410,14 @@ def fillmultigrid(q, theta, phi, SF, FF, N):
         return SF.get_interpolation(q, theta, phi) * FF.get_interpolation(q, theta, phi) * np.sqrt(N)
 
 
-def Amp_multi(SF_Ampj, FF_Ampj, Mult_amp, N = 1):
+def Amp_multi(SF_Ampj, FF_Ampj, filename, N = 1):
     from dplus.Amplitudes import Amplitude
     if not SF_Ampj[-5:] == '.ampj':
         SF_Ampj += '.ampj'
     if not FF_Ampj[-5:] == '.ampj':
         FF_Ampj += '.ampj'
-    if not Mult_amp[-5:] == '.ampj':
-        Mult_amp += '.ampj'
+    if not filename[-5:] == '.ampj':
+        filename += '.ampj'
 
     SF = Amplitude.load(SF_Ampj)
     FF = Amplitude.load(FF_Ampj)
@@ -426,7 +426,41 @@ def Amp_multi(SF_Ampj, FF_Ampj, Mult_amp, N = 1):
     q_max_size = np.min([SF.helper_grid.q_max, FF.helper_grid.q_max])
     multi_amp = Amplitude(grid_min_size, q_max_size, q_min_size)
     multi_amp.fill(fillmultigrid, SF, FF, N)
-    multi_amp.save(Mult_amp)
+    multi_amp.save(filename)
+
+
+def fillsumgrid(q, theta, phi, SF, FF):
+    if q > FF.helper_grid.q_max:
+        ind = [SF.helper_grid.index_from_angles(q, theta, phi), FF.helper_grid.index_from_angles(q, theta, phi)]
+        amps = SF._values
+        am_s = complex(amps[ind[0]*2], amps[ind[0]*2 + 1])
+        ampf = FF._values
+        am_f = complex(ampf[ind[1]*2], ampf[ind[1]*2 + 1])
+        return am_s + am_f
+    try:
+        return SF.get_interpolation(q, theta, phi) + FF.get_interpolation(q, theta, phi) 
+    except:
+        theta = np.pi - 10e-15
+        return SF.get_interpolation(q, theta, phi) + FF.get_interpolation(q, theta, phi) 
+
+
+def Amp_sum(amp1, amp2, filename):
+    from dplus.Amplitudes import Amplitude
+    if not amp1[-5:] == '.ampj':
+        amp1 += '.ampj'
+    if not amp2[-5:] == '.ampj':
+        amp2 += '.ampj'
+    if not filename[-5:] == '.ampj':
+        filename += '.ampj'
+    
+    SF = Amplitude.load(amp1)
+    FF = Amplitude.load(amp2)
+    grid_min_size = np.max([SF.helper_grid.grid_size, FF.helper_grid.grid_size])
+    q_min_size = np.max([SF.helper_grid.q_min, FF.helper_grid.q_min])
+    q_max_size = np.min([SF.helper_grid.q_max, FF.helper_grid.q_max])
+    addition_amp = Amplitude(grid_min_size, q_max_size, q_min_size)
+    addition_amp.fill(fillsumgrid, SF, FF)
+    addition_amp.save(filename)
 
 
 def fillmultigrid(q, theta, phi, SF, FF, N):
