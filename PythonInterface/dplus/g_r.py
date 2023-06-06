@@ -437,9 +437,9 @@ def Amp_sum(amp1, amp2, filename):
     grid_min_size = np.max([SF.helper_grid.grid_size, FF.helper_grid.grid_size])
     q_min_size = np.max([SF.helper_grid.q_min, FF.helper_grid.q_min])
     q_max_size = np.min([SF.helper_grid.q_max, FF.helper_grid.q_max])
-    additon_amp = Amplitude(grid_min_size, q_max_size, q_min_size)
-    additon_amp.fill(fillsumgrid, SF, FF)
-    additon_amp.save(filename)
+    addition_amp = Amplitude(grid_min_size, q_max_size, q_min_size)
+    addition_amp.fill(fillsumgrid, SF, FF)
+    addition_amp.save(filename)
 
 
 def fillmultigrid(q, theta, phi, SF, FF, N):
