@@ -198,6 +198,7 @@ def read_from_file(filename, r=0):
 
 
 def draw_symmetry(filepath):
+    ## Not working yet
     import matplotlib.pyplot as plt
 
     lattice, _ = read_from_file(filepath)
@@ -384,15 +385,17 @@ def fill_SF(q, theta, phi, dol_lat):
     return some/np.sqrt(N)
 
 
-def Amp_of_SF(dol_filename, ampj_filename, grid_size, q_max = 1, q_min = 0):
+def Amp_of_SF(dol_filename, grid_size, q_max = 1, q_min = 0, ampj_filename=''):
     from dplus.Amplitudes import Amplitude
     a = Amplitude(grid_size, q_max, q_min)
     dol_f = read_from_file(dol_filename)[0][:, :3]
     a.fill(fill_SF, dol_f)
-    if not ampj_filename[-5:] == '.ampj':
-        a.save(ampj_filename + ".ampj")
-    else:
+    
+    if ampj_filename:
+        if not ampj_filename[-5:] == '.ampj':
+            ampj_filename += '.ampj'
         a.save(ampj_filename)
+    return a
 
 
 def fillmultigrid(q, theta, phi, SF, FF, N):
@@ -410,23 +413,25 @@ def fillmultigrid(q, theta, phi, SF, FF, N):
         return SF.get_interpolation(q, theta, phi) * FF.get_interpolation(q, theta, phi) * np.sqrt(N)
 
 
-def Amp_multi(SF_Ampj, FF_Ampj, filename, N = 1):
+def Amp_multi(SF_Ampj, FF_Ampj, filename='', N = 1):
     from dplus.Amplitudes import Amplitude
-    if not SF_Ampj[-5:] == '.ampj':
-        SF_Ampj += '.ampj'
-    if not FF_Ampj[-5:] == '.ampj':
-        FF_Ampj += '.ampj'
-    if not filename[-5:] == '.ampj':
-        filename += '.ampj'
+    # if not SF_Ampj[-5:] == '.ampj':
+        # SF_Ampj += '.ampj'
+    # if not FF_Ampj[-5:] == '.ampj':
+        # FF_Ampj += '.ampj'
 
-    SF = Amplitude.load(SF_Ampj)
-    FF = Amplitude.load(FF_Ampj)
-    grid_min_size = np.max([SF.helper_grid.grid_size, FF.helper_grid.grid_size])
-    q_min_size = np.max([SF.helper_grid.q_min, FF.helper_grid.q_min])
-    q_max_size = np.min([SF.helper_grid.q_max, FF.helper_grid.q_max])
+    # SF = Amplitude.load(SF_Ampj)
+    # FF = Amplitude.load(FF_Ampj)
+    grid_min_size = np.max([SF_Ampj.helper_grid.grid_size, FF_Ampj.helper_grid.grid_size])
+    q_min_size = np.max([SF_Ampj.helper_grid.q_min, FF_Ampj.helper_grid.q_min])
+    q_max_size = np.min([SF_Ampj.helper_grid.q_max, FF_Ampj.helper_grid.q_max])
     multi_amp = Amplitude(grid_min_size, q_max_size, q_min_size)
-    multi_amp.fill(fillmultigrid, SF, FF, N)
-    multi_amp.save(filename)
+    multi_amp.fill(fillmultigrid, SF_Ampj, FF_Ampj, N)
+    if filename:
+        if not filename[-5:] == '.ampj':
+            filename += '.ampj'
+        multi_amp.save(filename)
+    return multi_amp
 
 
 def fillsumgrid(q, theta, phi, SF, FF):
@@ -444,24 +449,21 @@ def fillsumgrid(q, theta, phi, SF, FF):
         return SF.get_interpolation(q, theta, phi) + FF.get_interpolation(q, theta, phi) 
 
 
-def Amp_sum(amp1, amp2, filename):
+def Amp_sum(amp1, amp2, filename=''):
     from dplus.Amplitudes import Amplitude
-    if not amp1[-5:] == '.ampj':
-        amp1 += '.ampj'
-    if not amp2[-5:] == '.ampj':
-        amp2 += '.ampj'
-    if not filename[-5:] == '.ampj':
-        filename += '.ampj'
-    
-    SF = Amplitude.load(amp1)
-    FF = Amplitude.load(amp2)
-    grid_min_size = np.max([SF.helper_grid.grid_size, FF.helper_grid.grid_size])
-    q_min_size = np.max([SF.helper_grid.q_min, FF.helper_grid.q_min])
-    q_max_size = np.min([SF.helper_grid.q_max, FF.helper_grid.q_max])
-    addition_amp = Amplitude(grid_min_size, q_max_size, q_min_size)
-    addition_amp.fill(fillsumgrid, SF, FF)
-    addition_amp.save(filename)
 
+    grid_min_size = np.max([amp1.helper_grid.grid_size, amp2.helper_grid.grid_size])
+    q_min_size = np.max([amp1.helper_grid.q_min, amp2.helper_grid.q_min])
+    q_max_size = np.min([amp1.helper_grid.q_max, amp2.helper_grid.q_max])
+    addition_amp = Amplitude(grid_min_size, q_max_size, q_min_size)
+    addition_amp.fill(fillsumgrid, amp1, amp2)
+
+    if filename:
+        if not filename[-5:] == '.ampj':
+            filename += '.ampj'
+        addition_amp.save(filename)
+
+    return addition_amp
 
 def fillmultigrid(q, theta, phi, SF, FF, N):
     if q > FF.helper_grid.q_max:
@@ -553,7 +555,7 @@ def S_Q_from_model_slow(filename: str, q_min: dc.float64 = 0, q_max: dc.float64 
 
 def S_Q_from_model(filename: str, q_min: dc.float64 = 0, q_max: dc.float64 = 100, dq: dc.float64 = 0.01
                    , thermal: np.bool_ = False, Number_for_average_conf: dc.int64 = 1,
-                   u: dc.float64[4] = np.array([0,0,0,0]), use_GPU: np.bool_ = True):
+                   u: dc.float64[4] = np.array([0.,0.,0.,0.]), use_GPU: np.bool_ = True):
     """Given a .dol or .pdb filename and a q-range, returns the orientation averaged structure factor."""
 
     r_mat, n = read_from_file(filename)
@@ -573,7 +575,8 @@ def S_Q_from_model(filename: str, q_min: dc.float64 = 0, q_max: dc.float64 = 100
             r_mat[:] = thermalize(np.copy(r_mat_old), u)
         S_Q_pretemp = np.copy(S_Q[it])
         R[it], S_Q[it, :] = compute_sq(q, S_Q_pretemp, r_mat, Q=q_len, L=n)
-        print('Finished iteration ' + str(it+1) + ' of ' + str(Number_for_average_conf) + ' iterations.')
+        if Number_for_average_conf > 1:
+            print('Finished iteration ' + str(it+1) + ' of ' + str(Number_for_average_conf) + ' iterations.')
         # if use_GPU:
         #     R[it], S_Q[it, :] = compute_sq_GPU(q, S_Q_pretemp, r_mat, Q=q_len, L=n)
         # else:
@@ -582,10 +585,11 @@ def S_Q_from_model(filename: str, q_min: dc.float64 = 0, q_max: dc.float64 = 100
     R_fin = np.max(R) / 2
     S_Q /= n
     S_Q[:] = np.sum(S_Q, axis=0) / Number_for_average_conf
-    rho += 3 * S_Q[0] / (4 * np.pi * R_fin ** 3)
+    rho += 3 * S_Q[0, 0] / (4 * np.pi * R_fin ** 3)
     rho /= Number_for_average_conf
 
     return q, S_Q[0], rho
+
 
 def S_Q_average_box(xyz, qmax, q_points, size_min, size_max, mean, sigma, file_path=r'.\S_Q_average', qmin=0,
                     normalize=1, make_fig=1, num_of_s_q_shown=-1, slow=0, thermal=False, u=np.array([0, 0, 0, 0])):#,
@@ -644,7 +648,6 @@ def S_Q_average_box(xyz, qmax, q_points, size_min, size_max, mean, sigma, file_p
         ax1.tick_params(which='both', labelsize=11, color='k')
         ax2.tick_params(which='both', labelsize=11, color='k')
         plt.savefig(file_path + '.png')
-        plt.close()
 
     return q, S_q_final, S_q_all
 
@@ -914,7 +917,7 @@ def g_r_from_model(file: str, size_or_reps: dc.float64[3], radius: dc.float64 = 
     bins = np.linspace(r_min, r_max, len_bins, endpoint=False)
     return compute_gr(np.copy(bins), vec_triple, vec, radius, dr, r_min, r_max,
                       Number_for_average_atoms=Number_for_average_atoms,
-                      Number_for_average_conf=Number_for_average_conf, M=len_bins)
+                      Number_for_average_conf=Number_for_average_conf, M=len_bins, TV=int(n*27), TF=np.shape(vec_triple)[2], V=n)
 
 
 # @dc.program(auto_optimize=True, regenerate_code=True, device=dtypes.DeviceType.CPU)
@@ -970,7 +973,7 @@ def g_r_from_model(file: str, size_or_reps: dc.float64[3], radius: dc.float64 = 
 Number_for_average_atoms = dc.symbol('Number_for_average_atoms')
 Number_for_average_conf = dc.symbol('Number_for_average_conf')
 
-@dc.program(auto_optimize=True, regenerate_code=False)
+@dc.program(auto_optimize=True, regenerate_code=True)
 def compute_sq(q: dc.float64[Q], S_Q: dc.float64[Q], r_mat: dc.float64[L, 4]):
     qr: dc.float64[Q]
 
@@ -1001,7 +1004,7 @@ def compute_gr(bins: dc.float64[M], vec_triple: dc.float64[NFC, TV, TF], vec: dc
                r_min=0., r_max=15.):
     rho: dc.float64
     r_0: dc.float64[RO]
-    g_r = np.zeros([Number_for_average_atoms * Number_for_average_conf, M])
+    g_r = np.zeros([Number_for_average_atoms * NFC, M])
 
     num = 0
     it_tot = 0

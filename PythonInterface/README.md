@@ -8,7 +8,7 @@ The D+ Python API allows using the D+ backend from Python, instead of the ordina
 
 The Python API works on both Windows <s>and Linux. On Linux, one minimum requirement is that glibc>=2.24 (checked using `ldd --version`)</s>.
 
-A few examples of how to use the API are given in the Jupyter notebook [here](https://github.com/uri-raviv-lab/dplus-dev/blob/development/PythonInterface/getting_started.ipynb).
+A few examples on how to use the API are given in the Jupyter notebook [here](https://github.com/uri-raviv-lab/dplus-dev/blob/development/PythonInterface/getting_started.ipynb).
 <!These are examples that recreate some of the figures from the D+ update paper ().>
 
 ## Installation

@@ -707,26 +707,26 @@ class ModelWithFile(Model):
     def __init__(self, filename=""):
         self.filenames = []
         # tester = Path(filename)
-        try:
-            if not os.path.isfile(filename):
-                print('File could not be found, try again: ')
-                for line in sys.stdin:
-                    # filename = line
-                    # tester = os.path.exists(line)
-                    # print(line[:-1], tester,os.path.exists(line[:-1]))#, tester.is_file())
-                    if not os.path.isfile(line[:-1]):
-                        print('File could not be found, try again: ')
-                        continue
-                    else:
-                        break
+        # try:
+        #     if not os.path.isfile(filename):
+        #         print('File could not be found, try again: ')
+        #         for line in sys.stdin:
+        #             # filename = line
+        #             # tester = os.path.exists(line)
+        #             # print(line[:-1], tester,os.path.exists(line[:-1]))#, tester.is_file())
+        #             if not os.path.isfile(line[:-1]):
+        #                 print('File could not be found, try again: ')
+        #                 continue
+        #             else:
+        #                 break
 
-            self._filename = filename
-            self._anomfilename = ""
-            super().__init__()
-        except:
-            self._filename = filename
-            self._anomfilename = ""
-            super().__init__()
+        #     self._filename = filename
+        #     self._anomfilename = ""
+        #     super().__init__()
+        # except:
+        self._filename = filename
+        self._anomfilename = ""
+        super().__init__()
 
         # filename = getRealFilename() # input('File could not be found, try again: ')
             # tester = Path(filename)

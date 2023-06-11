@@ -12,8 +12,8 @@ class CalculationInput(State):
     A base class of the parameters for dplus generate or fit.
     """
 
-    def __init__(self, use_gpu=True):
-        super().__init__()
+    def __init__(self, use_gpu=True, is2D=False):
+        super().__init__(is2D)
         self._use_gpu = use_gpu
 
     @property

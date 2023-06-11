@@ -466,7 +466,7 @@ class Amplitude():
         res = {'q' : q, 'theta' : theta}
         return res
 
-    def get_intensity(
+    def get_fiber_intensity(
                     self, 
                     q_min,
                     calculated_points=100,
@@ -492,7 +492,8 @@ class Amplitude():
         qZ_list = np.round(qZ_list, 8)
         qPerp_list = np.round(qPerp_list, 8)
 
-        arr_intensity = [[0 for qPerp in range(calculated_points)] for qZ in range(calculated_points)] 
+        arr_intensity = np.zeros([calculated_points, calculated_points])#[[0 for qPerp in range(calculated_points)] for qZ in range(
+        # calculated_points)]
 
         import random
         MAX_INT = 4294967295
@@ -580,7 +581,8 @@ class Amplitude():
             
         return arr_intensity
 
-    def calculate_intensity(self, q, theta=None, epsilon=1e-3, seed=0, max_iter=1000000, phi_min=0, phi_max=2*math.pi): # max_iter = 'iterations' on c++
+    def calculate_intensity_at_point(self, q, theta=None, epsilon=1e-3, seed=0, max_iter=1000000, phi_min=0,
+                             phi_max=2*math.pi): # max_iter = 'iterations' on c++
         """
         calculate the intensity for one q point - DomainModel::DefaultCPUCalculation, JacobianSphereGrid::CalculateIntensity
         :param q: the point (x)

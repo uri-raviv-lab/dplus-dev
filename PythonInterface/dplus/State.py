@@ -21,7 +21,7 @@ class DomainPreferences:
     Their usage is explained in the D+ documentation.
     """
 
-    def __init__(self):
+    def __init__(self, is2D=False):
         self.__signal_file = ""
         self.__convergence = 0.001
         self.__grid_size = 200
@@ -30,7 +30,7 @@ class DomainPreferences:
         self.__use_grid = True
         self.__apply_resolution = False
         self.__resolution_sigma = RESOLUTION_SIGMA_DEFAULT
-        self.signal = Signal.create_x_vector(7.5, 0, 800)
+        self.signal = Signal.create_x_vector(7.5, 0, 800, is2D)
 
     @property
     def q_max(self):
@@ -591,8 +591,8 @@ class State:
     The state class contains an instance of each of three classes: DomainPreferences, FittingPreferences, and Domain.
     """
 
-    def __init__(self):
-        self.DomainPreferences = DomainPreferences()
+    def __init__(self, is2D=False):
+        self.DomainPreferences = DomainPreferences(is2D)
         self.FittingPreferences = FittingPreferences()
         self.__Viewport = {  # This is totally irrelevant and is here for legacy purposes only
             "Axes_at_origin": True,
