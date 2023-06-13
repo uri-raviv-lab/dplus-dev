@@ -1273,8 +1273,8 @@ PDB_READER_ERRS DomainModel::Calculate2DIntensityWithGrid(std::vector<unsigned i
 	{
 		for (int i = 0; i < qData[q]->intensityData.size(); i++)
 		{
-			qData[q]->intensityData[i]->result = 
-				jgrid->CalculateIntensity(qData[q]->q, qData[q]->intensityData[i]->theta, epsi, 0, iterations);
+			qData[q]->intensityData[i].result = 
+				jgrid->CalculateIntensity(qData[q]->q, qData[q]->intensityData[i].theta, epsi, 0, iterations);
 		}
 	}
 	
