@@ -27,6 +27,11 @@ The API can be downloaded using PIP by running the following inside the command 
 
 A short tutorial with examples can be found [here](https://github.com/uri-raviv-lab/dplus-dev/tree/development/PythonInterface).
 
+Hardware architecture.
+----------------------
+Computations and tests were performed on Windows computers with an Intel Core i5 3470 3.2 GHz CPU and an NVIDIA GeForce GTX Titan GPU card, or Intel Core i5 4590 3.3 GHz CPU and an NVIDIA GeForce GTX Titan Black GPU card. GeForce RTX 3080, GTX 1070, GTX 970, NVIDIA TESLA K80 and GTX 960 cards have also passed our tests.
+In general, we believe most architectures built in the past years should work.
+
 Troubleshooting
 ---------------
 Questions, bugs, and problems can all be asked in our [issues section](https://github.com/uri-raviv-lab/dplus-dev/issues).
