@@ -1,6 +1,6 @@
-
+from tests.unit_tests.conftest import test_dir
 from dplus.CalculationRunner import EmbeddedLocalRunner
-from dplus.DataModels.models import Sphere, SpacefillingSymmetry#, ManualSymmetry
+from dplus.DataModels.models import Sphere, UniformHollowCylinder, SpacefillingSymmetry
 from dplus.DataModels import ManualSymmetry
 from dplus.CalculationInput import CalculationInput
 from tests.test_settings import USE_GPU, session
@@ -15,15 +15,13 @@ def test_create_state_with_cylinder():
 
 
 def test_add_layer():
-    from dplus.DataModels.models import ManualSymmetry, UniformHollowCylinder
-    ms=ManualSymmetry()
+    ms = ManualSymmetry()
     ms.children.append(UniformHollowCylinder())
     ms.add_layer()
     for param in ms.layer_params[0]:
         ms.layer_params[0][param].value=1
 
 def test_del_layer():
-    from dplus.DataModels.models import ManualSymmetry
     ms = ManualSymmetry()
     for i in range(10):
         ms.add_layer()
@@ -83,5 +81,13 @@ def test_model_building():
     print(chi_sq)
 
 def test_read_from_dol():
-	## Needs to be worked on
-    return
+    my_man_sym = ManualSymmetry()
+    my_man_sym.read_from_dol(os.path.join(test_dir, "DOL", "Cube.dol"))
+
+    first_x = my_man_sym.layer_params[0].x.value
+
+    my_man_sym.read_from_dol(os.path.join(test_dir, "DOL", "NaCl.dol"))
+
+    second_x = my_man_sym.layer_params[0].x.value
+
+    assert first_x != second_x

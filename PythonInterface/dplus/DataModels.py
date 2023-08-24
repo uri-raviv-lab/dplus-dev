@@ -1276,6 +1276,10 @@ class ManualSymmetry(ModelWithChildren, ModelWithLayers):
         self.extra_params["scale"] = Parameter(value=self.scale, mutable=self.scale_mut, name="scale")
 
     def read_from_dol(self, filename):
+        is_filled = len(self.layer_params)
+        if is_filled:
+            self.del_layer(range(is_filled))
+
         try:
             with open(filename, encoding='utf-8') as file:
                 try:

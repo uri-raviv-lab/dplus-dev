@@ -354,18 +354,18 @@ Populations can contain standard types of models.
 
 The available standard model classes are:
 
-| Model Name                    | location_params | extra_params | layer_params |
-|-------------------------------|---|---|---|
-| `UniformHollowCylinder`       | x, y, z,<br/>alpha, beta, gamma | scale, background,<br/>height | radius, ed
-| `Sphere`                      | x, y, z,<br/>alpha, beta, gamma | scale,<br/>background | radius, ed
-| `SymmetricLayeredSlabs`       | x, y, z,<br/>alpha, beta, gamma | scale, background,<br/>x_domain_size, y_domain_size | width, ed
-| `AsymmetricLayeredSlabs`      | x, y, z,<br/>alpha, beta, gamma | scale, background,<br/>x_domain_size, y_domain_size | width, ed
-| `Helix`                       | x, y, z,<br/>alpha, beta, gamma | scale, background,<br/>height, helix_radius,<br/>pitch | phase, ed,<br/>cross_section
-| `SpacefillingSymmetry`        | x, y, z,<br/>alpha, beta, gamma | scale | distance, angle,<br/>repetitions
-| `ManualSymmetry`              | x, y, z,<br/>alpha, beta, gamma | scale | Dependes on layers added
-| `PDB`- a PDB file             | x, y, z,<br/>alpha, beta, gamma | scale, solvent_ed,<br/>solvent_probe_radius,<br/>solvation_thickness,<br/> outer_solvent_ed, fill_holes,<br/>solvent_only, solvent_method | N/A
-| `EPDB`- an EPDB file          | x, y, z,<br/>alpha, beta, gamma | scale, solvent_ed,<br/>solvent_probe_radius,<br/>solvation_thickness,<br/> outer_solvent_ed, fill_holes,<br/>solvent_only, solvent_method | N/A
-| `AMP`- an amplitude grid file | x, y, z,<br/>alpha, beta, gamma | scale | N/A
+| Model Name                    | layer_params                    | extra_params | location_params |
+|-------------------------------|---------------------------------|---|---|
+| `UniformHollowCylinder`       | radius, ed                      | scale, background,<br/>height | x, y, z,<br/>alpha, beta, gamma
+| `Sphere`                      | radius, ed                      | scale,<br/>background | x, y, z,<br/>alpha, beta, gamma
+| `SymmetricLayeredSlabs`       | width, ed                       | scale, background,<br/>x_domain_size, y_domain_size | x, y, z,<br/>alpha, beta, gamma
+| `AsymmetricLayeredSlabs`      | width, ed | scale, background,<br/>x_domain_size, y_domain_size | x, y, z,<br/>alpha, beta, gamma
+| `Helix`                       | phase, ed,<br/>cross_section | scale, background,<br/>height, helix_radius,<br/>pitch | x, y, z,<br/>alpha, beta, gamma
+| `SpacefillingSymmetry`        | distance, angle,<br/>repetitions | scale | x, y, z,<br/>alpha, beta, gamma
+| `ManualSymmetry`              | x, y, z,<br/>alpha, beta, gamma | scale | x, y, z,<br/>alpha, beta, gamma
+| `PDB`- a PDB file             | N/A | scale, solvent_ed,<br/>solvent_probe_radius,<br/>solvation_thickness,<br/> outer_solvent_ed, fill_holes,<br/>solvent_only, solvent_method | x, y, z,<br/>alpha, beta, gamma
+| `EPDB`- an EPDB file          | N/A | scale, solvent_ed,<br/>solvent_probe_radius,<br/>solvation_thickness,<br/> outer_solvent_ed, fill_holes,<br/>solvent_only, solvent_method | x, y, z,<br/>alpha, beta, gamma
+| `AMP`- an amplitude grid file | N/A | scale | x, y, z,<br/>alpha, beta, gamma
 
 You can create any model by calling its initialization. 
 
