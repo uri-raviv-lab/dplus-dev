@@ -4,7 +4,7 @@
 # any other directory you want.
 #
 #    docker build -f Dockerfile.manylinux .. -t dplus-api-manylinux:latest --build-arg GITHUB_VERSION=<version>
-#    docker run --rm --name dplus-api-manylinux -v d:\temp:/external dplus-api-manylinux:latest
+#    docker run --rm --name dplus-api-manylinux -v <path-to-where-you-want-the-wheels>:/external dplus-api-manylinux:latest
 #
 # Note: DO NOT PUSH THIS TO Dockerhub - it makes no sense
 
