@@ -1,5 +1,5 @@
 import numpy as np
-from numpy.random import default_rng, Generator, PCG64, randint, random, normal
+from numpy.random import default_rng, randint, random, normal
 from scipy.integrate import simpson
 from scipy.fft import dst, fftfreq
 from scipy.constants import k as Kb

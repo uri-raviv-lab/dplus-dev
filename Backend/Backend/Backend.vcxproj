@@ -380,7 +380,7 @@ copy "$(CudaToolkitBinDir)\curand64_*.dll" "$(TargetDir)"</Command>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Common\lua-5.1.4\src\lua51-backend.vcxproj">
-      <Project>{a0ace53d-3215-4907-926e-98a7a80ca63c}</Project>
+      <Project>{A0ACE53D-3215-4907-926E-98A7A80CA63C}</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\Common\ZipLib\Source\extlibs\zlib\zlib.vcxproj">
       <Project>{baeb16b3-db4c-432f-9e6a-2acadea0691d}</Project>
@@ -393,6 +393,9 @@ copy "$(CudaToolkitBinDir)\curand64_*.dll" "$(TargetDir)"</Command>
     </ProjectReference>
     <ProjectReference Include="..\..\PDBManipulator\PDBManipulator.vcxproj">
       <Project>{e410b34b-b5e5-4c0d-86e9-08367eed64a0}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\PDBReaderLib\PDBReaderLib.vcxproj">
+      <Project>{68DC42F9-1D43-4198-BC14-67F422DFD62B}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
