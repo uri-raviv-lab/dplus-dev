@@ -1,3 +1,5 @@
+import os.path
+
 import numpy as np
 from numpy.random import default_rng, randint, random, normal
 from scipy.integrate import simpson
@@ -24,10 +26,10 @@ NFC = dc.symbol('NFC')
 RO = dc.symbol('RO', dc.float64)
 
 
+
 def MoveToGC(Array):
     """Given a certain matrix of (Nx3) with Cartesian coordinates, returns the same array but moved to its geometric
     center."""
-
     r = np.zeros(3)
     len_array = Array.shape[0]
     # print(len_array, Array.shape)
@@ -591,9 +593,9 @@ def S_Q_from_model(filename: str, q_min: dc.float64 = 0, q_max: dc.float64 = 100
     return q, S_Q[0], rho
 
 
-def S_Q_average_box(xyz, qmax, q_points, size_min, size_max, mean, sigma, file_path=r'.\S_Q_average', qmin=0,
-                    normalize=1, make_fig=1, num_of_s_q_shown=-1, slow=0, thermal=False, u=np.array([0, 0, 0, 0])):#,
-    # use_GPU=True):
+def S_Q_average_box(xyz, qmax, q_points, size_min, size_max, mean, sigma, axes=np.array([1, 1, 1], dtype=np.bool_),
+                    default_rep= np.array([0, 0, 0]), file_path=r'.\S_Q_average', qmin=0, normalize=1, make_fig=1,
+                    num_of_s_q_shown=-1, slow=0,thermal=False, u=np.array([0, 0, 0, 0])):#, use_GPU=True):
 
     num_s_q = int(size_max - size_min)
     if num_of_s_q_shown < 0:
@@ -606,11 +608,12 @@ def S_Q_average_box(xyz, qmax, q_points, size_min, size_max, mean, sigma, file_p
     if slow:
         for i in range(size_min, size_max):
             ind = int(i - size_min)
-            build_crystal(xyz, i, i, i, file_path + '_box_size_' + str(i) + r'.dol')  # If files already exist,
-            # this line can be commented out
-            q, s_q_temp, _ = S_Q_from_model_slow(file_path + '_box_size_' + str(i) + r'.dol',q_min=qmin, q_max=qmax,
-                                                 thermal=thermal, u=u)
-            write_to_out(file_path + '_box_size_' + str(i) +'.out', q, s_q_temp)
+            size = i * axes + default_rep
+            dol_name = file_path + '_box_size_' + str(size[0]) + '_' + str(size[1]) + '_' + str(size[2]) + r'.dol'
+            if not os.path.exists(dol_name):
+                build_crystal(xyz, *size, dol_name)
+            q, s_q_temp, _ = S_Q_from_model_slow(dol_name, q_min=qmin, q_max=qmax, thermal=thermal, u=u)
+            write_to_out(file_path + '_box_size_' +str(size[0]) + '_' + str(size[1]) + '_' + str(size[2]) +'.out', q, s_q_temp)
             if normalize:
                 S_q_all[ind] = s_q_temp / s_q_temp[0]
             else:
@@ -619,11 +622,14 @@ def S_Q_average_box(xyz, qmax, q_points, size_min, size_max, mean, sigma, file_p
     else:
         for i in range(size_min, size_max):
             ind = int(i - size_min)
-            build_crystal(xyz, i, i, i, file_path + '_box_size_' + str(i) + r'.dol')  # If files already exist,
+            size = i * axes + default_rep
+            dol_name = file_path + '_box_size_' + str(size[0]) + '_' + str(size[1]) + '_' + str(size[2]) + r'.dol'
+            if not os.path.exists(dol_name):
+                build_crystal(xyz, *size, dol_name)  # If files already exist,
             # this line can be commented out
-            q, s_q_temp, _ = S_Q_from_model(file_path + '_box_size_' + str(i) + r'.dol', q_min=qmin, q_max=qmax, dq=dqn,
-                                            thermal=thermal, u=u)#, use_GPU=use_GPU)
-            write_to_out(file_path + '_box_size_' + str(i) + '.out', q, s_q_temp)
+            q, s_q_temp, _ = S_Q_from_model(dol_name, q_min=qmin, q_max=qmax, dq=dqn, thermal=thermal, u=u)#,
+            # use_GPU=use_GPU)
+            write_to_out(file_path + '_box_size_' + str(size[0]) + '_' + str(size[1]) + '_' + str(size[2]) + '.out', q, s_q_temp)
             if normalize:
                 S_q_all[ind] = s_q_temp / s_q_temp[0]
             else:
