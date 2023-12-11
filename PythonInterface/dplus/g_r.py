@@ -595,7 +595,7 @@ def S_Q_from_model(filename: str, q_min: dc.float64 = 0, q_max: dc.float64 = 100
 
 def S_Q_average_box(xyz, qmax, q_points, size_min, size_max, mean, sigma, axes=np.array([1, 1, 1], dtype=np.bool_),
                     default_rep= np.array([0, 0, 0]), file_path=r'.\S_Q_average', qmin=0, normalize=1, make_fig=1,
-                    num_of_s_q_shown=-1, slow=0,thermal=False, u=np.array([0, 0, 0, 0])):#, use_GPU=True):
+                    num_of_s_q_shown=-1, slow=0,thermal=False, u=np.array([0, 0, 0, 0]), verbose=False):#, use_GPU=True):
 
     num_s_q = int(size_max - size_min)
     if num_of_s_q_shown < 0:
@@ -618,7 +618,10 @@ def S_Q_average_box(xyz, qmax, q_points, size_min, size_max, mean, sigma, axes=n
                 S_q_all[ind] = s_q_temp / s_q_temp[0]
             else:
                 S_q_all[ind] = s_q_temp
-            print('Done with', i)
+            if not verbose:
+                continue
+            else:
+                print('Done with', i)
     else:
         for i in range(size_min, size_max):
             ind = int(i - size_min)
@@ -634,7 +637,10 @@ def S_Q_average_box(xyz, qmax, q_points, size_min, size_max, mean, sigma, axes=n
                 S_q_all[ind] = s_q_temp / s_q_temp[0]
             else:
                 S_q_all[ind] = s_q_temp
-            print('Done with', i)
+            if not verbose:
+                continue
+            else:
+                print('Done with', i)
 
     weight = stats.norm.pdf(range(size_min, size_max), mean, sigma)
     S_q_final = np.average(S_q_all, weights=weight, axis=0)

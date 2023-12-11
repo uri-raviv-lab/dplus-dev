@@ -376,6 +376,8 @@ parameters `alpha`, `beta`, `gamma` need to be given in radians.
 All models have `location_params` (Location Parameters) and  `extra_params` (Extra Parameters). 
 Some models (that support layers) also contain `layer_params`.
 These can be accessed from `model.location_params`, `model.extra_params`, and `model.layer_params`, respectively.
+Most models which have layers are initialized with two layers (indices 0, 1) where the first one (0) is the solvent layer, and the second one (1) is the first model layer.
+It is possible to add more layers to the model through `model.add_layer()`.
 On top of these, both PDB and EPDB can receive an anomalous file as a string, this can be done through `E/PDB.anomfile`, or be centered to their center of mass, done with the boolean `E\PDB.centered`.
 
 They contain special custom python containers, based on standard python containers, but with validation
