@@ -594,8 +594,9 @@ def S_Q_from_model(filename: str, q_min: dc.float64 = 0, q_max: dc.float64 = 100
 
 
 def S_Q_average_box(xyz, qmax, q_points, size_min, size_max, mean, sigma, axes=np.array([1, 1, 1], dtype=np.bool_),
-                    default_rep= np.array([0, 0, 0]), file_path=r'.\S_Q_average', qmin=0, normalize=1, make_fig=1,
-                    num_of_s_q_shown=-1, slow=0,thermal=False, u=np.array([0, 0, 0, 0]), verbose=False):#, use_GPU=True):
+                    default_rep=np.array([0, 0, 0]), file_path=r'.\S_Q_average', qmin=0, normalize=True, make_fig=True,
+                    num_of_s_q_shown=-1, slow=False, thermal=False, u=np.array([0, 0, 0, 0]), verbose=False):
+    # TODO: Find a way to make this work with GPU
 
     num_s_q = int(size_max - size_min)
     if num_of_s_q_shown < 0:
@@ -628,10 +629,8 @@ def S_Q_average_box(xyz, qmax, q_points, size_min, size_max, mean, sigma, axes=n
             size = i * axes + default_rep
             dol_name = file_path + '_box_size_' + str(size[0]) + '_' + str(size[1]) + '_' + str(size[2]) + r'.dol'
             if not os.path.exists(dol_name):
-                build_crystal(xyz, *size, dol_name)  # If files already exist,
-            # this line can be commented out
-            q, s_q_temp, _ = S_Q_from_model(dol_name, q_min=qmin, q_max=qmax, dq=dqn, thermal=thermal, u=u)#,
-            # use_GPU=use_GPU)
+                build_crystal(xyz, *size, dol_name)
+            q, s_q_temp, _ = S_Q_from_model(dol_name, q_min=qmin, q_max=qmax, dq=dqn, thermal=thermal, u=u)#,use_GPU=use_GPU)
             write_to_out(file_path + '_box_size_' + str(size[0]) + '_' + str(size[1]) + '_' + str(size[2]) + '.out', q, s_q_temp)
             if normalize:
                 S_q_all[ind] = s_q_temp / s_q_temp[0]

@@ -25,11 +25,12 @@ class DomainPreferences:
         self.__signal_file = ""
         self.__convergence = 0.001
         self.__grid_size = 200
-        self.__orientation_iterations = 100
+        self.__orientation_iterations = 1e6
         self.__orientation_method = "Monte Carlo (Mersenne Twister)"
         self.__use_grid = True
         self.__apply_resolution = False
         self.__resolution_sigma = RESOLUTION_SIGMA_DEFAULT
+        self.__update_interval = 300
         self.signal = Signal.create_x_vector(7.5, 0, 800, is2D)
 
     @property
@@ -240,6 +241,23 @@ class DomainPreferences:
         except:
             raise ValueError("Orientation iterations must be integer")
 
+    @property
+    def update_interval(self):
+        '''
+        The number of milliseconds that the frontend waits before
+        polling the backend for progress. Broken.
+        '''
+        return self.__update_interval
+
+    @update_interval.setter
+    def update_interval(self, x):
+        try:
+            if x <= 0:
+                raise ValueError("Update interval must be greater than zero")
+            self.__update_interval = x
+        except:
+            raise ValueError("Update interval must be integer")
+
     def serialize(self):
         return {
             "SignalFile": self.signal_file,
@@ -252,6 +270,7 @@ class DomainPreferences:
             "OrientationMethod": self.orientation_method,
             "ApplyResolution": self.apply_resolution,
             "ResolutionSigma": self.resolution_sigma,
+            "UpdateInterval": self.update_interval,  # The number of milliseconds that the frontend waits before
 
             ##### irrelevant/defunct parameters:####
             "DrawDistance": 200,  # GUI parameter. Determines how far camera can "see." It's a
@@ -259,7 +278,6 @@ class DomainPreferences:
             "LevelOfDetail": 1,  # GUI parameter. Determines the level of detail when rendering.
             "Fitting_UpdateDomain": False,  # Deprecated and disabled in the GUI. Default should be false?
             "Fitting_UpdateGraph": True,  # Deprecated and disabled in the GUI. Default should be true to match GUI
-            "UpdateInterval": 100,  # The number of milliseconds that the frontend waits before
             "GeneratedPoints": self.generated_points,  # The length of x vector
             #	polling the backend for progress. Broken.
         }

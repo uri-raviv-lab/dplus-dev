@@ -579,14 +579,11 @@ class ModelWithLayers(Model):
         '''Layer_num indexing is like python i.e. first layer index is 0. Layer_num can be either an integer, a list of
         indices, or a range.'''
         if type(layer_num) == int:
-            print('int')
             del self.layer_params[layer_num]
         elif type(layer_num) == range:
-            print('range')
             for ind in layer_num:
                 del self.layer_params[layer_num[0]]
         else:
-            print('list')
             new_list = np.sort(layer_num)
             j=0
             for ind in new_list:
@@ -1293,16 +1290,19 @@ class ManualSymmetry(ModelWithChildren, ModelWithLayers):
                         self.layer_params[-1]['beta'].value = row[5]
                         self.layer_params[-1]['gamma'].value = row[6]
                 except:  ## Needed for dol files created with PDB units
-                    dol = csv.reader(file, delimiter=' ', quoting=csv.QUOTE_NONNUMERIC)
-                    for row in dol:
-                        self.add_layer()
-                        self.layer_params[-1]['x'].value = row[1]
-                        self.layer_params[-1]['y'].value = row[2]
-                        self.layer_params[-1]['z'].value = row[3]
-                        self.layer_params[-1]['alpha'].value = row[4]
-                        self.layer_params[-1]['beta'].value = row[5]
-                        self.layer_params[-1]['gamma'].value = row[6]
+                    file.close()
+                    with open(filename, encoding='utf-8') as file:
+                        dol = csv.reader(file, delimiter=' ', quoting=csv.QUOTE_NONNUMERIC)
+                        for row in dol:
+                            self.add_layer()
+                            self.layer_params[-1]['x'].value = row[1]
+                            self.layer_params[-1]['y'].value = row[2]
+                            self.layer_params[-1]['z'].value = row[3]
+                            self.layer_params[-1]['alpha'].value = row[4]
+                            self.layer_params[-1]['beta'].value = row[5]
+                            self.layer_params[-1]['gamma'].value = row[6]
         except:
+			file.close()
             with open(filename, encoding='utf-16') as file:
                 dol = csv.reader(file, delimiter='\t', quoting=csv.QUOTE_NONNUMERIC)
                 for row in dol:
