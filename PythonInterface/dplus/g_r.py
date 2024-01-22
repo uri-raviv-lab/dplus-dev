@@ -147,15 +147,26 @@ def write_to_dol(dol_file, xyz):
 
 def find_atm_rad(atm_type):
     """For now the function only returns the atomic radius of [H, He, Li, Be, B, C, N, O, Na, Cl]."""
-
+    
     atm_type = atm_type.replace(' ', '')
-    rad_dic = {'H': 53.0, 'He': 31.0, 'Li': 167.0, 'Be': 112.0, 'B': 87.0, 'C': 67.0, 'N': 56.0, 'O': 48.0, 'Na': 190.0,
-               'Cl': 79.0}
+    # rad_dic = {'H': 53.0, 'He': 31.0, 'Li': 167.0, 'Be': 112.0, 'B': 87.0, 'C': 67.0, 'N': 56.0, 'O': 48.0, 'Na': 190.0,
+    #            'Cl': 79.0, }
+    rad_dic = {
+    'H': 53, 'He': 31, 'Li': 167, 'Be': 112, 'B': 87, 'C': 67, 'N': 56, 'O': 48, 'F': 42, 'Ne': 38, 'Na': 190,
+    'Mg': 145, 'Al': 118, 'Si': 111, 'P': 98, 'S': 88, 'Cl': 79, 'K': 243, 'Ca': 194, 'Sc': 184, 'Ti': 176,
+    'V': 171, 'Cr': 166, 'Mn': 161, 'Fe': 156, 'Ni': 149, 'Cu': 145, 'Zn': 142, 'Ga': 136, 'Ge': 125, 'As': 114,
+    'Se': 103, 'Br': 94, 'Kr': 88, 'Rb': 265, 'Sr': 219, 'Y': 212, 'Zr': 206, 'Nb': 198, 'Mo': 190, 'Tc': 183,
+    'Ru': 178, 'Rh': 173, 'Pd': 169, 'Ag': 165, 'Cd': 161, 'In': 156, 'Sn': 145, 'Sb': 133, 'Te': 123, 'I': 115,
+    'Xe': 108, 'Cs': 298, 'Ba': 253, 'La': 195, 'Ce': 186, 'Pr': 185, 'Nd': 184, 'Pm': 183, 'Sm': 181, 'Eu': 199,
+    'Gd': 196, 'Tb': 194, 'Dy': 192, 'Ho': 191, 'Er': 189, 'Tm': 188, 'Yb': 187, 'Lu': 175, 'Hf': 167, 'Ta': 149,
+    'W': 141, 'Re': 137, 'Os': 135, 'Ir': 136, 'Pt': 139, 'Au': 144, 'Hg': 150, 'Tl': 170, 'Pb': 146, 'Bi': 148,
+    'Th': 180, 'Pa': 180, 'U': 175, 'Np': 175, 'Pu': 175, 'Am': 175, 'Cm': 174, 'Bk': 170, 'Cf': 170
+}
     atm_rad = rad_dic[atm_type]
     return atm_rad / 1e3
 
 
-def read_from_file(filename, r=0):
+def read_from_file(filename, r=-1):
     """Given a .dol or .pdb file, reads the file and returns a (Nx4) matrix with data [x, y, z, radius] of each atom.
     If the file is a .dol then the radius is as given in the function, if a .pdb then as given from function
     find_atm_rad."""
@@ -188,7 +199,11 @@ def read_from_file(filename, r=0):
             vec = np.array([])
             for line in pdb:
                 if (line[:6] == 'ATOM  ') | (line[:6] == 'HETATM'):
-                    atm_rad = find_atm_rad(line[76:78])
+                    if r == -1:
+                        atm_rad = find_atm_rad(line[76:78])
+                    else:
+                        atm_rad = r
+                    # atm_rad = find_atm_rad(line[76:78])
                     vec = np.append(vec, [float(line[30:38]) / 10, float(line[38:46]) / 10, float(line[46:54]) / 10,
                                           atm_rad])
                 else:
@@ -1178,6 +1193,7 @@ def print_last_state(filepath, k_spring, temperature, MaxDistance, rest_distance
                      acceptance_rate, state_energy, positions, run_number):
     if filepath[-3:] != 'dol':
         filepath += '.dol'
+    filepath = filepath[:-4] + '_run_' + str(run_number) + '.dol'
 
     with open(filepath, 'w', newline='', encoding='utf-8') as file:
         outfile = csv.writer(file, delimiter='\t', quoting=csv.QUOTE_NONNUMERIC)
@@ -1271,6 +1287,8 @@ def MC_Sim(dol_in, dol_out, temperature, MaxDistance, rest_distance, step_size, 
             # printing the state every 10, 000 accepted states
             if number_of_accepted_states % 1e4 == 0:
                 print('accepted %i states' %(number_of_accepted_states))
+                print_last_state(dol_out, args, temperature, MaxDistance, rest_distance, step_size, iterations,
+                                 number_of_accepted_states / iterations, New_State_energy, New_Positions, i)
         else:
             # if the change is not accepted then you save the last state as the new state
             New_Positions = np.copy(Last_Positions)

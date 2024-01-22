@@ -1302,7 +1302,7 @@ class ManualSymmetry(ModelWithChildren, ModelWithLayers):
                             self.layer_params[-1]['beta'].value = row[5]
                             self.layer_params[-1]['gamma'].value = row[6]
         except:
-			file.close()
+            file.close()
             with open(filename, encoding='utf-16') as file:
                 dol = csv.reader(file, delimiter='\t', quoting=csv.QUOTE_NONNUMERIC)
                 for row in dol:
