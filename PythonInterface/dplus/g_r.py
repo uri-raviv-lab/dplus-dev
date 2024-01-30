@@ -1,11 +1,12 @@
 import os.path
-
+import fileinput
 import numpy as np
 from numpy.random import default_rng, randint, random, normal
 from scipy.integrate import simpson
 from scipy.fft import dst, fftfreq
 from scipy.constants import k as Kb
 import scipy.stats as stats
+from scipy.spatial import distance_matrix
 import csv
 import math
 import dace as dc
@@ -146,11 +147,8 @@ def write_to_dol(dol_file, xyz):
 
 
 def find_atm_rad(atm_type):
-    """For now the function only returns the atomic radius of [H, He, Li, Be, B, C, N, O, Na, Cl]."""
-    
+
     atm_type = atm_type.replace(' ', '')
-    # rad_dic = {'H': 53.0, 'He': 31.0, 'Li': 167.0, 'Be': 112.0, 'B': 87.0, 'C': 67.0, 'N': 56.0, 'O': 48.0, 'Na': 190.0,
-    #            'Cl': 79.0, }
     rad_dic = {
     'H': 53, 'He': 31, 'Li': 167, 'Be': 112, 'B': 87, 'C': 67, 'N': 56, 'O': 48, 'F': 42, 'Ne': 38, 'Na': 190,
     'Mg': 145, 'Al': 118, 'Si': 111, 'P': 98, 'S': 88, 'Cl': 79, 'K': 243, 'Ca': 194, 'Sc': 184, 'Ti': 176,
@@ -999,6 +997,7 @@ def g_r_from_model(file: str, size_or_reps: dc.float64[3], radius: dc.float64 = 
 Number_for_average_atoms = dc.symbol('Number_for_average_atoms')
 Number_for_average_conf = dc.symbol('Number_for_average_conf')
 
+
 @dc.program(auto_optimize=True, regenerate_code=True)
 def compute_sq(q: dc.float64[Q], S_Q: dc.float64[Q], r_mat: dc.float64[L, 4]):
     qr: dc.float64[Q]
@@ -1103,31 +1102,29 @@ def compute_gr(bins: dc.float64[M], vec_triple: dc.float64[NFC, TV, TF], vec: dc
 
     return bins, g_r[0], rho
 
+
 my_gen = default_rng()  # Generator(PCG64())
 
-def Calc_Distance_Matrix_AS_Bound_version(positions, MaxDistance):
-    Lattice_Number = np.shape(positions)[0]
 
-    Distance_Matrix = np.zeros([Lattice_Number, Lattice_Number])
+def Calc_Distance_Matrix_AS_Bound_version(positions, MaxDistance, potential_type='Hook'):
+    # Calculate the full distance matrix
+    Distance_Matrix = distance_matrix(positions, positions)
 
-    for j in range(Lattice_Number):
-        A = - np.eye(Lattice_Number)
-        A[j, :] = 1
-        A[:, :j+1] = 0
-        X = np.matmul(positions[:, 0], A)
-        Y = np.matmul(positions[:, 1], A)
-        Z = np.matmul(positions[:, 2], A)
+    # Zero out the lower half of the matrix
+    Distance_Matrix = np.triu(Distance_Matrix)
 
-        Distance_Matrix[j, :] = np.sqrt(X**2 + Y**2 + Z**2)
+    if potential_type == 'Hook':
+        # Zero out distances greater than MaxDistance
         Distance_Matrix[Distance_Matrix > MaxDistance] = 0
 
     return Distance_Matrix
 
+
 def Calc_State_Energy(Distance_Matrix, Rest_Distance, potential_type='Hook', *args):
     # throw out all non - connected atoms (zeros in Initial_distance_matrix), transfer to meters
-    Distance_of_Connected_Atoms = Distance_Matrix[np.nonzero(Distance_Matrix)] * 1e-9
+    Distance_of_Connected_Atoms = Distance_Matrix[np.nonzero(Distance_Matrix)]
     if potential_type == 'Hook':  # Calculate hook potential for all connected pairs
-        Potential = 0.5 * args[0] * (Distance_of_Connected_Atoms - Rest_Distance * 1e-9)**2
+        Potential = 0.5 * args[0] * (Distance_of_Connected_Atoms - Rest_Distance)**2
     elif potential_type == 'LJ':  # Calculate Lennard-Jones potential for all connected pairs
         sig_r = args[1] / Distance_of_Connected_Atoms
         Potential = 4 * args[0] * (np.power(sig_r, 12) - np.power(sig_r, 6))
@@ -1136,13 +1133,14 @@ def Calc_State_Energy(Distance_Matrix, Rest_Distance, potential_type='Hook', *ar
         return NotImplementedError
     # sum up the energy of all connected pairs in the system
     State_Energy = np.sum(Potential)
-
     return State_Energy
+
 
 def Randomize_step(Step_Size, Sigma, dim, where_true):
     if dim == 1:
         R = my_gen.normal(Step_Size, Sigma)
         xyz = where_true * R
+
     elif dim == 2:
         R = my_gen.normal(Step_Size, Sigma)  # the radius of the step in nm, this random function is choosing the step
         # according to normal Gaussian distribution around step_size
@@ -1171,69 +1169,53 @@ def Randomize_step(Step_Size, Sigma, dim, where_true):
 
     return xyz
 
-# def print_states(filepath, k_spring, temperature, MaxDistance, rest_distance, step_size, iterations, state_energy,
-#                  positions, run_number):
-#     filename = filepath + r'.\pyNew_State_' + str(run_number) + r'.dol'
-#
-#     with open(filename, 'w', newline='', encoding='utf-8') as file:
-#         outfile = csv.writer(file, delimiter='\t', quoting=csv.QUOTE_NONNUMERIC)
-#         outfile.writerow(['# k_spring:', k_spring])
-#         outfile.writerow(['# temperature:', temperature])
-#         outfile.writerow(['# MaxDistance:', MaxDistance])
-#         outfile.writerow(['# rest_distance:', rest_distance])
-#         outfile.writerow(['# Kb:', Kb])
-#         outfile.writerow(['# step_size:', step_size])
-#         outfile.writerow(['# iterations:', iterations])
-#         outfile.writerow(['# Last_state_enrgy:', state_energy])
-#         for i in range(positions.shape[0]):
-#             outfile.writerow([i, *positions[i], 0, 0, 0])
-#     return
 
 def print_last_state(filepath, k_spring, temperature, MaxDistance, rest_distance, step_size, iterations,
                      acceptance_rate, state_energy, positions, run_number):
+
     if filepath[-3:] != 'dol':
         filepath += '.dol'
     filepath = filepath[:-4] + '_run_' + str(run_number) + '.dol'
 
-    with open(filepath, 'w', newline='', encoding='utf-8') as file:
+    with open(filepath, 'w', encoding='utf-8', newline='\n') as file:
         outfile = csv.writer(file, delimiter='\t', quoting=csv.QUOTE_NONNUMERIC)
-        outfile.writerow(['# k_spring:', k_spring])
-        outfile.writerow(['# temperature:', temperature])
-        outfile.writerow(['# MaxDistance:', MaxDistance])
-        outfile.writerow(['# rest_distance:', rest_distance])
-        outfile.writerow(['# Kb:', Kb])
-        outfile.writerow(['# step_size:', step_size])
-        outfile.writerow(['# iterations:', iterations])
-        outfile.writerow(['# Acceptance Rate:', acceptance_rate])
-        outfile.writerow(['# Last state energy:', state_energy])
+        outfile.writerow(["# k_spring:", k_spring])
+        outfile.writerow(["# temperature:", temperature])
+        outfile.writerow(["# MaxDistance:", MaxDistance])
+        outfile.writerow(["# rest_distance:", rest_distance])
+        outfile.writerow(["# step_size:", step_size])
+        outfile.writerow(["# iterations:", iterations])
+        outfile.writerow(["# Acceptance Rate:", acceptance_rate])
+        outfile.writerow(["# Last state energy:", state_energy])
         for i in range(positions.shape[0]):
             outfile.writerow([i, *positions[i], 0, 0, 0])
+
     return
 
-def MC_Sim(dol_in, dol_out, temperature, MaxDistance, rest_distance, step_size, iterations, sigma, my_pot, *args):
+
+def MC_Sim(dol_in, dol_out, temperature, MaxDistance, rest_distance, step_size, iterations, sigma, my_pot, *args,
+           pop_out_num=1e3):
     '''
     :param dol_in: filepath to .dol to do the simulation on
     :param dol_out: filepath of the final model
     :param temperature: simulation temperature in K
-    :param MaxDistance: maximal distance a molecule can move (in nm)
+    :param MaxDistance: maximal distance to be considered as bound (in nm)
     :param rest_distance: the rest distance between two molecules (in nm)
     :param step_size: the center of the gaussian distribution according to which the molecule will move (in nm)
     :param iterations: number of iterations to run
     :param sigma: the sampling limit around step_size
     :param my_pot: 'Hook' or 'LJ' (for Lennard-Jones)
-    :param args: for Hook, the spring constant, for LJ, epsilon and sigma (V=4*eps*((sig/r)**12-(sig/r)**6))
+    :param args: for Hook (V = 0.5 * k * (x - x0)***2), the spring constant (in kT) , for LJ (V=4*eps*((sig/r)**12-(sig/r)**6)),
+     epsilon (in kT) and sigma (in nm)
+    :param pop_out_num: number of accepted states between each printing
 
-    :return: Energy_Vector, Distance_Vector
+    :return: Energy_Vector, Distance_Vector, acceptance_rate
     '''
 
     Initial_Positions, Lattice_Number = read_from_file(dol_in, 0)
     Initial_Positions = Initial_Positions[:, :3]
     where_true = np.any(Initial_Positions, axis=0)
     dim = np.sum(where_true)
-    # if np.any(Initial_Positions[:, 2]):
-    #     dim = 3
-    # else:
-    #     dim = 2
 
     # defined variables
     Energy_Vector = []
@@ -1242,10 +1224,10 @@ def MC_Sim(dol_in, dol_out, temperature, MaxDistance, rest_distance, step_size, 
     New_Positions = np.copy(Initial_Positions)
     number_of_accepted_states = 0
 
-    New_distance_matrix = Calc_Distance_Matrix_AS_Bound_version(Initial_Positions, MaxDistance)
+    New_distance_matrix = Calc_Distance_Matrix_AS_Bound_version(Initial_Positions, MaxDistance, my_pot)
     New_State_energy = Calc_State_Energy(New_distance_matrix, rest_distance, my_pot, *args)
 
-    Distance_Vector = np.append(Distance_Vector, New_distance_matrix[np.nonzero(New_distance_matrix)] * 1e-9)
+    Distance_Vector = np.append(Distance_Vector, New_distance_matrix[np.nonzero(New_distance_matrix)])
     Energy_Vector = np.append(Energy_Vector, New_State_energy)
 
     # creating one new random step
@@ -1254,6 +1236,8 @@ def MC_Sim(dol_in, dol_out, temperature, MaxDistance, rest_distance, step_size, 
 
     ## creating new state
     for i in range(iterations):
+        if (i + 1) % pop_out_num == 0:
+            print('iteration number %i, with %i accepted states' % (i+1, number_of_accepted_states))
         Last_State_energy = np.copy(New_State_energy)  # transfer New_State_energy to Last_State_energy
         Last_distance_matrix = np.copy(New_distance_matrix)  # transfer New_distance_matrix to Last_distance_matrix each
         # iteration, if accepted then it will be the change and if not then it will be without the state (see
@@ -1264,31 +1248,26 @@ def MC_Sim(dol_in, dol_out, temperature, MaxDistance, rest_distance, step_size, 
         New_Positions[Chosen_Atom[i]] += xyz
 
         # calculate distance only on connected atoms
-        New_distance_matrix = Calc_Distance_Matrix_AS_Bound_version(New_Positions, MaxDistance)
-
-        # stop the simulation if the lattice is broken
-        B = New_distance_matrix > MaxDistance  # the condition is MaxDistance, should be controlled using well_depth.
-        A = np.sum(B)
-        if A != 0:
-            break
+        New_distance_matrix = Calc_Distance_Matrix_AS_Bound_version(New_Positions, MaxDistance, my_pot)
 
         # calculate energy
         New_State_energy = Calc_State_Energy(New_distance_matrix, rest_distance, my_pot, *args)
         Energy_Vector = np.append(Energy_Vector, New_State_energy)
-        Distance_Vector = np.append(Distance_Vector, New_distance_matrix[np.nonzero(New_distance_matrix)] * 1e-9)
+        Distance_Vector = np.append(Distance_Vector, New_distance_matrix[np.nonzero(New_distance_matrix)])
 
-        ## metropolis condition
-        Energy_Change = np.abs(New_State_energy - Last_State_energy)  # the energy difference between each new state and the initial state
+        # metropolis condition
+        Energy_Change = New_State_energy - Last_State_energy  # the energy difference between new and the initial state
 
-        p = np.exp(-(Energy_Change / (Kb * temperature)))  # the probabilty of each new state
+        p = np.exp(- Energy_Change)  # the probability of each new state
 
-        if (New_State_energy < Last_State_energy) or (p < rand_num[i]):  # the condition to accept or deny new state
+        if (New_State_energy <= Last_State_energy) or (p >= rand_num[i]):  # the condition to accept or deny new state
             number_of_accepted_states += 1  # counting each accepted state
-            # printing the state every 10, 000 accepted states
-            if number_of_accepted_states % 1e4 == 0:
-                print('accepted %i states' %(number_of_accepted_states))
+            # printing the state every pop_out_num accepted states
+            if number_of_accepted_states % pop_out_num == 0:
+                acceptance_rate = number_of_accepted_states / (i+1)
+                print('accepted %i states, acceptance rate is %.3f' % (number_of_accepted_states, acceptance_rate))
                 print_last_state(dol_out, args, temperature, MaxDistance, rest_distance, step_size, iterations,
-                                 number_of_accepted_states / iterations, New_State_energy, New_Positions, i)
+                                 number_of_accepted_states / iterations, New_State_energy, New_Positions, i+1)
         else:
             # if the change is not accepted then you save the last state as the new state
             New_Positions = np.copy(Last_Positions)
@@ -1297,12 +1276,13 @@ def MC_Sim(dol_in, dol_out, temperature, MaxDistance, rest_distance, step_size, 
 
     # acceptance rate
     acceptance_rate = number_of_accepted_states / iterations
+    print('acceptance rate is %f' % acceptance_rate)
 
     # printing the last state
     print_last_state(dol_out, args, temperature, MaxDistance, rest_distance, step_size, iterations,
                      acceptance_rate, New_State_energy, New_Positions, i)
 
-    return Energy_Vector, Distance_Vector
+    return Energy_Vector, Distance_Vector, acceptance_rate
 
 
 if __name__ == '__main__':

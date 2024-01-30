@@ -61,10 +61,9 @@ def zimm_analysis():
 
 if __name__ == '__main__':
     folder = r"D:\Eytan\Synchotron\Hamburg_08_23\p3l-raviv-2023-08-14-SECSAXS_Tub_10GTP\analysis\By_Eytan\Peak_2"
-    # file_names = get_file_names(folder)
-    # print(file_names)
-    # data, sigmas = concat_data(file_names)
-    R = svd_analysis(folder, num_components=7)
+    num_of_components = 109
+    R = svd_analysis(folder, num_components=num_of_components)
 
-    plt.plot(np.linspace(1, 7, 7), R)
+    plt.plot(np.linspace(1, num_of_components, num_of_components), R)
     plt.show()
+

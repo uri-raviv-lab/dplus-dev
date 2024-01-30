@@ -1282,6 +1282,8 @@ class ManualSymmetry(ModelWithChildren, ModelWithLayers):
                 try:
                     dol = csv.reader(file, delimiter='\t', quoting=csv.QUOTE_NONNUMERIC)
                     for row in dol:
+                        if type(row[0]) == str:
+                            continue
                         self.add_layer()
                         self.layer_params[-1]['x'].value = row[1]
                         self.layer_params[-1]['y'].value = row[2]
@@ -1294,6 +1296,8 @@ class ManualSymmetry(ModelWithChildren, ModelWithLayers):
                     with open(filename, encoding='utf-8') as file:
                         dol = csv.reader(file, delimiter=' ', quoting=csv.QUOTE_NONNUMERIC)
                         for row in dol:
+                            if type(row[0]) == str:
+                                continue
                             self.add_layer()
                             self.layer_params[-1]['x'].value = row[1]
                             self.layer_params[-1]['y'].value = row[2]
@@ -1306,6 +1310,8 @@ class ManualSymmetry(ModelWithChildren, ModelWithLayers):
             with open(filename, encoding='utf-16') as file:
                 dol = csv.reader(file, delimiter='\t', quoting=csv.QUOTE_NONNUMERIC)
                 for row in dol:
+                    if type(row[0]) == str:
+                        continue
                     self.add_layer()
                     self.layer_params[-1]['x'].value = row[1]
                     self.layer_params[-1]['y'].value = row[2]
