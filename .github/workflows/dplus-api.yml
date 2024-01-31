@@ -55,7 +55,7 @@ jobs:
           cuda: '11.7.0'
           method: 'network'
       - name: Add msbuild to PATH
-        uses: microsoft/setup-msbuild@v2
+        uses: microsoft/setup-msbuild@v1.3
       - name: Compile Backend
         env:
           BOOST_ROOT: ${{ github.workspace }}/boost
