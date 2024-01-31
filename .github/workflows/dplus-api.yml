@@ -10,7 +10,7 @@ jobs:
     name: Create the manylinux wheels for all supported Python versions
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Build docker image
         working-directory: PythonInterface
         run: docker build -f Dockerfile.manylinux .. -t dplus-api-manylinux:latest --build-arg GITHUB_VERSION=${{ github.ref }}
@@ -27,36 +27,42 @@ jobs:
           tag: ${{ github.ref }}
           overwrite: true
           body: "DPlus API Manylinux Wheels"
+      - name: Install and upload Gemfury CLI # This part needs to be checked
+        run: pip install gemfury
+      - name: Upload to Gemfury
+        env:
+          FURY_AUTH: ${{ secrets.GEMFURY_AUTH }}
+        run: fury push PythonInterface/dplus_api*.whl
 
   windows-wheels:
     runs-on: windows-latest  # Required for Visual Studio 2019
     strategy:
       matrix:
-        python-version: [ '3.8', '3.9', '3.10', '3.11' ]
+        python-version: [ '3.8', '3.9', '3.10', '3.11', '3.12' ]
     name: Create the Windows Wheel for Python ${{ matrix.python-version }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Install boost
         run: |
           Invoke-WebRequest https://boost.teeks99.com/bin/1.79.0/boost_1_79_0-msvc-14.3-64.exe -OutFile boost-setup.exe
           .\boost-setup.exe /DIR=boost /SILENT | Out-Null
           move boost\lib64-msvc-14.3 boost\lib64
       - name: Set up CUDA
-        uses: Jimver/cuda-toolkit@v0.2.10
+        uses: Jimver/cuda-toolkit@v0.2.14
         id: cuda-toolkit
         with:
           cuda: '11.7.0'
           method: 'network'
       - name: Add msbuild to PATH
-        uses: microsoft/setup-msbuild@v1.1          
+        uses: microsoft/setup-msbuild@v2
       - name: Compile Backend
         env:
           BOOST_ROOT: ${{ github.workspace }}/boost
         run: |
           msbuild Dplus.sln /p:Configuration=Release /p:Platform=x64 /t:Backend\Backend:Rebuild
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
           architecture: x64
@@ -83,3 +89,10 @@ jobs:
           tag: ${{ github.ref }}
           overwrite: true
           body: "Windows Wheels"
+      - name: Install and upload Gemfury CLI # This part needs to be checked
+        run: pip install gemfury
+      - name: Upload to Gemfury
+        env:
+          FURY_AUTH: ${{ secrets.GEMFURY_AUTH }}
+        run: fury push PythonInterface/dplus_api*.whl
+
