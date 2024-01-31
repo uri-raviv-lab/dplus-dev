@@ -50,7 +50,7 @@ jobs:
         run: |
           msbuild Dplus.sln /p:Configuration=ReleaseWithDebugInfo /p:Platform=x64 /t:Backend\Backend:Rebuild
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: 3.9
           architecture: x64
