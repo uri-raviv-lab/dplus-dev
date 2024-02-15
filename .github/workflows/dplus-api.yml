@@ -27,12 +27,12 @@ jobs:
           tag: ${{ github.ref }}
           overwrite: true
           body: "DPlus API Manylinux Wheels"
-      - name: Install and upload Gemfury CLI # This part needs to be checked
-        run: pip install gemfury
-      - name: Upload to Gemfury
-        env:
-          FURY_AUTH: ${{ secrets.GEMFURY_AUTH }}
-        run: fury push PythonInterface/dplus_api*.whl
+      # - name: Install and upload Gemfury CLI # This part needs to be checked
+      #   run: pip install gemfury
+      # - name: Upload to Gemfury
+      #   env:
+      #     FURY_AUTH: $ {{ secrets.GEMFURY_AUTH }} # delete space between $ and {{
+      #   run: fury push PythonInterface/dplus_api*.whl
 
   windows-wheels:
     runs-on: windows-latest  # Required for Visual Studio 2019
@@ -89,10 +89,10 @@ jobs:
           tag: ${{ github.ref }}
           overwrite: true
           body: "Windows Wheels"
-      - name: Install and upload Gemfury CLI # This part needs to be checked
-        run: pip install gemfury
-      - name: Upload to Gemfury
-        env:
-          FURY_AUTH: ${{ secrets.GEMFURY_AUTH }}
-        run: fury push PythonInterface/dplus_api*.whl
+      # - name: Install and upload Gemfury CLI # This part needs to be checked
+      #   run: pip install gemfury
+      # - name: Upload to Gemfury
+      #   env:
+      #     FURY_AUTH: ${{ secrets.GEMFURY_AUTH }}
+      #   run: fury push PythonInterface/dplus_api*.whl 
 
