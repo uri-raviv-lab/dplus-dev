@@ -1361,6 +1361,47 @@ class ManualSymmetry(ModelWithChildren, ModelWithLayers):
         return
 
 
+def pdb_to_xyz(file):
+    with open(file, 'r') as f:
+        lines = f.readlines()
+
+    atoms = []
+    for line in lines:
+        if line.startswith('ATOM') or line.startswith('HETATM'):
+            data = np.array(line.split()[5:8], dtype=float)
+            atom = line.split()[-1]
+            atoms.append([atom, data])
+
+    num_atoms = len(atoms)
+
+    with open(file[:-3] + 'xyz', 'w') as f:
+        f.write(str(num_atoms) + '\n')
+        f.write('\n')
+        for atom in atoms:
+            f.write(atom[0] + ' ' + ' '.join([str(x) for x in atom[1]]) + '\n')
+    # atoms = np.array(atoms)
+    return atoms, num_atoms
+
+
+def xyz_to_pdb(file):
+    with open(file, 'r') as f:
+        lines = f.readlines()
+
+    atoms = []
+    for line in lines[2:]:
+        data = line.split()
+        atom = data[0]
+        coords = np.array(data[1:], dtype=float)
+        atoms.append([atom, coords])
+
+    num_atoms = len(atoms)
+
+    with open(file[:-3] + 'pdb', 'w') as f:
+        for i, atom in enumerate(atoms):
+            f.write(f'ATOM  {i+1:5d} {atom[0]:<3s}   ***    1    {atom[1][0]:8.3f}{atom[1][1]:8.3f}{atom[1][2]:8.3f}  1.00  0.00          {atom[0]:>2s}\n')
+
+    return atoms, num_atoms
+
 for model in hardcode_models:
     ModelFactory.add_model(model)
 

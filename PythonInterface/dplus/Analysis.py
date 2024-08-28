@@ -55,9 +55,26 @@ def svd_analysis(folder_path, extension=['out', 'dat'], num_points=1536, delimit
     return R
 
 
-def zimm_analysis():
-    ## TODO: implement zimm analysis
-    pass
+# def zimm_analysis():
+#     TODO: implement zimm analysis
+#     pass
+
+
+def convert_q_to_s(q):
+    s = q / (2 * np.pi)
+    return s
+
+def convert_s_to_q(s):
+    q = 2 * np.pi * s
+    return q
+
+def convert_q_to_k(q, lambda_measurement):
+    k = np.arcsin(q * lambda_measurement / (4 * np.pi)) / lambda_measurement
+    return k
+
+def convert_k_to_q(k, lambda_measurement):
+    q = (4 * np.pi / lambda_measurement) * np.sin(k * lambda_measurement)
+    return q
 
 if __name__ == '__main__':
     folder = r"D:\Eytan\Synchotron\Hamburg_08_23\p3l-raviv-2023-08-14-SECSAXS_Tub_10GTP\analysis\By_Eytan\Peak_2"

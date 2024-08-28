@@ -822,6 +822,19 @@ class EmbeddedLocalRunner(Runner):
         pdb_str = self.wrapper.get_pdb(model_ptr)
         return pdb_str
 
+    def save_pdb(self, model_ptr, path):
+        '''
+        Send to C++ function to create a pdb file in the 'path' (file path) of the 'model_ptr' (int)
+        :param model_ptr: int, the model's ptr (like ID)
+        :param path: string, the path to save the pdb file
+        :return: string of the PDB
+        '''
+        pdb_str = self.get_pdb(model_ptr)
+        with open(path, 'w') as f:
+            f.write(pdb_str)
+
+        return pdb_str
+
     def get_model_ptrs(self):
         """
         Send to C++ function to get all the models PTRs

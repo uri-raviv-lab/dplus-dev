@@ -1,6 +1,9 @@
 import io
 import json
 import math
+from warnings import WarningMessage
+import warnings as w
+
 import numpy as np
 import os
 import zipfile
@@ -13,7 +16,8 @@ except:
     print("could not import from CythonGrid")    
 from math import pi
 
-PI = 3.14159265358979323846  # math.pi
+PI = np.pi
+PI2 = 2 * PI# math.pi
 encoding = 'ascii'
 npDouble = np.float64
 
@@ -594,6 +598,140 @@ class Amplitude():
         """
         return self.grid.get_intensity(q, theta, epsilon, seed, max_iter, phi_min, phi_max)
 
+    def MC_uniform_1D(self, q_min=0, q_max=7.5,
+                      theta_min=0., theta_max=PI, phi_min=0, phi_max=PI2,
+                      integration_iterations=1000, generated_points=800):
+        integration_iterations = int(integration_iterations)
+        v_min = (np.cos(theta_max) + 1) / 2
+        v_max = (np.cos(theta_min) + 1) / 2
+        q = np.linspace(q_min, q_max, generated_points)
+        I = np.zeros(generated_points)
+        for i in range(generated_points):
+            mat = np.random.rand(2, integration_iterations)
+            phi = (phi_max - phi_min) * mat[0] + phi_min
+            v = (v_max - v_min) * mat[1] + v_min
+            theta = np.arccos(2 * v - 1)
+            I_q = 0
+            for j in range(integration_iterations):
+                I_q += _Iabs(self.get_interpolation(q[i], theta[j], phi[j]))
+            I[i] += I_q / integration_iterations
+        return q, I
+
+    def MC_uniform_2D(self, q_min=0, q_max=7.5,
+                      theta_min=0., theta_max=np.pi, phi_min=0, phi_max=2 * np.pi,
+                      integration_iterations=1000, generated_points=800, res=20):
+        integration_iterations = int(integration_iterations)
+        v_min = (np.cos(theta_max) + 1) / 2
+        v_max = (np.cos(theta_min) + 1) / 2
+        q = np.linspace(q_min, q_max, generated_points)
+        I = np.zeros((res, res))
+        xedges = np.linspace(-q_max, q_max, res + 1)
+        yedges = np.linspace(-q_max, q_max, res + 1)
+
+        for i in range(generated_points):
+            q_value = q[i]
+            phi = (phi_max - phi_min) * np.random.rand(integration_iterations) + phi_min
+            v = (v_max - v_min) * np.random.rand(integration_iterations) + v_min
+            theta = np.arccos(2 * v - 1)
+            qz = q_value * np.cos(theta)
+            q_ = q_value * np.sin(theta) * np.sign(PI - phi)
+
+            I_q = np.array(
+                [_Iabs(self.get_interpolation(q_value, theta[j], phi[j])) for j in range(integration_iterations)])
+
+            hist, _, _ = np.histogram2d(q_, qz, bins=[xedges, yedges], weights=I_q)
+            I += hist
+
+        return xedges, yedges, I
+
+
+    def MC_gaussian_1D(self, q_min=0, q_max=7.5,
+                       theta_mean=None, theta_std=None, phi_mean=None, phi_std=None,
+                       integration_iterations=1000, generated_points=800):
+        integration_iterations = int(integration_iterations)
+
+        if theta_mean is None and theta_std is None:
+            theta_fun = np.random.uniform
+            theta_mean, theta_std = 0, PI
+        else:
+            theta_fun = np.random.normal
+            if theta_mean is None:
+                theta_mean = PI / 2
+                w.warn('theta_mean was set to PI/2')
+            if theta_std is None:
+                theta_std = PI / 4
+                w.warn('theta_std was set to PI/4')
+
+        if phi_mean is None and phi_std is None:
+            phi_fun = np.random.uniform
+            phi_mean, phi_std = 0, 2 * PI
+        else:
+            phi_fun = np.random.normal
+            if phi_mean is None:
+                phi_mean = PI
+                w.warn('phi_mean was set to PI')
+            if phi_std is None:
+                phi_std = PI / 2
+                w.warn('phi_std was set to PI/2')
+
+        q = np.linspace(q_min, q_max, generated_points)
+        I = np.zeros(generated_points)
+        for i in range(generated_points):
+            phi = np.remainder(phi_fun(phi_mean, phi_std, integration_iterations), PI2)
+            theta = np.remainder(theta_fun(theta_mean, theta_std, integration_iterations), PI)
+            I_q = 0
+            for j in range(integration_iterations):
+                I_q += _Iabs(self.get_interpolation(q[i], theta[j], phi[j]))
+            I[i] += I_q / integration_iterations
+        return q, I
+
+    def MC_gaussian_2D(self, q_min=0, q_max=7.5,
+                       theta_mean=None, theta_std=None, phi_mean=None, phi_std=None,
+                       integration_iterations=1000, generated_points=800, res=20):
+        integration_iterations = int(integration_iterations)
+        if theta_mean is None and theta_std is None:
+            theta_fun = np.random.uniform
+            theta_mean, theta_std = 0, PI
+        else:
+            theta_fun = np.random.normal
+            if theta_mean is None:
+                theta_mean = PI / 2
+                w.warn('theta_mean was set to PI/2')
+            if theta_std is None:
+                theta_std = PI / 4
+                w.warn('theta_std was set to PI/4')
+
+        if phi_mean is None and phi_std is None:
+            phi_fun = np.random.uniform
+            phi_mean, phi_std = 0, 2 * PI
+        else:
+            phi_fun = np.random.normal
+            if phi_mean is None:
+                phi_mean = PI
+                w.warn('phi_mean was set to PI')
+            if phi_std is None:
+                phi_std = PI / 2
+                w.warn('phi_std was set to PI/2')
+
+        q = np.linspace(q_min, q_max, generated_points)
+        I = np.zeros((res, res))
+        xedges = np.linspace(-q_max, q_max, res + 1)
+        yedges = np.linspace(-q_max, q_max, res + 1)
+
+        for i in range(generated_points):
+            q_value = q[i]
+            phi = np.remainder(phi_fun(phi_mean, phi_std, integration_iterations), PI2)
+            theta = np.remainder(theta_fun(theta_mean, theta_std, integration_iterations), PI)
+
+            qz = q_value * np.cos(theta)
+            q_ = q_value * np.sin(theta) * np.sign(PI - phi)
+
+            I_q = np.array(
+                [_Iabs(self.get_interpolation(q_value, theta[j], phi[j])) for j in range(integration_iterations)])
+
+            hist, _, _ = np.histogram2d(q_, qz, bins=[xedges, yedges], weights=I_q)
+            I += hist
+        return xedges, yedges, I
 
     @staticmethod
     def _legacy_load_bytes(filestream):
@@ -792,6 +930,9 @@ def scrap():
                 files.append(os.path.join(test_dir, file))
 
     return files
+
+def _Iabs(a: complex):
+    return float(a.real) ** 2 + float(a.imag) ** 2
 
 
 if __name__ == "__main__":

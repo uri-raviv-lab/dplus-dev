@@ -169,7 +169,7 @@ class CalculationResult(object):
 
 
         with open(filename, 'w') as out_file:
-            out_file.write("qp, qz, I\n")
+            out_file.write("qz, qp, I\n")
             for qz_idx in range(len(qz)):
                 for qp_idx in range(len(qp)):
                     out_file.write(f"{qz[qz_idx]}, {qp[qp_idx]}, {I[qz_idx][qp_idx]}\n")
@@ -208,7 +208,7 @@ class CalculationResult(object):
         I_2d = np.reshape(I, (len(qz), len(qp))).tolist()
 
 
-        return qz, qp , I_2d
+        return qz, qp, I_2d
 
 CalculationResult.save_to_2D_out_file = staticmethod(CalculationResult.save_to_2D_out_file)
 CalculationResult.read_2D_out_file = staticmethod(CalculationResult.read_2D_out_file)

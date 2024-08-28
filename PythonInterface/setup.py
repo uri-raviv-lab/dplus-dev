@@ -128,7 +128,7 @@ setup(
     name='dplus-api',
     version=VERSION_STR if VERSION_STR else '4.7.1',
     packages=['dplus'],
-    package_data= { 'dplus': ['*.dll'] if sys.platform == 'win32' else ['lib*.so*'] },
+    package_data={'dplus': ['*.dll', 'helper_files/*'] if sys.platform == 'win32' else ['lib*.so*', 'helper_files/*'] },
 	install_requires=['numpy>=1.26', 'psutil>=5.6.3', 'requests>=2.10.0', 'dplus-ceres>=0.6.0'],
     # include_package_data=True, # If True - ignores the package_data property.
     license=LICENSE,  # example license

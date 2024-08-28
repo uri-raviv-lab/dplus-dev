@@ -342,11 +342,10 @@ def thermalize_dace(vec: dc.float64[V, U], u: dc.float64[U]):
 
 
 def thermalize(vec, u):
-    # TODO::Make this actually work well...
     u_len = np.size(u)
     vec_len = np.size(vec, axis=1)
     u_new = np.array(u)
-    if not (vec_len % u_len) & (vec_len!=u_len):
+    if not (vec_len % u_len) & (vec_len != u_len):
         while np.size(u_new) < vec_len:
             u_new = np.append(u_new, u)
     else:
@@ -354,14 +353,6 @@ def thermalize(vec, u):
     if (vec_len == 4) & (u_new[-1] != 0):
         u_new[-1] = 0
     new_vec = np.random.normal(vec, u_new)
-    # if u_len == 1:
-    #     u_new = np.array([u, u, u])
-    #     new_vec = np.random.normal(vec, u_new)  # Radius is still inside
-    # elif u_len == 2:
-    #     u_new = np.array([*u, 0])
-    #     new_vec = np.random.normal(vec, u_new)  # Radius is still inside
-    # else:
-    #     new_vec = np.random.normal(vec, u)  # Radius is still inside
 
     return new_vec
 
@@ -1194,7 +1185,7 @@ def print_last_state(filepath, k_spring, temperature, MaxDistance, rest_distance
 
 
 def MC_Sim(dol_in, dol_out, temperature, MaxDistance, rest_distance, step_size, iterations, sigma, my_pot, *args,
-           pop_out_num=1e3):
+           pop_out_num=1e3, min_accepted=1000):
     '''
     :param dol_in: filepath to .dol to do the simulation on
     :param dol_out: filepath of the final model
@@ -1263,11 +1254,12 @@ def MC_Sim(dol_in, dol_out, temperature, MaxDistance, rest_distance, step_size, 
         if (New_State_energy <= Last_State_energy) or (p >= rand_num[i]):  # the condition to accept or deny new state
             number_of_accepted_states += 1  # counting each accepted state
             # printing the state every pop_out_num accepted states
-            if number_of_accepted_states % pop_out_num == 0:
-                acceptance_rate = number_of_accepted_states / (i+1)
-                print('accepted %i states, acceptance rate is %.3f' % (number_of_accepted_states, acceptance_rate))
-                print_last_state(dol_out, args, temperature, MaxDistance, rest_distance, step_size, iterations,
-                                 number_of_accepted_states / iterations, New_State_energy, New_Positions, i+1)
+            if number_of_accepted_states >= min_accepted:
+                if number_of_accepted_states % pop_out_num == 0:
+                    acceptance_rate = number_of_accepted_states / (i+1)
+                    print('accepted %i states, acceptance rate is %.3f' % (number_of_accepted_states, acceptance_rate))
+                    print_last_state(dol_out, args, temperature, MaxDistance, rest_distance, step_size, iterations,
+                                     number_of_accepted_states / iterations, New_State_energy, New_Positions, i+1)
         else:
             # if the change is not accepted then you save the last state as the new state
             New_Positions = np.copy(Last_Positions)
