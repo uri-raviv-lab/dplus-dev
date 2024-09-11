@@ -639,7 +639,7 @@ class Amplitude():
             I_q = np.array(
                 [_Iabs(self.get_interpolation(q_value, theta[j], phi[j])) for j in range(integration_iterations)])
 
-            hist, _, _ = np.histogram2d(q_, qz, bins=[xedges, yedges], weights=I_q)
+            hist, _, _ = np.histogram2d(qz, q_, bins=[xedges, yedges], weights=I_q)
             I += hist
 
         return xedges, yedges, I
@@ -729,7 +729,7 @@ class Amplitude():
             I_q = np.array(
                 [_Iabs(self.get_interpolation(q_value, theta[j], phi[j])) for j in range(integration_iterations)])
 
-            hist, _, _ = np.histogram2d(q_, qz, bins=[xedges, yedges], weights=I_q)
+            hist, _, _ = np.histogram2d(qz, q_, bins=[xedges, yedges], weights=I_q)
             I += hist
         return xedges, yedges, I
 
