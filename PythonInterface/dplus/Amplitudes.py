@@ -619,16 +619,22 @@ class Amplitude():
 
     def MC_uniform_2D(self, q_min=0, q_max=7.5,
                       theta_min=0., theta_max=np.pi, phi_min=0, phi_max=2 * np.pi,
-                      integration_iterations=1000, generated_points=800, res=20):
+                      integration_iterations=1000, genrated_rings=100, res=None):
+        if res == None:
+            res = genrated_rings
+            if genrated_rings < 100:
+                genrated_rings *= 2
+            elif genrated_rings < 200:
+                genrated_rings = 200
         integration_iterations = int(integration_iterations)
         v_min = (np.cos(theta_max) + 1) / 2
         v_max = (np.cos(theta_min) + 1) / 2
-        q = np.linspace(q_min, q_max, generated_points)
+        q = np.linspace(q_min, q_max, genrated_rings)
         I = np.zeros((res, res))
         xedges = np.linspace(-q_max, q_max, res + 1)
         yedges = np.linspace(-q_max, q_max, res + 1)
 
-        for i in range(generated_points):
+        for i in range(genrated_rings):
             q_value = q[i]
             phi = (phi_max - phi_min) * np.random.rand(integration_iterations) + phi_min
             v = (v_max - v_min) * np.random.rand(integration_iterations) + v_min
@@ -639,8 +645,10 @@ class Amplitude():
             I_q = np.array(
                 [_Iabs(self.get_interpolation(q_value, theta[j], phi[j])) for j in range(integration_iterations)])
 
-            hist, _, _ = np.histogram2d(q_, qz, bins=[xedges, yedges], weights=I_q)
-            I += hist
+            hist, _, _ = np.histogram2d(qz, q_, bins=[xedges, yedges], weights=I_q)
+            normal_hist, _, _ = np.histogram2d(qz, q_, bins=[xedges, yedges], weights=None)
+            normal_hist[normal_hist == 0] = 1
+            I += hist / normal_hist
 
         return xedges, yedges, I
 
@@ -687,7 +695,13 @@ class Amplitude():
 
     def MC_gaussian_2D(self, q_min=0, q_max=7.5,
                        theta_mean=None, theta_std=None, phi_mean=None, phi_std=None,
-                       integration_iterations=1000, generated_points=800, res=20):
+                       integration_iterations=1000, genrated_rings=100, res=None):
+        if res == None:
+            res = genrated_rings
+            if genrated_rings < 100:
+                genrated_rings *= 2
+            elif genrated_rings < 200:
+                genrated_rings = 200
         integration_iterations = int(integration_iterations)
         if theta_mean is None and theta_std is None:
             theta_fun = np.random.uniform
@@ -713,12 +727,12 @@ class Amplitude():
                 phi_std = PI / 2
                 w.warn('phi_std was set to PI/2')
 
-        q = np.linspace(q_min, q_max, generated_points)
+        q = np.linspace(q_min, q_max, genrated_rings)
         I = np.zeros((res, res))
         xedges = np.linspace(-q_max, q_max, res + 1)
         yedges = np.linspace(-q_max, q_max, res + 1)
 
-        for i in range(generated_points):
+        for i in range(genrated_rings):
             q_value = q[i]
             phi = np.remainder(phi_fun(phi_mean, phi_std, integration_iterations), PI2)
             theta = np.remainder(theta_fun(theta_mean, theta_std, integration_iterations), PI)
@@ -729,8 +743,10 @@ class Amplitude():
             I_q = np.array(
                 [_Iabs(self.get_interpolation(q_value, theta[j], phi[j])) for j in range(integration_iterations)])
 
-            hist, _, _ = np.histogram2d(q_, qz, bins=[xedges, yedges], weights=I_q)
-            I += hist
+            hist, _, _ = np.histogram2d(qz, q_, bins=[xedges, yedges], weights=I_q)
+            normal_hist, _, _ = np.histogram2d(qz, q_, bins=[xedges, yedges], weights=None)
+            normal_hist[normal_hist == 0] = 1
+            I += hist/normal_hist
         return xedges, yedges, I
 
     @staticmethod
