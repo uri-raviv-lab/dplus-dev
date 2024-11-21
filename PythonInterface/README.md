@@ -860,7 +860,7 @@ class UniformSphere:
         def closeToZero(x):
             return (math.fabs(x) < 100.0 * 2.2204460492503131E-16)
 
-        q = math.sqrt(math.pow(vq,2) + math.pow(vtheta,2) + math.pow(vphi,2))
+        q = math.abs(vq)
         if closeToZero(q):
             electrons = 0.0
             for i in range( 1, nLayers):
