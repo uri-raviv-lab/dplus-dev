@@ -688,6 +688,18 @@ generator.
 It is important to note that the integration is done around the z-axis, and thus the model must be built accordingly.
 An example of the usage:
 ```python
+my_sphere = Sphere()
+
+my_input = CalculationInput(is2D=True)  # To get results in range [-qmax, qmax]
+my_input.Domain.populations[0].add_model(my_sphere)
+my_input.use_GPU = False  # This function has not beem implemented on GPU
+
+runner = EmbeddedLocalRunner()
+
+out = runner.generate2D(my_input)
+```
+Another, slower, way which does not implement the hybrid algorithm is also available:
+```python
 my_amp = Amplitude.load(r'Path\To\ampj_file')
 ## can also be initialized as such (after generating 1D graph)
 my_amp = runner.get_amp(model.model_ptr)
