@@ -11,7 +11,7 @@
 Using an atomic description of a molecule gives a much higher resolution picture than using geometric models. For example, consider the tubulin hetero-dimer. It is comprised of an $\alpha$ and a $\beta$ dimer, both roughly spheres. However, the SAXS pattern of a pair of spheres is significantly different than that of the $\alpha\beta$ dimer. Using atomic representations can lead to much improved models, especially at higher resolutions (or higher $q$).
 
 
-\section{PDB Files}
+\section{PDB Files}\label{sec:PDBFiles}
 
 PDB files can be obtained from multiple sources. When downloaded from the \href{http://www.rcsb.org/pdb/home/home.do}{protein data bank}, the files usually work as-is. PDB files from simulations often disobey the \href{http://deposit.rcsb.org/adit/docs/pdb_atom_format.html#ATOM}{standard} and have various extensions.
 
@@ -245,6 +245,35 @@ The \texttt{Example Files} subfolder of D+ includes more examples.
 
 Please note: only \textbf{Monte Carlo} integration method can be used for anomalous scattering. 
 
+\section{Electron PDB Files}
+With D+'s upgrade to E+, the \texttt{electron PDB} (ePDB) file format was prepared. For all intents and purposes it is a usual PDB file as explained in \S\ref{sec:PDBFiles} (with the same .pdb file ending). Just like the PDB file is loaded from the \hyperref[sec:domainView]{\texttt{Domain View}} window, and all the solvent related parameters can be changed in the \hyperref[sec:parameterEditor]{\texttt{Parameter Editor}}. From the users' point of view, no difference between \texttt{PDB}s and \texttt{ePDB}s should be felt as the main difference between the two lies in the Backend of D\\E+, namely, by loading an \texttt{ePDB} one loads a different list of the five Gaussian parameters constistent with electron scattering \cite{Peng1996, Peng1998}.
+
+\section{EDConverter}
+As explained, some of the models or abilities in D+, depend on the material's electron density. In electron scattering, instead of using the electron density, one should use the zero atomic potential, given by the electron scattering at $q=0$. Thus, we have built a module whose sole function is to receive a bulk electron density, $\rho_{\text{bulk}}$, atom types, $i$, and their occurrences, $n_i$, according to the molecule's chemical formula or a PDB file, and return the corresponding zero potential. This conversion uses the five-Gaussian approximation coefficients of electrons ($a^e_{ij}$) and X-rays ($a^x_{ij}$). We then find the proportion coefficient using:
+\begin{equation}\label{proportion}
+	p = \dfrac{\sum_{i=0}^{N-1} \left(n_i\sum_{j=1}^5 a^x_{ij}\right)}{\sum_{i=0}^{N-1} \left(n_i\sum_{j=1}^5 a^e_{ij}\right)}
+\end{equation}
+\noindent and the zero potential is then easily found:
+\begin{equation}\label{EDconvert}
+	\varphi_0 = \dfrac{\rho_{\text{bulk}}}{p}
+\end{equation}
+\noindent The returned value can now be used to calculate the scattering amplitude of either geometric models, the solvent excluded volume, or the contribution of the solvation layer surrounding a molecule.
+
+For now, its usage is only possible through the python API and should be used as follows:
+\begin{lstlisting}
+	# Importing the EDConverter
+	import dplus.EDConverter as edc
+	
+	# Converting H2O
+	rho_H2O = 333 # the ED
+	atom_list = ['H', 'O'] # list of atoms in the molecule
+	num_list = [2, 1] # number of times the atom occurs in the molecule
+					   # (in the same order as atom_list)
+	
+	H2O_convert = edc.convert(rho_H2O, atom_list, num_list)
+	H2O_eED = H2O_convert.eED # H2O_eED = 101.273
+	H2O_coeff = H2O_convert.coeff # H2O_coeff = 3.288	
+\end{lstlisting}
 
 \section{DebyeCalculator}
 

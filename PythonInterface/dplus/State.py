@@ -31,6 +31,7 @@ class DomainPreferences:
         self.__apply_resolution = False
         self.__resolution_sigma = RESOLUTION_SIGMA_DEFAULT
         self.__update_interval = 300
+        self.__is2D = is2D
         self.signal = Signal.create_x_vector(7.5, 0, 800, is2D)
 
     @property
@@ -47,7 +48,7 @@ class DomainPreferences:
             warnings.warn(
                 "q_max must be equal to highest x value in signal file. q_max's value has not been changed")
         else:
-            self.signal = Signal.create_x_vector(qmax, self.q_min, self.generated_points)
+            self.signal = Signal.create_x_vector(qmax, self.q_min, self.generated_points, self.__is2D)
 
     @property
     def q_min(self):
@@ -63,7 +64,7 @@ class DomainPreferences:
             warnings.warn(
                 "q_min must be equal to lowest x value in signal file. q_min's value has not been changed")
         else:
-            self.signal = Signal.create_x_vector(self.q_max, qmin, self.generated_points)
+            self.signal = Signal.create_x_vector(self.q_max, qmin, self.generated_points, self.__is2D)
 
     @property
     def generated_points(self):
@@ -79,7 +80,7 @@ class DomainPreferences:
             warnings.warn(
                 "generated points is equal to the amount of x points in signal file. generated_points' value has not been changed")
         else:
-            self.signal = Signal.create_x_vector(self.q_max, self.q_min, gen)
+            self.signal = Signal.create_x_vector(self.q_max, self.q_min, gen, self.__is2D)
 
     @property
     def signal_file(self):
@@ -844,7 +845,6 @@ class State:
             return mut_len + used_values
 
         _set_recursive(param_vals_array, self.Domain)
-
 
     def get_mutable_params(self):
         '''

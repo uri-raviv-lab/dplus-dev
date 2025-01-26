@@ -8,15 +8,15 @@
 #define FRONTEND_VERSION_H
 
 // The version is used in RC files for resources, so it must be broken into elements
-#define FRONTEND_VERSION_MAJOR 5 //releases to public, eg each version that goes to a reviewer
-#define FRONTEND_VERSION_MINOR 0 //significant new features or changes in how running D+ works
-#define FRONTEND_VERSION_REVISION 0//minor changes and bug fixes
+#define FRONTEND_VERSION_MAJOR  //releases to public, eg each version that goes to a reviewer
+#define FRONTEND_VERSION_MINOR  //significant new features or changes in how running D+ works
+#define FRONTEND_VERSION_REVISION //minor changes and bug fixes
 // Don't use this field for creating different installer versions as
 // WiX (and MSI) MSI specifically ignore this field when comparing versions.
 // This leads to many versions being installed in the same place and being
 // considered different products. An alternative (better, IMO), is to place
 // running number here (like we had with SVN or when we had the gitRev file).
-#define FRONTEND_VERSION_BUILD 0 // DO NOT CHANGE THIS NUMBER!!!! very minor changes (only used if needed for some reason)
+#define FRONTEND_VERSION_BUILD  // DO NOT CHANGE THIS NUMBER!!!! very minor changes (only used if needed for some reason)
 
 
 // Double macro expansion taken from here: http://stackoverflow.com/a/5459929/871910
