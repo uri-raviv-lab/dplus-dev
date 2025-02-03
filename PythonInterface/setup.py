@@ -129,7 +129,7 @@ setup(
     version=VERSION_STR if VERSION_STR else '4.7.1',
     packages=['dplus'],
     package_data={'dplus': ['*.dll', 'helper_files/*'] if sys.platform == 'win32' else ['lib*.so*', 'helper_files/*'] },
-	install_requires=['numpy>=1.26', 'psutil>=5.6.3', 'requests>=2.10.0', 'dplus-ceres>=0.6.0'],
+	install_requires=['numpy<2', 'psutil>=5.6.3', 'requests>=2.10.0', 'dplus-ceres>=0.6.0'],
     # include_package_data=True, # If True - ignores the package_data property.
     license=LICENSE,  # example license
     description='Call the DPlus Calculation Backend',
