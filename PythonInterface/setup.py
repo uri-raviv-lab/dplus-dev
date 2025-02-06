@@ -53,7 +53,7 @@ extra_link_args = []
 if sys.platform == 'win32':
     extra_compile_args = ['/Ox'] if not DEBUG else []
     LIBRARIES_DIR = os.path.join(ROOT_DIR, "x64", "ReleaseWithDebugInfo" if DEBUG else "Release")
-    REQUIRED_DLLS = ['cudart64_110', 'curand64_10', 'lua51-backend', 'PDBReaderLib', 'xplusbackend']
+    REQUIRED_DLLS = ['cudart64_12', 'curand64_10', 'lua51-backend', 'PDBReaderLib', 'xplusbackend']
     LIBRARIES = ['xplusbackend']
     # extra_link_args = ['/debug']
 elif sys.platform == 'linux':
