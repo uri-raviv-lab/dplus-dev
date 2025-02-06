@@ -9,7 +9,7 @@
 # Note: DO NOT PUSH THIS TO Dockerhub - it makes no sense
 
 # Step 1 - build the backend libraries
-FROM nvidia/cuda:11.3.1-devel-ubuntu16.04 AS cplusplus
+FROM nvidia/cuda:12.4.1-devel-ubuntu16.04 AS cplusplus
 
 # Step 1.1 - Install the necessary Ubuntu Packages
 RUN apt update
@@ -53,8 +53,8 @@ RUN cp /src/build/Backend/lib* /output
 # Step 1.4.2 - shared objects used by the backend
 RUN cp /usr/lib/x86_64-linux-gnu/libboost_system.so.1.58.0 /output
 RUN cp /usr/lib/x86_64-linux-gnu/libboost_filesystem.so.1.58.0 /output
-RUN cp /usr/local/cuda-11.3/targets/x86_64-linux/lib/libcurand.so.10 /output
-RUN cp /usr/local/cuda-11.3/targets/x86_64-linux/lib/libcudart.so.11.0 /output
+RUN cp /usr/local/cuda-12.4/targets/x86_64-linux/lib/libcurand.so.10 /output
+RUN cp /usr/local/cuda-12.4/targets/x86_64-linux/lib/libcudart.so.12.0 /output
 
 # Step 2 - build the Python API
 FROM quay.io/pypa/manylinux_2_28_x86_64 AS python
