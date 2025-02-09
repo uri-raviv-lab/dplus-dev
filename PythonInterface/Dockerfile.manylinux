@@ -9,7 +9,7 @@
 # Note: DO NOT PUSH THIS TO Dockerhub - it makes no sense
 
 # Step 1 - build the backend libraries
-FROM nvidia/cuda:12.4.1-devel-ubuntu16.04 AS cplusplus
+FROM nvidia/cuda:12.4.0-devel-ubuntu20.04 AS cplusplus
 
 # Step 1.1 - Install the necessary Ubuntu Packages
 RUN apt update

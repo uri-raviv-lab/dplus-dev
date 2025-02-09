@@ -35,7 +35,7 @@ jobs:
       #   run: fury push PythonInterface/dplus_api*.whl
 
   windows-wheels:
-    runs-on: windows-latest  # Required for Visual Studio 2019
+    runs-on: self-hosted #windows-latest  # Required for Visual Studio 2019
     strategy:
       matrix:
         python-version: [ '3.9', '3.10', '3.11', '3.12' ]
