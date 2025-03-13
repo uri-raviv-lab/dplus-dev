@@ -1,4 +1,4 @@
-D/E+ - XRay Solution Scattering Analysis Tool
+D/E+ - X-ray and Electron (Solution) Scattering Analysis Tool
 ========================
 
 D+ is an innovative program that computes the X-ray scattering from large supramolecular structures in solutions at any resolution down to (near) atomic resolution.
