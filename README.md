@@ -1,4 +1,4 @@
-D+ - XRay Solution Scattering Analysis Tool
+D/E+ - XRay Solution Scattering Analysis Tool
 ========================
 
 D+ is an innovative program that computes the X-ray scattering from large supramolecular structures in solutions at any resolution down to (near) atomic resolution.
@@ -13,13 +13,13 @@ Papers about D+ can be found [here](https://scholars.huji.ac.il/uriraviv/book/pa
 
 The source code of D+ is available for academic users and developers. 
 
-D+ UI
+D/E+ UI
 -----
 The latest version of D+ can be found [here](https://github.com/uri-raviv-lab/dplus-dev/releases).
 Its manual can be found inside the desktop folder after installation or can be [downloaded](https://scholars.huji.ac.il/sites/default/files/uriraviv/files/dmanual.pdf).
 On top of that, we also have [a few tutorials](https://scholars.huji.ac.il/uriraviv/book/tutorials-d) to get you started.
 
-D+ API
+D/E+ API
 ------
 The API can be downloaded using PIP by running the following inside the command prompt:
 
