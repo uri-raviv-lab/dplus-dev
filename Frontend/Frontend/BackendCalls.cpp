@@ -11,6 +11,7 @@
 
 #include "base64.h"
 #include <windows.h>
+#include <iostream>
 
 using namespace std;
 
@@ -90,6 +91,8 @@ void BackendCall::ParseResults(const std::string results)
 	{
 		throw invalid_argument("JSON missing error field");
 
+        if (doc.HasParseError())  
+           throw invalid_argument("JSON Parsing Error");
 	}
 
 	else

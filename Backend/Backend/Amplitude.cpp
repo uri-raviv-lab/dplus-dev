@@ -1259,7 +1259,7 @@ void DomainModel::HandleQ0(std::vector<PolarQData>& qData)
 			qData[q].intensityData[0].result = real(amp * conj(amp));
 
 			return;
-		}
+		} 
 	}
 }
 
@@ -3578,12 +3578,25 @@ void Amplitude::getNewThetaPhiAndPhases(const std::vector<FACC>& relevantQs, FAC
 		).exp();
 }
 
+#include <windows.h> // DEBUG LINUX - For OutputDebugString          
 ArrayXcX Amplitude::getAmplitudesAtPoints(const std::vector<FACC> & relevantQs, FACC theta, FACC phi)
 {
+	// DEBUG LINUX - Print entering the function    
+	OutputDebugString(L"Entering getAmplitudesAtPoints\n");
+	std::cout << L"Entering getAmplitudesAtPoints\n" << std::endl;
+
 	double newTheta, newPhi;
 	ArrayXcX phases;
 	getNewThetaPhiAndPhases(relevantQs, theta, phi, newTheta, newPhi, phases);
 
+	// DEBUG LINUX - Print after getNewThetaPhiAndPhases  $#
+	{
+		std::wstringstream ss;
+		ss << L"After getNewThetaPhiAndPhases - newTheta: " << newTheta << L", newPhi: " << newPhi << L"\n";
+		OutputDebugString(ss.str().c_str());
+		std::cout << L"After getNewThetaPhiAndPhases - newTheta: " << newTheta << L", newPhi: " << newPhi << L"\n" << std::endl;
+	}
+	
 	if (GetUseGridWithChildren())
 	{
 		JacobianSphereGrid* jgrid = dynamic_cast<JacobianSphereGrid*>(grid);
@@ -3594,6 +3607,11 @@ ArrayXcX Amplitude::getAmplitudesAtPoints(const std::vector<FACC> & relevantQs, 
 			return jgrid->getAmplitudesAtPoints(relevantQs, newTheta, newPhi) * phases;
 		}
 	}
+
+	// DEBUG LINUX - Print after the if scope  $#
+	OutputDebugString(L"After if scope in getAmplitudesAtPoints\n");
+	std::cout << L"After if scope in getAmplitudesAtPoints\n" << std::endl;
+
 
 	return scale * getAmplitudesAtPointsWithoutGrid(newTheta, newPhi, relevantQs, phases);
 

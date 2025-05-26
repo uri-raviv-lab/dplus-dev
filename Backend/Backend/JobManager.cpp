@@ -103,15 +103,15 @@ static void GenerateJobThread(void *args) {
 	}
 
 	// Update the job in the manager
-	JobManager::GetInstance().CompleteJob(localArgs.backend, localArgs.jobID, localArgs.fp.bProgressReport, err, errMsg);
+ 	JobManager::GetInstance().CompleteJob(localArgs.backend, localArgs.jobID, localArgs.fp.bProgressReport, err, errMsg);
 }
 
 static void Generate2DJobThread(void* args) {
 
 	if (!args)
 		return;
-	fitJobArgs* gja = (fitJobArgs*)args;
-	fitJobArgs localArgs = *gja;
+	fitJobArgs* gja = (fitJobArgs*)args;  // due to void*
+	fitJobArgs localArgs = *gja;  // dereference the pointer to get the struct
 
 	// Delete the just-now created argument structure (because we have a local copy)
 	delete gja; gja = NULL;

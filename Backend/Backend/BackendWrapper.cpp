@@ -323,6 +323,11 @@ void BackendWrapper::StartGenerate(const rapidjson::Value &json, const LocalBack
 
 	for (auto itr = xs.Begin(); itr != xs.End(); ++itr)
 	{
+		
+		
+		
+		
+		
 		x.push_back((itr)->GetDouble());
 	}
 

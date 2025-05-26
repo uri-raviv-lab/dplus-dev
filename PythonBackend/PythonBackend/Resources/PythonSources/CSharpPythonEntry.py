@@ -11,6 +11,11 @@ import os
 import time
 from dplus.Backend import Backend, BackendError
 
+import sys
+import clr
+sys.stdout = sys.__stdout__ 
+
+
 class LocalCSharpPython:
     def __init__(self, exe_dir, session_dir):
         self.exe_dir = exe_dir
@@ -59,10 +64,12 @@ class LocalCSharpPython:
                 result = self.process_result({"result": self.cur_job.get_status()})
 
 
-            elif "GetGenerateResults" in json2run["function"]:
+            elif "GetGenerateResults" in json2run["function"]:     
+
                 self.cur_results = self.cur_job.get_result(self.cur_calc_input)
                 state = self.cur_results.processed_result
                 result = self.process_result({"result": state})
+
     
                 # self.cur_job.abort() # must abort the job otherwise- continue running (even if generate was finished)
                 self.add_output()
@@ -177,11 +184,23 @@ class LocalCSharpPython:
                         return_json["result"][item][idx]["Header"] = header_str
         return_json["error"]["message"] = return_json["error"]["message"].replace("'", "")
         # replace ' with ", False with false and True with true
-        str_json = str(return_json)
-        str_json = str_json.replace("'", "\"")
-        str_json = str_json.replace('&"', '/"')
-        str_json = str_json.replace("True", "true")
-        str_json = str_json.replace("False", "false")
+       #str_json = str(return_json)
+       #str_json = str_json.replace("'", "\"")
+       #str_json = str_json.replace('&"', '/"')
+       #str_json = str_json.replace("True", "true")
+       #str_json = str_json.replace("False", "false")
+       
+            # 26/05/2025  replace the above manual changes with json.dumps() 
+        str_json = json.dumps(return_json)
+         
+
+
+
+
+    
+
+
+
         return str_json
 
     def add_output(self):
@@ -360,12 +379,14 @@ class EmbeddedCSharpPython:
                         header_str = header_str.replace("'", "")
                         return_json["result"][item][idx]["Header"] = header_str
         return_json["error"]["message"] = return_json["error"]["message"].replace("'", "")
-        # replace ' with ", False with false and True with true
-        str_json = str(return_json)
-        str_json = str_json.replace("'", "\"")
-        str_json = str_json.replace('&"', '/"')
-        str_json = str_json.replace("True", "true")
-        str_json = str_json.replace("False", "false")
+        # replace ' with ", False with false and True with true    
+       #str_json = str(return_json)
+       #str_json = str_json.replace("'", "\"")
+       #str_json = str_json.replace('&"', '/"')
+       #str_json = str_json.replace("True", "true")
+       #str_json = str_json.replace("False", "false")
+       # 26/05/2025  replace the above manual changes with json.dumps() 
+        str_json = json.dumps(return_json)   
         return str_json
 
     def add_output(self):
