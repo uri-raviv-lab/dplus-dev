@@ -1,5 +1,52 @@
 #include "SPMainWindow.h"
 
+/**
+ * @file SPMainWindow.cpp
+ * @brief Implements the SPMainWindow class for the Suggest Parameters tool, providing UI logic for parameter validation,
+ *        grid size estimation, memory usage calculation, and integration method selection.
+ *
+ * The SPMainWindow module is responsible for:
+ *  - Validating user input for parameter fields (X, Y, Z, Q) and updating dependent UI fields accordingly.
+ *  - Estimating grid size and memory requirements based on user input, and providing visual feedback and warnings.
+ *  - Automatically suggesting the appropriate integration method (adaptive, Gauss Kronrod, or Monte Carlo) based on input.
+ *  - Adjusting UI labels and settings in response to user actions (e.g., toggling GPU or remote computation).
+ *
+ * Key Concepts:
+ *  - Parameter Validation: Ensures that user-entered values for X, Y, Z, and Q are valid doubles before updating calculations.
+ *  - Grid Size and Memory Estimation: Calculates recommended grid size and memory requirements for computations, with color-coded warnings.
+ *  - Integration Method Selection: Chooses the integration method based on input values and GPU/remote settings.
+ *  - UI Feedback: Updates labels, text boxes, and warnings in real time as the user interacts with the form.
+ *
+ * Fields:
+ *  - TextBox^ textBoxX, textBoxY, textBoxZ, textBoxQ, textBoxGridSize, textBoxMemReq:
+ *      UI fields for entering and displaying parameter values and computed results.
+ *  - Label^ labelWarning, labelGenPoints, labelUpdate, labelIntegrationMethod:
+ *      UI labels for warnings, generated points, update interval, and integration method.
+ *  - CheckBox^ checkBoxGPU, checkBoxRemote:
+ *      UI checkboxes for toggling GPU and remote computation.
+ *  - bool should_be_adaptive:
+ *      Indicates if the adaptive integration method should be suggested based on parameter ratios.
+ *
+ * Main Methods:
+ *  - textBox_Validating: Validates parameter input, updates grid size and memory estimates, and adjusts warnings.
+ *  - checkBoxRemote_CheckedChanged: Updates the update interval label based on remote computation setting.
+ *  - checkBoxGPU_CheckedChanged: Updates the integration method label based on GPU and parameter settings.
+ *  - textBox_TextChanged: Triggers validation and recalculation when any parameter text box changes.
+ *
+ * Threading and Safety:
+ *  - All UI updates are performed on the main thread; not thread-safe for background access.
+ *
+ * Error Handling:
+ *  - Provides visual feedback (color changes, warning labels) for high memory usage or invalid input.
+ *  - Ensures calculations are only performed when all required inputs are valid.
+ *
+ * Dependencies:
+ *  - SPMainWindow.h for class and method declarations.
+ *  - System::Windows::Forms for UI controls and events.
+ *
+ * See SPMainWindow.h for class and method declarations.
+ */
+
 namespace SuggestParameters
 {
 

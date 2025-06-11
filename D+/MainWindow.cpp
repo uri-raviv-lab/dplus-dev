@@ -38,29 +38,113 @@ using Microsoft::WindowsAPICodePack::Taskbar::TaskbarManager;
 using Microsoft::WindowsAPICodePack::Taskbar::TaskbarProgressBarState;
 
 
+/**
+ * @file MainWindow.cpp
+ * @brief Implements the MainWindow class, the primary GUI window for DPlus, managing user interaction,
+ *        model configuration, backend communication, and visualization for scattering calculations.
+ *
+ * The MainWindow module is responsible for:
+ *  - Initializing and managing all major UI panes (2D/3D graphs, parameter editors, symmetry editors, etc.).
+ *  - Handling application startup, shutdown, layout persistence, and user preferences.
+ *  - Managing backend communication (local or remote), job creation, and model lifecycle.
+ *  - Providing user workflows for model generation, fitting, parameter editing, and result export.
+ *  - Integrating Lua scripting for advanced model and parameter manipulation.
+ *  - Handling error reporting, progress updates, and asynchronous job status polling.
+ *  - Supporting import/export of model states, parameters, and results (including amplitude and PDB files).
+ *
+ * Key Concepts:
+ *  - MainWindow: The main application window, orchestrating all UI and backend operations.
+ *  - PaneList/MenuPaneList: Collections of UI panes and their corresponding menu items.
+ *  - BackendCaller/Frontend: Abstractions for backend communication and model/job management.
+ *  - Lua Integration: Lua scripting is used for model definition, parameter trees, and preferences.
+ *  - ParameterTree/paramStruct: Structures for hierarchical model parameter management.
+ *  - Entity: Represents a model or symmetry in the UI, with associated parameters and rendering.
+ *  - Job Management: Handles creation, execution, and monitoring of backend jobs for generation and fitting.
+ *
+ * Fields:
+ *  - System::Collections::Generic::List<DockContent^>^ PaneList:
+ *      List of all dockable UI panes (2D/3D graphs, editors, etc.).
+ *  - System::Collections::Generic::List<ToolStripMenuItem^>^ MenuPaneList:
+ *      List of menu items corresponding to UI panes.
+ *  - LocalFrontend* frontend:
+ *      Pointer to the frontend interface for backend communication.
+ *  - ManagedBackendCaller* backendCaller:
+ *      Pointer to the backend caller (local or remote).
+ *  - ManagedPythonPreCaller^ pythonCall:
+ *      Managed Python backend caller for local execution.
+ *  - ManagedHTTPCallerForm^ httpCallForm:
+ *      Managed HTTP backend caller form for remote execution.
+ *  - ModelPtr compositeModel:
+ *      Handle to the composite (root) model in the backend.
+ *  - System::Collections::Generic::List<ModelPtr>^ domainModels:
+ *      Handles to domain models (for multi-population support).
+ *  - System::Collections::Generic::List<Aga::Controls::Tree::TreeModel^>^ populationTrees:
+ *      Entity trees for each population/domain.
+ *  - System::Timers::Timer^ _statusPollingTimer:
+ *      Timer for polling backend job status.
+ *  - Lua^ luaState:
+ *      Lua scripting engine instance for scripting and preferences.
+ *  - double domainScale, domainConstant:
+ *      Domain scaling and constant parameters.
+ *  - std::vector<double> populationSizes:
+ *      Population sizes for each domain.
+ *  - std::vector<bool> populationSizeMutable:
+ *      Mutability flags for population sizes.
+ *  - array<double>^ qvec, ^qvec_may_be_cropped, ^loadedSignal:
+ *      Arrays for q-values and loaded signal data.
+ *  - String^ signalFilename:
+ *      Filename of the loaded signal.
+ *  - bool UseGPU:
+ *      Indicates if GPU acceleration is enabled.
+ *  - bool stopInProcess, bIsScriptComputing, checkFitCPU, InFitMessage, responseWaiting:
+ *      Flags for job control and UI state.
+ *  - unsigned long long FitJobStartTime:
+ *      Timestamp for fit job start (for timeout checks).
+ *  - String^ serverAddress, ^validationCode:
+ *      Remote server address and validation code for remote backend.
+ *  - ProgressCallbackFunc^ pcf, CompletionCallbackFunc^ ccf:
+ *      Delegates for progress and completion callbacks.
+ *  - System::String^ rootWriteDir:
+ *      Directory for saving files and preferences.
+ *  - System::String^ staticQMaxString, ^staticQMinString:
+ *      Cached q-range strings for UI.
+ *
+ * Main Methods:
+ *  - MainWindow_Load: Handles application startup, UI and backend initialization, and layout loading.
+ *  - SaveLayout/LoadLayout/LoadDefaultLayout: Manage UI layout persistence.
+ *  - SetDefaultParams: Resets all parameters to defaults.
+ *  - Generate/Fit/Stop: Start/stop model generation and fitting jobs.
+ *  - ProgressCallback/CompletionCallback: Update UI and handle job progress/completion.
+ *  - PrepareForWork: Gathers parameters and prepares the parameter tree for backend jobs.
+ *  - UpdateParameters: Updates UI and entities from backend results.
+ *  - RepopulateEntities: Populates model/entity selection UI from backend.
+ *  - Import/Export: Handles import/export of parameters, states, graphs, amplitudes, and PDB files.
+ *  - Lua Integration: Methods for parsing Lua tables, expressions, and integrating scripted models.
+ *  - Error Handling: HandleErr and related methods for user feedback.
+ *  - PollStatus/fitMessage: Polls backend for job status and handles long-running job warnings.
+ *  - Miscellaneous: UI event handlers, menu actions, and utility functions.
+ *
+ * Threading and Safety:
+ *  - UI updates and backend callbacks are marshaled to the main thread as needed.
+ *  - Status polling and job progress are handled asynchronously.
+ *
+ * Error Handling:
+ *  - Extensive error checking and user feedback for backend errors, invalid input, and file operations.
+ *  - Catches and reports exceptions from Lua, backend, and file I/O.
+ *
+ * Dependencies:
+ *  - MainWindow.h for class and method declarations.
+ *  - All major UI pane headers (GraphPane2D/3D, SymmetryEditor/View, etc.).
+ *  - Backend/Frontend interfaces for model and job management.
+ *  - LuaInterface and LuaBinding for scripting.
+ *  - .NET Windows Forms and related libraries for UI.
+ *
+ * See MainWindow.h for class and method declarations.
+ */
+
 namespace DPlus {
 
-	/// <summary>
-	/// Creates a relative path from one file or folder to another.
-	/// </summary>
-	/// <param name="fromPath">Contains the directory that defines the start of the relative path.</param>
-	/// <param name="toPath">Contains the path that defines the endpoint of the relative path.</param>
-	/// <param name="dontEscape">Boolean indicating whether to add uri safe escapes to the relative path</param>
-	/// <returns>The relative path from the start directory to the end path.</returns>
-	/// <exception cref="ArgumentNullException"></exception>
-	/*public static String ^MakeRelativePath(String fromPath, String toPath)
-	{
-	if (String.IsNullOrEmpty(fromPath)) throw new ArgumentNullException("fromPath");
-	if (String.IsNullOrEmpty(toPath))   throw new ArgumentNullException("toPath");
-
-	Uri fromUri = new Uri(fromPath);
-	Uri toUri = new Uri(toPath);
-
-	Uri relativeUri = fromUri.MakeRelativeUri(toUri);
-	String relativePath = Uri.UnescapeDataString(relativeUri.ToString());
-
-	return relativePath.Replace('/', Path.DirectorySeparatorChar);
-	}*/
+	
 
 	MainWindow::~MainWindow() {
 		if (components)

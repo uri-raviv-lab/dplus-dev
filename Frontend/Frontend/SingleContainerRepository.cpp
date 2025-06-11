@@ -5,6 +5,66 @@
 #include "MetadataRepository.h"
 using namespace std;
 
+/**
+ * @file SingleContainerRepository.cpp
+ * @brief Implements the MetadataRepository::SingleContainerRepository class for managing model metadata in a single container.
+ *
+ * The SingleContainerRepository module is responsible for:
+ *  - Parsing and storing model categories, models, extra parameters, and layer information from a JSON metadata source.
+ *  - Providing query and access methods for model categories, model information, extra parameters, and layer details.
+ *  - Supporting metadata-driven UI and backend operations by exposing structured model information.
+ *
+ * Key Concepts:
+ *  - Metadata Parsing: Reads and interprets model metadata from a rapidjson::Value, including categories, models, extra parameters, and layers.
+ *  - Category and Model Management: Maintains mappings of model categories and models for efficient lookup and retrieval.
+ *  - Layer and Parameter Information: Stores and provides access to layer parameter names, applicability, and default values for each model.
+ *  - Error Handling: Returns error codes for invalid queries or missing data, supporting robust integration with frontend and backend components.
+ *
+ * Fields:
+ *  - std::wstring _containerName: Name of the model container.
+ *  - std::map<int, ModelCategory> _categories: Mapping from category index to ModelCategory.
+ *  - std::map<int, CompleteModelInformation> _models: Mapping from model index to CompleteModelInformation.
+ *
+ * Main Methods:
+ *  - SingleContainerRepository(const rapidjson::Value& json):
+ *      Constructor. Parses container name, categories, and models from JSON.
+ *  - void ParseModelCategory(const rapidjson::Value& json):
+ *      Parses and stores a model category from JSON.
+ *  - void ParseModel(const rapidjson::Value& json):
+ *      Parses and stores complete model information from JSON.
+ *  - void ParseExtraParams(CompleteModelInformation&, const rapidjson::Value& json):
+ *      Parses extra parameters for a model.
+ *  - void ParseLayers(CompleteModelInformation&, const rapidjson::Value& json):
+ *      Parses layer information for a model.
+ *  - int QueryCategoryCount() const:
+ *      Returns the number of model categories.
+ *  - ModelCategory QueryCategory(int ind) const:
+ *      Returns the ModelCategory for a given index.
+ *  - int QueryModelCount() const:
+ *      Returns the number of models.
+ *  - ModelInformation QueryModel(int ind) const:
+ *      Returns the ModelInformation for a given model index.
+ *  - ErrorCode GetLayerParamNames(int index, char** lpNames, int nlp) const:
+ *      Retrieves layer parameter names for a model.
+ *  - ErrorCode GetExtraParamInfo(int index, ExtraParam* ep, int nEP) const:
+ *      Retrieves extra parameter information for a model.
+ *  - ErrorCode GetLayerInfo(int index, int layerIndex, char* layerName, int* applicability, double* defaultValues, int nlp) const:
+ *      Retrieves detailed layer information for a model.
+ *
+ * Error Handling:
+ *  - Returns specific error codes (e.g., ERROR_MODELNOTFOUND, ERROR_INVALIDARGS) for invalid queries or missing data.
+ *  - Provides default values for missing or invalid categories and models.
+ *  - Ensures safe string operations and bounds checking when copying names and parameter data.
+ *
+ * Dependencies:
+ *  - MetadataRepository.h for class and method declarations.
+ *  - rapidjson/document.h for JSON parsing.
+ *  - Standard C++ libraries for string and map operations.
+ *  - ModelCategory, CompleteModelInformation, ModelInformation, ExtraParam, LayerInfo, and ErrorCode types.
+ *
+ * See MetadataRepository.h for class and method declarations.
+ */
+
 MetadataRepository::SingleContainerRepository::SingleContainerRepository(const rapidjson::Value &json)
 {
 	const char *containerName = json["containerName"].GetString();

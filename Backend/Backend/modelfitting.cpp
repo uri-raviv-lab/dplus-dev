@@ -15,6 +15,85 @@
 
 #undef ERROR
 
+/**
+ * @file modelfitting.cpp
+ * @brief Implements model fitting and generation logic, including parameter vector construction,
+ *        constraint handling, recursive model setup, and job-based model generation in the backend.
+ *
+ * The model fitting module is responsible for:
+ *  - Translating parameter trees into parameter vectors and constraint structures for fitting.
+ *  - Recursively setting up models and amplitudes, including composite and symmetry models.
+ *  - Managing parameter mutability, constraints, and linking for fitting algorithms.
+ *  - Creating polydisperse model wrappers as needed based on parameter tree configuration.
+ *  - Handling job-based model generation and result storage (1D and 2D).
+ *  - Integrating with the job management system for progress reporting and interruption.
+ *
+ * Key Concepts:
+ *  - ParameterTree: Represents the hierarchical structure of model parameters, constraints, and links.
+ *  - Job: Encapsulates the state and resources for a single fitting or generation task.
+ *  - IModel: Abstract interface for all models, supporting calculation and parameterization.
+ *  - cons: Structure holding parameter constraints (min, max, index, link).
+ *  - VectorXd, VectorXi: Eigen vectors for parameter values and mutability flags.
+ *  - PolydisperseModel: Decorator for models supporting polydispersity in parameter space.
+ *
+ * Fields:
+ *  - Parameter (struct, from ParameterTree):
+ *      - double value: Parameter value.
+ *      - bool isMutable: Indicates if the parameter is mutable during fitting.
+ *      - bool isConstrained: Indicates if the parameter has constraints.
+ *      - double consMin, consMax: Absolute minimum and maximum constraints.
+ *      - int consMinIndex, consMaxIndex: Indices for relative constraints.
+ *      - int linkIndex: Index for parameter linking.
+ *  - cons (struct):
+ *      - std::vector<double> num: Numeric constraint values (min/max).
+ *      - std::vector<int> index: Indices for relative constraints.
+ *      - std::vector<int> link: Indices for parameter linking.
+ *      - cons(int n): Constructor initializing vectors to size n.
+ *  - Job:
+ *      - std::map<unsigned int, IModel*> uidToModel: Maps model handles to model instances.
+ *      - std::map<unsigned int, Amplitude*> uidToAmp: Maps amplitude handles to amplitude instances.
+ *      - ParameterTree* tree: Pointer to the parameter tree for the job.
+ *      - int* pStop: Pointer to an integer flag for job interruption.
+ *      - std::vector<double> resultGraph: Stores the 1D result graph.
+ *      - Eigen::Array<double, Eigen::Dynamic, Eigen::Dynamic> resultGraph2D: Stores the 2D result graph.
+ *      - double progress: Progress of the job (0.0–1.0).
+ *      - unsigned int jobID: Unique identifier for the job.
+ *  - fitJobArgs:
+ *      - int jobID: Job identifier.
+ *      - std::vector<double> x: Input data points for calculation.
+ *      - FittingProperties fp: Fitting options and progress reporting flags.
+ *      - LocalBackend* backend: Pointer to backend for progress notification.
+ *  - VectorXd, VectorXi (Eigen):
+ *      - VectorXd: Dynamic-size vector of doubles (parameter values).
+ *      - VectorXi: Dynamic-size vector of integers (mutability flags).
+ *
+ * Main Methods:
+ *  - ParameterToVectorIndex: Converts a Parameter to its vector representation and constraint structures.
+ *  - RecursiveModelSetter: Recursively sets up models and amplitudes from a parameter tree.
+ *  - CreateModelFromParamTree: Constructs a model and its parameter vectors/constraints from a parameter tree.
+ *  - PerformModelGeneration: Generates a 1D result graph for a job using the constructed model.
+ *  - PerformModelGeneration2D: Generates a 2D result graph for a job using the constructed model.
+ *
+ * Threading and Safety:
+ *  - Stop signals are propagated to models for interruptible calculations.
+ *  - Job state and progress are managed via the JobManager singleton.
+ *
+ * Error Handling:
+ *  - Returns error codes for invalid arguments, missing models, or interrupted jobs.
+ *  - Cleans up dynamically allocated model wrappers and resources.
+ *
+ * Dependencies:
+ *  - Eigen for vector and matrix operations.
+ *  - JobManager for job state management.
+ *  - Geometry, Amplitude, and fittingfactory for model construction.
+ *  - mathfuncs for utility functions.
+ *
+ * See modelfitting.h for class and method declarations.
+ */
+
+
+
+
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////

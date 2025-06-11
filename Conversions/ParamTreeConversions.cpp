@@ -10,6 +10,61 @@
 using namespace std;
 using namespace rapidjson;
 
+/**
+ * @file ParamTreeConversions.cpp
+ * @brief Implements conversion utilities between JSON representations and internal parameter tree structures for models.
+ *
+ * The ParamTreeConversions module is responsible for:
+ *  - Translating between rapidjson-based JSON objects and the application's ParameterTree and paramStruct data structures.
+ *  - Serializing and deserializing parameter trees, model parameters, and constraints for model configuration and persistence.
+ *  - Providing extensible hooks for model creation and mapping between state and internal representations.
+ *
+ * Key Concepts:
+ *  - Parameter Tree Serialization: Converts between JSON and ParameterTree objects, supporting both "state" and "simple" JSON formats.
+ *  - Model Parameter Mapping: Extracts and serializes model parameters, mutability, constraints, and extra parameters.
+ *  - Model Creation Hooks: Virtual methods allow derived classes to customize model instantiation from JSON/state.
+ *  - Constraint Handling: Loads and serializes parameter constraints, including bounds, indices, and links.
+ *  - Location/Rotation Parameters: Handles serialization of spatial and orientation parameters for models.
+ *
+ * Fields:
+ *  - (via ParameterTree, paramStruct, Parameter):
+ *      - Model pointers, parameter arrays, mutability flags, constraints, extra parameters, and location/orientation fields.
+ *
+ * Main Methods:
+ *  - ParameterTree ParameterTreeConverter::FromStateJSON(const rapidjson::Value& json):
+ *      Parses a "state" JSON object and constructs a ParameterTree, including models, populations, and parameters.
+ *  - void ParameterTreeConverter::AddModelsToParamTree(ParameterTree*, ...):
+ *      Recursively adds models and submodels to a ParameterTree from JSON.
+ *  - paramStruct ParameterTreeConverter::ModelParamsFromJson(const rapidjson::Value& model):
+ *      Extracts model parameters, mutability, constraints, and sigma values from JSON.
+ *  - paramStruct ParameterTreeConverter::DomainPreferencesFromJson(const rapidjson::Value& doc):
+ *      Extracts domain-level preferences from JSON.
+ *  - void ParameterTreeConverter::WriteSimpleJSON(...):
+ *      Serializes a ParameterTree to a simplified JSON format.
+ *  - ParameterTree ParameterTreeConverter::FromSimpleJSON(...):
+ *      Constructs a ParameterTree from a simplified JSON format.
+ *  - void ParameterTreeConverter::WriteParameterTree(...):
+ *      Recursively serializes a ParameterTree and its parameters/submodels to JSON.
+ *  - Parameter ParameterTreeConverter::ParameterFromJSON(...):
+ *      Deserializes a Parameter from JSON.
+ *  - ParameterTree ParameterTreeConverter::ParameterTreeFromJSON(...):
+ *      Recursively deserializes a ParameterTree from JSON.
+ *  - Utility methods for constraints, location parameters, and string conversions.
+ *
+ * Error Handling:
+ *  - Throws std::invalid_argument for missing or invalid JSON fields.
+ *  - Uses assertions for critical JSON structure checks.
+ *  - Handles "inf" and "-inf" string representations for floating-point values.
+ *
+ * Dependencies:
+ *  - ParamTreeConversions.h for class and method declarations.
+ *  - rapidjson/document.h and rapidjson/stringbuffer.h for JSON parsing and writing.
+ *  - ParameterTree, paramStruct, Parameter, and related model/parameter structures.
+ *  - Standard C++ libraries for string and file operations.
+ *
+ * See ParamTreeConversions.h for class and method declarations.
+ */
+
 
 // Default model creation functions all return 0. Derived classes should implement these better
 ModelPtr ParameterTreeConverter::CreateCompositeModel(ModelPtr stateModel)

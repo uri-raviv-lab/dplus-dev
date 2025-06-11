@@ -20,6 +20,56 @@
 using namespace rapidjson;
 using namespace std;
 
+/**
+ * @file BackendWrapper.cpp
+ * @brief Implements the BackendWrapper class, which acts as the main interface between frontend JSON-RPC requests
+ *        and backend computational logic, including model generation, fitting, and result serialization.
+ *
+ * The BackendWrapper class is responsible for:
+ *  - Parsing and validating incoming JSON requests from the frontend.
+ *  - Dispatching backend function calls (such as model generation, fitting, and metadata queries) based on request content.
+ *  - Serializing backend results and errors into JSON responses using a custom JsonWriter.
+ *  - Managing backend capabilities, including GPU/AVX checks and error handling.
+ *  - Handling client-specific backend state and job management.
+ *
+ * Key Concepts:
+ *  - Each JSON request must specify a client ID, function name, and arguments; optional client data is echoed in responses.
+ *  - BackendWrapper routes function calls to the appropriate backend logic, handling exceptions and error codes.
+ *  - GPU and AVX capabilities are checked as needed for computational functions.
+ *  - Results, errors, and client data are serialized into JSON for frontend consumption.
+ *
+ * Fields:
+ *  - std::map<std::string, LocalBackendInfo> _clientBackends:
+ *      Maps client IDs to their associated backend state, including job, backend instance, and parameter tree converter.
+ *  - static bool g_useGPU:
+ *      Global flag indicating whether GPU acceleration should be used for backend computations.
+ *  - (struct) LocalBackendInfo:
+ *      - LocalBackend* local_backend: Pointer to the LocalBackend instance for this client.
+ *      - JobPtr job: Handle to the current backend job for this client.
+ *      - LocalBackendParameterTreeConverter* Converter: Pointer to the parameter tree converter for model mapping.
+ *
+ * Main Methods:
+ *  - CallBackend: Entry point for processing a JSON request; parses, validates, dispatches, and serializes the response.
+ *  - CallBackendFunction: Dispatches backend function calls based on the requested function name.
+ *  - WriteResponseClientData / WriteResponseError: Serializes client data and error information into the response.
+ *  - SetGPUFlag: Parses and sets the global GPU usage flag from request options.
+ *  - StartGenerate / StartGenerate2D / StartFit: Initiates backend computations for model generation or fitting.
+ *  - GetAllModelMetadata / GetGenerateResults / GetGenerate2DResults / GetFitResults: Serializes various backend results.
+ *  - WriteGraph / Write2DGraph: Serializes 1D/2D graph data from backend computations.
+ *  - CheckCapabilities / checkAVX / checkGPU / checkTdrLevel: Validates hardware and OS capabilities for computation.
+ *  - Stop: Signals the backend to halt the current job.
+ *  - GetAmplitude / GetPDB: Handles file-based results for amplitude and PDB data.
+ *
+ * Threading and Safety:
+ *  - BackendWrapper itself is not thread-safe; thread safety is expected to be managed at a higher level or within backend jobs.
+ *  - Hardware capability checks and global flags (such as g_useGPU) are managed with care to avoid race conditions.
+ *
+ * Error Handling:
+ *  - All backend exceptions are caught and serialized as error objects in the JSON response.
+ *  - Error codes and messages are standardized via backend_exception and g_errorStrings.
+ *
+ * See BackendWrapper.h for class and method declarations and the definition of LocalBackendInfo.
+ */
 
 std::string BackendWrapper::CallBackend(std::string json)
 {

@@ -22,6 +22,92 @@ using namespace Eigen;
 /*#define NOMINMAX
 #include <windows.h>*/ //USE FOR MESSAGEBOX TESTING
 
+/**
+ * @file fitting.cpp
+ * @brief Implements the core fitting algorithms and classes for nonlinear least-squares model fitting
+ *        and error estimation in the backend.
+ *
+ * The fitting module is responsible for:
+ *  - Providing the main fitting engine (ModelFitter, LMFitter) for optimizing model parameters
+ *    to best fit experimental data.
+ *  - Supporting weighted and unweighted fitting, log-scale fitting, and various constraint types.
+ *  - Calculating parameter and model errors using the Jacobian and covariance matrices.
+ *  - Enforcing parameter constraints and supporting parameter linking during optimization.
+ *  - Supporting both accurate (SVD-based) and fast (LU-based) linear system solutions for fitting.
+ *
+ * Key Concepts:
+ *  - ModelFitter: Base class for fitting a model to data, managing parameters, constraints, and evaluation.
+ *  - LMFitter: Implements the Levenberg-Marquardt algorithm for nonlinear least-squares fitting,
+ *    including error estimation and iterative parameter updates.
+ *  - Constraints: Supports parameter bounds, linking, and custom constraints via the cons structure.
+ *  - FittingProperties: Controls fitting options such as accuracy, weighting, log-scale, and iteration limits.
+ *  - Uses Eigen for efficient linear algebra (SVD, LU, matrix/vector operations).
+ *
+ * Fields:
+ *  - IModel* FitModel:
+ *      Pointer to the model being fitted.
+ *  - FittingProperties props:
+ *      Fitting options (accuracy, weighting, log-scale, iteration limits, etc.).
+ *  - std::vector<double> x, y:
+ *      Experimental data (x: independent variable, y: dependent variable).
+ *  - std::vector<double> mult, add:
+ *      Multiplicative and additive background factors for the model.
+ *  - VectorXd params:
+ *      Current parameter vector for the model.
+ *  - VectorXi paramMut:
+ *      Flags indicating which parameters are mutable during fitting.
+ *  - int nParams:
+ *      Number of parameters in the model.
+ *  - int nLayers:
+ *      Number of layers (for multilayer models).
+ *  - cons *p_min, *p_max:
+ *      Structures holding parameter minimum and maximum constraints, including linking.
+ *  - int mutables:
+ *      Number of mutable parameters.
+ *  - VectorXd sqWeights:
+ *      Squared weights for weighted fitting.
+ *  - volatile int bStop:
+ *      Stop flag for interrupting fitting (thread-safety).
+ *  - bool error:
+ *      Error state flag for the fitter.
+ *  - MatrixXd J:
+ *      Jacobian matrix of partial derivatives.
+ *  - MatrixXd alpha:
+ *      Alpha matrix (J'J) for the Levenberg-Marquardt algorithm.
+ *  - VectorXd beta:
+ *      Beta vector (J'(y-f(b))) for the Levenberg-Marquardt algorithm.
+ *  - double lambda:
+ *      Damping parameter for the Levenberg-Marquardt algorithm.
+ *  - double curWssr:
+ *      Current weighted sum of squared residuals.
+ *  - double mse:
+ *      Mean squared error of the fit.
+ *  - VectorXd interimResY:
+ *      Stores the most recent model evaluation result.
+ *
+ * Main Methods:
+ *  - ModelFitter (constructor): Initializes the fitter with model, data, weights, constraints, and properties.
+ *  - Evaluate: Computes the fit quality (WSSR or 1 - R²) for a given parameter set.
+ *  - EnforceConstraints: Applies parameter bounds and linking, returning false if violated.
+ *  - LMFitter::FitIteration: Performs a single Levenberg-Marquardt iteration, updating parameters and damping.
+ *  - LMFitter::GetFittingErrors: Computes parameter and model errors from the covariance matrix and Jacobian.
+ *  - LMFitter::CalculateCoefficients: Calculates the Jacobian, alpha/beta matrices, and fit residuals.
+ *
+ * Threading and Safety:
+ *  - Not inherently thread-safe; designed for per-job, per-fit use.
+ *  - Supports external stop signals for interruptible fitting.
+ *
+ * Error Handling:
+ *  - Sets internal error flags on matrix failures or constraint violations.
+ *  - Returns negative values or sets error state on failure.
+ *
+ * Dependencies:
+ *  - Relies on Eigen for matrix operations.
+ *  - Uses Model, Statistics, and mathfuncs for model evaluation and statistics.
+ *
+ * See fitting.h for class and method declarations.
+ */
+
 ModelFitter::ModelFitter(IModel *model, const FittingProperties& fp, const std::vector<double>& datax, 
 			const std::vector<double>& datay,
 			const std::vector<double>& factor, 

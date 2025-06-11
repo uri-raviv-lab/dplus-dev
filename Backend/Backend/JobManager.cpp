@@ -19,6 +19,79 @@
 
 using namespace std;
 
+
+/**
+ * @file JobManager.cpp
+ * @brief Implements the JobManager class, which manages the lifecycle, execution, and state of computational jobs
+ *        such as model fitting and generation in the backend.
+ *
+ * The JobManager is responsible for:
+ *  - Creating and destroying jobs, each identified by a unique JobPtr.
+ *  - Managing job state, progress, and error reporting.
+ *  - Launching jobs on separate threads for asynchronous execution (fit, generate, generate2D).
+ *  - Handling job completion, including notifying the frontend/backend and logging.
+ *  - Validating parameter trees for model and amplitude consistency.
+ *  - Providing interfaces to query, stop, and wait for jobs.
+ *  - Maintaining mappings between job IDs, models, and amplitudes.
+ *
+ * Key Concepts:
+ *  - Each job encapsulates its own model tree, parameters, progress, and results.
+ *  - Jobs are executed in separate threads to allow concurrent processing.
+ *  - The manager ensures thread safety using mutexes for all job operations.
+ *  - Logging and error handling are integrated for traceability and debugging.
+ *
+ * Fields:
+ *  - std::map<unsigned int, Job> jobs:
+ *      Maps job IDs to Job objects, holding all state and resources for each job.
+ *  - std::map<JobPtr, std::thread*> jobThreads:
+ *      Maps job IDs to their associated worker threads for asynchronous execution.
+ *  - std::mutex jobMutex:
+ *      Mutex protecting all access to the jobs and jobThreads maps for thread safety.
+ *  - unsigned int jobCtr:
+ *      Counter for generating unique job IDs.
+ *
+ *  - Job (see Job.h for full details, but key fields include):
+ *      - unsigned int uid: Unique job identifier.
+ *      - std::string instigator: Creator or owner of the job.
+ *      - std::wstring description: Human-readable job description.
+ *      - JobType type: Type of job (fit, generate, etc.).
+ *      - JobState state: Current state (idle, running, etc.).
+ *      - double progress: Progress (0.0–1.0) of the job.
+ *      - int error: Last error code for the job.
+ *      - wchar_t errorMsg[1024]: Last error message for the job.
+ *      - time_t beginning, lastAccess: Timestamps for job start and last activity.
+ *      - ParameterTree* tree: Parameter/model tree for the job.
+ *      - std::map<ModelPtr, IModel*> uidToModel: Maps model handles to model instances.
+ *      - std::map<ModelPtr, Amplitude*> uidToAmp: Maps amplitude handles to amplitude instances.
+ *      - std::mutex* jobMutex: Per-job mutex for fine-grained thread safety.
+ *      - std::vector<double> resultGraph: Stores 1D result data.
+ *      - Eigen::Array<double, Eigen::Dynamic, Eigen::Dynamic> resultGraph2D: Stores 2D result data.
+ *      - JobStatus jobStatus: Tracks job status, progress, and error code.
+ *      - int* pStop: Pointer to stop flag for interrupting jobs.
+ *
+ * Main Methods:
+ *  - CreateJob: Registers a new job and returns its identifier.
+ *  - DestroyJob: Cleans up and removes a job.
+ *  - StartFitJob / StartGenerateJob / StartGenerate2DJob: Launches fitting or generation jobs.
+ *  - StopJob / WaitForJob: Controls job execution and synchronization.
+ *  - CompleteJob: Finalizes a job, updates state, and notifies interested parties.
+ *  - GetJobInformation / UpdateJob: Accesses and updates job metadata.
+ *  - GetActiveJobs: Lists currently running jobs.
+ *  - ValidateParamTree: Ensures the model tree structure is valid for execution.
+ *
+ * Threading:
+ *  - Each job runs in its own thread, managed by the JobManager.
+ *  - Thread-safe access is enforced via std::mutex and lock_guard.
+ *
+ * Logging:
+ *  - All significant job events are logged to a file for audit and debugging.
+ *
+ * Error Handling:
+ *  - Errors are captured, stored in the job structure, and reported to the frontend/backend.
+ *
+ * See JobManager.h for class and method declarations.
+ */
+
 // Helper function to turn a ModelType into a string (for logging purposes)
 static std::string ModelTypeToString(IModel *model)  {
 	std::string result = "";

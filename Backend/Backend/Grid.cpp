@@ -24,6 +24,62 @@ using Eigen::Matrix3d;
 
 //namespace fs = boost::filesystem;
 
+/**
+ * @file Grid.cpp
+ * @brief Implements the JacobianSphereGrid class for spherical grid storage, interpolation, and amplitude/intensity calculations.
+ *
+ * The Grid module is responsible for:
+ *  - Representing a 3D spherical grid (JacobianSphereGrid) for storing and interpolating complex amplitude data in spherical coordinates.
+ *  - Providing efficient methods for setting, retrieving, and interpolating amplitude values on the grid.
+ *  - Supporting binary import/export, JSON serialization, and memory management for grid data.
+ *  - Enabling Monte Carlo and direct integration for intensity calculations over the grid.
+ *  - Offering utilities for coordinate transformations, grid validation, and amplitude extraction at arbitrary points.
+ *
+ * Key Concepts:
+ *  - Spherical Grid Representation: Stores amplitude data in a non-uniform, shell-based grid parameterized by (q, theta, phi).
+ *  - Spline Interpolation: Uses cubic splines for smooth interpolation between grid points in both radial and angular directions.
+ *  - Binary and JSON I/O: Supports reading/writing grid data in binary format and serializing grid parameters to JSON.
+ *  - Monte Carlo Integration: Calculates intensity by random sampling over the sphere, with convergence checks.
+ *  - Coordinate Conversion: Provides methods for converting between Cartesian and spherical coordinates and for mapping indices to physical values.
+ *
+ * Fields:
+ *  - double qmax, stepSize: Maximum q value and step size for the grid.
+ *  - unsigned short gridSize, actualGridSize, Extras: Grid size parameters.
+ *  - int thetaDivisions, phiDivisions: Number of angular divisions per shell.
+ *  - long long totalsz: Total number of data elements (complex values stored as doubles).
+ *  - Eigen::ArrayXd data, interpolantCoeffs: Storage for amplitude data and spline coefficients.
+ *
+ * Main Methods:
+ *  - JacobianSphereGrid::JacobianSphereGrid(...): Constructors for various initialization scenarios (from parameters, streams, or files).
+ *  - void InitializeGrid(): Allocates and initializes grid storage and parameters.
+ *  - void SetCart/SetSphr(...): Sets amplitude values at Cartesian or spherical coordinates.
+ *  - std::complex<double> GetCart/GetSphr(...): Retrieves (interpolated) amplitude values at Cartesian or spherical coordinates.
+ *  - std::complex<double> InterpolateThetaPhiPlane(...): Interpolates amplitude in the angular plane using splines.
+ *  - void CalculateSplines(): Computes spline coefficients for all angular planes.
+ *  - FACC CalculateIntensity(...): Computes intensity at a given q (and optionally theta/phi) using Monte Carlo or direct integration.
+ *  - bool ImportBinaryData/ExportBinaryData(...): Reads/writes grid data in binary format, with header and version checks.
+ *  - void WriteToJsonWriter(...): Serializes grid parameters to JSON.
+ *  - ArrayXcX getAmplitudesAtPoints(...): Retrieves amplitudes at a vector of (q, theta, phi) points.
+ *  - bool Validate(): Checks for invalid or non-finite values in the grid.
+ *  - void Fill(...): Fills the grid using a user-supplied amplitude calculation function.
+ *  - Various utility methods for index mapping, coordinate conversion, and memory management.
+ *
+ * Error Handling:
+ *  - Throws backend_exception for memory allocation failures, invalid file formats, or invalid grid data.
+ *  - Returns false or resets data on I/O errors.
+ *  - Asserts and checks for out-of-bounds and invalid values during interpolation and access.
+ *
+ * Dependencies:
+ *  - Grid.h for class and method declarations.
+ *  - Eigen for array and matrix operations.
+ *  - PeriodicSplineSolver.h for spline interpolation.
+ *  - rapidjson for JSON serialization.
+ *  - backend_exception.h for error handling.
+ *  - Standard C++ libraries for I/O, math, and memory management.
+ *
+ * See Grid.h for class and method declarations.
+ */
+
 
 #ifndef M_2PI
 #define M_2PI 6.28318530717958647692528676656

@@ -1,5 +1,92 @@
 #include "ModelUI.h"
 
+/**
+ * @file ModelUI.cpp
+ * @brief Implements the ModelUI, ScriptedModelUI, PDBModelUI, and AMPModelUI classes, which provide
+ *        frontend model metadata, parameter management, and UI integration for model selection and configuration.
+ *
+ * The ModelUI module is responsible for:
+ *  - Managing model metadata and parameter information for frontend display and editing.
+ *  - Providing access to layer and extra parameter names, types, default values, and applicability.
+ *  - Supporting dynamic retrieval of layer information from the backend as needed.
+ *  - Handling related models, display parameters, and container associations for each model.
+ *  - Supporting specialized UI models for scripted, PDB, and amplitude-only models.
+ *
+ * Key Concepts:
+ *  - ModelUI: Main class for representing a model's UI metadata, parameter names, types, and values.
+ *  - ScriptedModelUI: UI class for models defined by scripts, with callback-based parameter and layer naming.
+ *  - PDBModelUI: UI class for PDB-based models, with fixed extra parameters and options.
+ *  - AMPModelUI: UI class for amplitude-only models, with minimal parameterization.
+ *  - Dynamic Layer Retrieval: Layer names and parameter applicability are fetched from the backend as needed.
+ *  - Extra Parameters: Support for different types (double, checkbox, multiple choice) and options.
+ *
+ * Fields:
+ *  - ModelInformation mi:
+ *      Holds model metadata (name, index, parameter counts, flags, etc.).
+ *  - std::vector<std::string> layerParamNames:
+ *      Names of layer parameters for the model.
+ *  - std::vector<std::string> layerNames:
+ *      Names of layers for the model.
+ *  - std::vector<ExtraParam> extraParamsInfo:
+ *      Information about extra (non-layer) parameters.
+ *  - std::vector<EXTRA_PARAM_TYPE> extraParamsTypes:
+ *      Types of extra parameters (e.g., EPT_DOUBLE, EPT_CHECKBOX, EPT_MULTIPLE_CHOICE).
+ *  - std::vector<std::vector<std::string>> extraParamOptions:
+ *      Option strings for extra parameters (for multiple choice, etc.).
+ *  - std::vector<std::string> displayParamNames:
+ *      Names of display parameters for the model.
+ *  - ArrayXXi isParamApplicable:
+ *      Matrix indicating applicability of each parameter to each layer.
+ *  - MatrixXd defVals:
+ *      Matrix of default parameter values for each layer and parameter.
+ *  - int relatedModels:
+ *      Number of related models.
+ *  - std::vector<std::string> relatedModelNames:
+ *      Names of related models.
+ *  - std::vector<int> relatedModelIndices:
+ *      Indices of related models.
+ *  - EDProfile edp:
+ *      Electron density profile information for the model.
+ *  - FrontendComm* _com:
+ *      Pointer to the frontend communication interface.
+ *  - const wchar_t* _container:
+ *      Pointer to the container name for the model.
+ *  - wchar_t _containerstr[MAX_PATH]:
+ *      Buffer for storing the container name.
+ *  - ModelCategory mc:
+ *      Category information for the model.
+ *  - (ScriptedModelUI) Function pointers for custom naming and parameter logic:
+ *      - GetNameFunc layernameFunc, layerparamnameFunc
+ *      - GetDefaultParamValueFunc dpvFunc
+ *      - GetParamApplicableFunc paFunc
+ *
+ * Main Methods:
+ *  - setModel: Initializes the UI model with backend and metadata information.
+ *  - retrieveMoreLayers: Dynamically fetches additional layer information from the backend.
+ *  - GetLayerParamName / GetLayerName / GetExtraParameter: Accessors for parameter and layer names/info.
+ *  - GetNumLayerParams / GetNumExtraParams / GetNumDisplayParams: Accessors for parameter counts.
+ *  - GetDefaultParamValue / IsParamApplicable: Accessors for parameter values and applicability.
+ *  - GetRelatedModelName / GetRelatedModelIndex: Accessors for related model information.
+ *  - GetContainer: Returns the container name for the model.
+ *  - ScriptedModelUI::SetHandlerCallbacks: Sets custom callbacks for scripted model UI logic.
+ *
+ * Threading and Safety:
+ *  - Not inherently thread-safe; designed for use in the frontend UI thread.
+ *  - Dynamic layer retrieval and backend communication are performed synchronously.
+ *
+ * Error Handling:
+ *  - Returns false on backend communication errors or invalid indices.
+ *  - Catches and handles backend errors when retrieving parameter or model information.
+ *
+ * Dependencies:
+ *  - ModelUI.h for class and method declarations.
+ *  - FrontendComm for backend communication.
+ *  - ModelInformation, ExtraParam, EDProfile, and related data structures.
+ *  - Eigen for matrix and array types (MatrixXd, ArrayXXi).
+ *
+ * See ModelUI.h for class and method declarations.
+ */
+
 ModelUI::~ModelUI() {
 }
 

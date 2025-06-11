@@ -22,6 +22,90 @@ namespace fs = boost::filesystem;
 #include <boost/program_options.hpp>
 namespace po = boost::program_options;
 
+/**
+ * @file DebyeCalculator.cpp
+ * @brief Implements a command-line tool for Debye scattering calculations from PDB files,
+ *        supporting both CPU and GPU computation, electron or X-ray scattering, and various options.
+ *
+ * The DebyeCalculator module is responsible for:
+ *  - Parsing command-line arguments to configure Debye scattering calculations.
+ *  - Loading PDB files and initializing the appropriate PDB reader (electron or X-ray).
+ *  - Setting up and running Debye or anomalous Debye calculations using DebyeCalTester or AnomDebyeCalTester.
+ *  - Supporting optional GPU acceleration and kernel version selection.
+ *  - Handling solvent electron density subtraction and Debye-Waller (B-factor) corrections.
+ *  - Providing progress reporting via a console progress bar.
+ *  - Saving calculated scattering intensities to an output file with a detailed header.
+ *  - Printing help and usage information for all supported command-line options.
+ *
+ * Key Concepts:
+ *  - DebyeCalTester / AnomDebyeCalTester: Classes that perform the actual Debye scattering calculations.
+ *  - PDBReader: Used to read atomic coordinates and properties from PDB files.
+ *  - Command-line Options: Control input/output files, calculation type, GPU usage, q-range, and more.
+ *  - Progress Reporting: Visual progress bar for long calculations.
+ *  - Exception Handling: Robust error handling for file, backend, and calculation errors.
+ *
+ * Fields:
+ *  - std::string inFilename:
+ *      Input PDB file path.
+ *  - std::string saveFilename:
+ *      Output file path for calculated results.
+ *  - std::string anomalousFilename:
+ *      Optional file for anomalous scattering factors.
+ *  - bool useGPU:
+ *      Whether to use GPU acceleration if available.
+ *  - bool useDW:
+ *      Whether to apply Debye-Waller (B-factor) corrections.
+ *  - bool electron:
+ *      Whether to use electron PDB reader (otherwise X-ray).
+ *  - bool printProgress:
+ *      Whether to print a progress bar during calculation.
+ *  - float solventEDensity:
+ *      Solvent electron density to subtract from the calculation.
+ *  - float c1:
+ *      Excluded volume adjustment parameter.
+ *  - float qMax, qMin:
+ *      Maximum and minimum q values for the calculation.
+ *  - int nqVals:
+ *      Number of q points to calculate.
+ *  - int kernelVersion:
+ *      GPU kernel version to use (if GPU is enabled).
+ *  - DebyeCalTester* dct:
+ *      Pointer to the Debye calculation engine (or AnomDebyeCalTester).
+ *  - PDBReader::PDBReaderOb* pdb:
+ *      Pointer to the PDB reader object (electron or X-ray).
+ *  - std::vector<double> dqq:
+ *      Vector of q values for which intensity is calculated.
+ *  - VectorXd a:
+ *      Vector of calculation parameters (solventEDensity, useDW, c1).
+ *  - VectorXd res:
+ *      Vector of calculated scattering intensities.
+ *
+ * Main Methods:
+ *  - int main(int argc, char* argv[]): Entry point; parses arguments, runs calculation, saves results.
+ *  - printProgressBar: Prints a console progress bar for calculation progress.
+ *  - OurProgressFunc: Callback for progress reporting.
+ *  - GetBackend: Loads the backend library (DLL or SO).
+ *  - PrintTime: Prints the current date and time.
+ *
+ * Threading and Safety:
+ *  - Designed for single-threaded command-line execution.
+ *  - Progress reporting is synchronous and safe for console output.
+ *
+ * Error Handling:
+ *  - Catches and reports exceptions from PDB reading, backend errors, and general exceptions.
+ *  - Validates input files and command-line arguments.
+ *  - Reports file and directory creation errors.
+ *
+ * Dependencies:
+ *  - Boost.Program_options for command-line parsing.
+ *  - Boost.Filesystem for file and path management.
+ *  - Backend/Amplitude.h, Backend/Symmetry.h, PDBReaderLib.h for calculation and PDB reading.
+ *  - DebyeCalTester, AnomDebyeCalTester for Debye calculations.
+ *  - Eigen for vector operations.
+ *
+ * See DebyeCalculator.cpp for implementation details.
+ */
+
 /*
 #include <cuda_runtime_api.h>
 void ResetGPU()

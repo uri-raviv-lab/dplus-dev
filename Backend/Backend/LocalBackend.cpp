@@ -51,6 +51,79 @@ typedef void *HMODULE;
 #define CONTAINER_SUFFIX L".so"
 #endif
 
+/**
+ * @file LocalBackend.cpp
+ * @brief Implements the LocalBackend class, which provides the core backend logic for managing jobs,
+ *        models, amplitudes, and computational tasks such as fitting and generation in a local process.
+ *
+ * The LocalBackend class is responsible for:
+ *  - Creating, managing, and destroying computational jobs and their associated resources (models, amplitudes, fitters).
+ *  - Handling the lifecycle of models, amplitudes, and symmetries, including creation from files, scripts, or geometry.
+ *  - Dispatching and executing computational tasks such as model fitting, 1D/2D generation, and result retrieval.
+ *  - Providing thread-safe operations for all job and resource modifications via per-job mutexes.
+ *  - Managing error reporting, job status, and progress notifications.
+ *  - Interfacing with dynamic model containers (DLLs/SOs) for model and amplitude instantiation.
+ *  - Serializing and deserializing results, errors, and model information for frontend consumption.
+ *
+ * Key Concepts:
+ *  - Each job is managed by a JobManager singleton and owns its models, amplitudes, and fitters.
+ *  - Models and amplitudes are assigned unique IDs within each job for tracking and lookup.
+ *  - The backend supports both file-based and in-memory creation of models and amplitudes, including scripted and composite types.
+ *  - All resource and state modifications are protected by per-job mutexes to ensure thread safety.
+ *  - Errors are reported using backend_exception and are tracked per job for robust error handling.
+ *
+ * Fields:
+ *  - (Global, static) std::map<std::wstring, HMODULE> s_containers:
+ *      Global map of loaded model container libraries (DLLs/SOs), keyed by container path.
+ *  - (Per-job, via JobManager/Job) The following fields are managed per job and accessed through the JobManager:
+ *      - std::map<ModelPtr, IModel*> uidToModel: Maps model handles to model instances for the job.
+ *      - std::map<ModelPtr, Amplitude*> uidToAmp: Maps amplitude handles to amplitude instances for the job.
+ *      - std::map<Amplitude*, ModelPtr> ampToUid: Reverse map from amplitude instance to handle.
+ *      - std::mutex* jobMutex: Mutex for synchronizing all modifications to the job's resources and state.
+ *      - std::string description: Human-readable description of the job.
+ *      - std::string instigator: Identifier for the entity that created the job.
+ *      - std::vector<double> resultGraph: Stores the 1D result graph for the job.
+ *      - Eigen::MatrixXd resultGraph2D: Stores the 2D result graph for the job.
+ *      - ParameterTree* tree: Stores the parameter tree for the job's current state/results.
+ *      - Fitter* fitter: Pointer to the fitter instance used for fitting jobs.
+ *      - JobStatus jobStatus: Tracks the current status, progress, and error code for the job.
+ *      - JobType type: The type of the job (fit, generate, etc.).
+ *      - int error: Last error code for the job.
+ *      - wchar_t errorMsg[1024]: Last error message for the job.
+ *      - time_t lastAccess: Last access time for the job (for resource management).
+ *      - unsigned int uid: Unique identifier for the job.
+ *      - JobState state: Current state of the job (idle, running, etc.).
+ *
+ * Main Methods:
+ *  - HandleCreateJob / HandleDestroyJob: Manage the lifecycle of computational jobs.
+ *  - HandleCreateModel / HandleCreateCompositeModel / HandleCreateDomainModel / HandleCreateScriptedModel: Create various model types.
+ *  - HandleCreateFileAmplitude / HandleCreateGeometricAmplitude / HandleCreateSymmetry: Create amplitude and symmetry resources.
+ *  - HandleDestroyModel: Safely destroys models or amplitudes, with optional recursive child destruction.
+ *  - HandleFit / HandleGenerate / HandleGenerate2D: Initiate fitting and generation computations for a job.
+ *  - HandleGetResults / HandleGetGraph / HandleGet2DGraph: Retrieve computation results and graphs.
+ *  - HandleGetLayerParamNames / HandleGetDisplayParamInfo / HandleGetExtraParamInfo: Query model parameter metadata.
+ *  - HandleGetAmplitude / HandleGetPDB: Retrieve amplitude or PDB data as files or streams.
+ *  - NotifyProgress / NotifyCompletion: Update job progress and completion status.
+ *  - HandleGetLastErrorMessage / HandleGetJobType / GetJobStatus: Query job state and error information.
+ *
+ * Threading and Safety:
+ *  - All modifications to job resources and state are protected by per-job mutexes (std::lock_guard).
+ *  - The JobManager singleton coordinates job creation, destruction, and updates in a thread-safe manner.
+ *
+ * Error Handling:
+ *  - Errors are reported via backend_exception and are tracked per job.
+ *  - Error codes and messages are standardized and propagated to the frontend.
+ *  - Resource lookup failures, invalid arguments, and computational errors are robustly handled.
+ *
+ * Dynamic Model Container Support:
+ *  - Supports loading model containers (DLL/SO) at runtime for extensible model and amplitude instantiation.
+ *  - Uses platform-specific APIs (LoadLibraryW/dlopen) for dynamic loading.
+ *
+ * See LocalBackend.h for class and method declarations.
+ */
+
+
+
 // GLOBAL containing a temporary array of opened containers
 static std::map<std::wstring, HMODULE> s_containers;
 

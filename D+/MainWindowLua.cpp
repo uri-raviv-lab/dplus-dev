@@ -11,6 +11,90 @@
 #include "FittingPrefsPane.h"
 #include "GraphFigure.h"
 
+/**
+ * @file MainWindowLua.cpp
+ * @brief Implements Lua integration for the DPlus MainWindow, enabling scripting access to model configuration,
+ *        parameter trees, fitting, generation, and visualization through Lua functions and tables.
+ *
+ * The MainWindowLua module is responsible for:
+ *  - Registering C++/CLI and .NET methods as callable Lua functions for scripting and automation.
+ *  - Providing Lua-accessible functions for model and amplitude lookup, parameter tree manipulation,
+ *    model generation, fitting, and data I/O.
+ *  - Translating between C++/CLI data structures (e.g., paramStruct, Entity) and Lua tables for seamless
+ *    scripting interaction.
+ *  - Supporting Lua-driven workflows for model creation, parameter editing, fitting, and result visualization.
+ *  - Enabling Lua scripts to interact with the DPlus UI, backend, and data files.
+ *
+ * Key Concepts:
+ *  - Lua Scripting: Exposes DPlus functionality to Lua scripts for automation and advanced workflows.
+ *  - Parameter Tree Serialization: Converts between paramStruct/entity trees and Lua tables for scripting.
+ *  - Model/Amplitude Lookup: Lua functions to find models or amplitudes by name or container.
+ *  - Data I/O: Lua functions for reading/writing data files and displaying graphs.
+ *  - Scripting-Driven Generation/Fitting: Lua functions to trigger model generation and fitting jobs.
+ *  - UI Integration: Lua can open figures, show graphs, and display messages in the DPlus UI.
+ *
+ * Fields:
+ *  - Lua^ luaState:
+ *      The Lua scripting engine instance used for registering functions and executing scripts.
+ *  - (inherited) Entity, paramStruct, ParameterTree, and related model/parameter structures.
+ *  - (inherited) PaneList, populationTrees, compositeModel, domainModels, etc.
+ *
+ * Main Methods:
+ *  - void BindLuaFunctions():
+ *      Registers all DPlus-related functions and helpers with the Lua scripting engine.
+ *  - static LuaTable^ CreateTable(Lua^ luaState):
+ *      Utility for creating new Lua tables from C++/CLI.
+ *  - static void ParametersToLuaTree(const paramStruct&, LuaTable^, Entity^, Lua^, bool):
+ *      Serializes a paramStruct and associated entity into a Lua table.
+ *  - LuaTable^ GetParamTree(Entity^, Lua^):
+ *      Recursively serializes an entity tree into a Lua table.
+ *  - LuaTable^ GetParameterTree():
+ *      Returns the current parameter tree as a Lua table for scripting.
+ *  - void UpdateParametersLua(LuaTable^):
+ *      Updates the UI and backend from a Lua parameter tree.
+ *  - void SetParameterTree(LuaTable^):
+ *      Sets the UI and backend state from a Lua parameter tree.
+ *  - String^ GetLuaScript():
+ *      Serializes the current state and preferences to a Lua script string.
+ *  - String^ LuaFindModel/LuaFindAmplitude(String^, String^):
+ *      Finds a model or amplitude by name (optionally within a container) and returns its identifier.
+ *  - int LuaOpenFigure(String^, String^, String^):
+ *      Opens a new figure window from Lua.
+ *  - void LuaShowGraph(int, LuaTable^, String^):
+ *      Displays a graph in a figure window from Lua data.
+ *  - LuaTable^ LuaGenerateTable/LuaGenerateCurrent(...):
+ *      Runs model generation from Lua and returns results as a Lua table.
+ *  - LuaTable^ LuaFit/LuaFitCurrent(...):
+ *      Runs model fitting from Lua and returns results as a Lua table.
+ *  - LuaTable^ DataToLuaTable(const std::vector<double>&, const std::vector<double>&):
+ *      Converts C++ vectors to a Lua table for scripting.
+ *  - void LuaTableToData(LuaTable^, std::vector<double>&, std::vector<double>&):
+ *      Converts a Lua table to C++ vectors.
+ *  - LuaTable^ LuaReadData(String^):
+ *      Reads a data file and returns it as a Lua table.
+ *  - bool LuaWriteData(String^, LuaTable^):
+ *      Writes a Lua table to a data file.
+ *  - void LuaMessage(String^):
+ *      Displays a message box from Lua.
+ *
+ * Threading and Safety:
+ *  - UI and backend updates are marshaled to the main thread as needed.
+ *  - Lua function calls that interact with the UI or backend are thread-safe via Invoke.
+ *
+ * Error Handling:
+ *  - Provides user feedback via message boxes for invalid input, errors, or failed operations.
+ *  - Catches and reports errors in Lua data conversion, model lookup, and backend calls.
+ *
+ * Dependencies:
+ *  - MainWindow.h for class and method declarations.
+ *  - LuaBinding.h for Lua integration.
+ *  - GraphPane3D.h, SymmetryView.h, PreferencesPane.h, Controls3D.h, ScriptPane.h, FittingPrefsPane.h, GraphFigure.h for UI and data structures.
+ *  - FrontendExported.h for data file I/O.
+ *  - .NET Windows Forms for UI interaction.
+ *
+ * See MainWindow.h and LuaBinding.h for class and method declarations.
+ */
+
 namespace DPlus {
 
 	void MainWindow::BindLuaFunctions() {

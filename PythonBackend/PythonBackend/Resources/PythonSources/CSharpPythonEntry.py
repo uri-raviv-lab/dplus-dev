@@ -16,6 +16,72 @@ import clr
 sys.stdout = sys.__stdout__ 
 
 
+"""
+@file CSharpPythonEntry.py
+@brief Implements the Python entry point classes for backend job management, calculation, and communication with the C# frontend.
+
+The CSharpPythonEntry system is responsible for:
+  - Providing a Python interface for the C# backend to execute calculation, fitting, and data export jobs.
+  - Parsing JSON-based function calls from the frontend, dispatching them to the appropriate backend logic, and serializing results.
+  - Managing job state, calculation runners, and result objects for both local and embedded execution modes.
+  - Handling error reporting and result formatting in a consistent, extensible manner.
+  - Supporting both local and embedded calculation runners for flexible backend deployment.
+
+Key Concepts:
+  - Each backend call is received as a JSON string, parsed, and dispatched to the appropriate method based on the "function" field.
+  - Results and errors are serialized back to JSON, following a standard response structure.
+  - Two main classes are provided: LocalCSharpPython (for local process execution) and EmbeddedCSharpPython (for embedded execution).
+  - Calculation runners (LocalRunner, EmbeddedLocalRunner, FitRunner) manage the execution of generate and fit jobs.
+  - Job and result state are tracked per session, supporting multiple sequential operations.
+
+Fields:
+  - LocalCSharpPython:
+      - exe_dir: Path to the backend executable directory.
+      - session_dir: Path to the session directory for temporary files and outputs.
+      - cur_job: The current calculation or fit job object.
+      - calc_runner: Instance of LocalRunner for running calculations.
+      - all_outs_filename: Path to the file aggregating all calculation outputs.
+      - run_fit: Boolean indicating if the current job is a fit.
+      - cur_calc_input: The current CalculationInput object.
+      - cur_results: The most recent calculation or fit results.
+  - EmbeddedCSharpPython:
+      - calc_runner: Instance of EmbeddedLocalRunner for calculations.
+      - fit_runner: Instance of FitRunner for fitting.
+      - run_fit: Boolean indicating if the current job is a fit.
+      - cur_calc_input: The current CalculationInput object.
+      - cur_results: The most recent calculation or fit results.
+
+Main Methods:
+  - perform_call: Parses a JSON call string, dispatches to the appropriate backend operation, and returns a JSON-formatted result.
+  - process_result: Formats the result or error into a standard JSON response for the frontend.
+  - add_output / add_python_fit_output: Appends job output or fit output to the session's output file.
+  - start_generate / start_fit (EmbeddedCSharpPython): Helper methods to initiate generate or fit jobs in embedded mode.
+  - get_pdb (EmbeddedCSharpPython): Handles PDB file export for a given model.
+
+Supported Backend Operations (via "function" field in JSON):
+  - GetAllModelMetadata: Returns model metadata as JSON.
+  - GetJobStatus: Returns the status of the current job.
+  - StartGenerate: Initiates a generate job with provided state and options.
+  - GetGenerateResults: Retrieves results from the last generate job.
+  - StartFit: Initiates a fit job with provided state and options.
+  - GetFitResults: Retrieves results from the last fit job.
+  - Stop: Aborts the current job.
+  - GetAmplitude: Exports amplitude data for a model.
+  - GetPDB: Exports PDB data for a model.
+  - CheckCapabilities: Checks backend system capabilities (e.g., GPU support).
+
+Error Handling:
+  - All exceptions are caught and formatted into a standard error JSON structure.
+  - BackendError exceptions provide specific error codes and messages.
+  - General exceptions are mapped to a default error code and message.
+
+Extensibility:
+  - New backend operations can be added by extending the dispatch logic in perform_call.
+  - Additional calculation runners or result handlers can be integrated as needed.
+
+See the D+ Python backend documentation for further details on calculation runners and result objects.
+"""
+
 class LocalCSharpPython:
     def __init__(self, exe_dir, session_dir):
         self.exe_dir = exe_dir

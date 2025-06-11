@@ -72,6 +72,127 @@ using std::stringstream;
 #include "declarations.h"
 #include "UseGPU.h"
 
+/**
+ * @file Amplitude.cpp
+ * @brief Implements the Amplitude class hierarchy and related logic for amplitude calculation,
+ *        grid management, GPU/CPU hybrid computation, and serialization in the backend.
+ *
+ * The amplitude module is responsible for:
+ *  - Defining the Amplitude base class and its derivatives (e.g., GeometricAmplitude, DomainModel, AmpGridAmplitude).
+ *  - Managing amplitude calculation for models, including grid-based and direct computation.
+ *  - Supporting hybrid CPU/GPU computation for high-performance amplitude and intensity calculations.
+ *  - Providing serialization and deserialization of amplitude data to/from files, streams, and caches.
+ *  - Handling parameter organization, transformation, and orientation averaging for complex model hierarchies.
+ *  - Supporting OpenMP parallelization for CPU-based calculations.
+ *  - Integrating with Eigen for linear algebra and Boost for filesystem and I/O.
+ *
+ * Key Concepts:
+ *  - Amplitude: Abstract base class for all amplitude-producing objects, supporting grid and direct calculation.
+ *  - GeometricAmplitude: Amplitude for geometric models, supporting GPU acceleration and parameter organization.
+ *  - DomainModel: Composite amplitude supporting hierarchical sub-amplitudes, orientation averaging, and 1D/2D intensity calculation.
+ *  - AmpGridAmplitude: Amplitude loaded from file or buffer, supporting grid-based evaluation and scaling.
+ *  - Grid Management: Amplitudes can use grids for efficient repeated evaluation; grids are cached and validated.
+ *  - Hybrid GPU/CPU: Supports dispatching calculations to GPU if available, with fallback to CPU.
+ *  - Parameter Handling: Organizes, transforms, and hashes parameters for caching and reproducibility.
+ *  - Serialization: Amplitudes and grids can be written to/read from files, streams, and compressed archives (Zip).
+ *  - Threading: Uses OpenMP for parallelization of CPU calculations; thread safety is managed at the job or higher level.
+ *
+ * Fields:
+ *  - Amplitude (base class):
+ *      - Grid* grid: Pointer to the amplitude's grid object (may be null if not using a grid).
+ *      - bool bUseGrid: Indicates if grid-based calculation is enabled.
+ *      - bool bUseGPU: Indicates if GPU acceleration is enabled.
+ *      - int gridStatus: Status of the grid (e.g., AMP_READY, AMP_CACHED, etc.).
+ *      - int status: Status of the amplitude calculation (e.g., PDB_OK, UNINITIALIZED).
+ *      - double scale: Scaling factor for the amplitude.
+ *      - double tx, ty, tz: Translation (position) parameters.
+ *      - Radian ra, rb, rg: Rotation (Euler angles) parameters.
+ *      - Eigen::Matrix3d RotMat: Rotation matrix for the amplitude.
+ *      - std::wstring rndPath: Path to the cache file for this amplitude.
+ *      - Eigen::VectorXd previousParameters: Last used parameter vector for caching and change detection.
+ *      - bool ampWasReset: Indicates if the amplitude was reset since last cache.
+ *      - progressFunc progFunc: Progress callback function for long-running calculations.
+ *      - void* progArgs: Arguments for the progress callback.
+ *
+ *  - GeometricAmplitude (derived from Amplitude):
+ *      - FFModel* model: Pointer to the geometric model.
+ *      - int modelLayers: Number of layers in the model.
+ *
+ *  - DomainModel (derived from Amplitude):
+ *      - std::vector<Amplitude*> _amps: List of sub-amplitudes (children) in the domain model.
+ *      - std::vector<VectorXd> _ampParams: Parameter vectors for each sub-amplitude.
+ *      - std::vector<int> _ampLayers: Number of layers for each sub-amplitude.
+ *      - unsigned int gridSize: Grid size for calculations.
+ *      - unsigned long long oIters: Number of orientation averaging iterations.
+ *      - double eps: Convergence threshold for calculations.
+ *      - double qMax, qMin: Maximum and minimum q values for calculations.
+ *      - OAMethod_Enum orientationMethod: Orientation averaging method (e.g., OA_MC, OA_ADAPTIVE_GK).
+ *      - bool bDefUseGrid: Indicates if grid usage is enabled for the domain.
+ *      - bool bDefUseGPU: Indicates if GPU usage is enabled for the domain.
+ *      - int* pStop: Pointer to a stop flag for interrupting calculations.
+ *      - Eigen::ArrayXd theta_, wTheta, phi_, wPhi: Arrays for quadrature integration.
+ *      - std::string _previous_hash: Hash of the previous amplitude state for caching.
+ *      - Eigen::ArrayXd _previous_intensity, _previous_q_values: Cached previous intensity and q values (1D).
+ *      - Eigen::MatrixXd _previous_intensity_2D: Cached previous intensity values (2D).
+ *      - bool only_scale_changed: Indicates if only the scale parameter changed since last calculation.
+ *      - VectorXd* pVecCopy: Pointer to parameter vector for Ceres integration.
+ *      - std::map<int, double*> mutParams: Map of mutable parameter indices for Ceres.
+ *
+ *  - AmpGridAmplitude (derived from Amplitude):
+ *      - std::string hash: Unique hash for the amplitude (for caching and identification).
+ *      - JacobianSphereGrid* originalGrid: Pointer to the original (unscaled) grid.
+ *      - std::string fileHeader: Header string from the loaded amplitude file.
+ *
+ *  - SolventSpace:
+ *      - array_t _solvent_space: Eigen array holding the solvent space data.
+ *      - size_t _x_size, _y_size, _z_size: Dimensions of the solvent space.
+ *      - size_t _zy_plane: Precomputed stride for fast access.
+ *      - float _voxel_length: Length of a voxel in the solvent space.
+ *
+ * Main Methods:
+ *  - Amplitude (constructor/destructor): Initializes amplitude state, grid, and transformation.
+ *  - calculateGrid / PreCalculate: Prepares and fills amplitude grids, manages cache and parameter changes.
+ *  - getAmplitude / getAmplitudesAtPoints: Computes amplitude at a point or vector of points, with or without grid.
+ *  - WriteAmplitudeToFile/Stream/Cache: Serializes amplitude data and metadata for persistence or sharing.
+ *  - ReadAmplitudeFromFile/Buffer/Cache: Deserializes amplitude data from persistent storage or memory.
+ *  - OrganizeParameters: Arranges and validates parameter vectors for amplitude calculation.
+ *  - CalculateIntensityVector/Matrix: Computes 1D/2D intensity profiles, supporting orientation averaging and GPU acceleration.
+ *  - Hash: Generates a unique hash for amplitude state, used for caching and reproducibility.
+ *  - GetHeader: Serializes amplitude metadata to JSON or string for reporting and file headers.
+ *  - SetLocationData / SetUseGrid / SetUseGPU: Configures amplitude transformation and computation mode.
+ *  - GridIsReadyToBeUsed / ResetGrid: Validates and manages grid state and cache.
+ *
+ * Threading and Safety:
+ *  - OpenMP is used for parallelization of CPU calculations.
+ *  - Amplitude objects are not inherently thread-safe; synchronization is managed externally.
+ *  - GPU/CPU hybrid logic is guarded by runtime checks and error handling.
+ *
+ * Error Handling:
+ *  - Uses backend_exception for error reporting.
+ *  - Grid and file I/O errors are robustly handled and reported.
+ *  - Fallbacks are provided for missing GPU support or invalid cache.
+ *
+ * Dependencies:
+ *  - Eigen for linear algebra and matrix operations.
+ *  - Boost for filesystem, I/O, and multi-array utilities.
+ *  - ZipLib for compressed file serialization.
+ *  - CUDA and custom GPU interfaces for GPU acceleration.
+ *  - RapidJSON for JSON serialization.
+ *
+ * See Amplitude.h for class and method declarations.
+ */
+
+
+
+
+
+
+
+
+
+
+
+
 /* C++11...
 template<typename dataFType, typename interpFType>
 using GPUCalculateMCOA_t = int (*)(long long voxels, int thDivs, int phDivs, dataFType stepSz,
@@ -3578,24 +3699,24 @@ void Amplitude::getNewThetaPhiAndPhases(const std::vector<FACC>& relevantQs, FAC
 		).exp();
 }
 
-#include <windows.h> // DEBUG LINUX - For OutputDebugString          
+// #include <windows.h> // DEBUG LINUX - For OutputDebugString          
 ArrayXcX Amplitude::getAmplitudesAtPoints(const std::vector<FACC> & relevantQs, FACC theta, FACC phi)
 {
 	// DEBUG LINUX - Print entering the function    
-	OutputDebugString(L"Entering getAmplitudesAtPoints\n");
-	std::cout << L"Entering getAmplitudesAtPoints\n" << std::endl;
+	// OutputDebugString(L"Entering getAmplitudesAtPoints\n");
+	// std::cout << L"Entering getAmplitudesAtPoints\n" << std::endl;
 
 	double newTheta, newPhi;
 	ArrayXcX phases;
 	getNewThetaPhiAndPhases(relevantQs, theta, phi, newTheta, newPhi, phases);
 
 	// DEBUG LINUX - Print after getNewThetaPhiAndPhases  $#
-	{
-		std::wstringstream ss;
-		ss << L"After getNewThetaPhiAndPhases - newTheta: " << newTheta << L", newPhi: " << newPhi << L"\n";
-		OutputDebugString(ss.str().c_str());
-		std::cout << L"After getNewThetaPhiAndPhases - newTheta: " << newTheta << L", newPhi: " << newPhi << L"\n" << std::endl;
-	}
+	//{
+	//	std::wstringstream ss;
+	//	ss << L"After getNewThetaPhiAndPhases - newTheta: " << newTheta << L", newPhi: " << newPhi << L"\n";
+	//	OutputDebugString(ss.str().c_str());
+	//	std::cout << L"After getNewThetaPhiAndPhases - newTheta: " << newTheta << L", newPhi: " << newPhi << L"\n" << std::endl;
+	//}
 	
 	if (GetUseGridWithChildren())
 	{
@@ -3608,9 +3729,9 @@ ArrayXcX Amplitude::getAmplitudesAtPoints(const std::vector<FACC> & relevantQs, 
 		}
 	}
 
-	// DEBUG LINUX - Print after the if scope  $#
-	OutputDebugString(L"After if scope in getAmplitudesAtPoints\n");
-	std::cout << L"After if scope in getAmplitudesAtPoints\n" << std::endl;
+	//// DEBUG LINUX - Print after the if scope  $#
+	//OutputDebugString(L"After if scope in getAmplitudesAtPoints\n");
+	//std::cout << L"After if scope in getAmplitudesAtPoints\n" << std::endl;
 
 
 	return scale * getAmplitudesAtPointsWithoutGrid(newTheta, newPhi, relevantQs, phases);

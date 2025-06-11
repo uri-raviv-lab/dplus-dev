@@ -7,6 +7,61 @@
 #include <iostream>
 using namespace std;
 
+/**
+ * @file PythonBackendWrapper.cpp
+ * @brief Implements the PythonBackendWrapper class, which provides a Python-friendly interface
+ *        to backend computational logic, enabling seamless integration with Python (via Cython).
+ *
+ * The PythonBackendWrapper class is responsible for:
+ *  - Exposing backend functionality (model generation, fitting, result retrieval, etc.) to Python code.
+ *  - Managing a singleton backend job and its associated resources for Python-driven workflows.
+ *  - Handling JSON serialization/deserialization for state and result exchange with Python.
+ *  - Converting C++ backend exceptions into Python-compatible runtime_error exceptions with JSON payloads.
+ *  - Managing backend initialization, including model metadata and amplitude cache setup.
+ *  - Providing methods for starting computations, retrieving results, and managing job state from Python.
+ *
+ * Key Concepts:
+ *  - Designed for use with Cython or other Python/C++ interop layers, avoiding direct C++ exception propagation.
+ *  - Maintains a static LocalBackendInfo structure for a single job context, simplifying resource management.
+ *  - All backend errors are converted to JSON-formatted runtime_error exceptions for easier handling in Python.
+ *  - Supports both 1D and 2D model generation, amplitude/PDB retrieval, and job status queries.
+ *
+ * Fields:
+ *  - static bool _infoInitialized:
+ *      Indicates whether the static backend info has been initialized (singleton pattern).
+ *  - static BackendWrapper::LocalBackendInfo _info:
+ *      Holds the singleton backend state for Python integration, including:
+ *        - LocalBackend* local_backend: Pointer to the LocalBackend instance used for all backend operations.
+ *        - JobPtr job: Handle to the current backend job, used for model and calculation context.
+ *        - LocalBackendParameterTreeConverter* Converter: Pointer to the parameter tree converter for mapping frontend and backend models.
+ *
+ * Main Methods:
+ *  - PythonBackendWrapper (constructor/destructor): Initializes backend info and amplitude cache.
+ *  - CheckCapabilities: Verifies hardware and OS capabilities, propagating errors as Python exceptions.
+ *  - GetAllModelMetadata: Retrieves all model metadata as a JSON string.
+ *  - StartGenerate / StartGenerate2D: Initiates model generation using JSON state and GPU flag.
+ *  - GetJobStatus / GetGenerateResults / GetGenerate2DResults: Retrieves job status and results as JSON strings.
+ *  - SaveAmplitude / GetAmplitude / GetPDB: Handles amplitude and PDB data retrieval and file saving.
+ *  - GetModelPtrs: Returns a list of model pointers for the current job.
+ *  - Stop: Signals the backend to halt the current job.
+ *  - ConvertException: Converts backend_exception to std::runtime_error with JSON-encoded error info.
+ *  - InitializeInfo / InitializeCache: Sets up backend job and amplitude cache for Python use.
+ *
+ * Threading and Safety:
+ *  - Not inherently thread-safe; designed for single-job, single-threaded use from Python.
+ *  - Backend resource management is handled via static members for simplicity in Python integration.
+ *
+ * Error Handling:
+ *  - All backend_exception errors are caught and rethrown as std::runtime_error with JSON payloads.
+ *  - Python code can parse the JSON error for code and message details.
+ *
+ * Python Integration:
+ *  - All methods are designed to be called from Python, with C++ exceptions translated for Python consumption.
+ *  - Avoids C++-specific constructs that are difficult for Cython or Python to handle directly.
+ *
+ * See PythonBackendWrapper.h for class and method declarations.
+ */
+
 PythonBackendWrapper::PythonBackendWrapper()
 {
 	InitializeInfo();

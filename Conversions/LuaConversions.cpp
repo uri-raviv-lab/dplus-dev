@@ -26,6 +26,59 @@ extern "C" {
 using namespace rapidjson;
 using namespace std;
 
+/**
+ * @file LuaConversions.cpp
+ * @brief Implements conversion utilities between Lua tables and JSON/state representations for DPlus.
+ *
+ * The LuaConversions module is responsible for:
+ *  - Translating Lua tables and state into JSON using the Lua scripting engine and a JSON Lua library.
+ *  - Managing the Lua environment lifecycle for conversion operations.
+ *  - Ensuring the presence of the JSON.lua resource and handling its loading and execution.
+ *  - Providing utilities for extracting and serializing key DPlus state tables from Lua to JSON.
+ *
+ * Key Concepts:
+ *  - Lua/JSON Interoperability: Uses Lua scripting and a JSON Lua library to serialize Lua tables to JSON strings.
+ *  - State Serialization: Extracts specific DPlus state tables (e.g., DomainPreferences, FittingPreferences, Viewport, Domain) from Lua and serializes them.
+ *  - Resource Management: Ensures the JSON.lua script is available on disk and loads it into the Lua environment as needed.
+ *  - Cross-Platform Support: Handles file path and existence checks for both Windows and POSIX systems.
+ *
+ * Fields:
+ *  - static vector<string> _tableNames:
+ *      List of DPlus state table names to extract from Lua.
+ *  - lua_State* _luaState:
+ *      The Lua interpreter instance used for executing scripts and extracting tables.
+ *
+ * Main Methods:
+ *  - LuaToJSON::LuaToJSON(std::string lua):
+ *      Initializes the Lua environment, loads the JSON.lua library, and executes the provided Lua script.
+ *  - LuaToJSON::~LuaToJSON():
+ *      Cleans up the Lua environment.
+ *  - void LuaToJSON::WriteState(JsonWriter& writer):
+ *      Serializes the specified Lua tables to JSON using the JSON.lua library and writes them with JsonWriter.
+ *  - std::wstring LuaToJSON::GetJSONLuaPathname():
+ *      Determines the file path for the JSON.lua resource, handling platform differences.
+ *  - bool LuaToJSON::FileExists(const std::wstring path):
+ *      Checks if a file exists at the given path (cross-platform).
+ *  - std::string LuaToJSON::EnsureJSONLua():
+ *      Ensures the JSON.lua resource is present on disk, writing it if necessary, and returns its path.
+ *  - void LuaToJSON::SaveLuaResource(const std::wstring pathname):
+ *      Writes the embedded JSON.lua resource to disk.
+ *
+ * Error Handling:
+ *  - Throws std::runtime_error or std::invalid_argument on Lua script loading or execution failures.
+ *  - Throws on failure to extract or serialize Lua tables.
+ *  - Minimal error checking for file I/O; assumes resource writing succeeds if called.
+ *
+ * Dependencies:
+ *  - LUAConversions.h for class and method declarations.
+ *  - rapidjson/document.h and JsonWriter.h for JSON serialization.
+ *  - Lua 5.1 C API (lua.h, lualib.h, lauxlib.h) for scripting.
+ *  - Standard C++ libraries for file and string operations.
+ *  - Platform headers for file path and existence checks.
+ *
+ * See LUAConversions.h for class and method declarations.
+ */
+
 vector<string> LuaToJSON::_tableNames;
 
 LuaToJSON::LuaToJSON(std::string lua)

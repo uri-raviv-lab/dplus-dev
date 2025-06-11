@@ -18,6 +18,75 @@
 using namespace rapidjson;
 using namespace std;
 
+/**
+ * @file LocalFrontend.cpp
+ * @brief Implements the LocalFrontend class, which provides the frontend logic for managing, executing,
+ *        and querying computational jobs, models, and amplitudes in a local (non-remote) context.
+ *
+ * The LocalFrontend is responsible for:
+ *  - Creating, destroying, and managing jobs and their associated models and amplitudes.
+ *  - Handling model instantiation, including composite, domain, scripted, symmetry, and file-based models.
+ *  - Managing the lifecycle of models and amplitudes, including file associations and resource cleanup.
+ *  - Executing fitting and generation jobs, and delegating job execution to the backend via BackendCaller.
+ *  - Providing access to job results, graphs, fitting errors, and metadata.
+ *  - Handling progress and completion notifications for jobs.
+ *  - Querying and returning model, category, and parameter information from loaded containers.
+ *  - Supporting file and stream export of amplitude and PDB data.
+ *  - Ensuring error handling and job status tracking for all frontend operations.
+ *
+ * Key Concepts:
+ *  - Each job is managed locally and can contain multiple models and amplitudes.
+ *  - Models and amplitudes are created, referenced, and destroyed through the frontend interface.
+ *  - The frontend supports both synchronous and asynchronous job execution.
+ *  - All operations are validated for job and model existence, with detailed error reporting.
+ *  - The frontend is designed to be extensible for new model types and data sources.
+ *
+ * Fields:
+ *  - BackendCaller* _backendCaller: Pointer to the backend caller used to communicate with the backend for all operations.
+ *  - MetadataRepository* _metadata: Holds all model and parameter metadata loaded from the backend.
+ *  - bool _is_valid: Indicates whether the frontend is in a valid state (metadata loaded successfully).
+ *  - bool _isJobRunning: Tracks whether a job is currently running.
+ *  - bool _checkJobProgress: Internal flag to prevent concurrent progress checks.
+ *  - bool _checkJobOvertime: Internal flag to prevent concurrent overtime checks.
+ *  - std::map<JobPtr, LocalJob> _jobHandlers: Maps job handles to their associated progress and completion handlers.
+ *  - std::map<ModelPtr, std::vector<std::wstring>> _fileMap: Associates models with their corresponding file names.
+ *  - std::map<ModelPtr, std::string> _domainHeaders: Stores domain headers for models after generation.
+ *  - std::vector<double> _resultGraph: Stores the result graph (e.g., intensity profile) for the last completed job.
+ *  - ParameterTree _fitResultTree: Stores the parameter tree resulting from the last fit operation.
+ *  - std::string _last_error_message: Stores the last error message returned from the backend.
+ *  - ErrorCode _last_error_code: Stores the last error code returned from the backend.
+ *  - JobType _localJobType: Tracks the type of the currently running job (fit, generate, etc.).
+ *  - ModelPtr _modelPtrCounter: Counter for generating unique model handles.
+ *
+ * Main Methods:
+ *  - LocalFrontend (constructor/destructor): Initializes the frontend, loads metadata, and sets up backend communication.
+ *  - IsValid: Checks if the frontend is in a valid state.
+ *  - CreateJob / DestroyJob: Manage job lifecycle and handler registration.
+ *  - CreateModel / CreateCompositeModel / CreateDomainModel / CreateScriptedModel / CreateFileAmplitude / CreateGeometricAmplitude / CreateSymmetry / CreateScriptedSymmetry: Model instantiation and file association.
+ *  - DestroyModel: Safely destroys models and removes file associations.
+ *  - Fit / Generate: Initiate fitting and generation jobs, handling result and error management.
+ *  - CheckCapabilities: Queries backend for system capabilities.
+ *  - Stop / WaitForFinish: Stops or waits for job completion.
+ *  - GetLastErrorMessage: Retrieves the last error message for a job.
+ *  - GetJobType / GetGraphSize / GetGraph / GetResults: Retrieve job status, results, and output data.
+ *  - GetLayerParamNames / GetDisplayParamInfo / GetExtraParamInfo / GetLayerInfo / GetDisplayParams: Query model and parameter metadata.
+ *  - GetJobStatus / CheckJobProgress / CheckJobOvertime / MarkCheckJobProgressDone: Job status and progress management.
+ *  - HandleProgress / HandleCompletion: Internal handlers for job progress and completion notifications.
+ *  - ExportAmplitude / SavePDB: Export amplitude and PDB data to files.
+ *  - GetDomainHeader: Retrieves the domain header for a model.
+ *  - SetGenerateResults / SetFitResults: Internal methods to update results after job completion.
+ *
+ * Threading and Safety:
+ *  - Job and model operations are managed locally; thread safety is not guaranteed and should be managed externally if needed.
+ *  - Internal flags prevent concurrent progress and overtime checks.
+ *
+ * Error Handling:
+ *  - All methods validate input and job/model existence, returning error codes or updating error messages as appropriate.
+ *  - Error codes and messages are propagated to the caller for user feedback.
+ *
+ * See LocalFrontend.h for class and method declarations.
+ */
+
 LocalFrontend::LocalFrontend(BackendCaller *caller) {
 	_checkJobProgress = false;
 	_checkJobOvertime = false;

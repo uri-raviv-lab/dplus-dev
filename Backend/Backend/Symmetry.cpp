@@ -27,6 +27,105 @@ extern "C" {
 #include "UseGPU.h"
 
 
+/**
+ * @file Symmetry.cpp
+ * @brief Implements the Symmetry and LuaSymmetry classes, which manage composite amplitude structures,
+ *        sub-amplitude organization, parameter handling, and symmetry operations (including Lua scripting)
+ *        for advanced scattering model construction in the backend.
+ *
+ * The symmetry module is responsible for:
+ *  - Defining the Symmetry base class for composite amplitude models with sub-amplitudes.
+ *  - Managing sub-amplitude addition, removal, and parameter organization.
+ *  - Supporting grid-based and hybrid amplitude calculations, including GPU acceleration.
+ *  - Providing methods for PDB file assembly, header generation, and anomalous scattering checks.
+ *  - Implementing LuaSymmetry, which allows symmetry operations and sub-amplitude arrangements to be scripted in Lua.
+ *  - Integrating with the ParameterTree for parameter extraction and location/rotation management.
+ *  - Supporting progress reporting, interruption, and caching for long-running calculations.
+ *
+ * Key Concepts:
+ *  - Symmetry: Composite amplitude class managing a collection of sub-amplitudes and their parameters.
+ *  - LuaSymmetry: Extends Symmetry, allowing symmetry operations and arrangements to be defined via Lua scripts.
+ *  - Sub-Amplitudes: Child amplitude objects, each with their own parameters, layers, and location/rotation.
+ *  - Parameter Organization: Parameters are extracted and organized per sub-amplitude for calculation.
+ *  - Grid Calculation: Supports both CPU and GPU grid-based amplitude calculations, with caching and validation.
+ *  - PDB Assembly: Supports exporting the composite structure as a PDB file, including all sub-amplitudes.
+ *  - Lua Integration: LuaSymmetry uses Lua scripts to define symmetry operations, parameter mapping, and arrangement.
+ *
+ * Fields:
+ *  - std::vector<Amplitude*> _amps:
+ *      List of sub-amplitude pointers managed by the symmetry object.
+ *  - std::vector<VectorXd> _ampParams:
+ *      Parameter vectors for each sub-amplitude.
+ *  - std::vector<int> _ampLayers:
+ *      Number of layers for each sub-amplitude.
+ *  - Grid* grid:
+ *      Pointer to the amplitude grid (for grid-based calculations).
+ *  - int gridStatus:
+ *      Status of the grid (e.g., AMP_READY, AMP_CACHED, AMP_UNINITIALIZED).
+ *  - bool bUseGrid:
+ *      Indicates if grid-based calculations are enabled.
+ *  - double tx, ty, tz:
+ *      Translation (position) of the symmetry object.
+ *  - double ra, rb, rg:
+ *      Rotation (Euler angles) of the symmetry object.
+ *  - double scale:
+ *      Scale factor for the amplitude.
+ *  - std::string script (in LuaSymmetry):
+ *      Lua script defining the symmetry operations and arrangement.
+ *  - void* context (in LuaSymmetry):
+ *      Pointer to the Lua interpreter/context.
+ *  - bool bUsingExternalContext (in LuaSymmetry):
+ *      Indicates if the Lua context was provided externally.
+ *  - int nlp (in LuaSymmetry):
+ *      Number of layer parameters for the Lua symmetry.
+ *  - MatrixXd dol (in LuaSymmetry):
+ *      Matrix of location and rotation data for all generated sub-locations.
+ *  - std::vector<Eigen::Matrix3d> rot (in LuaSymmetry):
+ *      Rotation matrices for each sub-location.
+ *  - std::vector<Vector3d> trans (in LuaSymmetry):
+ *      Translation vectors for each sub-location.
+ *  - std::vector<Vector3d> rotVars (in LuaSymmetry):
+ *      Raw rotation variables (Euler angles) for each sub-location.
+ *  - std::map<Eigen::Matrix3d, std::vector<Vector3d>> translationsPerOrientation (in LuaSymmetry):
+ *      Maps each orientation to its associated translations.
+ *  - MatrixXd luaParams (in LuaSymmetry):
+ *      Stores the parameter matrix passed to Lua.
+ *  - std::complex<FACC> Im (in LuaSymmetry):
+ *      Imaginary unit for amplitude calculations.
+ *
+ * Main Methods:
+ *  - GetNumSubAmplitudes / GetSubAmplitude / AddSubAmplitude / RemoveSubAmplitude / ClearSubAmplitudes:
+ *      Manage the collection of sub-amplitudes.
+ *  - OrganizeParameters: Extracts and organizes parameters for each sub-amplitude from a parameter vector.
+ *  - PreCalculate: Prepares all sub-amplitudes for calculation, including parameter and layer setup.
+ *  - CalculateSubAmplitudeGrids / calculateGrid: Handles grid-based calculation and caching for sub-amplitudes.
+ *  - AssemblePDBFile / SavePDBFile: Assembles and exports the composite structure as a PDB file.
+ *  - GetHasAnomalousScattering: Checks if any sub-amplitude supports anomalous scattering.
+ *  - LuaSymmetry::PreCalculate: Calls Lua script to generate sub-locations and parameter mapping.
+ *  - LuaSymmetry::calcAmplitude: Computes the amplitude using Lua-defined symmetry operations.
+ *  - LuaSymmetry::GetHeader: Generates a JSON or string header describing the symmetry structure.
+ *  - LuaSymmetry::Hash: Computes a hash of the Lua symmetry configuration for caching.
+ *  - LuaSymmetry::calculateGrid / CalculateGridGPU: Handles grid calculation using CPU or GPU for LuaSymmetry.
+ *
+ * Threading and Safety:
+ *  - Progress reporting and stop signals are supported for long-running calculations.
+ *  - Grid and sub-amplitude management are not inherently thread-safe; external synchronization is required.
+ *
+ * Error Handling:
+ *  - Returns error codes for grid calculation failures, Lua script errors, or invalid parameter configurations.
+ *  - Caches and validates grid data to avoid redundant calculations.
+ *
+ * Dependencies:
+ *  - Eigen for vector and matrix operations.
+ *  - Lua for scripting symmetry operations (LuaSymmetry).
+ *  - Grid, Amplitude, and ParameterTree for amplitude and parameter management.
+ *  - GPUHeader and UseGPU for GPU-accelerated calculations.
+ *  - JsonWriter and rapidjson for header export.
+ *
+ * See Symmetry.h for class and method declarations.
+ */
+
+
 int Symmetry::GetNumSubAmplitudes() {
 	return (int)_amps.size();
 }

@@ -14,6 +14,66 @@ namespace po = boost::program_options;
 
 #include <boost/algorithm/string/predicate.hpp>
 
+/**
+ * @file PDBManipulator.cpp
+ * @brief Implements a command-line tool for manipulating PDB files, supporting geometric center, center of mass,
+ *        and principal axis alignment operations for both X-ray and electron PDB formats.
+ *
+ * The PDBManipulator module is responsible for:
+ *  - Parsing command-line arguments to select the manipulation command, input/output files, and options.
+ *  - Loading PDB files using either X-ray or electron PDB readers.
+ *  - Performing geometric manipulations on PDB structures:
+ *      - Moving the geometric center to the origin ("gcenter").
+ *      - Moving the center of mass to the origin ("mcenter").
+ *      - Aligning the principal axes to the Cartesian axes after centering ("align").
+ *  - Writing the manipulated PDB structure to an output file, including a header describing the operation.
+ *  - Providing help and usage information for all supported command-line options.
+ *
+ * Key Concepts:
+ *  - PDBReader::PDBReaderOb: Base class for reading and manipulating PDB files.
+ *  - ElectronPDBReaderOb / XRayPDBReaderOb: Specialized readers for electron and X-ray PDB files.
+ *  - Command-line Options: Control the manipulation command, input/output files, and electron mode.
+ *  - Geometric Manipulation: Operations to recenter or align the PDB structure.
+ *
+ * Fields:
+ *  - std::string inFilename:
+ *      Input PDB file path.
+ *  - std::string saveFilename:
+ *      Output PDB file path.
+ *  - std::string command:
+ *      Manipulation command to execute ("gcenter", "mcenter", "align").
+ *  - bool electron:
+ *      Whether to use the electron PDB reader (otherwise X-ray).
+ *  - fs::path ipt:
+ *      Boost filesystem path for the input file.
+ *  - PDBReader::PDBReaderOb<float>* pdb:
+ *      Pointer to the PDB reader object (electron or X-ray).
+ *  - std::stringstream header:
+ *      Header describing the manipulation performed, written to the output file.
+ *
+ * Main Methods:
+ *  - int main(int argc, char* argv[]): Entry point; parses arguments, validates input, and calls PDBManipulate.
+ *  - int PDBManipulate(std::string inFilename, std::string command, fs::path ipt, std::string saveFilename, bool electron):
+ *      Loads the PDB file, performs the requested manipulation, and writes the result to the output file.
+ *
+ * Threading and Safety:
+ *  - Designed for single-threaded command-line execution.
+ *  - All file and manipulation operations are performed synchronously.
+ *
+ * Error Handling:
+ *  - Validates command-line arguments and input file existence.
+ *  - Returns error codes and prints messages for invalid commands, missing files, or write failures.
+ *  - Catches and reports exceptions from command-line parsing.
+ *
+ * Dependencies:
+ *  - PDBReaderLib for PDB file reading and manipulation.
+ *  - Boost.Program_options for command-line parsing.
+ *  - Boost.Filesystem for file and path management.
+ *  - boost::algorithm::iequals for case-insensitive command comparison.
+ *
+ * See PDBManipulator.cpp for implementation details.
+ */
+
 int PDBManipulate(std::string inFilename, std::string command, fs::path ipt, std::string saveFilename, bool electron)
 {
 	PDBReader::PDBReaderOb<float>* pdb;

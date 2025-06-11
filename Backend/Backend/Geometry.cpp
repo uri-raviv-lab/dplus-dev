@@ -9,6 +9,106 @@
 #include "mathfuncs.h" // For gaussianSig
 
 
+/**
+ * @file Geometry.cpp
+ * @brief Implements the Geometry class hierarchy and related logic for geometric model parameterization,
+ *        electron density profile management, and intensity calculation in the backend.
+ *
+ * The geometry module is responsible for:
+ *  - Defining the Geometry base class and its derivatives (e.g., PolydisperseModel, LuaModel, FFModel).
+ *  - Managing geometric model parameters, including layer-based and extra parameters.
+ *  - Supporting electron density (ED) profile configuration and dynamic profile functions.
+ *  - Providing methods for vectorized and matrix-based intensity calculations, with optional OpenMP parallelization.
+ *  - Organizing and validating parameter vectors for model calculations.
+ *  - Supporting numerical differentiation for parameter sensitivity analysis.
+ *  - Integrating with Eigen for linear algebra and OpenMP for parallel computation.
+ *
+ * Key Concepts:
+ *  - Geometry: Abstract base class for all geometric models, handling parameter organization, ED profiles, and calculation routines.
+ *  - PolydisperseModel: Decorator for Geometry models, supporting polydispersity via convolution with distribution functions.
+ *  - LuaModel: Geometry model defined by user-provided Lua scripts, supporting dynamic model logic.
+ *  - FFModel: Specialized geometry model with additional handling for form factor calculations and extra parameters.
+ *  - Parameter Organization: Parameters are organized into layer-based and extra parameters, with support for dynamic ED profiles.
+ *  - Electron Density Profile: Supports static and dynamic ED profiles, with runtime configuration and memory management.
+ *  - Parallelization: Uses OpenMP for parallel evaluation of intensity vectors and matrices.
+ *  - Numerical Derivatives: Provides high-accuracy numerical differentiation for model parameters.
+ *
+ * Fields:
+ *  - std::string modelName:
+ *      Name of the geometric model.
+ *  - int nLayerParams:
+ *      Number of parameters per layer in the model.
+ *  - int nExtraParams:
+ *      Number of extra (non-layer) parameters.
+ *  - int minLayers, maxLayers:
+ *      Minimum and maximum number of layers supported by the model.
+ *  - int displayParams:
+ *      Number of parameters shown in the UI or for display.
+ *  - EDProfile profile:
+ *      Electron density profile configuration for the model.
+ *  - EDPFunction* profileFunc:
+ *      Pointer to the function object for the electron density profile.
+ *  - MatrixXd* parameters:
+ *      Matrix of organized layer parameters (rows: layers, cols: parameters).
+ *  - VectorXd* extraParams:
+ *      Vector of extra parameters not associated with layers.
+ *  - bool bParallelizeVector:
+ *      Flag indicating if vector calculations should be parallelized (OpenMP).
+ *  - int* pStop:
+ *      Pointer to an external stop flag for interrupting calculations.
+ *  - void* GPUKernel:
+ *      Pointer to GPU kernel or context (if GPU acceleration is used).
+ *  - PolydisperseModel* model (in PolydisperseModel):
+ *      Pointer to the inner model being decorated for polydispersity.
+ *  - int polyInd (in PolydisperseModel):
+ *      Index of the parameter subject to polydispersity.
+ *  - double polySigma (in PolydisperseModel):
+ *      Standard deviation for the polydispersity distribution.
+ *  - int pdResolution (in PolydisperseModel):
+ *      Number of points for polydispersity integration.
+ *  - int pdFunction (in PolydisperseModel):
+ *      Shape of the polydispersity distribution (e.g., Gaussian, Lorentzian).
+ *  - std::string modelCode (in LuaModel):
+ *      Lua script code defining the model.
+ *  - void* luactx (in LuaModel):
+ *      Pointer to the Lua context/environment.
+ *  - bool bContextCreated (in LuaModel):
+ *      Indicates if the Lua context was created internally.
+ *  - VectorXd parVec (in LuaModel):
+ *      Stores the parameter vector for the Lua model.
+ *
+ * Main Methods:
+ *  - Geometry (constructor/destructor): Initializes geometry state, parameters, and ED profile function.
+ *  - Get/Set Methods: Accessors for model name, parameter counts, layer names, and ED profile configuration.
+ *  - OrganizeParameters: Arranges parameter vectors into layer and extra parameter matrices for calculation.
+ *  - PreCalculate: Prepares model state before calculation (can be overridden by subclasses).
+ *  - CalculateVector/Matrix: Computes intensity vectors or matrices for a set of q-values, with progress reporting and parallelization.
+ *  - GPUCalculate: Placeholder for GPU-accelerated calculation (not implemented in base class).
+ *  - Derivative/NumericalDerivative: Computes numerical derivatives of intensity with respect to parameters.
+ *  - SetEDProfile: Configures the electron density profile and updates parameter organization.
+ *  - GetAllParameters: Flattens all organized parameters into a single vector for serialization or further processing.
+ *  - OrientationAverage: Computes orientation-averaged intensity for anisotropic models.
+ *
+ * Threading and Safety:
+ *  - OpenMP is used for parallelization of vector and matrix calculations.
+ *  - Geometry objects are not inherently thread-safe; synchronization is managed externally.
+ *  - Progress reporting and stop flags are supported for long-running calculations.
+ *
+ * Error Handling:
+ *  - Parameter bounds and applicability are checked before use.
+ *  - NaN and invalid results are detected and flagged during calculation.
+ *  - Memory management for dynamic ED profiles and parameter matrices is handled in destructors.
+ *
+ * Dependencies:
+ *  - Eigen for linear algebra and matrix operations.
+ *  - OpenMP for parallelization of calculations.
+ *  - mathfuncs.h for distribution functions (e.g., gaussianSig, lorentzian).
+ *  - Quadrature.h for numerical integration support.
+ *  - Lua (optional) for scriptable model definitions.
+ *
+ * See Geometry.h for class and method declarations.
+ */
+
 
 Geometry::Geometry(std::string name, int extras, int nlp, 
 			 int minlayers, int maxlayers, EDProfile edp, int disp) : 

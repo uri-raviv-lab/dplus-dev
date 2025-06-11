@@ -15,6 +15,111 @@
 
 using namespace std;
 
+/**
+ * @file BackendCalls.cpp
+ * @brief Implements the BackendCall and related classes, which encapsulate the construction,
+ *        serialization, and parsing of backend function calls and their results for the frontend-backend interface.
+ *
+ * The BackendCalls system is responsible for:
+ *  - Defining a base BackendCall class for representing a remote/backend function invocation.
+ *  - Serializing function names, arguments, and options into JSON for backend communication.
+ *  - Parsing backend responses, extracting error codes, messages, and result data.
+ *  - Providing specialized call types for common backend operations (e.g., fitting, generation, file access).
+ *  - Supporting argument and option writing for each call type, including conversion of complex data (Lua scripts, vectors, files).
+ *  - Handling error reporting and result extraction in a consistent, extensible manner.
+ *
+ * Key Concepts:
+ *  - Each backend call is represented as a class instance, with virtual methods for argument and option serialization.
+ *  - Calls are serialized to JSON using JsonWriter and sent to the backend for execution.
+ *  - Results are parsed from JSON, with error handling and result extraction delegated to each call type.
+ *  - Specialized call classes (e.g., StartFitCall, StartGenerateCall, GetFileCall) extend BackendCall to handle specific operations.
+ *
+ * Fields:
+ *  - BackendCall (base class):
+ *      - static std::string _clientId:
+ *          The client identifier used for backend communication.
+ *      - std::string _funcName:
+ *          The name of the backend function to invoke.
+ *      - ErrorCode _errorCode:
+ *          The error code returned from the backend after parsing the response.
+ *      - std::string _errorMessage:
+ *          The error message returned from the backend after parsing the response.
+ *
+ *  - FileContainingCall (derived from BackendCall):
+ *      - std::vector<std::wstring> _filenames:
+ *          List of file names associated with the call (for file-based operations).
+ *
+ *  - StartFitCall (derived from FileContainingCall):
+ *      - std::wstring _luaScript:
+ *          The Lua script representing the model state for fitting.
+ *      - std::vector<double> _x:
+ *          The x-data vector for fitting.
+ *      - std::vector<double> _y:
+ *          The y-data vector for fitting.
+ *      - std::vector<int> _mask:
+ *          The mask vector indicating which data points to use.
+ *      - bool _useGPU:
+ *          Indicates whether to use GPU acceleration for the fit.
+ *
+ *  - StartGenerateCall (derived from FileContainingCall):
+ *      - std::wstring _luaScript:
+ *          The Lua script representing the model state for generation.
+ *      - std::vector<double> _x:
+ *          The x-data vector for generation.
+ *      - bool _useGPU:
+ *          Indicates whether to use GPU acceleration for generation.
+ *
+ *  - GetFileCall (derived from BackendCall):
+ *      - ModelPtr _model:
+ *          The model pointer for which the file is being retrieved.
+ *      - std::wstring _filename:
+ *          The file name to use for the operation.
+ *
+ *  - GetGenerateResultsCall (derived from BackendCall):
+ *      - std::map<int, std::string> _domainHeaders:
+ *          Maps model pointers to their corresponding domain header strings.
+ *      - std::vector<double> _graph:
+ *          Stores the result graph (e.g., intensity profile) returned from the backend.
+ *
+ *  - GetFitResultsCall (derived from BackendCall):
+ *      - ParameterTree _tree:
+ *          The parameter tree returned from the backend after fitting.
+ *      - std::vector<double> _graph:
+ *          Stores the result graph returned from the backend after fitting.
+ *
+ *  - GetAllModelMetadataCall (derived from BackendCall):
+ *      - std::string _metadata:
+ *          Stores the model metadata JSON string returned from the backend.
+ *
+ *  - GetJobStatusCall (derived from BackendCall):
+ *      - JobStatus _jobStatus:
+ *          Stores the job status information returned from the backend.
+ *
+ *  - CheckCapabilitiesCall (derived from BackendCall):
+ *      - bool _useGPU:
+ *          Indicates whether to check for GPU capabilities.
+ *
+ * Main Classes and Methods:
+ *  - BackendCall: Base class for all backend calls. Handles function name, argument, and option serialization, and result parsing.
+ *      - GetFuncName, GetArgs, GetOptions, GetCallString: Serialize call data to JSON.
+ *      - ParseResults: Parse backend response, extract error code/message, and delegate result parsing.
+ *      - WriteArguments, WriteOptions: Virtual methods for subclasses to implement argument/option serialization.
+ *  - FileContainingCall: Base for calls that include file mapping information.
+ *  - StartFitCall, StartGenerateCall: Specialized calls for fitting and generation jobs, including Lua script and data vector handling.
+ *  - GetFileCall: Handles file retrieval operations.
+ *  - GetGenerateResultsCall, GetFitResultsCall: Parse and extract job result data from backend responses.
+ *  - CheckCapabilitiesCall: Handles backend capability queries.
+ *
+ * Error Handling:
+ *  - All backend responses are parsed for error codes and messages.
+ *  - Exceptions are thrown for malformed or invalid JSON, or for missing/invalid fields.
+ *
+ * Extensibility:
+ *  - New backend operations can be supported by subclassing BackendCall and implementing argument/option/result handling.
+ *
+ * See BackendCalls.h for class and method declarations.
+ */
+
 std::string BackendCall::_clientId;
 
 BackendCall::BackendCall(std::string funcName)

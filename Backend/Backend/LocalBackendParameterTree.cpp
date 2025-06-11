@@ -11,6 +11,64 @@ using namespace std;
 #include <rapidjson/document.h>
 using namespace rapidjson;
 
+/**
+ * @file LocalBackendParameterTree.cpp
+ * @brief Implements the LocalBackendParameterTreeConverter class and related logic for model mapping,
+ *        parameter tree conversion, and backend model lifecycle management in the local backend.
+ *
+ * The LocalBackendParameterTree module is responsible for:
+ *  - Defining the LocalBackendParameterTreeConverter class, which manages the mapping between frontend (state) models
+ *    and backend (internal) models for a given job.
+ *  - Handling creation, mapping, and destruction of backend models based on frontend parameter tree state.
+ *  - Supporting conversion between frontend parameter tree JSON and backend model representations.
+ *  - Managing model caching, reuse, and cleanup to optimize backend resource usage.
+ *  - Providing utility functions for model creation from JSON, composite/domain model instantiation, and model lookup.
+ *  - Integrating with the LocalBackend for model creation, destruction, and amplitude handling.
+ *  - Ensuring consistency between frontend and backend model hierarchies during parameter tree updates.
+ *
+ * Key Concepts:
+ *  - Model Mapping: Maintains bidirectional maps between frontend (state) ModelPtr and backend (internal) ModelPtr.
+ *  - Model Lifecycle: Handles creation, reuse, and destruction of backend models as the parameter tree changes.
+ *  - Parameter Tree Conversion: Converts frontend parameter tree JSON to backend ParameterTree objects.
+ *  - Model Caching: Avoids redundant backend model creation by caching and reusing models when possible.
+ *  - Amplitude and Geometry Handling: Supports creation of amplitude, geometry, and symmetry models from JSON.
+ *  - Error Handling: Throws backend_exception on invalid model types, missing files, or mapping errors.
+ *
+ * Fields:
+ *  - LocalBackend* _pBackend: Pointer to the backend instance used for model creation and destruction.
+ *  - JobPtr _job: Handle to the current job, used for backend operations and model association.
+ *  - std::map<ModelPtr, ModelPtr> _stateToInternal: Maps frontend (state) ModelPtr to backend (internal) ModelPtr.
+ *  - std::map<ModelPtr, ModelPtr> _internalToState: Maps backend (internal) ModelPtr to frontend (state) ModelPtr.
+ *  - std::set<ModelPtr> _usedModels: Tracks state models used during the current parameter tree conversion, for cleanup.
+ *
+ * Main Methods:
+ *  - LocalBackendParameterTreeConverter (constructor): Initializes the converter with backend and job context.
+ *  - StateToInternal / InternalToState: Maps between frontend and backend model pointers.
+ *  - StateFromAmp: Retrieves the frontend model pointer associated with a given amplitude.
+ *  - CreateCompositeModel / CreateDomainModel: Creates or retrieves composite/domain backend models for a given state model.
+ *  - MapModel: Establishes bidirectional mapping between state and internal models.
+ *  - ClearUnusedModels: Destroys backend models that are no longer referenced in the current parameter tree.
+ *  - FromStateJSON: Converts frontend parameter tree JSON to backend ParameterTree, updating model mappings.
+ *  - CreateModelFromJSON / ModelFromJsonString: Creates backend models from JSON definitions, supporting various model types.
+ *  - GetStateModels: Returns a list of all frontend (state) models currently mapped.
+ *
+ * Threading and Safety:
+ *  - This class is not inherently thread-safe; external synchronization is required if used concurrently.
+ *  - Model mapping and destruction are managed per job and parameter tree update.
+ *
+ * Error Handling:
+ *  - Throws backend_exception for invalid model types, missing files, or mapping errors.
+ *  - Ensures backend models are destroyed when no longer referenced to prevent resource leaks.
+ *
+ * Dependencies:
+ *  - LocalBackend for backend model creation and destruction.
+ *  - JobManager for job and amplitude-to-model mapping.
+ *  - rapidjson for JSON parsing and model definition extraction.
+ *  - ParameterTreeConverter for base parameter tree conversion logic.
+ *
+ * See LocalBackendParameterTree.h for class and method declarations.
+ */
+
 LocalBackendParameterTreeConverter::LocalBackendParameterTreeConverter(LocalBackend *backend, JobPtr job)
 {
 	_pBackend = backend;

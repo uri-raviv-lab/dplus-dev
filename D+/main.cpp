@@ -14,6 +14,50 @@ using namespace System::IO;
 
 typedef unsigned short MachineType;
 
+/**
+ * @file main.cpp
+ * @brief Entry point for the DPlus application, responsible for initializing and launching the main GUI window.
+ *
+ * The main module is responsible for:
+ *  - Setting up application-wide visual styles and text rendering options.
+ *  - Optionally checking the architecture (32/64-bit) of a required DLL at startup (when CHECK_DLL is defined).
+ *  - Creating and running the main application window (MainWindow).
+ *
+ * Key Concepts:
+ *  - Application Initialization: Ensures the application uses modern Windows visual styles and compatible text rendering.
+ *  - DLL Architecture Check (optional): Provides a mechanism to verify the bitness of a required DLL before launching the main window.
+ *  - MainWindow: The primary user interface window for the DPlus application.
+ *
+ * Fields:
+ *  - (Conditional, CHECK_DLL) String^ winF:
+ *      Path to the WeifenLuo.WinFormsUI.Docking.dll file, if found.
+ *  - (Conditional, CHECK_DLL) MachineType:
+ *      Enum value representing the machine type (architecture) of a DLL.
+ *
+ * Main Methods:
+ *  - int main(array<System::String ^> ^args):
+ *      Application entry point. Sets up visual styles, optionally checks DLL architecture, and runs the main window.
+ *  - (Conditional, CHECK_DLL) GetDllMachineType(String^ dllPath):
+ *      Reads the PE header of a DLL to determine its machine type (architecture).
+ *  - (Conditional, CHECK_DLL) UnmanagedDllIs64Bit(String^ dllPath):
+ *      Determines if a DLL is 64-bit, 32-bit, or unknown.
+ *
+ * Threading and Safety:
+ *  - All initialization and UI operations are performed on the main thread.
+ *  - The application uses the [STAThread] attribute for Windows Forms compatibility.
+ *
+ * Error Handling:
+ *  - Displays message boxes for missing or incompatible DLLs when CHECK_DLL is defined.
+ *  - Throws exceptions for invalid PE headers or unknown DLL architectures (when checking DLLs).
+ *
+ * Dependencies:
+ *  - MainWindow.h for the main application window.
+ *  - Windows Forms libraries for UI.
+ *  - (Conditional, CHECK_DLL) Windows.h and System::IO for DLL inspection.
+ *
+ * See MainWindow.h for the main window implementation.
+ */
+
 MachineType GetDllMachineType(String^ dllPath)
 {
 	//see http://www.microsoft.com/whdc/system/platform/firmware/PECOFF.mspx
