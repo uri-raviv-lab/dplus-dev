@@ -10,4 +10,4 @@ else {
 }
 
 Write-Host DPLUS Version is "$env:DPLUS_VERSION"
-msbuild dplus.sln /p:Configuration=Release /t:Installer
+& "C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe" "dplus.sln" /p:Configuration=Release /t:Installer

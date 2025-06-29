@@ -3692,10 +3692,12 @@ void Amplitude::getNewThetaPhiAndPhases(const std::vector<FACC>& relevantQs, FAC
 	if (newPhi < 0.0)
 		newPhi += M_PI * 2.;
 
+	// change: use unaligned for Eigen::Map<const Eigen::ArrayXd>(relevantQs.data(), relevantQs.size())  $#
+
 	phases = (
 		std::complex<FACC>(0., 1.) *
 		(Qt.dot(R) *
-			Eigen::Map<const Eigen::ArrayXd>(relevantQs.data(), relevantQs.size()))
+			Eigen::Map<const Eigen::ArrayXd, Eigen::Unaligned>(relevantQs.data(), relevantQs.size()))
 		).exp();
 }
 
