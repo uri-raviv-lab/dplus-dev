@@ -512,11 +512,11 @@ def S_Q_from_I(I_q, f_q, N):
 
 
 def S_Q_from_model_slow(filename: str, q_min: dc.float64 = 0, q_max: dc.float64 = 100, dq: dc.float64 = 0.01
-                        , thermal: np.bool_ = False, Number_for_average_conf: dc.int64 = 1, u=np.array([0, 0, 0, 0])):
+                        , thermal: np.bool_ = False, Number_for_average_conf: dc.int64 = 1, u=np.array([0, 0, 0])):
     """Given a .dol or .pdb filename and a q-range, returns the orientation averaged structure factor."""
 
     r_mat, n = read_from_file(filename)
-    r_mat = np.copy(r_mat)
+    r_mat = r_mat[:, :3]
     if thermal:
         r_mat_old = r_mat
     q = np.arange(q_min, q_max + dq, dq)
@@ -561,17 +561,17 @@ def S_Q_from_model_slow(filename: str, q_min: dc.float64 = 0, q_max: dc.float64 
 
 def S_Q_from_model(filename: str, q_min: dc.float64 = 0, q_max: dc.float64 = 100, dq: dc.float64 = 0.01
                    , thermal: np.bool_ = False, Number_for_average_conf: dc.int64 = 1,
-                   u: dc.float64[4] = np.array([0.,0.,0.,0.]), use_GPU: np.bool_ = True):
+                   u: dc.float64[3] = np.array([0.,0.,0.]), use_GPU: np.bool_ = True):
     """Given a .dol or .pdb filename and a q-range, returns the orientation averaged structure factor."""
 
     r_mat, n = read_from_file(filename)
-    r_mat = np.copy(r_mat)
+    r_mat = np.copy(r_mat[:, :3])
     if thermal:
         r_mat_old = r_mat
     q = np.arange(q_min, q_max + dq/2, dq)
     q_len = q.shape[0]
-    if thermal:
-        r_mat_old = r_mat
+    # if thermal:
+    #     r_mat_old = r_mat
     S_Q = n * np.ones([Number_for_average_conf, q_len])
     R = np.zeros(Number_for_average_conf)
     rho = 0
@@ -599,7 +599,7 @@ def S_Q_from_model(filename: str, q_min: dc.float64 = 0, q_max: dc.float64 = 100
 
 def S_Q_average_box(xyz, qmax, q_points, size_min, size_max, mean, sigma, axes=np.array([1, 1, 1], dtype=np.bool_),
                     default_rep=np.array([0, 0, 0]), file_path=r'.\S_Q_average', qmin=0, normalize=True, make_fig=True,
-                    num_of_s_q_shown=-1, slow=False, thermal=False, u=np.array([0, 0, 0, 0]), verbose=False):
+                    num_of_s_q_shown=-1, slow=False, thermal=False, u=np.array([0, 0, 0]), verbose=False):
     # TODO: Find a way to make this work with GPU
 
     num_s_q = int(size_max - size_min)
@@ -990,7 +990,7 @@ Number_for_average_conf = dc.symbol('Number_for_average_conf')
 
 
 @dc.program(auto_optimize=True, regenerate_code=True)
-def compute_sq(q: dc.float64[Q], S_Q: dc.float64[Q], r_mat: dc.float64[L, 4]):
+def compute_sq(q: dc.float64[Q], S_Q: dc.float64[Q], r_mat: dc.float64[L, 3]):
     qr: dc.float64[Q]
 
     R = 0.0
