@@ -36,6 +36,8 @@ add_library(lua ${lua_files})
 set_target_properties(lua PROPERTIES COMPILE_FLAGS "-w -fPIC")
 
 add_definitions(-DBACKEND)
+# Disable Eigen vectorization and alignment
+add_definitions(-DEIGEN_DONT_VECTORIZE -DEIGEN_DONT_ALIGN_STATICALLY)
 
 FILE(GLOB gpu_aff_file GPU/A*.cpp)
 

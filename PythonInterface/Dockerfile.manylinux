@@ -51,7 +51,7 @@ COPY PropertySheets /src/PropertySheets
 COPY backend_version.h /src
 COPY CMakeLists.txt /src
 
-# Build C++ backend
+# Build C++ backend with EIGEN_DONT_VECTORIZE
 WORKDIR /src/build
 RUN cmake .. && make
 
@@ -62,6 +62,11 @@ RUN cp /usr/lib/x86_64-linux-gnu/libboost_system.so /output
 RUN cp /usr/lib/x86_64-linux-gnu/libboost_filesystem.so /output
 RUN cp /usr/local/cuda-12.4/targets/x86_64-linux/lib/libcurand.so.10 /output
 RUN cp /usr/local/cuda-12.4/targets/x86_64-linux/lib/libcudart.so /output
+
+# ----- FIX: Create symlinks -----
+# Make sure the versioned name matches what the backend expects
+RUN ln -s libboost_filesystem.so /output/libboost_filesystem.so.1.71.0
+RUN ln -s libcudart.so /output/libcudart.so.12
 
 # ---------- Stage 2: Build Python interface and wheels ----------
 FROM quay.io/pypa/manylinux_2_28_x86_64 AS python
@@ -101,11 +106,6 @@ RUN for whl in /src/PythonInterface/dplus_api*.whl; do \
     echo "Repairing: $whl"; \
     auditwheel repair "$whl" -w /wheels || echo "auditwheel failed for $whl"; \
 done
-# RUN find . -name "dplus_api*whl" -exec auditwheel repair {} -w /wheels \;
 
-# MODIFIED ENTRYPOINT
-# ENTRYPOINT [ "cp", "-r", "/wheels/.", "/external/dplus-api-wheels/"]
-#CMD ["bash", "-c", "mkdir -p /external/dplus-api-wheels && cp -v /wheels/* /external/dplus-api-wheels/"]
+# Copy out wheels
 CMD ["bash", "-c", "mkdir -p /external/dplus-api-wheels && cp -v /wheels/* /external/dplus-api-wheels/ || cp -v /src/PythonInterface/dplus_api*.whl /external/dplus-api-wheels/"]
-
-
