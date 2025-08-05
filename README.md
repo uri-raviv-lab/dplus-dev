@@ -27,6 +27,13 @@ The API can be downloaded using PIP by running the following inside the command 
 
 A short tutorial with examples can be found [here](https://github.com/uri-raviv-lab/dplus-dev/tree/development/PythonInterface).
 
+If using the API on a Linux machine, codes must be run by defining first:
+
+`LD_LIBRARY_PATH=/home/<your_username>/.local/lib/python3.*/site-packages/dplus:$LD_LIBRARY_PATH python3 <your_code>.py`
+
+or by adding the path to the LD_LIBRARY_PATH variable in your .bashrc file. Make sure to replace `<your_username>` 
+with your actual username, * with the correct Python version (e.g., python3.8, python3.9, etc.), and `<your_code>` with the name of your Python script.
+
 Hardware architecture.
 ----------------------
 Computations and tests were performed on Windows computers with an Intel Core i5 3470 3.2 GHz CPU and an NVIDIA GeForce GTX Titan GPU card, or Intel Core i5 4590 3.3 GHz CPU and an NVIDIA GeForce GTX Titan Black GPU card. GeForce RTX 3080, GTX 1070, GTX 970, NVIDIA TESLA K80 and GTX 960 cards have also passed our tests.

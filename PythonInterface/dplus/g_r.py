@@ -10,7 +10,7 @@ from scipy.spatial import distance_matrix
 import csv
 import math
 import dace as dc
-from dace import dtypes
+from dace import dtypes#, device
 
 
 V = dc.symbol('V', dc.int64)
@@ -512,31 +512,33 @@ def S_Q_from_I(I_q, f_q, N):
 
 
 def S_Q_from_model_slow(filename: str, q_min: dc.float64 = 0, q_max: dc.float64 = 100, dq: dc.float64 = 0.01
-                        , thermal: np.bool_ = False, Number_for_average_conf: dc.int64 = 1, u=np.array([0, 0, 0])):
+                        , thermal: np.bool_ = False, Number_for_average_conf: dc.int64 = 1, u=np.array([0, 0, 0]),
+                        conv_eps: dc.float64 = 1e-6, min_iter: dc.int64 = 10, check_step: dc.int64 = 5):
     """Given a .dol or .pdb filename and a q-range, returns the orientation averaged structure factor."""
 
     r_mat, n = read_from_file(filename)
     r_mat = r_mat[:, :3]
-    if thermal:
-        r_mat_old = r_mat
     q = np.arange(q_min, q_max + dq, dq)
     S_Q = np.zeros([Number_for_average_conf, len(q)])
     S_Q += n
     R = np.zeros(Number_for_average_conf)
     rho = 0
     it = 0
+    if thermal:
+        r_mat_old = np.copy(r_mat)
+        check_matrix = np.zeros([4, len(q)])
+
     while it < Number_for_average_conf:
+        # print('Finished iteration ' + str(it + 1) + ' of ' + str(Number_for_average_conf) + ' iterations.')
         if thermal:
             r_mat[:] = thermalize(np.copy(r_mat_old), u)
 
-        # for i in dc.map[0:n-1]:
         for i in range(n - 1):
             r_i = r_mat[i]
             if i == 0:
                 r = np.sqrt(np.sum(r_i ** 2))
                 if r > R[it]:
                     R[it] = r
-            # for j in dc.map[i+1:n]:
             for j in range(i + 1, n):
                 r_j = r_mat[j]
                 if i == 0:
@@ -552,6 +554,24 @@ def S_Q_from_model_slow(filename: str, q_min: dc.float64 = 0, q_max: dc.float64 
         S_Q[it] /= n
         R[it] /= 2
         rho += 3 * S_Q[it][0] / (4 * np.pi * R[it] ** 3)
+        if it >= min_iter:
+            if it % check_step == 0:
+                print("checking convergence at iteration", it)
+                ind = ((it - min_iter) // check_step) % 4
+                S_Q_temp = np.sum(S_Q[:it], axis=0) / it
+                if it <= min_iter + 3 * check_step:
+                    check_matrix[ind, :] = S_Q_temp
+                    it += 1
+                    continue
+
+                conv_test = np.max(np.abs(1 - S_Q_temp / check_matrix), axis=-1)
+                if np.any(conv_test<conv_eps):
+                    print('Convergence reached at iteration', it + 1)
+                    S_Q[:] = np.sum(S_Q[:it+1], axis=0) / (it + 1)
+                    rho /= (it + 1)
+                    return q, S_Q[0], rho
+                else:
+                    check_matrix[ind, :] = S_Q_temp
         it += 1
     S_Q[:] = np.sum(S_Q, axis=0) / Number_for_average_conf
     rho /= Number_for_average_conf
@@ -577,12 +597,12 @@ def S_Q_from_model(filename: str, q_min: dc.float64 = 0, q_max: dc.float64 = 100
     rho = 0
     it = 0
     while it < Number_for_average_conf:
+        print('Finished iteration ' + str(it + 1) + ' of ' + str(Number_for_average_conf) + ' iterations.')
         if thermal:
             r_mat[:] = thermalize(np.copy(r_mat_old), u)
         S_Q_pretemp = np.copy(S_Q[it])
         R[it], S_Q[it, :] = compute_sq(q, S_Q_pretemp, r_mat, Q=q_len, L=n)
-        if Number_for_average_conf > 1:
-            print('Finished iteration ' + str(it+1) + ' of ' + str(Number_for_average_conf) + ' iterations.')
+        # if Number_for_average_conf > 1:
         # if use_GPU:
         #     R[it], S_Q[it, :] = compute_sq_GPU(q, S_Q_pretemp, r_mat, Q=q_len, L=n)
         # else:
@@ -989,7 +1009,7 @@ Number_for_average_atoms = dc.symbol('Number_for_average_atoms')
 Number_for_average_conf = dc.symbol('Number_for_average_conf')
 
 
-@dc.program(auto_optimize=True, regenerate_code=True)
+@dc.program(auto_optimize=True, regenerate_code=True, device=dtypes.DeviceType.GPU)
 def compute_sq(q: dc.float64[Q], S_Q: dc.float64[Q], r_mat: dc.float64[L, 3]):
     qr: dc.float64[Q]
 
