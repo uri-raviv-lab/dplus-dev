@@ -442,9 +442,59 @@ System::Void DPlus::ParameterEditor::gridViewContextMenuStrip_Opening(System::Ob
 
 }
 
+//System::Void DPlus::ParameterEditor::polydispersityToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) {
+//	// Find the selected cell in the "Radius" column (assume it's the first parameter column)
+//	int radiusCol = 0; // Adjust if needed
+//	int row = -1;
+//	if (parameterDataGridView->SelectedCells->Count > 0)
+//		row = parameterDataGridView->SelectedCells[0]->RowIndex;
+//
+//	double radius = 0.0;
+//	if (row >= 0 && parameterDataGridView->Rows[row]->Cells[radiusCol]->Value != nullptr)
+//		Double::TryParse(parameterDataGridView->Rows[row]->Cells[radiusCol]->Value->ToString(), radius);
+//
+//	PolydispersityDialog^ dlg = gcnew PolydispersityDialog(radius);
+//	if (dlg->ShowDialog() == System::Windows::Forms::DialogResult::OK) {
+//		double sigma = dlg->Sigma;
+//	}
+//}
+
 System::Void DPlus::ParameterEditor::polydispersityToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) {
-	MessageBox::Show("TODO: open polydispersity option.");
+	int radiusCol = 0; // Adjust if needed
+	int row = -1;
+	if (parameterDataGridView->SelectedCells->Count > 0)
+		row = parameterDataGridView->SelectedCells[0]->RowIndex;
+
+	double radius = 0.0;
+	if (row >= 0 && parameterDataGridView->Rows[row]->Cells[radiusCol]->Value != nullptr)
+		Double::TryParse(parameterDataGridView->Rows[row]->Cells[radiusCol]->Value->ToString(), radius);
+
+	PolydispersityDialog^ dlg = gcnew PolydispersityDialog(radius);
+	if (dlg->ShowDialog() == System::Windows::Forms::DialogResult::OK) {
+		double sigma = dlg->Sigma;
+
+		// --- Store sigma in the model parameter ---
+		SymmetryView^ sv = (SymmetryView^)(parentForm->PaneList[SYMMETRY_VIEWER]);
+		Entity^ en = sv->GetSelectedEntity();
+		if (en) {
+			paramStruct ps = en->GetParameters();
+			// Set sigma for the correct parameter (here, first parameter in the selected row)
+			ps.params[radiusCol][row].sigma = sigma;
+			// Commit the change
+			en->SetParameters(ps, parentForm->GetLevelOfDetail());
+			// Optionally, refresh the grid or graph
+			sv->tvInvalidate();
+			GraphPane3D^ g3 = (GraphPane3D^)parentForm->PaneList[GRAPH3D];
+			g3->glCanvas3D1->Invalidate();
+			g3->Invalidate();
+		}
+	}
 }
+
+
+//System::Void DPlus::ParameterEditor::polydispersityToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) {
+//	MessageBox::Show("TODO: open polydispersity option.");
+//}
 
 System::Void DPlus::ParameterEditor::linkToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) {
 	MessageBox::Show("TODO: Link all parameters of the same type.");

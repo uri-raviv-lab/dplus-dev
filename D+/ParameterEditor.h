@@ -11,6 +11,82 @@ using namespace System::Data;
 using namespace System::Drawing;
 using namespace WeifenLuo::WinFormsUI::Docking;
 
+// ---- Inject your dialog class here ----
+public ref class PolydispersityDialog : public Form
+{
+public:
+	property double Sigma {
+		double get() { return System::Convert::ToDouble(sigmaTextBox->Text); }
+	}
+
+	PolydispersityDialog(double radius)
+	{
+		this->Text = "Set Polydispersity";
+		this->Width = 300;
+		this->Height = 170;
+		this->FormBorderStyle = System::Windows::Forms::FormBorderStyle::FixedDialog;
+		this->MaximizeBox = false;
+		this->MinimizeBox = false;
+		this->StartPosition = FormStartPosition::CenterParent;
+
+		Label^ radiusLabel = gcnew Label();
+		radiusLabel->Text = "Current radius value: " + radius.ToString("G");
+		radiusLabel->Left = 10;
+		radiusLabel->Top = 15;
+		radiusLabel->Width = 260;
+
+		Label^ sigmaLabel = gcnew Label();
+		sigmaLabel->Text = "Sigma:";
+		sigmaLabel->Left = 10;
+		sigmaLabel->Top = 50;
+		sigmaLabel->Width = 50;
+
+		sigmaTextBox = gcnew TextBox();
+		sigmaTextBox->Left = 70;
+		sigmaTextBox->Top = 47;
+		sigmaTextBox->Width = 120;
+		sigmaTextBox->Text = "0.0";
+
+		Button^ okButton = gcnew Button();
+		okButton->Text = "OK";
+		okButton->Left = 40;
+		okButton->Top = 90;
+		okButton->Width = 60;
+		okButton->DialogResult = ::DialogResult::None;
+		okButton->Click += gcnew System::EventHandler(this, &PolydispersityDialog::okButton_Click);
+
+		Button^ cancelButton = gcnew Button();
+		cancelButton->Text = "Cancel";
+		cancelButton->DialogResult = ::DialogResult::Cancel;
+		cancelButton->Left = 120;
+		cancelButton->Top = 90;
+		cancelButton->Width = 60;
+
+		this->Controls->Add(radiusLabel);
+		this->Controls->Add(sigmaLabel);
+		this->Controls->Add(sigmaTextBox);
+		this->Controls->Add(okButton);
+		this->Controls->Add(cancelButton);
+
+		this->AcceptButton = okButton;
+		this->CancelButton = cancelButton;
+	}
+
+private:
+	TextBox^ sigmaTextBox;
+
+	void okButton_Click(System::Object^ sender, System::EventArgs^ e)
+	{
+		double sigma;
+		if (!Double::TryParse(sigmaTextBox->Text, sigma) || sigma < 0)
+		{
+			MessageBox::Show("Sigma must be a non-negative real number.", "Invalid Input", MessageBoxButtons::OK, MessageBoxIcon::Error);
+			return;
+		}
+		this->DialogResult = ::DialogResult::OK;
+		this->Close();
+	}
+};
 namespace DPlus {
 
 	/// <summary>

@@ -1,5 +1,5 @@
 ﻿
-This document was last updated on June 6 2023, for dplus-v5.1.0.0
+This document was last updated on August 13 2025, for dplus-v5.2.2.
 
 # The Dplus Python API
 
@@ -423,6 +423,9 @@ The `Parameter` class contains the following properties:
 
 'sigma' is a parameter that does not exist in the D+ UI, but rather only in the API and is a measure for the polydispersivity of a parameter in the model. Sigma represents the full width at half-maximum of a Gaussian distribution that is applied to the parameter it is added to. 
 This was inherited from X+ and more information can be found in Ben-Nun, T., Ginsburg, A., Szekely, P. & Raviv, U. (2010). J. Appl. Cryst. 43, 1522-1531.
+
+--- 13/08/25 UPDATE: Polydiversity is now available on the UI version of D+, due to new UI feature of setting the sigma value. 
+Usage: right click on certain layer in Parameter Editor panel -> polydiversity... -> set new sigma value ---
 
 Usage:
 
