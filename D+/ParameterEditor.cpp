@@ -211,106 +211,595 @@ System::Void DPlus::ParameterEditor::DataGridView_OnCellMouseUp(System::Object^ 
 	}
 }
 
-System::Void DPlus::ParameterEditor::DataGridView_CellEndEdit(System::Object^ sender, System::Windows::Forms::DataGridViewCellEventArgs^ e) {	
+//System::Void DPlus::ParameterEditor::DataGridView_CellEndEdit(System::Object^ sender, System::Windows::Forms::DataGridViewCellEventArgs^ e) {	
+//	SymmetryView^ sv = (SymmetryView^)(parentForm->PaneList[SYMMETRY_VIEWER]);
+//	Entity^ en = sv->GetSelectedEntity();
+//
+//	int col = e->ColumnIndex, row = e->RowIndex;
+//	if(!en || col < 0 || row < 0)
+//		return;
+//
+//	// Determines whether a value was modified (or mutability otherwise)
+//	bool isValue = (col % 2 == 0); 
+//
+//
+//	// If an expression (begins with "="), parse as lua expression	
+//	if(isValue) {
+//		if(sender == parameterDataGridView && parameterDataGridView[col, row]->Value != nullptr) {
+//			String ^val = parameterDataGridView[col, row]->Value->ToString()->Trim();		
+//			if(val->StartsWith("=")) {
+//				Double dval = parentForm->LuaParseExpression(val->Substring(1));
+//				parameterDataGridView[col, row]->Value = dval;
+//			} else if(val->Contains("=")) {
+//				MessageBox::Show("Invalid expression");
+//				parameterDataGridView[col, row]->Value = 0.0;
+//			}
+//		} else if(sender == extraParamsDataGridView && extraParamsDataGridView[col, row]->Value != nullptr) {
+//			String ^val = extraParamsDataGridView[col, row]->Value->ToString()->Trim();
+//			EXTRA_PARAM_TYPE ept = en->modelUI->GetExtraParamType(col / 2);
+//			if(ept == EPT_DOUBLE) {
+//				if(val->StartsWith("=")) {
+//					Double dval = parentForm->LuaParseExpression(val->Substring(1));
+//					extraParamsDataGridView[col, row]->Value = dval;
+//				} else if(val->Contains("=")) {
+//					MessageBox::Show("Invalid expression");
+//					extraParamsDataGridView[col, row]->Value = 0.0;
+//				}
+//			}
+//		}
+//	}
+//	// END of Lua parsing	
+//
+//	paramStruct ps = en->GetParameters();
+//
+//	// Parameter modification
+//	if(sender == parameterDataGridView) { 
+//		int lp = col / 2;
+//		if(isValue) {
+//			Double val;
+//			if(parameterDataGridView[col, row]->Value == nullptr) // Revert to old value
+//				parameterDataGridView[col, row]->Value = ps.params[lp][row].value;
+//
+//			if(Double::TryParse(parameterDataGridView[col, row]->Value->ToString(), val))
+//				ps.params[lp][row].value = val;
+//		} else {
+//			if(parameterDataGridView[col, row]->Value != nullptr)
+//				ps.params[lp][row].isMutable = (Boolean)parameterDataGridView[col, row]->Value;
+//		}
+//	} else if(sender == extraParamsDataGridView) { // Extra parameter modification
+//		int ep = col / 2;
+//		if(isValue) {		
+//			Double val;
+//			if(extraParamsDataGridView[col, row]->Value == nullptr) // Revert to old value
+//				extraParamsDataGridView[col, row]->Value = ps.extraParams[ep].value;
+//			EXTRA_PARAM_TYPE ept = en->modelUI->GetExtraParamType(ep);
+//			if(ept == EPT_DOUBLE) {
+//				if(Double::TryParse(extraParamsDataGridView[col, row]->Value->ToString(), val)) {
+//					ps.extraParams[ep].value = val;
+//				}
+//				if(extraParamsDataGridView[col, row]->Value != nullptr)
+//					ps.extraParams[ep].isMutable = (Boolean)extraParamsDataGridView[col + 1, row]->Value;
+//
+//			} else if(ept == EPT_CHECKBOX) {
+//				ps.extraParams[ep].value = ((Boolean)(extraParamsDataGridView[col, row]->Value) ? 1.0 : 0.0);
+//				ps.extraParams[ep].isMutable = false;
+//			} else if(ept == EPT_MULTIPLE_CHOICE) {
+//				std::vector<std::string> ops = en->modelUI->GetExtraParamOptionStrings(ep);
+//				std::string chosen = clrToString(extraParamsDataGridView[col, row]->Value->ToString()->Trim());
+//				int ind;
+//				for(ind = 0; ind < ops.size(); ind++) {
+//					if(ops[ind].compare(chosen) == 0) {
+//						break;
+//					}
+//				}
+//				ps.extraParams[ep].value = double(ind);
+//				ps.extraParams[ep].isMutable = false;	
+//			}
+//		} else {
+//			if(extraParamsDataGridView[col, row]->Value != nullptr)
+//				ps.extraParams[ep].isMutable = (Boolean)extraParamsDataGridView[col, row]->Value;
+//		}
+//	}	
+//	// END of parameter modification
+//
+//	// Commit parameter
+//	en->SetParameters(ps, parentForm->GetLevelOfDetail());
+//
+//	sv->tvInvalidate();
+//}
+
+//System::Void DPlus::ParameterEditor::DataGridView_CellEndEdit(System::Object^ sender, System::Windows::Forms::DataGridViewCellEventArgs^ e) {
+//	SymmetryView^ sv = (SymmetryView^)(parentForm->PaneList[SYMMETRY_VIEWER]);
+//	Entity^ en = sv->GetSelectedEntity();
+//
+//	int col = e->ColumnIndex, row = e->RowIndex;
+//	if (!en || col < 0 || row < 0)
+//		return;
+//
+//	paramStruct ps = en->GetParameters();
+//
+//	// Each parameter now has 3 columns: value, sigma, mut
+//	int paramIdx = col / 3;
+//	int colType = col % 3; // 0 = value, 1 = sigma, 2 = mut
+//
+//	if (sender == parameterDataGridView) {
+//		if (colType == 0) { // Value
+//			Double val;
+//			if (parameterDataGridView[col, row]->Value == nullptr)
+//				parameterDataGridView[col, row]->Value = ps.params[paramIdx][row].value;
+//			if (Double::TryParse(parameterDataGridView[col, row]->Value->ToString(), val))
+//				ps.params[paramIdx][row].value = val;
+//		}
+//		else if (colType == 1) { // Sigma
+//			Double val;
+//			if (parameterDataGridView[col, row]->Value == nullptr)
+//				parameterDataGridView[col, row]->Value = ps.params[paramIdx][row].sigma;
+//			if (Double::TryParse(parameterDataGridView[col, row]->Value->ToString(), val) && val >= 0)
+//				ps.params[paramIdx][row].sigma = val;
+//			else
+//				parameterDataGridView[col, row]->Value = ps.params[paramIdx][row].sigma; // revert on invalid
+//		}
+//		else if (colType == 2) { // Mutability
+//			if (parameterDataGridView[col, row]->Value != nullptr)
+//				ps.params[paramIdx][row].isMutable = (Boolean)parameterDataGridView[col, row]->Value;
+//		}
+//	}
+//	else if (sender == extraParamsDataGridView) { // Extra parameter modification (unchanged)
+//		int ep = col / 2;
+//		bool isValue = (col % 2 == 0);
+//		if (isValue) {
+//			Double val;
+//			if (extraParamsDataGridView[col, row]->Value == nullptr)
+//				extraParamsDataGridView[col, row]->Value = ps.extraParams[ep].value;
+//			EXTRA_PARAM_TYPE ept = en->modelUI->GetExtraParamType(ep);
+//			if (ept == EPT_DOUBLE) {
+//				if (Double::TryParse(extraParamsDataGridView[col, row]->Value->ToString(), val)) {
+//					ps.extraParams[ep].value = val;
+//				}
+//				if (extraParamsDataGridView[col, row]->Value != nullptr)
+//					ps.extraParams[ep].isMutable = (Boolean)extraParamsDataGridView[col + 1, row]->Value;
+//			}
+//			else if (ept == EPT_CHECKBOX) {
+//				ps.extraParams[ep].value = ((Boolean)(extraParamsDataGridView[col, row]->Value) ? 1.0 : 0.0);
+//				ps.extraParams[ep].isMutable = false;
+//			}
+//			else if (ept == EPT_MULTIPLE_CHOICE) {
+//				std::vector<std::string> ops = en->modelUI->GetExtraParamOptionStrings(ep);
+//				std::string chosen = clrToString(extraParamsDataGridView[col, row]->Value->ToString()->Trim());
+//				int ind;
+//				for (ind = 0; ind < ops.size(); ind++) {
+//					if (ops[ind].compare(chosen) == 0) {
+//						break;
+//					}
+//				}
+//				ps.extraParams[ep].value = double(ind);
+//				ps.extraParams[ep].isMutable = false;
+//			}
+//		}
+//		else {
+//			if (extraParamsDataGridView[col, row]->Value != nullptr)
+//				ps.extraParams[ep].isMutable = (Boolean)extraParamsDataGridView[col, row]->Value;
+//		}
+//	}
+//
+//	en->SetParameters(ps, parentForm->GetLevelOfDetail());
+//	sv->tvInvalidate();
+//}
+
+System::Void DPlus::ParameterEditor::DataGridView_CellEndEdit(System::Object^ sender, System::Windows::Forms::DataGridViewCellEventArgs^ e) {
 	SymmetryView^ sv = (SymmetryView^)(parentForm->PaneList[SYMMETRY_VIEWER]);
 	Entity^ en = sv->GetSelectedEntity();
 
 	int col = e->ColumnIndex, row = e->RowIndex;
-	if(!en || col < 0 || row < 0)
+	if (!en || col < 0 || row < 0)
 		return;
-
-	// Determines whether a value was modified (or mutability otherwise)
-	bool isValue = (col % 2 == 0); 
-
-
-	// If an expression (begins with "="), parse as lua expression	
-	if(isValue) {
-		if(sender == parameterDataGridView && parameterDataGridView[col, row]->Value != nullptr) {
-			String ^val = parameterDataGridView[col, row]->Value->ToString()->Trim();		
-			if(val->StartsWith("=")) {
-				Double dval = parentForm->LuaParseExpression(val->Substring(1));
-				parameterDataGridView[col, row]->Value = dval;
-			} else if(val->Contains("=")) {
-				MessageBox::Show("Invalid expression");
-				parameterDataGridView[col, row]->Value = 0.0;
-			}
-		} else if(sender == extraParamsDataGridView && extraParamsDataGridView[col, row]->Value != nullptr) {
-			String ^val = extraParamsDataGridView[col, row]->Value->ToString()->Trim();
-			EXTRA_PARAM_TYPE ept = en->modelUI->GetExtraParamType(col / 2);
-			if(ept == EPT_DOUBLE) {
-				if(val->StartsWith("=")) {
-					Double dval = parentForm->LuaParseExpression(val->Substring(1));
-					extraParamsDataGridView[col, row]->Value = dval;
-				} else if(val->Contains("=")) {
-					MessageBox::Show("Invalid expression");
-					extraParamsDataGridView[col, row]->Value = 0.0;
-				}
-			}
-		}
-	}
-	// END of Lua parsing	
 
 	paramStruct ps = en->GetParameters();
 
-	// Parameter modification
-	if(sender == parameterDataGridView) { 
-		int lp = col / 2;
-		if(isValue) {
-			Double val;
-			if(parameterDataGridView[col, row]->Value == nullptr) // Revert to old value
-				parameterDataGridView[col, row]->Value = ps.params[lp][row].value;
+	// Handle parameterDataGridView (3 columns per param: value, sigma, mut)
+	if (sender == parameterDataGridView) {
+		int paramIdx = col / 3;
+		int colType = col % 3; // 0 = value, 1 = sigma, 2 = mut
 
-			if(Double::TryParse(parameterDataGridView[col, row]->Value->ToString(), val))
-				ps.params[lp][row].value = val;
-		} else {
-			if(parameterDataGridView[col, row]->Value != nullptr)
-				ps.params[lp][row].isMutable = (Boolean)parameterDataGridView[col, row]->Value;
-		}
-	} else if(sender == extraParamsDataGridView) { // Extra parameter modification
-		int ep = col / 2;
-		if(isValue) {		
-			Double val;
-			if(extraParamsDataGridView[col, row]->Value == nullptr) // Revert to old value
-				extraParamsDataGridView[col, row]->Value = ps.extraParams[ep].value;
-			EXTRA_PARAM_TYPE ept = en->modelUI->GetExtraParamType(ep);
-			if(ept == EPT_DOUBLE) {
-				if(Double::TryParse(extraParamsDataGridView[col, row]->Value->ToString(), val)) {
-					ps.extraParams[ep].value = val;
+		System::Object^ cellValue = parameterDataGridView[col, row]->Value;
+		if (colType == 0) { // Value
+			if (cellValue != nullptr) {
+				String^ strVal = cellValue->ToString()->Trim();
+				if (strVal == "N/A") {
+					// Do nothing for N/A
 				}
-				if(extraParamsDataGridView[col, row]->Value != nullptr)
-					ps.extraParams[ep].isMutable = (Boolean)extraParamsDataGridView[col + 1, row]->Value;
+				else if (strVal->StartsWith("=")) {
+					Double dval = parentForm->LuaParseExpression(strVal->Substring(1));
+					parameterDataGridView[col, row]->Value = dval;
+					ps.params[paramIdx][row].value = dval;
+				}
+				else {
+					Double val;
+					if (Double::TryParse(strVal, val))
+						ps.params[paramIdx][row].value = val;
+				}
+			}
+			else {
+				parameterDataGridView[col, row]->Value = ps.params[paramIdx][row].value;
+			}
+		}
+		else if (colType == 1) { // Sigma
+			if (cellValue != nullptr) {
+				String^ strVal = cellValue->ToString()->Trim();
+				if (strVal == "N/A") {
+					// Do nothing for N/A
+				}
+				else {
+					Double val;
+					if (Double::TryParse(strVal, val) && val >= 0)
+						ps.params[paramIdx][row].sigma = val;
+					else
+						parameterDataGridView[col, row]->Value = ps.params[paramIdx][row].sigma; // revert on invalid
+				}
+			}
+			else {
+				parameterDataGridView[col, row]->Value = ps.params[paramIdx][row].sigma;
+			}
+		}
+		else if (colType == 2) { // Mutability
+			if (cellValue != nullptr && cellValue->GetType() == Boolean::typeid)
+				ps.params[paramIdx][row].isMutable = safe_cast<Boolean>(cellValue);
+		}
+	}
+	// Handle extraParamsDataGridView (2 or 3 columns per param)
+	else if (sender == extraParamsDataGridView) {
+		int nExtraCols = extraParamsDataGridView->ColumnCount;
+		int ep = 0, colType = 0, colCounter = 0;
+		// Figure out which extra param and which sub-column (value/sigma/mut)
+		for (int i = 0; i < ps.nExtraParams; ++i) {
+			String^ name = stringToClr(en->modelUI->GetExtraParameter(i).name)->ToLower();
+			bool isDouble = (en->modelUI->GetExtraParamType(i) == EPT_DOUBLE);
+			bool needsSigma = isDouble && name != "background" && name != "scale";
+			int nColsForThis = 1 + (needsSigma ? 1 : 0) + 1;
+			if (col >= colCounter && col < colCounter + nColsForThis) {
+				ep = i;
+				colType = col - colCounter; // 0 = value, 1 = sigma (if present), last = mut
+				break;
+			}
+			colCounter += nColsForThis;
+		}
+		EXTRA_PARAM_TYPE ept = en->modelUI->GetExtraParamType(ep);
+		System::Object^ cellValue = extraParamsDataGridView[col, row]->Value;
 
-			} else if(ept == EPT_CHECKBOX) {
-				ps.extraParams[ep].value = ((Boolean)(extraParamsDataGridView[col, row]->Value) ? 1.0 : 0.0);
-				ps.extraParams[ep].isMutable = false;
-			} else if(ept == EPT_MULTIPLE_CHOICE) {
-				std::vector<std::string> ops = en->modelUI->GetExtraParamOptionStrings(ep);
-				std::string chosen = clrToString(extraParamsDataGridView[col, row]->Value->ToString()->Trim());
-				int ind;
-				for(ind = 0; ind < ops.size(); ind++) {
-					if(ops[ind].compare(chosen) == 0) {
-						break;
+		// Value column
+		if (colType == 0) {
+			if (ept == EPT_DOUBLE) {
+				if (cellValue != nullptr) {
+					String^ strVal = cellValue->ToString()->Trim();
+					if (strVal == "N/A") {
+						// Do nothing
+					}
+					else if (strVal->StartsWith("=")) {
+						Double dval = parentForm->LuaParseExpression(strVal->Substring(1));
+						extraParamsDataGridView[col, row]->Value = dval;
+						ps.extraParams[ep].value = dval;
+					}
+					else {
+						Double val;
+						if (Double::TryParse(strVal, val))
+							ps.extraParams[ep].value = val;
 					}
 				}
-				ps.extraParams[ep].value = double(ind);
-				ps.extraParams[ep].isMutable = false;	
+				else {
+					extraParamsDataGridView[col, row]->Value = ps.extraParams[ep].value;
+				}
 			}
-		} else {
-			if(extraParamsDataGridView[col, row]->Value != nullptr)
-				ps.extraParams[ep].isMutable = (Boolean)extraParamsDataGridView[col, row]->Value;
+			else if (ept == EPT_CHECKBOX) {
+				if (cellValue != nullptr && cellValue->GetType() == Boolean::typeid)
+					ps.extraParams[ep].value = (safe_cast<Boolean>(cellValue) ? 1.0 : 0.0);
+				ps.extraParams[ep].isMutable = false;
+			}
+			else if (ept == EPT_MULTIPLE_CHOICE) {
+				if (cellValue != nullptr) {
+					std::vector<std::string> ops = en->modelUI->GetExtraParamOptionStrings(ep);
+					std::string chosen = clrToString(cellValue->ToString()->Trim());
+					int ind = 0;
+					for (; ind < ops.size(); ind++) {
+						if (ops[ind] == chosen) break;
+					}
+					ps.extraParams[ep].value = double(ind);
+				}
+				ps.extraParams[ep].isMutable = false;
+			}
 		}
-	}	
-	// END of parameter modification
+		// Sigma column (if present)
+		else if (ept == EPT_DOUBLE && colType == 1 && extraParamsDataGridView->Columns[col]->HeaderText->EndsWith("sigma")) {
+			if (cellValue != nullptr) {
+				String^ strVal = cellValue->ToString()->Trim();
+				Double val;
+				if (Double::TryParse(strVal, val) && val >= 0)
+					ps.extraParams[ep].sigma = val;
+				else
+					extraParamsDataGridView[col, row]->Value = ps.extraParams[ep].sigma; // revert on invalid
+			}
+			else {
+				extraParamsDataGridView[col, row]->Value = ps.extraParams[ep].sigma;
+			}
+		}
+		// Mutability column (always last)
+		else if ((ept == EPT_DOUBLE && ((colType == 2) || (colType == 1 && !extraParamsDataGridView->Columns[col]->HeaderText->EndsWith("sigma")))) ||
+			(ept != EPT_DOUBLE && colType == 1)) {
+			if (cellValue != nullptr && cellValue->GetType() == Boolean::typeid)
+				ps.extraParams[ep].isMutable = safe_cast<Boolean>(cellValue);
+		}
+	}
 
-	// Commit parameter
 	en->SetParameters(ps, parentForm->GetLevelOfDetail());
-
 	sv->tvInvalidate();
 }
 
-void DPlus::ParameterEditor::FillParamGridView(Entity ^en) {	
-	if(en->modelUI == NULL) {
-		// If PDB or amplitude
+//void DPlus::ParameterEditor::FillParamGridView(Entity ^en) {	
+//	if(en->modelUI == NULL) {
+//		// If PDB or amplitude
+//		addLayerButton->Enabled = false;
+//		removeLayerButton->Enabled = false;
+//
+//		parameterDataGridView->Rows->Clear();
+//		parameterDataGridView->Columns->Clear();
+//		extraParamsDataGridView->Rows->Clear();
+//		extraParamsDataGridView->Columns->Clear();
+//
+//		return;
+//	}
+//
+//	paramStruct ps = en->GetParameters();
+//	int nlp = ps.nlp;
+//	int minLayers = en->modelUI->GetMinLayers();
+//
+//	parameterDataGridView->Rows->Clear();
+//	parameterDataGridView->Columns->Clear();
+//
+//	// Prepare the columns
+//	for(int i = 0; i < nlp; i++) {
+//		System::Windows::Forms::DataGridViewTextBoxColumn^ valueColumn = gcnew System::Windows::Forms::DataGridViewTextBoxColumn();
+//		System::Windows::Forms::DataGridViewCheckBoxColumn^  mutColumn = gcnew System::Windows::Forms::DataGridViewCheckBoxColumn(false);
+//		
+//		valueColumn->HeaderText	= stringToClr(en->modelUI->GetLayerParamName(i));
+//		valueColumn->SortMode	= DataGridViewColumnSortMode::NotSortable;
+//		mutColumn->HeaderText	= "Mut";
+//		mutColumn->TrueValue	= true;
+//		mutColumn->SortMode		= DataGridViewColumnSortMode::NotSortable;
+//		parameterDataGridView->Columns->AddRange(gcnew cli::array< System::Windows::Forms::DataGridViewColumn^  >(2) {valueColumn, 
+//			mutColumn});
+//	}
+//
+//	// Add the rows
+//	for(int i = 0; i < ps.layers; i++) {
+//		array<Object ^> ^row = gcnew array<Object ^>(nlp * 2);
+//		std::vector<int> NAcols;
+//
+//		for(int j = 0; j < nlp; j++) {
+//			if(en->modelUI->IsParamApplicable(i, j)) {
+//				row[j * 2 + 0] = ps.params[j][i].value; // Value
+//				row[j * 2 + 1] = ps.params[j][i].isMutable; // Mutability
+//			} else {
+//				row[j * 2 + 0] = "N/A";
+//				row[j * 2 + 1] = false;
+//
+//				NAcols.push_back(j);
+//			}
+//		}
+//
+//		if(nlp > 0) {
+//			parameterDataGridView->Rows->Add(row);	
+//			parameterDataGridView->Rows[i]->HeaderCell->Value = stringToClr(en->modelUI->GetLayerName(i));
+//
+//			// Mark cells read-only
+//			if(NAcols.size() > 0) {
+//				for(std::vector<int>::iterator iter = NAcols.begin(); iter != NAcols.end(); ++iter) {
+//					parameterDataGridView->Rows[i]->Cells[(*iter)*2]->ReadOnly = true;     // Value
+//					parameterDataGridView->Rows[i]->Cells[(*iter) * 2 + 1]->ReadOnly = true; // Mutability
+//				}
+//			}
+//		}
+//	}	// for i
+//
+//	// Enable/disable buttons
+//	addLayerButton->Enabled = (ps.layers < en->modelUI->GetMaxLayers() || en->modelUI->GetMaxLayers() < 0);
+//	removeLayerButton->Enabled = false;
+//
+//	//////////////////////////////////////////////////////////////////////////
+//
+//	// Extra parameters
+//	extraParamsDataGridView->Rows->Clear();
+//	extraParamsDataGridView->Columns->Clear();
+//	extraParamsDataGridView->AutoGenerateColumns = false;
+//	
+//	// Prepare the columns
+//	for(int i = 0; i < ps.nExtraParams; i++) {
+//		System::Windows::Forms::DataGridViewColumn^ valueColumn;
+//		System::Windows::Forms::DataGridViewCheckBoxColumn^  mutColumn = gcnew System::Windows::Forms::DataGridViewCheckBoxColumn(false);
+//
+//		if(en->modelUI->GetExtraParamType(i) == EPT_CHECKBOX) {
+//			valueColumn = gcnew System::Windows::Forms::DataGridViewCheckBoxColumn();
+//			mutColumn->ReadOnly = true;
+//		} else if(en->modelUI->GetExtraParamType(i) == EPT_MULTIPLE_CHOICE) {
+//			valueColumn = gcnew System::Windows::Forms::DataGridViewComboBoxColumn();
+//
+//			System::Collections::Specialized::StringCollection ^ds = gcnew System::Collections::Specialized::StringCollection();
+//			std::vector<std::string> options = en->modelUI->GetExtraParamOptionStrings(i);
+//			for(int k = 0; k < options.size(); k++)
+//				ds->Add(stringToClr(options[k]));
+//			
+//			((DataGridViewComboBoxColumn^)valueColumn)->DataSource = ds;
+//			mutColumn->ReadOnly = true;
+//		} else {
+//			valueColumn = gcnew System::Windows::Forms::DataGridViewTextBoxColumn();
+//		}
+//
+//		valueColumn->HeaderText	= stringToClr(en->modelUI->GetExtraParameter(i).name);
+//		mutColumn->HeaderText	= "Mut";
+//		mutColumn->TrueValue	= true;
+//		extraParamsDataGridView->Columns->AddRange(gcnew cli::array< System::Windows::Forms::DataGridViewColumn^  >(2) {valueColumn, 
+//			mutColumn});
+//	}
+//
+//	// Add the rows
+//	array<Object ^> ^eprow = gcnew array<Object ^>(ps.nExtraParams * 2);
+//	for(int i = 0; i < ps.nExtraParams; i++) {
+//		if(en->modelUI->GetExtraParamType(i) == EPT_CHECKBOX) {
+//			eprow[i * 2 + 0] = (ps.extraParams[i].value > 0.01);
+//			eprow[i * 2 + 1] = false;
+//		} else if(en->modelUI->GetExtraParamType(i) == EPT_MULTIPLE_CHOICE) {
+//			eprow[i * 2 + 0] = stringToClr((en->modelUI->GetExtraParamOptionStrings(i))[int(ps.extraParams[i].value + 0.1)]);
+//			eprow[i * 2 + 1] = false;
+//		} else {
+//			eprow[i * 2 + 0] = ps.extraParams[i].value;
+//			eprow[i * 2 + 1] = ps.extraParams[i].isMutable;
+//		}
+//	}
+//	if(ps.nExtraParams > 0)
+//		extraParamsDataGridView->Rows->Add(eprow);
+//
+//	parameterDataGridView->AutoSizeColumnsMode		= DataGridViewAutoSizeColumnsMode::DisplayedCells;
+//	extraParamsDataGridView->AutoSizeColumnsMode	= DataGridViewAutoSizeColumnsMode::DisplayedCells;
+//	parameterDataGridView->AutoResizeRowHeadersWidth(DataGridViewRowHeadersWidthSizeMode::AutoSizeToDisplayedHeaders);	
+//}
+
+//void DPlus::ParameterEditor::FillParamGridView(Entity^ en) {
+//	if (en->modelUI == NULL) {
+//		addLayerButton->Enabled = false;
+//		removeLayerButton->Enabled = false;
+//
+//		parameterDataGridView->Rows->Clear();
+//		parameterDataGridView->Columns->Clear();
+//		extraParamsDataGridView->Rows->Clear();
+//		extraParamsDataGridView->Columns->Clear();
+//
+//		return;
+//	}
+//
+//	paramStruct ps = en->GetParameters();
+//	int nlp = ps.nlp;
+//	int minLayers = en->modelUI->GetMinLayers();
+//
+//	parameterDataGridView->Rows->Clear();
+//	parameterDataGridView->Columns->Clear();
+//
+//	// Prepare the columns: Value, Sigma, Mut for each parameter
+//	for (int i = 0; i < nlp; i++) {
+//		// Value column
+//		System::Windows::Forms::DataGridViewTextBoxColumn^ valueColumn = gcnew System::Windows::Forms::DataGridViewTextBoxColumn();
+//		valueColumn->HeaderText = stringToClr(en->modelUI->GetLayerParamName(i));
+//		valueColumn->SortMode = DataGridViewColumnSortMode::NotSortable;
+//
+//		// Sigma column
+//		System::Windows::Forms::DataGridViewTextBoxColumn^ sigmaColumn = gcnew System::Windows::Forms::DataGridViewTextBoxColumn();
+//		sigmaColumn->HeaderText = valueColumn->HeaderText + " sigma";
+//		sigmaColumn->SortMode = DataGridViewColumnSortMode::NotSortable;
+//
+//		// Mutability column
+//		System::Windows::Forms::DataGridViewCheckBoxColumn^ mutColumn = gcnew System::Windows::Forms::DataGridViewCheckBoxColumn(false);
+//		mutColumn->HeaderText = "Mut";
+//		mutColumn->TrueValue = true;
+//		mutColumn->SortMode = DataGridViewColumnSortMode::NotSortable;
+//
+//		parameterDataGridView->Columns->Add(valueColumn);
+//		parameterDataGridView->Columns->Add(sigmaColumn);
+//		parameterDataGridView->Columns->Add(mutColumn);
+//	}
+//
+//	// Add the rows
+//	for (int i = 0; i < ps.layers; i++) {
+//		array<Object^>^ row = gcnew array<Object^>(nlp * 3);
+//		std::vector<int> NAcols;
+//
+//		for (int j = 0; j < nlp; j++) {
+//			if (en->modelUI->IsParamApplicable(i, j)) {
+//				row[j * 3 + 0] = ps.params[j][i].value; // Value
+//				row[j * 3 + 1] = ps.params[j][i].sigma; // Sigma
+//				row[j * 3 + 2] = ps.params[j][i].isMutable; // Mutability
+//			}
+//			else {
+//				row[j * 3 + 0] = "N/A";
+//				row[j * 3 + 1] = "N/A";
+//				row[j * 3 + 2] = false;
+//				NAcols.push_back(j);
+//			}
+//		}
+//
+//		if (nlp > 0) {
+//			parameterDataGridView->Rows->Add(row);
+//			parameterDataGridView->Rows[i]->HeaderCell->Value = stringToClr(en->modelUI->GetLayerName(i));
+//
+//			// Mark cells read-only
+//			if (NAcols.size() > 0) {
+//				for (std::vector<int>::iterator iter = NAcols.begin(); iter != NAcols.end(); ++iter) {
+//					parameterDataGridView->Rows[i]->Cells[(*iter) * 3]->ReadOnly = true;     // Value
+//					parameterDataGridView->Rows[i]->Cells[(*iter) * 3 + 1]->ReadOnly = true; // Sigma
+//					parameterDataGridView->Rows[i]->Cells[(*iter) * 3 + 2]->ReadOnly = true; // Mutability
+//				}
+//			}
+//		}
+//	}
+//
+//	addLayerButton->Enabled = (ps.layers < en->modelUI->GetMaxLayers() || en->modelUI->GetMaxLayers() < 0);
+//	removeLayerButton->Enabled = false;
+//
+//	// Extra parameters (unchanged)
+//	extraParamsDataGridView->Rows->Clear();
+//	extraParamsDataGridView->Columns->Clear();
+//	extraParamsDataGridView->AutoGenerateColumns = false;
+//
+//	for (int i = 0; i < ps.nExtraParams; i++) {
+//		System::Windows::Forms::DataGridViewColumn^ valueColumn;
+//		System::Windows::Forms::DataGridViewCheckBoxColumn^ mutColumn = gcnew System::Windows::Forms::DataGridViewCheckBoxColumn(false);
+//
+//		if (en->modelUI->GetExtraParamType(i) == EPT_CHECKBOX) {
+//			valueColumn = gcnew System::Windows::Forms::DataGridViewCheckBoxColumn();
+//			mutColumn->ReadOnly = true;
+//		}
+//		else if (en->modelUI->GetExtraParamType(i) == EPT_MULTIPLE_CHOICE) {
+//			valueColumn = gcnew System::Windows::Forms::DataGridViewComboBoxColumn();
+//
+//			System::Collections::Specialized::StringCollection^ ds = gcnew System::Collections::Specialized::StringCollection();
+//			std::vector<std::string> options = en->modelUI->GetExtraParamOptionStrings(i);
+//			for (int k = 0; k < options.size(); k++)
+//				ds->Add(stringToClr(options[k]));
+//
+//			((DataGridViewComboBoxColumn^)valueColumn)->DataSource = ds;
+//			mutColumn->ReadOnly = true;
+//		}
+//		else {
+//			valueColumn = gcnew System::Windows::Forms::DataGridViewTextBoxColumn();
+//		}
+//
+//		valueColumn->HeaderText = stringToClr(en->modelUI->GetExtraParameter(i).name);
+//		mutColumn->HeaderText = "Mut";
+//		mutColumn->TrueValue = true;
+//		extraParamsDataGridView->Columns->AddRange(gcnew cli::array< System::Windows::Forms::DataGridViewColumn^  >(2) { valueColumn, mutColumn });
+//	}
+//
+//	array<Object^>^ eprow = gcnew array<Object^>(ps.nExtraParams * 2);
+//	for (int i = 0; i < ps.nExtraParams; i++) {
+//		if (en->modelUI->GetExtraParamType(i) == EPT_CHECKBOX) {
+//			eprow[i * 2 + 0] = (ps.extraParams[i].value > 0.01);
+//			eprow[i * 2 + 1] = false;
+//		}
+//		else if (en->modelUI->GetExtraParamType(i) == EPT_MULTIPLE_CHOICE) {
+//			eprow[i * 2 + 0] = stringToClr((en->modelUI->GetExtraParamOptionStrings(i))[int(ps.extraParams[i].value + 0.1)]);
+//			eprow[i * 2 + 1] = false;
+//		}
+//		else {
+//			eprow[i * 2 + 0] = ps.extraParams[i].value;
+//			eprow[i * 2 + 1] = ps.extraParams[i].isMutable;
+//		}
+//	}
+//	if (ps.nExtraParams > 0)
+//		extraParamsDataGridView->Rows->Add(eprow);
+//
+//	parameterDataGridView->AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode::DisplayedCells;
+//	extraParamsDataGridView->AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode::DisplayedCells;
+//	parameterDataGridView->AutoResizeRowHeadersWidth(DataGridViewRowHeadersWidthSizeMode::AutoSizeToDisplayedHeaders);
+//}
+
+void DPlus::ParameterEditor::FillParamGridView(Entity^ en) {
+	if (en->modelUI == NULL) {
 		addLayerButton->Enabled = false;
 		removeLayerButton->Enabled = false;
 
@@ -329,111 +818,145 @@ void DPlus::ParameterEditor::FillParamGridView(Entity ^en) {
 	parameterDataGridView->Rows->Clear();
 	parameterDataGridView->Columns->Clear();
 
-	// Prepare the columns
-	for(int i = 0; i < nlp; i++) {
+	// Prepare the columns: Value, Sigma, Mut for each parameter
+	for (int i = 0; i < nlp; i++) {
 		System::Windows::Forms::DataGridViewTextBoxColumn^ valueColumn = gcnew System::Windows::Forms::DataGridViewTextBoxColumn();
-		System::Windows::Forms::DataGridViewCheckBoxColumn^  mutColumn = gcnew System::Windows::Forms::DataGridViewCheckBoxColumn(false);
-		
-		valueColumn->HeaderText	= stringToClr(en->modelUI->GetLayerParamName(i));
-		valueColumn->SortMode	= DataGridViewColumnSortMode::NotSortable;
-		mutColumn->HeaderText	= "Mut";
-		mutColumn->TrueValue	= true;
-		mutColumn->SortMode		= DataGridViewColumnSortMode::NotSortable;
-		parameterDataGridView->Columns->AddRange(gcnew cli::array< System::Windows::Forms::DataGridViewColumn^  >(2) {valueColumn, 
-			mutColumn});
+		valueColumn->HeaderText = stringToClr(en->modelUI->GetLayerParamName(i));
+		valueColumn->SortMode = DataGridViewColumnSortMode::NotSortable;
+
+		System::Windows::Forms::DataGridViewTextBoxColumn^ sigmaColumn = gcnew System::Windows::Forms::DataGridViewTextBoxColumn();
+		sigmaColumn->HeaderText = valueColumn->HeaderText + " sigma";
+		sigmaColumn->SortMode = DataGridViewColumnSortMode::NotSortable;
+
+		System::Windows::Forms::DataGridViewCheckBoxColumn^ mutColumn = gcnew System::Windows::Forms::DataGridViewCheckBoxColumn(false);
+		mutColumn->HeaderText = "Mut";
+		mutColumn->TrueValue = true;
+		mutColumn->SortMode = DataGridViewColumnSortMode::NotSortable;
+
+		parameterDataGridView->Columns->Add(valueColumn);
+		parameterDataGridView->Columns->Add(sigmaColumn);
+		parameterDataGridView->Columns->Add(mutColumn);
 	}
 
 	// Add the rows
-	for(int i = 0; i < ps.layers; i++) {
-		array<Object ^> ^row = gcnew array<Object ^>(nlp * 2);
+	for (int i = 0; i < ps.layers; i++) {
+		array<Object^>^ row = gcnew array<Object^>(nlp * 3);
 		std::vector<int> NAcols;
 
-		for(int j = 0; j < nlp; j++) {
-			if(en->modelUI->IsParamApplicable(i, j)) {
-				row[j * 2 + 0] = ps.params[j][i].value; // Value
-				row[j * 2 + 1] = ps.params[j][i].isMutable; // Mutability
-			} else {
-				row[j * 2 + 0] = "N/A";
-				row[j * 2 + 1] = false;
-
+		for (int j = 0; j < nlp; j++) {
+			if (en->modelUI->IsParamApplicable(i, j)) {
+				row[j * 3 + 0] = ps.params[j][i].value;
+				row[j * 3 + 1] = ps.params[j][i].sigma;
+				row[j * 3 + 2] = ps.params[j][i].isMutable;
+			}
+			else {
+				row[j * 3 + 0] = "N/A";
+				row[j * 3 + 1] = "N/A";
+				row[j * 3 + 2] = false;
 				NAcols.push_back(j);
 			}
 		}
 
-		if(nlp > 0) {
-			parameterDataGridView->Rows->Add(row);	
+		if (nlp > 0) {
+			parameterDataGridView->Rows->Add(row);
 			parameterDataGridView->Rows[i]->HeaderCell->Value = stringToClr(en->modelUI->GetLayerName(i));
 
-			// Mark cells read-only
-			if(NAcols.size() > 0) {
-				for(std::vector<int>::iterator iter = NAcols.begin(); iter != NAcols.end(); ++iter) {
-					parameterDataGridView->Rows[i]->Cells[(*iter)*2]->ReadOnly = true;     // Value
-					parameterDataGridView->Rows[i]->Cells[(*iter) * 2 + 1]->ReadOnly = true; // Mutability
+			if (NAcols.size() > 0) {
+				for (std::vector<int>::iterator iter = NAcols.begin(); iter != NAcols.end(); ++iter) {
+					parameterDataGridView->Rows[i]->Cells[(*iter) * 3]->ReadOnly = true;
+					parameterDataGridView->Rows[i]->Cells[(*iter) * 3 + 1]->ReadOnly = true;
+					parameterDataGridView->Rows[i]->Cells[(*iter) * 3 + 2]->ReadOnly = true;
 				}
 			}
 		}
-	}	// for i
+	}
 
-	// Enable/disable buttons
 	addLayerButton->Enabled = (ps.layers < en->modelUI->GetMaxLayers() || en->modelUI->GetMaxLayers() < 0);
 	removeLayerButton->Enabled = false;
 
-	//////////////////////////////////////////////////////////////////////////
-
-	// Extra parameters
+	// ----------- Extra parameters with sigma support -----------
 	extraParamsDataGridView->Rows->Clear();
 	extraParamsDataGridView->Columns->Clear();
 	extraParamsDataGridView->AutoGenerateColumns = false;
-	
-	// Prepare the columns
-	for(int i = 0; i < ps.nExtraParams; i++) {
-		System::Windows::Forms::DataGridViewColumn^ valueColumn;
-		System::Windows::Forms::DataGridViewCheckBoxColumn^  mutColumn = gcnew System::Windows::Forms::DataGridViewCheckBoxColumn(false);
 
-		if(en->modelUI->GetExtraParamType(i) == EPT_CHECKBOX) {
+	// Track which extra params get a sigma column
+	std::vector<int> extraParamSigmaIndices;
+	int nExtraCols = 0;
+	for (int i = 0; i < ps.nExtraParams; i++) {
+		String^ name = stringToClr(en->modelUI->GetExtraParameter(i).name)->ToLower();
+		bool isDouble = (en->modelUI->GetExtraParamType(i) == EPT_DOUBLE);
+		bool needsSigma = isDouble && name != "background" && name != "scale";
+
+		System::Windows::Forms::DataGridViewColumn^ valueColumn = nullptr;
+		System::Windows::Forms::DataGridViewTextBoxColumn^ sigmaColumn = nullptr;
+		System::Windows::Forms::DataGridViewCheckBoxColumn^ mutColumn = gcnew System::Windows::Forms::DataGridViewCheckBoxColumn(false);
+
+		if (en->modelUI->GetExtraParamType(i) == EPT_CHECKBOX) {
 			valueColumn = gcnew System::Windows::Forms::DataGridViewCheckBoxColumn();
 			mutColumn->ReadOnly = true;
-		} else if(en->modelUI->GetExtraParamType(i) == EPT_MULTIPLE_CHOICE) {
+		}
+		else if (en->modelUI->GetExtraParamType(i) == EPT_MULTIPLE_CHOICE) {
 			valueColumn = gcnew System::Windows::Forms::DataGridViewComboBoxColumn();
-
-			System::Collections::Specialized::StringCollection ^ds = gcnew System::Collections::Specialized::StringCollection();
+			System::Collections::Specialized::StringCollection^ ds = gcnew System::Collections::Specialized::StringCollection();
 			std::vector<std::string> options = en->modelUI->GetExtraParamOptionStrings(i);
-			for(int k = 0; k < options.size(); k++)
+			for (int k = 0; k < options.size(); k++)
 				ds->Add(stringToClr(options[k]));
-			
 			((DataGridViewComboBoxColumn^)valueColumn)->DataSource = ds;
 			mutColumn->ReadOnly = true;
-		} else {
+		}
+		else {
 			valueColumn = gcnew System::Windows::Forms::DataGridViewTextBoxColumn();
 		}
 
-		valueColumn->HeaderText	= stringToClr(en->modelUI->GetExtraParameter(i).name);
-		mutColumn->HeaderText	= "Mut";
-		mutColumn->TrueValue	= true;
-		extraParamsDataGridView->Columns->AddRange(gcnew cli::array< System::Windows::Forms::DataGridViewColumn^  >(2) {valueColumn, 
-			mutColumn});
+		valueColumn->HeaderText = stringToClr(en->modelUI->GetExtraParameter(i).name);
+		mutColumn->HeaderText = "Mut";
+		mutColumn->TrueValue = true;
+
+		extraParamsDataGridView->Columns->Add(valueColumn);
+		nExtraCols++;
+
+		if (needsSigma) {
+			sigmaColumn = gcnew System::Windows::Forms::DataGridViewTextBoxColumn();
+			sigmaColumn->HeaderText = valueColumn->HeaderText + " sigma";
+			sigmaColumn->SortMode = DataGridViewColumnSortMode::NotSortable;
+			extraParamsDataGridView->Columns->Add(sigmaColumn);
+			extraParamSigmaIndices.push_back(i);
+			nExtraCols++;
+		}
+		extraParamsDataGridView->Columns->Add(mutColumn);
+		nExtraCols++;
 	}
 
 	// Add the rows
-	array<Object ^> ^eprow = gcnew array<Object ^>(ps.nExtraParams * 2);
-	for(int i = 0; i < ps.nExtraParams; i++) {
-		if(en->modelUI->GetExtraParamType(i) == EPT_CHECKBOX) {
-			eprow[i * 2 + 0] = (ps.extraParams[i].value > 0.01);
-			eprow[i * 2 + 1] = false;
-		} else if(en->modelUI->GetExtraParamType(i) == EPT_MULTIPLE_CHOICE) {
-			eprow[i * 2 + 0] = stringToClr((en->modelUI->GetExtraParamOptionStrings(i))[int(ps.extraParams[i].value + 0.1)]);
-			eprow[i * 2 + 1] = false;
-		} else {
-			eprow[i * 2 + 0] = ps.extraParams[i].value;
-			eprow[i * 2 + 1] = ps.extraParams[i].isMutable;
+	array<Object^>^ eprow = gcnew array<Object^>(nExtraCols);
+	int colIdx = 0;
+	for (int i = 0; i < ps.nExtraParams; i++) {
+		String^ name = stringToClr(en->modelUI->GetExtraParameter(i).name)->ToLower();
+		bool isDouble = (en->modelUI->GetExtraParamType(i) == EPT_DOUBLE);
+		bool needsSigma = isDouble && name != "background" && name != "scale";
+
+		if (en->modelUI->GetExtraParamType(i) == EPT_CHECKBOX) {
+			eprow[colIdx++] = (ps.extraParams[i].value > 0.01);
+			eprow[colIdx++] = false;
+		}
+		else if (en->modelUI->GetExtraParamType(i) == EPT_MULTIPLE_CHOICE) {
+			eprow[colIdx++] = stringToClr((en->modelUI->GetExtraParamOptionStrings(i))[int(ps.extraParams[i].value + 0.1)]);
+			eprow[colIdx++] = false;
+		}
+		else {
+			eprow[colIdx++] = ps.extraParams[i].value;
+			if (needsSigma) {
+				eprow[colIdx++] = ps.extraParams[i].sigma;
+			}
+			eprow[colIdx++] = ps.extraParams[i].isMutable;
 		}
 	}
-	if(ps.nExtraParams > 0)
+	if (ps.nExtraParams > 0)
 		extraParamsDataGridView->Rows->Add(eprow);
 
-	parameterDataGridView->AutoSizeColumnsMode		= DataGridViewAutoSizeColumnsMode::DisplayedCells;
-	extraParamsDataGridView->AutoSizeColumnsMode	= DataGridViewAutoSizeColumnsMode::DisplayedCells;
-	parameterDataGridView->AutoResizeRowHeadersWidth(DataGridViewRowHeadersWidthSizeMode::AutoSizeToDisplayedHeaders);	
+	parameterDataGridView->AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode::DisplayedCells;
+	extraParamsDataGridView->AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode::DisplayedCells;
+	parameterDataGridView->AutoResizeRowHeadersWidth(DataGridViewRowHeadersWidthSizeMode::AutoSizeToDisplayedHeaders);
 }
 
 System::Void DPlus::ParameterEditor::gridViewContextMenuStrip_Opening(System::Object^ sender, System::ComponentModel::CancelEventArgs^ e) {
@@ -460,44 +983,44 @@ System::Void DPlus::ParameterEditor::gridViewContextMenuStrip_Opening(System::Ob
 //}
 
 System::Void DPlus::ParameterEditor::polydispersityToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) {
-	int col = -1, row = -1;
-	if (parameterDataGridView->SelectedCells->Count > 0) {
-		col = parameterDataGridView->SelectedCells[0]->ColumnIndex;
-		row = parameterDataGridView->SelectedCells[0]->RowIndex;
-	}
+	//int col = -1, row = -1;
+	//if (parameterDataGridView->SelectedCells->Count > 0) {
+	//	col = parameterDataGridView->SelectedCells[0]->ColumnIndex;
+	//	row = parameterDataGridView->SelectedCells[0]->RowIndex;
+	//}
 
-	// Only allow on value columns (even indices)
-	if (col < 0 || row < 0 || col % 2 != 0)
-		return;
+	//// Only allow on value columns (even indices)
+	//if (col < 0 || row < 0 || col % 2 != 0)
+	//	return;
 
-	// Get parameter name from column header
-	String^ paramName = parameterDataGridView->Columns[col]->HeaderText;
+	//// Get parameter name from column header
+	//String^ paramName = parameterDataGridView->Columns[col]->HeaderText;
 
-	double value = 0.0;
-	double currentSigma = 0.0;
-	SymmetryView^ sv = (SymmetryView^)(parentForm->PaneList[SYMMETRY_VIEWER]);
-	Entity^ en = sv->GetSelectedEntity();
-	if (en) {
-		paramStruct ps = en->GetParameters();
-		if (parameterDataGridView->Rows[row]->Cells[col]->Value != nullptr)
-			Double::TryParse(parameterDataGridView->Rows[row]->Cells[col]->Value->ToString(), value);
-		currentSigma = ps.params[col / 2][row].sigma;
-	}
+	//double value = 0.0;
+	//double currentSigma = 0.0;
+	//SymmetryView^ sv = (SymmetryView^)(parentForm->PaneList[SYMMETRY_VIEWER]);
+	//Entity^ en = sv->GetSelectedEntity();
+	//if (en) {
+	//	paramStruct ps = en->GetParameters();
+	//	if (parameterDataGridView->Rows[row]->Cells[col]->Value != nullptr)
+	//		Double::TryParse(parameterDataGridView->Rows[row]->Cells[col]->Value->ToString(), value);
+	//	currentSigma = ps.params[col / 2][row].sigma;
+	//}
 
-	// Pass paramName to dialog
-	PolydispersityDialog^ dlg = gcnew PolydispersityDialog(paramName, value, currentSigma);
-	if (dlg->ShowDialog() == System::Windows::Forms::DialogResult::OK) {
-		double sigma = dlg->Sigma;
-		if (en) {
-			paramStruct ps = en->GetParameters();
-			ps.params[col / 2][row].sigma = sigma;
-			en->SetParameters(ps, parentForm->GetLevelOfDetail());
-			sv->tvInvalidate();
-			GraphPane3D^ g3 = (GraphPane3D^)parentForm->PaneList[GRAPH3D];
-			g3->glCanvas3D1->Invalidate();
-			g3->Invalidate();
-		}
-	}
+	//// Pass paramName to dialog
+	//PolydispersityDialog^ dlg = gcnew PolydispersityDialog(paramName, value, currentSigma);
+	//if (dlg->ShowDialog() == System::Windows::Forms::DialogResult::OK) {
+	//	double sigma = dlg->Sigma;
+	//	if (en) {
+	//		paramStruct ps = en->GetParameters();
+	//		ps.params[col / 2][row].sigma = sigma;
+	//		en->SetParameters(ps, parentForm->GetLevelOfDetail());
+	//		sv->tvInvalidate();
+	//		GraphPane3D^ g3 = (GraphPane3D^)parentForm->PaneList[GRAPH3D];
+	//		g3->glCanvas3D1->Invalidate();
+	//		g3->Invalidate();
+	//	}
+	//}
 }
 
 
