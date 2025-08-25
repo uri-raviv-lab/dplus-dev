@@ -460,29 +460,38 @@ System::Void DPlus::ParameterEditor::gridViewContextMenuStrip_Opening(System::Ob
 //}
 
 System::Void DPlus::ParameterEditor::polydispersityToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) {
-	int radiusCol = 0; // Adjust if needed
-	int row = -1;
-	if (parameterDataGridView->SelectedCells->Count > 0)
+	int col = -1, row = -1;
+	if (parameterDataGridView->SelectedCells->Count > 0) {
+		col = parameterDataGridView->SelectedCells[0]->ColumnIndex;
 		row = parameterDataGridView->SelectedCells[0]->RowIndex;
+	}
 
-	double radius = 0.0;
-	if (row >= 0 && parameterDataGridView->Rows[row]->Cells[radiusCol]->Value != nullptr)
-		Double::TryParse(parameterDataGridView->Rows[row]->Cells[radiusCol]->Value->ToString(), radius);
+	// Only allow on value columns (even indices)
+	if (col < 0 || row < 0 || col % 2 != 0)
+		return;
 
-	PolydispersityDialog^ dlg = gcnew PolydispersityDialog(radius);
+	// Get parameter name from column header
+	String^ paramName = parameterDataGridView->Columns[col]->HeaderText;
+
+	double value = 0.0;
+	double currentSigma = 0.0;
+	SymmetryView^ sv = (SymmetryView^)(parentForm->PaneList[SYMMETRY_VIEWER]);
+	Entity^ en = sv->GetSelectedEntity();
+	if (en) {
+		paramStruct ps = en->GetParameters();
+		if (parameterDataGridView->Rows[row]->Cells[col]->Value != nullptr)
+			Double::TryParse(parameterDataGridView->Rows[row]->Cells[col]->Value->ToString(), value);
+		currentSigma = ps.params[col / 2][row].sigma;
+	}
+
+	// Pass paramName to dialog
+	PolydispersityDialog^ dlg = gcnew PolydispersityDialog(paramName, value, currentSigma);
 	if (dlg->ShowDialog() == System::Windows::Forms::DialogResult::OK) {
 		double sigma = dlg->Sigma;
-
-		// --- Store sigma in the model parameter ---
-		SymmetryView^ sv = (SymmetryView^)(parentForm->PaneList[SYMMETRY_VIEWER]);
-		Entity^ en = sv->GetSelectedEntity();
 		if (en) {
 			paramStruct ps = en->GetParameters();
-			// Set sigma for the correct parameter (here, first parameter in the selected row)
-			ps.params[radiusCol][row].sigma = sigma;
-			// Commit the change
+			ps.params[col / 2][row].sigma = sigma;
 			en->SetParameters(ps, parentForm->GetLevelOfDetail());
-			// Optionally, refresh the grid or graph
 			sv->tvInvalidate();
 			GraphPane3D^ g3 = (GraphPane3D^)parentForm->PaneList[GRAPH3D];
 			g3->glCanvas3D1->Invalidate();

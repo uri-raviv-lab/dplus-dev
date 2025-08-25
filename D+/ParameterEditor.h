@@ -15,11 +15,12 @@ using namespace WeifenLuo::WinFormsUI::Docking;
 public ref class PolydispersityDialog : public Form
 {
 public:
-	property double Sigma {
+	property double Sigma{
 		double get() { return System::Convert::ToDouble(sigmaTextBox->Text); }
 	}
 
-	PolydispersityDialog(double radius)
+		// Add paramName argument
+		PolydispersityDialog(String^ paramName, double value, double sigma)
 	{
 		this->Text = "Set Polydispersity";
 		this->Width = 300;
@@ -29,11 +30,11 @@ public:
 		this->MinimizeBox = false;
 		this->StartPosition = FormStartPosition::CenterParent;
 
-		Label^ radiusLabel = gcnew Label();
-		radiusLabel->Text = "Current radius value: " + radius.ToString("G");
-		radiusLabel->Left = 10;
-		radiusLabel->Top = 15;
-		radiusLabel->Width = 260;
+		Label^ valueLabel = gcnew Label();
+		valueLabel->Text = "Current " + paramName + " value: " + value.ToString("G");
+		valueLabel->Left = 10;
+		valueLabel->Top = 15;
+		valueLabel->Width = 260;
 
 		Label^ sigmaLabel = gcnew Label();
 		sigmaLabel->Text = "Sigma:";
@@ -45,7 +46,7 @@ public:
 		sigmaTextBox->Left = 70;
 		sigmaTextBox->Top = 47;
 		sigmaTextBox->Width = 120;
-		sigmaTextBox->Text = "0.0";
+		sigmaTextBox->Text = sigma.ToString("G");
 
 		Button^ okButton = gcnew Button();
 		okButton->Text = "OK";
@@ -62,7 +63,7 @@ public:
 		cancelButton->Top = 90;
 		cancelButton->Width = 60;
 
-		this->Controls->Add(radiusLabel);
+		this->Controls->Add(valueLabel);
 		this->Controls->Add(sigmaLabel);
 		this->Controls->Add(sigmaTextBox);
 		this->Controls->Add(okButton);
@@ -71,10 +72,8 @@ public:
 		this->AcceptButton = okButton;
 		this->CancelButton = cancelButton;
 	}
-
 private:
 	TextBox^ sigmaTextBox;
-
 	void okButton_Click(System::Object^ sender, System::EventArgs^ e)
 	{
 		double sigma;
