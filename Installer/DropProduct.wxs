@@ -718,7 +718,7 @@
       </Component>
 
       <Component Id="cmp31B1399A6FEAFEB989AAD4E2C597D123" Directory="BIN_DIR" Guid="*">
-        <File Id="filA5233125D850EF90CEDBCC60E7155123" KeyPath="yes" Source="..\x64\Release\cudart64_110.dll" />
+        <File Id="filA5233125D850EF90CEDBCC60E7155123" KeyPath="yes" Source="..\x64\Release\cudart64_12.dll" />
       </Component>
       <Component Id="cmp31B1399A6FEAFEB989AAD4E2C597456" Directory="BIN_DIR" Guid="*">
         <File Id="filA5233125D850EF90CEDBCC60E7155456" KeyPath="yes" Source="..\x64\Release\curand64_10.dll" />

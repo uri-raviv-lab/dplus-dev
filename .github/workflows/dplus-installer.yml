@@ -73,6 +73,9 @@ jobs:
         env:
           BOOST_ROOT: ${{ github.workspace }}/boost
         run: msbuild dplus.sln /p:Configuration=Release /p:Platform=x64 "/t:User Interface\DPlus"
+      - name: Copy CUDA DLL for Installer
+        run: |
+          copy "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.4\bin\cudart64_12.dll" x64\Release\
       - name: Build Installer
         env:
           BOOST_ROOT: ${{ github.workspace }}/boost
