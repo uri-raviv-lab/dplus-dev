@@ -7,11 +7,13 @@
 <?endif?>
 <?define ProductUpgradeCode = "DE98E533-E27A-40E4-AACA-0B0B458F9588"?>
 
+<!-- changes in permissions -->
+
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
   xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
   <Product Id="*" Name="D+ (v$(var.ProductVersion))" Language="1033" Version="$(var.ProductVersion)" Manufacturer="HUJI" UpgradeCode="$(var.ProductUpgradeCode)">
 
-    <Package Id='*' Keywords='Installer' InstallerVersion="405" Compressed="yes" InstallScope="perMachine" />
+    <Package Id='*' Keywords='Installer' InstallerVersion="405" Compressed="yes" InstallScope="perUser" />
     <!--
 <Property Id="ALLUSERS" Value="1" />
 -->
@@ -81,7 +83,7 @@
   <Fragment>
     <Directory Id="TARGETDIR" Name="SourceDir">
 
-      <Directory Id="ProgramFiles64Folder">
+      <Directory Id="LocalAppDataFolder">
         <Directory Id="INSTALLFOLDER" Name="D+">
           <Directory Id="BIN_DIR" Name="bin">
             <Directory Id="ResourcesDirectory" Name="Resources">
