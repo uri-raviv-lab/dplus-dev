@@ -98,8 +98,15 @@ jobs:
       # -----------------------------
       # Copy wrapper.py to MSI folder
       # -----------------------------
+
       - name: Copy wrapper.py to MSI folder
         run: copy wrapper.py Installer/bin/x64/release/en-us/
+
+      # -----------------------------
+      # Rename MSI to Dplus.installer.msi
+      # -----------------------------
+      - name: Rename MSI for EXE Wrapper
+        run: ren Installer/bin/x64/release/en-us/*.msi Dplus.installer.msi
 
       # -----------------------------
       # Build EXE Wrapper
