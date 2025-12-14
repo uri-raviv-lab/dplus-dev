@@ -1,7 +1,7 @@
 ﻿
 This document was last updated on August 13 2025, for dplus-v5.2.2.
 
-# The Dplus Python API
+# The Dplus Python API and how to use it
 
 
 The D+ Python API allows using the D+ backend from Python, instead of the ordinary D+ application.
