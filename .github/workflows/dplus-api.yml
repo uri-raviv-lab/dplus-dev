@@ -11,7 +11,7 @@ jobs:
     name: Create the manylinux wheels for all supported Python versions
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Build docker image
         working-directory: PythonInterface
         run: docker build -f Dockerfile.manylinux .. -t dplus-api-manylinux:latest --build-arg GITHUB_VERSION=${{ github.ref }}
@@ -43,7 +43,7 @@ jobs:
     name: Create the Windows Wheel for Python ${{ matrix.python-version }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Install boost
         run: |
           Invoke-WebRequest https://boost.teeks99.com/bin/1.79.0/boost_1_79_0-msvc-14.3-64.exe -OutFile boost-setup.exe
