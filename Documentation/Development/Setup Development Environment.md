@@ -11,7 +11,7 @@ Download and install it. You need to include:
 * Desktop .NET Development - make sure to include .NET Framework 4.8 Development Tools
 * From Individual Modules, add C++ 2019 Redistributables MSMs and Windows Universal CRT SDK.
 
-### 2. CUDA 11.7
+### 2. CUDA 12.4
 Install it, along with the Visual Studio Integration.
 
 ### 3. cmake 3.22 or later

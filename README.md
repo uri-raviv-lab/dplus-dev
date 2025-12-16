@@ -23,7 +23,9 @@ D/E+ API
 ------
 The API can be downloaded using PIP by running the following inside the command prompt:
 
-`pip install --extra-index-url https://pypi.fury.io/theresearchsoftwarecompany/ dplus-api`
+`pip install --extra-index-url https://pypi.fury.io/theresearchsoftwarecompany/ dplus-api`,
+
+which should work on Python 3.9-11 for windows and 3.9-12 for Linux users. No MacOS wheels have been as Mac does not support CUDA.
 
 A short tutorial with examples can be found [here](https://github.com/uri-raviv-lab/dplus-dev/tree/development/PythonInterface).
 

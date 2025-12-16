@@ -6,7 +6,7 @@ This document was last updated on August 13 2025, for dplus-v5.2.2.
 
 The D+ Python API allows using the D+ backend from Python, instead of the ordinary D+ application.
 
-The Python API works on both Windows <s>and Linux. On Linux, one minimum requirement is that glibc>=2.24 (checked using `ldd --version`)</s>.
+The Python API works on both Windows and Linux. On Linux, one minimum requirement is that glibc>=2.24 (checked using `ldd --version`).
 
 A few examples on how to use the API are given in our [Jupyter notebook](https://github.com/uri-raviv-lab/dplus-dev/blob/development/PythonInterface/getting_started.ipynb).
 <!These are examples that recreate some of the figures from the D+ update paper ().>
