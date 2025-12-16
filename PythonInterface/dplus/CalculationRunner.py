@@ -738,7 +738,7 @@ class EmbeddedLocalRunner(Runner):
         result = self.get_generate_results(calc_data)
         return result
 
-    def generate2D(self, calc_data, save_amp=True):
+    def generate2D(self, calc_data, save_amp=True, is_fibre=False):
         '''
         Send to C++ function to run async dplus generate.
 

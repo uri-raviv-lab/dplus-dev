@@ -554,11 +554,12 @@ def S_Q_from_model_slow(filename: str, q_min: dc.float64 = 0, q_max: dc.float64 
         S_Q[it] /= n
         R[it] /= 2
         rho += 3 * S_Q[it][0] / (4 * np.pi * R[it] ** 3)
+
         if it >= min_iter:
             if it % check_step == 0:
                 print("checking convergence at iteration", it)
                 ind = ((it - min_iter) // check_step) % 4
-                S_Q_temp = np.sum(S_Q[:it], axis=0) / it
+                S_Q_temp = np.sum(S_Q[:it+1], axis=0) / (it + 1)
                 if it <= min_iter + 3 * check_step:
                     check_matrix[ind, :] = S_Q_temp
                     it += 1
@@ -573,6 +574,7 @@ def S_Q_from_model_slow(filename: str, q_min: dc.float64 = 0, q_max: dc.float64 
                 else:
                     check_matrix[ind, :] = S_Q_temp
         it += 1
+
     S_Q[:] = np.sum(S_Q, axis=0) / Number_for_average_conf
     rho /= Number_for_average_conf
 
@@ -1009,7 +1011,7 @@ Number_for_average_atoms = dc.symbol('Number_for_average_atoms')
 Number_for_average_conf = dc.symbol('Number_for_average_conf')
 
 
-@dc.program(auto_optimize=True, regenerate_code=True, device=dtypes.DeviceType.GPU)
+@dc.program(auto_optimize=True, regenerate_code=True, device=dtypes.DeviceType.GPU, )
 def compute_sq(q: dc.float64[Q], S_Q: dc.float64[Q], r_mat: dc.float64[L, 3]):
     qr: dc.float64[Q]
 
