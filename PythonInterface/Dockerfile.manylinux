@@ -69,7 +69,7 @@ RUN ln -s libboost_filesystem.so /output/libboost_filesystem.so.1.71.0
 RUN ln -s libcudart.so /output/libcudart.so.12
 
 # ---------- Stage 2: Build Python interface and wheels ----------
-FROM quay.io/pypa/manylinux_2_28_x86_64 AS python
+FROM quay.io/pypa/manylinux_2_34_x86_64 AS python
 
 WORKDIR /src/PythonInterface
 
@@ -94,10 +94,10 @@ COPY ./PythonInterface /src/PythonInterface
 
 # Build wheels for each Python version
 RUN /opt/python/cp39-cp39/bin/python setup.py prepare
-RUN /opt/python/cp39-cp39/bin/pip wheel .
-RUN /opt/python/cp310-cp310/bin/pip wheel .
-RUN /opt/python/cp311-cp311/bin/pip wheel .
-RUN /opt/python/cp312-cp312/bin/pip wheel .
+RUN /opt/python/cp39-cp39/bin/pip wheel . --no-build-isolation
+RUN /opt/python/cp310-cp310/bin/pip wheel . --no-build-isolation
+RUN /opt/python/cp311-cp311/bin/pip wheel . --no-build-isolation
+RUN /opt/python/cp312-cp312/bin/pip wheel . --no-build-isolation
 
 # Repair wheels using auditwheel
 RUN mkdir /wheels

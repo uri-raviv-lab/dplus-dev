@@ -95,9 +95,10 @@ jobs:
           body: "Windows Wheels"
       - name: Upload to Gemfury
         env:
-          GMEFURY_TOKEN: ${{ secrets.GEMFURY_AUTH }}
+          GEMFURY_AUTH: ${{ secrets.GEMFURY_AUTH }}
         run: |
-          for %%f in (PythonInterface/dplus_api*.whl) do (
-            curl -f -F "package=@%%f" https://%GEMFURY_AUTH%@push.fury.io/theresearchsoftwarecompany/
-          )
+          Get-ChildItem -Path "PythonInterface/dplus_api*.whl" | ForEach-Object {
+              curl -f -F "package=@$($_.FullName)" "https://$env:GEMFURY_AUTH@push.fury.io/theresearchsoftwarecompany/"
+          }
+
   
