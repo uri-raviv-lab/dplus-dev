@@ -30,6 +30,9 @@
 #define THETA_BINS 32
 #define PHI_BINS (THETA_BINS)
 
+
+// add the functions AddDirectModel and ComputeSingleOrient.
+
 bool GPUHybridCalculator::Initialize(int gpuID, const std::vector<float>& qPoints,
 		long long totalSize, int thetaDivisions, int phiDivisions, int qLayers,
 		double qMax, double stepSize, GridWorkspace& res)
@@ -831,4 +834,46 @@ bool GPUHybridCalculator::AddTranslations(GridWorkspace &workspace, int rotation
 	memcpy(workspace.trans[rotationIndex], translations.data(), sizeof(float4) * translations.size());
 
 	return true;
+}
+
+// Inside GPUHybridCalc.cu
+
+bool GPUHybridCalculator::AddDirectModel(GridWorkspace &workspace, int modelType, 
+                                        const std::vector<double>& params, 
+                                        float4 translation, float4 rotation) 
+{
+    DirectModelData data;
+    data.modelType = modelType;
+    data.params = params; // Copies the vector of doubles (radius, height, etc.)
+    data.translation = translation;
+    data.rotation = rotation;
+
+    m_directModels.push_back(data);
+    return true;
+}
+
+bool GPUHybridCalculator::ComputeSingleOrientationIntensity(std::vector<GridWorkspace>& workspaces,
+                                                           double *outData, int *pStop)
+{
+    if(workspaces.size() == 0 || !outData)
+        return false;
+
+    GridWorkspace &master = workspaces[0];
+    
+    // 1. Prepare GPU Memory for Direct Model parameters
+    // We need to move the m_directModels data from CPU vector to GPU pointers
+    // so the CUDA kernel can see them.
+    
+    // 2. Launch the new Single Orientation Kernel
+    // This kernel will perform the Complex Sum: F_total = Sum(F_grids) + Sum(F_direct)
+    printf("Launching Single Orientation Hybrid Kernel...\n");
+
+    /* TODO: call launchHybridSingleOrientationKernel(...) 
+       This will be defined in a file like HybridOA.cu or a new kernel file.
+    */
+
+    // 3. Clear the list for the next calculation
+    m_directModels.clear();
+
+    return true;
 }

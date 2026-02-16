@@ -495,7 +495,11 @@ public:
 	PDB_READER_ERRS PerformGPUHybridComputation2D(clock_t& gridBegin, const std::vector<T>& Q, clock_t& aveBeg, 
 		Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& res, T epsi, uint64_t iterations, clock_t& aveEnd);
 
-
+	template <typename T> 
+	PDB_READER_ERRS PerformGPUHybridSingleOrientation2D(clock_t& gridBegin,
+		const std::vector<T>& Q,
+		Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& res
+	);
 
 	std::string Hash() const;
 	/**

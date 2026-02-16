@@ -6,6 +6,12 @@
 #define BLOCK_WIDTH 32
 #define BLOCK_HEIGHT 16
 
+struct DirectModelData {
+    int modelType;
+    std::vector<double> params;
+    float4 translation;
+    float4 rotation;
+};
 
 class GPUHybridCalculator : public IGPUGridCalculator
 {
@@ -71,5 +77,18 @@ public:
 
 	int OrientationAverageMC(GridWorkspace& workspace, long long maxIters,
 						double convergence,  double *qVals, double *iValsOut);
+	
+	// NEW: Implementation of the "Switch" for large models
+    virtual bool AddDirectModel(GridWorkspace &workspace, int modelType, 
+                                const std::vector<double>& params, 
+                                float4 translation, float4 rotation);
+
+    // NEW: Implementation of the static pose calculation
+    virtual bool ComputeSingleOrientationIntensity(std::vector<GridWorkspace>& workspaces,
+                                                    double *outData, int *pStop = NULL);
+
+private:
+		// NEW: Storage for the Direct Models passed from Amplitude.cpp
+		std::vector<DirectModelData> m_directModels; 
 
 };

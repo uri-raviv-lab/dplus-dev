@@ -202,6 +202,7 @@ struct GridWorkspace
 
 class IGPUGridCalculator
 {
+
 public:
 	// Should be called once per workspace
 	virtual bool Initialize(int gpuID, const std::vector<float>& qPoints,
@@ -217,6 +218,16 @@ public:
 	virtual bool AddRotations(GridWorkspace &workspace, std::vector<float4> &rotations) = 0;
 
 	virtual bool AddTranslations(GridWorkspace &workspace, int rotationIndex, std::vector<float4> &translations) = 0;
+
+	// NEW: Used to pass parameters for models that are too large for grids (Direct Path)
+	virtual bool AddDirectModel(GridWorkspace& workspace, int modelType,
+		const std::vector<double>& params,
+		float4 translation, float4 rotation) = 0;
+
+	// NEW: The core "Single Orientation" execution call
+	virtual bool ComputeSingleOrientationIntensity(std::vector<GridWorkspace>& workspaces,
+		double* outData,
+		int* pStop = NULL) = 0;
 
 	virtual bool FreeWorkspace(GridWorkspace& workspace) = 0;
 };

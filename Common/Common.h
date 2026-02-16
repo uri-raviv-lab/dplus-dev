@@ -398,8 +398,10 @@ enum FitMethod { FIT_LM, FIT_DE, FIT_RAINDROP, FIT_LBFGS };
         X(OA_MC, "Monte Carlo (Mersenne Twister)", 0)			\
 	X(OA_ADAPTIVE_MC_VEGAS, "Adaptive (VEGAS) Monte Carlo", 0)	\
 	X(OA_ADAPTIVE_GK, "Adaptive Gauss Kronrod", 0)			\
+	X(OA_SINGLE_ORIENTATION, "Single Orientation Hybrid", 0)
 //	X(OA_DIRECT_GPU, "Direct Computation - MC", 0)			\ // Hidden for review; should be reimplemented when cpu/gpu unification is complete
 //	X(OA_MC_SOBOL, "Monte Carlo (Sobol) - unimplemented", 0)
+	
 
 CREATE_ENUM_AND_CSTRING(OAMethod, DEFINE_OAMETHOD_MACRO);
 #undef DEFINE_OAMETHOD_MACRO

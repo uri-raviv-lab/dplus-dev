@@ -819,6 +819,8 @@ struct first_t {
 template< typename tMap >
 first_t< typename tMap::value_type > first(const tMap& m) { return first_t<     typename tMap::value_type >(); }
 
+
+
 template <typename T>
 PDB_READER_ERRS DomainModel::CalculateIntensityVector(const std::vector<T>& Q,
 	std::vector<T>& res, T epsi, uint64_t iterations)
@@ -976,6 +978,7 @@ PDB_READER_ERRS DomainModel::CalculateIntensity2DMatrix(const std::vector<T>& Q,
 	setvbuf( stdout, NULL, _IONBF, 0 );
 	*/
 
+	// Did i calculate this matrix before? YES: 
 	if (only_scale_changed
 		&& _previous_hash == Hash()
 		&& _previous_intensity_2D.rows() > 1
@@ -1109,7 +1112,11 @@ PDB_READER_ERRS DomainModel::CalculateIntensity2DMatrix(const std::vector<T>& Q,
 
 		return DefaultCPUCalculation2D(aveBeg, Q, res, epsi, seeds, iterations, cProgMax, cProgMin, prog, aveEnd, gridBegin);
 	}
-
+	// TODO 
+	// Adding the single orientation with 2D:
+	//if (bHybrid && orientationMethod == OA_SINGLE_ORIENTATION) {
+	//	return PerformGPUHybridSingleOrientation2D;
+	//}
 	return UNIMPLEMENTED; //we should never get here, but it's good to cover bases
 }
 
@@ -1314,6 +1321,7 @@ PDB_READER_ERRS DomainModel::IntegrateLayersTogether(std::vector<unsigned int> &
 		if (pStop && *pStop)
 			continue;
 
+		// Only process layers starting from tmpLayer (not from 0)
 		auto qBegin = Q.begin();
 		auto qEnd = qBegin + 1;
 
@@ -2701,6 +2709,113 @@ PDB_READER_ERRS DomainModel::PerformGPUHybridComputation2D(clock_t& gridBegin, c
 	return ERROR_WITH_GPU_CALCULATION_TRY_CPU;
 }
 
+template <typename T>
+PDB_READER_ERRS DomainModel::PerformGPUHybridSingleOrientation2D(
+	clock_t& gridBegin,
+	const std::vector<T>& Q,
+	Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& res
+)
+{
+	gridBegin = clock();
+
+	// 1. GPU DEVICE CHECK
+	int devCount;
+	cudaError_t t = UseGPUDevice(&devCount);
+	if (devCount <= 0 || !g_useGPUAndAvailable || t != cudaSuccess) {
+		return ERROR_WITH_GPU_CALCULATION_TRY_CPU;
+	}
+
+	// 2. LOAD GPU CALCULATOR
+	gpuGridcalculator_t gpuCalcHybridGen = (gpuGridcalculator_t)GPUCreateCalculatorHybrid;
+	if (!gpuCalcHybridGen) return ERROR_WITH_GPU_CALCULATION_TRY_CPU;
+	// create an instance
+	IGPUGridCalculator* hybridCalc = gpuCalcHybridGen();
+
+	// 3. SET GLOBAL POSE (The Camera Angle)
+	// We start with the user's alpha, beta, gamma to orient the entire assembly
+	Eigen::Matrix4f tmat = Eigen::Matrix4f::Identity();
+	Eigen::Matrix3f globalRot = EulerD<float>(_alpha, _beta, _gamma);
+	tmat.block<3, 3>(0, 0) = globalRot;
+
+	// 4. FLATTEN THE TREE
+	// This turns the hierarchy into a simple list of Absolute Positions and Rotations
+	std::vector<Amplitude*> flatVec;
+	std::vector<LocRotScale> flatLocrot;
+	std::vector<VectorXd> flatParams;
+	FlattenTree<true>(_amps, _ampParams, _ampLayers, tmat, flatVec, flatLocrot, flatParams);
+
+	// 5. MEMORY MANAGEMENT: SORTING GRIDS VS DIRECT
+	// We create a workspace specifically for a Single Orientation pass
+	GridWorkspace workspace;
+	std::vector<int> gridIndices;
+	std::vector<int> directIndices;
+
+	for (int i = 0; i < flatVec.size(); ++i) {
+		// The "Switch": Check if we use the precomputed memory (Grid) or math (Direct)
+		if (flatVec[i]->GetUseGridWithChildren()) {
+			gridIndices.push_back(i);
+		}
+		else {
+			directIndices.push_back(i);
+		}
+	}
+
+	// 6. INITIALIZE GPU WORKSPACE
+	// We only need one orientation pass, not a Monte Carlo loop
+	hybridCalc->InitializeSingleOrientation(workspace, Q.size());
+
+	// 7. DATA HAND-OFF (The "Switch" implementation)
+	for (int i = 0; i < flatVec.size(); ++i) {
+		LocationRotation locrot = flatLocrot[i].first;
+		float4 translation = make_float4((float)locrot.x, (float)locrot.y, (float)locrot.z, 0.0f);
+		float4 rotation = make_float4(locrot.alpha, locrot.beta, locrot.gamma, (float)flatLocrot[i].second);
+
+		// The Memory Decision
+		if (flatVec[i]->GetUseGridWithChildren()) {
+			// --- PATH A: GRID (Memory) ---
+			IGPUGridCalculable* gpuModel = dynamic_cast<IGPUGridCalculable*>(flatVec[i]);
+			if (gpuModel) {
+				// Laboratory to Local Transformation
+				Eigen::Matrix3f R = EulerD<float>(locrot.alpha, locrot.beta, locrot.gamma);
+				Eigen::Matrix3f R_inv = R.transpose();
+
+				// We still use addChildGrid to let the GPU know there is a memory block for this
+				gpuModel->CalculateGridGPU(workspace.addChildGrid(R_inv, locrot.getPosition()));
+			}
+		}
+		else {
+			// --- PATH B: DIRECT (Math) ---
+			// We use the new interface method you added to IGPUGridCalculator
+			// Extract parameters (radius, length, etc.) from flatParams
+			std::vector<double> params;
+			for (int p = 0; p < flatParams[i].size(); ++p) {
+				params.push_back(flatParams[i][p]);
+			}
+
+			// We send the model type ID so the GPU knows which analytical formula to use
+			int modelType = flatVec[i]->GetModelCode();
+
+			hybridCalc->AddDirectModel(workspace, modelType, params, translation, rotation);
+		}
+	}
+
+	// 8. THE CALCULATION (Execution)
+	// Passing the workspace which now contains a mix of Grids and Direct instructions.
+	bool bDone = hybridCalc->ComputeSingleOrientationIntensity(
+		workspace,
+		(double*)res.data(),
+		pStop // Assuming you have a stop pointer from the parent function
+	);
+
+	// 9. CLEANUP
+	hybridCalc->FreeWorkspace(workspace);
+	delete hybridCalc;
+	cudaDeviceReset();
+
+	return bDone ? PDB_OK : ERROR_WITH_GPU_CALCULATION_TRY_CPU;
+}
+
+	
 
 template <typename T>
 PDB_READER_ERRS DomainModel::PerformgGPUAllGridsMCOACalculations(const std::vector<T> &Q, std::vector<T> &res, uint64_t iterations, T epsi, clock_t &aveEnd, clock_t aveBeg, clock_t gridBegin)
