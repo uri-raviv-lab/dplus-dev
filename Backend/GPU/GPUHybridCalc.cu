@@ -855,25 +855,61 @@ bool GPUHybridCalculator::AddDirectModel(GridWorkspace &workspace, int modelType
 bool GPUHybridCalculator::ComputeSingleOrientationIntensity(std::vector<GridWorkspace>& workspaces,
                                                            double *outData, int *pStop)
 {
+	cudaError_t err = cudaSuccess;
     if(workspaces.size() == 0 || !outData)
         return false;
 
     GridWorkspace &master = workspaces[0];
-    
+    cudaStream_t stream = (cudaStream_t)master.computeStream;
+    CHKERR(cudaSetDevice(master.gpuID));
+
     // 1. Prepare GPU Memory for Direct Model parameters
     // We need to move the m_directModels data from CPU vector to GPU pointers
     // so the CUDA kernel can see them.
-    
+    DirectModelData* d_directModels = nullptr;
+    if (!m_directModels.empty()) {
+        for (auto& model : m_directModels) {
+            int numFloat2 = (int)model.params_cpu.size() / 2; 
+            CHKERR(cudaMalloc(&model.params, numFloat2 * sizeof(float2)));
+            
+            CHKERR(cudaMemcpyAsync(model.params, model.params_cpu.data(), 
+                                   numFloat2 * sizeof(float2), 
+                                   cudaMemcpyHostToDevice, stream));
+            
+            model.nLayers = numFloat2;
+			}
+        CHKERR(cudaMalloc(&d_directModels, m_directModels.size() * sizeof(DirectModelData)));
+        
+        CHKERR(cudaMemcpyAsync(d_directModels, m_directModels.data(), 
+                               m_directModels.size() * sizeof(DirectModelData), 
+                               cudaMemcpyHostToDevice, stream));
+    }
+
     // 2. Launch the new Single Orientation Kernel
     // This kernel will perform the Complex Sum: F_total = Sum(F_grids) + Sum(F_direct)
-    printf("Launching Single Orientation Hybrid Kernel...\n");
+    printf("Launching Single Orientation Hybrid Kernel with %zu Direct Models...\n", m_directModels.size());
 
     /* TODO: call launchHybridSingleOrientationKernel(...) 
        This will be defined in a file like HybridOA.cu or a new kernel file.
     */
 
-    // 3. Clear the list for the next calculation
+	bool success = launchHybridSingleOrientationKernel(
+        master, 
+        d_directModels, 
+        (int)m_directModels.size(), 
+        outData, 
+        stream
+    );
+	CHKERR(cudaStreamSynchronize(stream)); 
+
+	if (d_directModels) {
+        for (auto& model : m_directModels) {
+            if (model.params) cudaFree(model.params);
+        }
+        CHKERR(cudaFree(d_directModels));
+    }
+
     m_directModels.clear();
 
-    return true;
+    return success;
 }

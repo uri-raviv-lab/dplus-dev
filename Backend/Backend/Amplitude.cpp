@@ -1112,11 +1112,26 @@ PDB_READER_ERRS DomainModel::CalculateIntensity2DMatrix(const std::vector<T>& Q,
 
 		return DefaultCPUCalculation2D(aveBeg, Q, res, epsi, seeds, iterations, cProgMax, cProgMin, prog, aveEnd, gridBegin);
 	}
-	// TODO 
+
 	// Adding the single orientation with 2D:
-	//if (bHybrid && orientationMethod == OA_SINGLE_ORIENTATION) {
-	//	return PerformGPUHybridSingleOrientation2D;
-	//}
+	if (g_useGPUAndAvailable && orientationMethod == OA_SINGLE_ORIENTATION)
+	{
+		if (bDefUseGrid) {
+			gridComputation();
+		}
+		if (pStop && *pStop)
+			return STOPPED;
+		PDB_READER_ERRS errRes = PerformGPUSingleOrientation2D(gridBegin, Q, aveBeg, res, epsi, iterations, aveEnd);
+		if (errRes == PDB_OK)
+			setPreviousValues2D(res, Q);
+		else
+		{
+			if (errRes == ERROR_WITH_GPU_CALCULATION_TRY_CPU) //space filling
+				throw backend_exception(ERROR_UNIMPLEMENTED_CPU, g_errorStrings[ERROR_UNIMPLEMENTED_CPU]);
+			throw backend_exception(ERROR_GENERAL, g_errorStrings[ERROR_GENERAL]);
+		}
+		return errRes;
+	}
 	return UNIMPLEMENTED; //we should never get here, but it's good to cover bases
 }
 

@@ -200,6 +200,19 @@ struct GridWorkspace
 	void setNumberOfAmplitudes(int num) {}
 };
 
+enum DirectModelType {
+	Sphere = 0,
+	Cylinder = 1,
+};
+
+struct DirectModelData {
+	int modelType;       
+	float2* params;      
+	int nLayers;         
+	float4 translation;  
+	float4 rotation;     
+};
+
 class IGPUGridCalculator
 {
 
@@ -208,7 +221,7 @@ public:
 	virtual bool Initialize(int gpuID, const std::vector<float>& qPoints,
 		long long totalSize, int thetaDivisions, int phiDivisions, int qLayers,
 		double qMax, double stepSize, GridWorkspace& res) = 0;
-
+	virtual bool InitializeSingleOrientation(GridWorkspace& workspace) = 0;
 	virtual bool ComputeIntensity(std::vector<GridWorkspace> &workspaces,
 									double *outData, double epsi, long long iterations,
 									progressFunc progfunc = NULL, void *progargs = NULL, float progmin = 0., float progmax = 0., int *pStop = NULL) = 0;
@@ -229,6 +242,7 @@ public:
 		double* outData,
 		int* pStop = NULL) = 0;
 
+	
 	virtual bool FreeWorkspace(GridWorkspace& workspace) = 0;
 };
 

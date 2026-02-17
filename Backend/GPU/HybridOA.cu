@@ -14,6 +14,14 @@
 
 #include "assert.h"
 
+#ifndef PI
+#define PI 3.14159265358979323846
+#endif
+
+__device__ __forceinline__ float length(float3 v) {
+    return sqrtf(v.x*v.x + v.y*v.y + v.z*v.z);
+}
+
 template<typename fType, typename interpCFType, typename cfType, int avePoints>
 __device__ __forceinline__ void AddAmplitudeAtPoint(const cfType* inAmp,
 									  const interpCFType* ds, const int tDiv, const int pDiv,
@@ -613,4 +621,227 @@ __global__ void ValidateGridWorkspaceGrid(inType *in, long long voxels)
 		printf("BAD! data[%lld] = [%f, %f]\n", pos, in[pos].x, in[pos].y);
 	}
 
+}
+
+template<typename fType, typename interpCFType, typename cfType>
+__device__ __forceinline__ void AddAmplitudeAtPointSinglePose(
+    const cfType* inAmp, const interpCFType* ds, 
+    const int tDiv, const int pDiv, float qStepSize,
+    const float4* rotations, const int numRots,
+    const float4* translations, const int* numTrans,
+    float3 qVec, float qMag, cfType* totalF
+) {
+    float s1, c1, s2, c2, s3, c3;
+    int cumTrans = 0;
+
+    int qInd = (int)(qMag / qStepSize);
+
+    for(int rr = 0; rr < numRots; rr++)
+    {
+        float4 rt = rotations[rr];
+        sincosf(rt.x, &s1, &c1);
+        sincosf(rt.y, &s2, &c2);
+        sincosf(rt.z, &s3, &c3);
+        float scaleR = rt.w;
+
+        double3 rotVec;
+        rotVec.x =  (c2*c3) * qVec.x + (c1*s3+c3*s1*s2) * qVec.y + (s1*s3-c1*c3*s2) * qVec.z;
+        rotVec.y = -(c2*s3) * qVec.x + (c1*c3-s1*s2*s3) * qVec.y + (c3*s1+c1*s2*s3) * qVec.z;
+        rotVec.z =  (s2   ) * qVec.x - (c2*s1         ) * qVec.y + (c1*c2         ) * qVec.z;
+
+        if(fabs(rotVec.z / qMag) > 1.) rotVec.z = (rotVec.z > 0.) ? qMag : -qMag;
+        double newTheta = acos(rotVec.z / qMag);
+        double newPhi = atan2(rotVec.y, rotVec.x);
+
+        if(newPhi < 0.0) newPhi += M_2PI;
+
+        cfType amps[4];
+        for(int i = -1; i <= 2; i++) {
+            long long lqi = (long long)(i + qInd - 1);
+            long long bot = (lqi * pDiv * (lqi + 1) * (3 + tDiv + 2 * tDiv * lqi)) / 6 + 1;
+            
+            lqi++;
+            if (lqi <= 0) amps[1+i] = inAmp[0]; 
+            else {
+                amps[1+i] = GetAmpAtPointInPlaneJacob<fType, interpCFType, cfType>(
+                    lqi, newTheta, newPhi, tDiv, pDiv, (fType*)(inAmp + bot), ds + bot);
+            }
+        }
+
+        interpCFType d1, d2;
+        FourPointEvenlySpacedSpline<cfType, interpCFType>(amps[0], amps[1], amps[2], amps[3], &d1, &d2);
+
+        fType t = (qMag - qInd * qStepSize) / qStepSize;
+        cfType tmpAmp;
+        tmpAmp.x = amps[1].x + d1.x * t + (3.0 * (amps[2].x - amps[1].x) - 2.0 * d1.x - d2.x) * (t*t) + (2.0 * (amps[1].x - amps[2].x) + d1.x + d2.x) * (t*t*t);
+        tmpAmp.y = amps[1].y + d1.y * t + (3.0 * (amps[2].y - amps[1].y) - 2.0 * d1.y - d2.y) * (t*t) + (2.0 * (amps[1].y - amps[2].y) + d1.y + d2.y) * (t*t*t);
+
+        const float4 *tran = translations + cumTrans;
+        double sumCs = 0., sumSn = 0.;
+        for(int tr = 0; tr < numTrans[rr]; tr++) {
+            float4 ttr = tran[tr];
+            double qd = qVec.x * ttr.x + qVec.y * ttr.y + qVec.z * ttr.z;
+            double sn, cs;
+            sincos(qd, &sn, &cs);
+            sumSn += sn; sumCs += cs;
+        }
+
+        totalF->x += (tmpAmp.x * sumCs - tmpAmp.y * sumSn) * scaleR;
+        totalF->y += (tmpAmp.y * sumCs + tmpAmp.x * sumSn) * scaleR;
+
+        cumTrans += numTrans[rr];
+    }
+}
+// AddAmplitudeAtPoint
+
+// TODO- This is a very basic implementation of the direct amplitude for a sphere. We can optimize
+// it by using the fact that the amplitude of a sphere is just the difference between two spheres 
+// (the outer and inner radius) and using the analytical formula for the amplitude of a sphere. This will also allow us to handle cases where q is very small without numerical instability.
+
+__device__ double2 calculateDirectAmplitudeSphere(const DirectModelData& model, float3 qVec) {
+    float q = length(qVec);
+    double res = 0.0;
+    
+    const float2* layers = (const float2*)model.params;
+    int nLayers = model.nLayers;
+
+    if (q < 1e-10f) { 
+        float prevR3 = 0.0f;
+        for (int i = 0; i < nLayers; i++) {
+            float curR3 = layers[i].x * layers[i].x * layers[i].x;
+            res += layers[i].y * (4.0f / 3.0f) * PI * (curR3 - prevR3);
+            prevR3 = curR3;
+        }
+    } else {
+        float2 tempLayer = layers[0];
+        for (int i = 1; i < nLayers; i++) {
+            float2 layer = layers[i];
+            res += layer.y * (-cos(q * layer.x) * layer.x + cos(q * tempLayer.x) * tempLayer.x + 
+                   (sin(q * layer.x) / q) - (sin(q * tempLayer.x) / q));
+            tempLayer = layer;
+        }
+        res *= (4.0 * PI) / (q * q);
+    }
+    return make_double2(res, 0.0);
+}
+
+
+template<typename fType, typename interpCFType, typename cfType>
+__global__ void HybridSingleOrientationKernel(
+const fType* const* __restrict__ grids, 
+    const interpCFType* const* __restrict__ ds,
+    const int numGrids, 
+    const int tDiv, const int pDiv, float qStepSize,
+    const float4* const* __restrict__ rotations, 
+    const int* __restrict__ numRots,
+    const float4* const* __restrict__ translations, 
+    const int* const* __restrict__ numTrans,
+    const float3* __restrict__ qVectors, 
+    const int numPixels,
+    const DirectModelData* __restrict__ directModels, // the models for direct calc.
+    const int numDirectModels,
+    double* outData // final intensity
+	)
+	{
+	int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx >= numPixels) return;
+
+	float3 qVec = qVectors[idx];
+    float qMag = length(qVec);
+    cfType totalF = make_double2(0.0, 0.0);
+
+	// Part a: Summing the leaves of the tree (the grids)
+	for (int i = 0; i < numGrids; i++) {
+        
+        AddAmplitudeAtPointSinglePose<fType, interpCFType, cfType>(
+            (cfType*)(grids[i]), ds[i], tDiv, pDiv, qStepSize,
+            rotations[i], numRots[i], translations[i], numTrans[i],
+            qVec, qMag, &totalF
+        );
+    }
+
+	// part b: direct calculation
+	for (int i = 0; i < numDirectModels; i++) {
+    double2 directF = make_double2(0.0, 0.0);
+    
+    switch(directModels[i].modelType) {
+        case DirectModelType::Sphere:
+            directF = calculateDirectAmplitudeSphere(directModels[i], qVec);
+            break;
+        default:
+            continue; 
+    }
+    
+    float phase = qVec.x * directModels[i].translation.x + 
+                  qVec.y * directModels[i].translation.y + 
+                  qVec.z * directModels[i].translation.z;
+    
+    double sn, cs;
+    sincos(phase, &sn, &cs);
+    
+    // (A+Bi)*(cos+i*sin) = (A*cos - B*sin) + i(A*sin + B*cos)
+    totalF.x += (directF.x * cs - directF.y * sn);
+    totalF.y += (directF.x * sn + directF.y * cs);
+}
+// calc intensity I = |F|^2
+outData[idx] = totalF.x * totalF.x + totalF.y * totalF.y;
+}
+
+// Wrapper function to launch the kernel
+// HybridOA.cu
+bool launchHybridSingleOrientationKernel(
+    GridWorkspace& master,
+    DirectModelData* d_directModels,
+    int numDirectModels,
+    double* outData,
+    void* stream
+) 
+{
+    int numPixels = master.numQ; 
+    if (numPixels <= 0) return false;
+
+    std::vector<double2*> h_grids(master.numChildren);
+    std::vector<double*> h_ds(master.numChildren);
+    
+    for(int i = 0; i < master.numChildren; i++) {
+        h_grids[i] = (double2*)master.children[i].d_amp;
+        h_ds[i] = master.children[i].d_int;
+    }
+
+    double2 **d_grids_list = nullptr;
+    double **d_ds_list = nullptr;
+    if(master.numChildren > 0) {
+        cudaMalloc(&d_grids_list, master.numChildren * sizeof(double2*));
+        cudaMalloc(&d_ds_list, master.numChildren * sizeof(double*));
+        cudaMemcpyAsync(d_grids_list, h_grids.data(), master.numChildren * sizeof(double2*), cudaMemcpyHostToDevice, (cudaStream_t)stream);
+        cudaMemcpyAsync(d_ds_list, h_ds.data(), master.numChildren * sizeof(double*), cudaMemcpyHostToDevice, (cudaStream_t)stream);
+    }
+
+    int blockSize = 256; 
+    int gridSize = (numPixels + blockSize - 1) / blockSize;
+
+    HybridSingleOrientationKernel<double, double, double2> <<<gridSize, blockSize, 0, (cudaStream_t)stream>>> (
+        (const double2**)d_grids_list, 
+        (const double**)d_ds_list, 
+        master.numChildren,
+        master.thetaDivs, master.phiDivs, master.stepSize,
+        master.d_rots, master.d_nTrans, 
+        master.d_trns, master.d_nTrans, 
+        (float3*)master.qVec,
+        numPixels,
+        d_directModels,
+        numDirectModels,
+        outData
+    );
+
+    cudaError_t err = cudaGetLastError();
+    if (d_grids_list) cudaFree(d_grids_list);
+    if (d_ds_list) cudaFree(d_ds_list);
+
+    if (err != cudaSuccess) {
+        printf("CUDA Error in HybridSingleOrientationKernel: %s\n", cudaGetErrorString(err));
+        return false;
+    }
+
+    return true;
 }
