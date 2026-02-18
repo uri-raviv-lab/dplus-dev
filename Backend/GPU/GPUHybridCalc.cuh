@@ -6,13 +6,6 @@
 #define BLOCK_WIDTH 32
 #define BLOCK_HEIGHT 16
 
-struct DirectModelData {
-    int modelType;
-    std::vector<double> params;
-    float4 translation;
-    float4 rotation;
-};
-
 class GPUHybridCalculator : public IGPUGridCalculator
 {
 public:
@@ -86,6 +79,16 @@ public:
     // NEW: Implementation of the static pose calculation
     virtual bool ComputeSingleOrientationIntensity(std::vector<GridWorkspace>& workspaces,
                                                     double *outData, int *pStop = NULL);
+
+													
+    virtual bool InitializeSingleOrientation(GridWorkspace& workspace) override;
+    
+    void PerformGPUSingleOrientation2D(const std::vector<int>& indices, void* stream);
+
+	PDB_READER_ERRS PerformGPUSingleOrientation2D(
+        int gridBegin, double Q, int aveBeg, double& res, 
+        double epsi, long long iterations, int aveEnd
+    ) override;
 
 private:
 		// NEW: Storage for the Direct Models passed from Amplitude.cpp

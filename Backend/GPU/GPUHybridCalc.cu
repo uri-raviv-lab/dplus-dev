@@ -844,10 +844,11 @@ bool GPUHybridCalculator::AddDirectModel(GridWorkspace &workspace, int modelType
 {
     DirectModelData data;
     data.modelType = modelType;
-    data.params = params; // Copies the vector of doubles (radius, height, etc.)
+
+    data.params_cpu = params; 
     data.translation = translation;
     data.rotation = rotation;
-
+	data.params = nullptr;
     m_directModels.push_back(data);
     return true;
 }
@@ -912,4 +913,18 @@ bool GPUHybridCalculator::ComputeSingleOrientationIntensity(std::vector<GridWork
     m_directModels.clear();
 
     return success;
+}
+
+bool GPUHybridCalculator::InitializeSingleOrientation(GridWorkspace& workspace) {
+    return true; 
+}
+
+// TODO: 
+PDB_READER_ERRS GPUHybridCalculator::PerformGPUSingleOrientation2D(int gridBegin, double Q, int aveBeg, double& res, double epsi, long long iterations, int aveEnd) {
+
+    return PDB_OK;
+}
+
+void GPUHybridCalculator::PerformGPUSingleOrientation2D(const std::vector<int>& indices, void* stream) {
+printf("Performing GPU Single Orientation for %zu indices\n", indices.size());
 }

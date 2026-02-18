@@ -207,7 +207,8 @@ enum DirectModelType {
 
 struct DirectModelData {
 	int modelType;       
-	float2* params;      
+	float2* params;    
+	std::vector<double> params_cpu;
 	int nLayers;         
 	float4 translation;  
 	float4 rotation;     
@@ -241,6 +242,8 @@ public:
 	virtual bool ComputeSingleOrientationIntensity(std::vector<GridWorkspace>& workspaces,
 		double* outData,
 		int* pStop = NULL) = 0;
+
+	virtual PDB_READER_ERRS PerformGPUSingleOrientation2D(int gridBegin, double Q, int aveBeg, double& res, double epsi, long long iterations, int aveEnd) = 0;
 
 	
 	virtual bool FreeWorkspace(GridWorkspace& workspace) = 0;
