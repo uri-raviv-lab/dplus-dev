@@ -4,6 +4,7 @@
 #include "GPUHybridCalc.cuh"
 #include "CalculateJacobianSplines.cuh"
 #include "HybridOA.cu"
+#include "GPUInterface.h"
 
 #include <cuda_runtime.h>
 #include <stack>
@@ -840,13 +841,15 @@ bool GPUHybridCalculator::AddTranslations(GridWorkspace &workspace, int rotation
 
 bool GPUHybridCalculator::AddDirectModel(GridWorkspace &workspace, int modelType, 
                                         const std::vector<double>& params, 
-                                        float4 translation, float4 rotation) 
+                                        float4 translation, float4 rotation, int nLayers) 
 {
     DirectModelData data;
     data.modelType = modelType;
     data.params = params; // Copies the vector of doubles (radius, height, etc.)
     data.translation = translation;
     data.rotation = rotation;
+	data.nLayers = nLayers;
+	data.params = nullptr;
 
     m_directModels.push_back(data);
     return true;
@@ -870,12 +873,12 @@ bool GPUHybridCalculator::ComputeSingleOrientationIntensity(std::vector<GridWork
     if (!m_directModels.empty()) {
         for (auto& model : m_directModels) {
             int numFloat2 = (int)model.params_cpu.size() / 2; 
-            CHKERR(cudaMalloc(&model.params, numFloat2 * sizeof(float2)));
-            
-            CHKERR(cudaMemcpyAsync(model.params, model.params_cpu.data(), 
-                                   numFloat2 * sizeof(float2), 
-                                   cudaMemcpyHostToDevice, stream));
-            
+            CHKERR(cudaMalloc((void**)&model.params, numFloat2 * sizeof(float2))); // הוספת Casting ל-void**
+			CHKERR(cudaMemcpyAsync(model.params, model.params_cpu.data(), 
+                       numFloat2 * sizeof(float2), 
+                       cudaMemcpyHostToDevice, stream)); 
+
+    
             model.nLayers = numFloat2;
 			}
         CHKERR(cudaMalloc(&d_directModels, m_directModels.size() * sizeof(DirectModelData)));
@@ -913,3 +916,8 @@ bool GPUHybridCalculator::ComputeSingleOrientationIntensity(std::vector<GridWork
 
     return success;
 }
+
+
+
+
+

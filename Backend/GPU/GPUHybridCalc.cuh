@@ -6,13 +6,6 @@
 #define BLOCK_WIDTH 32
 #define BLOCK_HEIGHT 16
 
-struct DirectModelData {
-    int modelType;
-    std::vector<double> params;
-    float4 translation;
-    float4 rotation;
-};
-
 class GPUHybridCalculator : public IGPUGridCalculator
 {
 public:
@@ -81,7 +74,7 @@ public:
 	// NEW: Implementation of the "Switch" for large models
     virtual bool AddDirectModel(GridWorkspace &workspace, int modelType, 
                                 const std::vector<double>& params, 
-                                float4 translation, float4 rotation);
+                                float4 translation, float4 rotation, int nLayers);
 
     // NEW: Implementation of the static pose calculation
     virtual bool ComputeSingleOrientationIntensity(std::vector<GridWorkspace>& workspaces,

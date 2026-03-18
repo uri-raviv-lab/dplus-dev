@@ -5,6 +5,7 @@
 #include "GPUHybridCalc.cuh"
 #include "CommonJacobGPUMethods.cu"
 #include "CalculateJacobianSplines.cuh"
+#include "GPUInterface.h"
 
 #include <cuda_runtime.h>
 
@@ -820,9 +821,9 @@ bool launchHybridSingleOrientationKernel(
     int blockSize = 256; 
     int gridSize = (numPixels + blockSize - 1) / blockSize;
 
-    HybridSingleOrientationKernel<double, double, double2> <<<gridSize, blockSize, 0, (cudaStream_t)stream>>> (
-        (const double2**)d_grids_list, 
-        (const double**)d_ds_list, 
+    HybridSingleOrientationKernel<double, double2, double2> <<<gridSize, blockSize, 0, stream>>> (
+        (const double2* const*)d_grids_list, 
+        (const double2* const*)d_ds_list, 
         master.numChildren,
         master.thetaDivs, master.phiDivs, master.stepSize,
         master.d_rots, master.d_nTrans, 

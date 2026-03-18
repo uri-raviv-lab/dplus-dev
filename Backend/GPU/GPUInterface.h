@@ -103,46 +103,60 @@ class IGPUGridCalculator;
 
 typedef IGPUGridCalculator *(*gpuGridcalculator_t)();
 
+enum DirectModelType {
+	Sphere = 0,
+	Cylinder = 1,
+};
+
+struct DirectModelData {
+	int modelType;
+	float4 translation;
+	float4 rotation;
+	void* params;
+	int nLayers;
+	std::vector<double> params_cpu;
+};
+
 // TODO Change the pointer based arrays to std::vector<T>
 struct GridWorkspace
 {
-	IGPUGridCalculator *calculator;	///< Momma!
-	
-	GridWorkspace *parent;	///< Momma!
+	IGPUGridCalculator* calculator;	///< Momma!
+
+	GridWorkspace* parent;	///< Momma!
 
 	OAMethod_Enum intMethod; ///< The integration method used for orientation averaging
 
 	int gpuID;				///< The ID of the GPU card kernels will be run on
 
-	void *memoryStream;		///< The cuda stream used for memory transfers
-	void *computeStream;	///< The cuda stream used for calculation kernels
-	
+	void* memoryStream;		///< The cuda stream used for memory transfers
+	void* computeStream;	///< The cuda stream used for calculation kernels
+
 	// Actual workspace
-	double *d_amp;	///< The amplitude of the node
-	double *d_int;	///< The interpolation coefficients of d_amp. Not necessarily existent
-	
+	double* d_amp;	///< The amplitude of the node
+	double* d_int;	///< The interpolation coefficients of d_amp. Not necessarily existent
+
 	//GridWorkspace *parentWorkspace;	///< The workspace of a parent. Relevant for the children of symmetries.
-	GridWorkspace *children;		///< The workspaces of the children. Relevant for symmetries.
+	GridWorkspace* children;		///< The workspaces of the children. Relevant for symmetries.
 	int numChildren;				///< The number of children of a symmetry.
 
 	// Geometric model parameters
 	int nParams;		///< The number of parameters in params. NLP is nParams / nLayers.
 	int nLayers;		///< The number of layers of a layer based geometric model. NLP is nParams / nLayers.
-	float *d_params;	///< The parameters of the model. 
+	float* d_params;	///< The parameters of the model. 
 	int nExtras;		///< The number of extra parameters in a geometric model
-	float *d_extraPrm;	///< The extra parameters of a geometric model
+	float* d_extraPrm;	///< The extra parameters of a geometric model
 
 	// Symmetry parameters
-	int		symSize  ;	///< The size of d_symLocs and d_symRots. For a Manual symmetry, the number of layers; for a space filling symmetry, 1.
-	float4 *d_symLocs;	///< The locations of a symmetry
-	float4 *d_symRots;	///< The rotations of a symmetry
+	int		symSize;	///< The size of d_symLocs and d_symRots. For a Manual symmetry, the number of layers; for a space filling symmetry, 1.
+	float4* d_symLocs;	///< The locations of a symmetry
+	float4* d_symRots;	///< The rotations of a symmetry
 	double scale;		///< The scale by which to multiply the amplitude.
 
-/*
-	float* d_constantMemory;		///< A pointer to the devices constant memory
-	int beginConstantMemoryOffset;	///< The offset from which point the model can use global memory. Will be non-zero if another model has used some constant memory
-	int totalConstantMemoryOffset;	///< The total offset of the used constant memory. The models used constant memory will be (totalConstantMemoryOffset - beginConstantMemoryOffset)
-*/
+	/*
+		float* d_constantMemory;		///< A pointer to the devices constant memory
+		int beginConstantMemoryOffset;	///< The offset from which point the model can use global memory. Will be non-zero if another model has used some constant memory
+		int totalConstantMemoryOffset;	///< The total offset of the used constant memory. The models used constant memory will be (totalConstantMemoryOffset - beginConstantMemoryOffset)
+	*/
 
 	// Parameters needed for the calculation of PDB amplitudes
 	float4* d_pdbLocs;	///< The locations (Cartesian) of all the atoms
@@ -167,11 +181,11 @@ struct GridWorkspace
 
 	// Rotation and translation parameters
 	int numRotations;	///< The number of rotations of the model.
-	float4 *d_rots;		///< The actual rotations of the model. Should be allocated to be numRotations long.
-	int *numTrans;		///< The list of translations lengths for each translation.
-	int *d_nTrans;		///< The device pointer that should be copied from *numTrans once ready to be used.
-	float4 **trans;		///< The actual translations of each rotation.
-	float4 *d_trns;		///< The device pointer that should contain all the translations. Effectively the double pointer (**) that will require a map (*d_nTrans) to determine which translations belong to which rotations.
+	float4* d_rots;		///< The actual rotations of the model. Should be allocated to be numRotations long.
+	int* numTrans;		///< The list of translations lengths for each translation.
+	int* d_nTrans;		///< The device pointer that should be copied from *numTrans once ready to be used.
+	float4** trans;		///< The actual translations of each rotation.
+	float4* d_trns;		///< The device pointer that should contain all the translations. Effectively the double pointer (**) that will require a map (*d_nTrans) to determine which translations belong to which rotations.
 
 	// Jacobian Grid parameters
 	long long totalsz;	///< Twice the total number of voxels in the JacobianGrid (one for Real, one for Imag)
@@ -180,7 +194,7 @@ struct GridWorkspace
 	float qMax, stepSize;
 	float qMin;	///< Not to be used yet...
 
-	float *qVec;	///< The values of q for which the intensity is to be calculated.
+	float* qVec;	///< The values of q for which the intensity is to be calculated.
 	int numQ;		///< The number of q values in qVec.
 
 
@@ -195,23 +209,11 @@ struct GridWorkspace
 		numRotations(0), d_rots(NULL), numTrans(NULL), d_nTrans(NULL), trans(NULL), d_trns(NULL),
 		totalsz(0), phiDivs(0), thetaDivs(0), qLayers(0), qMax(0.0), stepSize(0.0), qMin(0.0),
 		qVec(NULL), numQ(0)
-	{}
-
-	void setNumberOfAmplitudes(int num) {}
+	{
+	}
 };
 
-enum DirectModelType {
-	Sphere = 0,
-	Cylinder = 1,
-};
-
-struct DirectModelData {
-	int modelType;       
-	float2* params;      
-	int nLayers;         
-	float4 translation;  
-	float4 rotation;     
-};
+void setNumberOfAmplitudes(int num) {}
 
 class IGPUGridCalculator
 {
@@ -221,7 +223,7 @@ public:
 	virtual bool Initialize(int gpuID, const std::vector<float>& qPoints,
 		long long totalSize, int thetaDivisions, int phiDivisions, int qLayers,
 		double qMax, double stepSize, GridWorkspace& res) = 0;
-	virtual bool InitializeSingleOrientation(GridWorkspace& workspace) = 0;
+	virtual bool InitializeSingleOrientation(GridWorkspace& workspace, int numQ) = 0;
 	virtual bool ComputeIntensity(std::vector<GridWorkspace> &workspaces,
 									double *outData, double epsi, long long iterations,
 									progressFunc progfunc = NULL, void *progargs = NULL, float progmin = 0., float progmax = 0., int *pStop = NULL) = 0;
@@ -238,10 +240,12 @@ public:
 		float4 translation, float4 rotation) = 0;
 
 	// NEW: The core "Single Orientation" execution call
-	virtual bool ComputeSingleOrientationIntensity(std::vector<GridWorkspace>& workspaces,
+	virtual bool ComputeSingleOrientationIntensity(GridWorkspace& workspaces,
 		double* outData,
-		int* pStop = NULL) = 0;
+		int* pStop) = 0;
 
+	// NEW 
+	virtual PDB_READER_ERRS PerformGPUSingleOrientation2D(int gridBegin, double Q, int aveBeg, double& res, double epsi, long long iterations, int aveEnd) = 0;
 	
 	virtual bool FreeWorkspace(GridWorkspace& workspace) = 0;
 };
