@@ -244,8 +244,6 @@ public:
 		double* outData,
 		int* pStop) = 0;
 
-	// NEW 
-	virtual PDB_READER_ERRS PerformGPUSingleOrientation2D(int gridBegin, double Q, int aveBeg, double& res, double epsi, long long iterations, int aveEnd) = 0;
 	
 	virtual bool FreeWorkspace(GridWorkspace& workspace) = 0;
 };

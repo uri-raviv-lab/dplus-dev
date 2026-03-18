@@ -845,7 +845,8 @@ bool GPUHybridCalculator::AddDirectModel(GridWorkspace &workspace, int modelType
 {
     DirectModelData data;
     data.modelType = modelType;
-    data.params = params; // Copies the vector of doubles (radius, height, etc.)
+
+    data.params_cpu = params; 
     data.translation = translation;
     data.rotation = rotation;
 	data.nLayers = nLayers;
@@ -916,8 +917,3 @@ bool GPUHybridCalculator::ComputeSingleOrientationIntensity(std::vector<GridWork
 
     return success;
 }
-
-
-
-
-

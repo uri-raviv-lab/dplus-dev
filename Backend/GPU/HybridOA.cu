@@ -25,7 +25,7 @@ __device__ __forceinline__ float length(float3 v) {
 
 template<typename fType, typename interpCFType, typename cfType, int avePoints>
 __device__ __forceinline__ void AddAmplitudeAtPoint(const cfType* inAmp,
-									  const interpCFType* ds, const int tDiv, const int pDiv,
+									  const cfType* ds, const int tDiv, const int pDiv,
 									  float qStepSize,
 									  const float4* __restrict__ rotations, const int numRots,
 									  const float4* __restrict__ translations, const int* __restrict__ numTrans,
@@ -626,10 +626,13 @@ __global__ void ValidateGridWorkspaceGrid(inType *in, long long voxels)
 
 template<typename fType, typename interpCFType, typename cfType>
 __device__ __forceinline__ void AddAmplitudeAtPointSinglePose(
-    const cfType* inAmp, const interpCFType* ds, 
+    const cfType* inAmp, 
+	const cfType* ds, 
     const int tDiv, const int pDiv, float qStepSize,
-    const float4* rotations, const int numRots,
-    const float4* translations, const int* numTrans,
+    const float4*  rotations, 
+	const int numRots,
+    const float4* translations,
+	const int* numTrans,
     float3 qVec, float qMag, cfType* totalF
 ) {
     float s1, c1, s2, c2, s3, c3;
@@ -729,19 +732,19 @@ __device__ double2 calculateDirectAmplitudeSphere(const DirectModelData& model, 
 
 template<typename fType, typename interpCFType, typename cfType>
 __global__ void HybridSingleOrientationKernel(
-const fType* const* __restrict__ grids, 
-    const interpCFType* const* __restrict__ ds,
+	const cfType* const* __restrict__ grids, 
+    const cfType* const* __restrict__ ds, 
     const int numGrids, 
     const int tDiv, const int pDiv, float qStepSize,
-    const float4* const* __restrict__ rotations, 
+    const float4* __restrict__ rotations, 
     const int* __restrict__ numRots,
-    const float4* const* __restrict__ translations, 
-    const int* const* __restrict__ numTrans,
+    const float4* __restrict__ translations, 
+    const int* __restrict__ numTrans, 
     const float3* __restrict__ qVectors, 
     const int numPixels,
-    const DirectModelData* __restrict__ directModels, // the models for direct calc.
+    const DirectModelData* __restrict__ directModels, 
     const int numDirectModels,
-    double* outData // final intensity
+    double* outData 
 	)
 	{
 	int idx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -754,11 +757,16 @@ const fType* const* __restrict__ grids,
 	// Part a: Summing the leaves of the tree (the grids)
 	for (int i = 0; i < numGrids; i++) {
         
-        AddAmplitudeAtPointSinglePose<fType, interpCFType, cfType>(
-            (cfType*)(grids[i]), ds[i], tDiv, pDiv, qStepSize,
-            rotations[i], numRots[i], translations[i], numTrans[i],
-            qVec, qMag, &totalF
-        );
+		AddAmplitudeAtPointSinglePose<fType, interpCFType, cfType>(
+				grids[i], 
+				ds[i], 
+				tDiv, pDiv, qStepSize,
+				rotations,    
+				numRots[0],   
+				translations, 
+				numTrans,     
+				qVec, qMag, &totalF
+);
     }
 
 	// part b: direct calculation
@@ -821,16 +829,20 @@ bool launchHybridSingleOrientationKernel(
     int blockSize = 256; 
     int gridSize = (numPixels + blockSize - 1) / blockSize;
 
-    HybridSingleOrientationKernel<double, double2, double2> <<<gridSize, blockSize, 0, stream>>> (
+   HybridSingleOrientationKernel<double, double2, double2> <<<gridSize, blockSize, 0, (cudaStream_t)stream>>> (
         (const double2* const*)d_grids_list, 
         (const double2* const*)d_ds_list, 
         master.numChildren,
-        master.thetaDivs, master.phiDivs, master.stepSize,
-        master.d_rots, master.d_nTrans, 
-        master.d_trns, master.d_nTrans, 
-        (float3*)master.qVec,
+        master.thetaDivs, 
+        master.phiDivs, 
+        master.stepSize,
+        (const float4*)master.d_rots,      
+        (const int*)master.d_nTrans,    
+        (const float4*)master.d_trns,     
+        (const int*)master.d_nTrans,    
+        (const float3*)master.qVec,
         numPixels,
-        d_directModels,
+        (const DirectModelData*)d_directModels,
         numDirectModels,
         outData
     );
