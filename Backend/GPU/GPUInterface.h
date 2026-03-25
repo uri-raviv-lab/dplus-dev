@@ -12,45 +12,46 @@ class IGPUCalculator;
 
 struct Workspace
 {
-	IGPUCalculator *parent;
+	IGPUCalculator* parent;
 
 	int gpuID;
 
-	void *stream;	
+	void* stream;
 
 
 	// Inputs
-	float2 *d_angles;  // 1D, size: numAngles
-	float  *d_qPoints; // 1D, size: numQ
+	float2* d_angles;  // 1D, size: numAngles
+	float* d_qPoints; // 1D, size: numQ
 	unsigned int numAngles, numQ;
 	size_t anglePitch;
-	float4 *d_translations, *h_translations;
+	float4* d_translations, * h_translations;
 	size_t maxTranslations;
 
 	// Actual workspace
-	double2 *d_work;   // 2D, size: numAngles x numQ (pitched)
-	double2 *d_amp;
+	double2* d_work;   // 2D, size: numAngles x numQ (pitched)
+	double2* d_amp;
 	size_t workPitch;
 
 	// PDB stuff
-	float4 *d_atomLocs, *d_rotAtomLocs;
-	float *d_affs;
-	unsigned int *h_atomsPerIon;
-	size_t numAtoms,  maxNumAtoms;
+	float4* d_atomLocs, * d_rotAtomLocs;
+	float* d_affs;
+	unsigned int* h_atomsPerIon;
+	size_t numAtoms, maxNumAtoms;
 	size_t numCoeffs, maxNumCoeffs;
 	float solED;
 
 	// Processed data and outputs
-	double *d_transamp, *d_intensity;
-	int *d_intensityIndices; // Necessary for thrust
+	double* d_transamp, * d_intensity;
+	int* d_intensityIndices; // Necessary for thrust
 	size_t ampPitch;
 
 
-	Workspace() : parent(NULL), gpuID(0), stream(NULL), d_angles(NULL), 
+	Workspace() : parent(NULL), gpuID(0), stream(NULL), d_angles(NULL),
 		d_qPoints(NULL), numAngles(0), numQ(0), d_translations(NULL), h_translations(NULL), maxTranslations(0), d_amp(NULL), d_work(NULL),
 		d_atomLocs(NULL), d_rotAtomLocs(NULL), d_affs(NULL), h_atomsPerIon(NULL),
 		numAtoms(0), maxNumAtoms(0), numCoeffs(0), maxNumCoeffs(0), solED(0.0), d_transamp(NULL),
-		d_intensity(NULL), d_intensityIndices(NULL), ampPitch(0) {}
+		d_intensity(NULL), d_intensityIndices(NULL), ampPitch(0) {
+	}
 };
 
 // This class is kept in order to keep the state of the GPU
@@ -59,19 +60,19 @@ struct Workspace
 
 class IGPUCalculator
 {
- public:
-    virtual ~IGPUCalculator() {}
+public:
+	virtual ~IGPUCalculator() {}
 
-    // Should be called once per workspace
-    virtual bool Initialize(int gpuID, const float2 *angles, size_t numAngles,
-							const float *qPoints, size_t numQ,
-							size_t maxNumAtoms, size_t maxNumCoeffs, 
-							size_t maxTranslations, Workspace& res) = 0;
+	// Should be called once per workspace
+	virtual bool Initialize(int gpuID, const float2* angles, size_t numAngles,
+		const float* qPoints, size_t numQ,
+		size_t maxNumAtoms, size_t maxNumCoeffs,
+		size_t maxTranslations, Workspace& res) = 0;
 
-	
-	virtual bool TranslateWorkspace(Workspace& workspace, float3 *translations, unsigned int numTrans) = 0;
-    
-    virtual bool ComputeIntensity(Workspace *workspaces, unsigned int numWorkspaces, double *outData) = 0;
+
+	virtual bool TranslateWorkspace(Workspace& workspace, float3* translations, unsigned int numTrans) = 0;
+
+	virtual bool ComputeIntensity(Workspace* workspaces, unsigned int numWorkspaces, double* outData) = 0;
 
 	virtual bool FreeWorkspace(Workspace& workspace) = 0;
 };
@@ -81,17 +82,18 @@ class IGPUCalculable
 public:
 	virtual bool SetModel(Workspace& workspace) = 0;
 
-	virtual bool SetParameters(Workspace& workspace, const double *params, 
-							   unsigned int numParams) = 0;
-	
+	virtual bool SetParameters(Workspace& workspace, const double* params,
+		unsigned int numParams) = 0;
+
 	// Function should fill workspace.d_work
 	virtual bool ComputeOrientation(Workspace& workspace, float3 rotation) = 0;
 
-	virtual void CorrectLocationRotation(double& x, double& y, double& z, 
-										 double& alpha, double& beta, double& gamma) {}
+	virtual void CorrectLocationRotation(double& x, double& y, double& z,
+		double& alpha, double& beta, double& gamma) {
+	}
 };
 
-typedef IGPUCalculator *(*gpucalculator_t)();
+typedef IGPUCalculator* (*gpucalculator_t)();
 
 static inline int ComputeGridSize(int total, int blockSize)
 {
@@ -101,7 +103,7 @@ static inline int ComputeGridSize(int total, int blockSize)
 // Forward declaration
 class IGPUGridCalculator;
 
-typedef IGPUGridCalculator *(*gpuGridcalculator_t)();
+typedef IGPUGridCalculator* (*gpuGridcalculator_t)();
 
 enum DirectModelType {
 	Sphere = 0,
@@ -224,15 +226,15 @@ public:
 		long long totalSize, int thetaDivisions, int phiDivisions, int qLayers,
 		double qMax, double stepSize, GridWorkspace& res) = 0;
 	virtual bool InitializeSingleOrientation(GridWorkspace& workspace, int numQ) = 0;
-	virtual bool ComputeIntensity(std::vector<GridWorkspace> &workspaces,
-									double *outData, double epsi, long long iterations,
-									progressFunc progfunc = NULL, void *progargs = NULL, float progmin = 0., float progmax = 0., int *pStop = NULL) = 0;
+	virtual bool ComputeIntensity(std::vector<GridWorkspace>& workspaces,
+		double* outData, double epsi, long long iterations,
+		progressFunc progfunc = NULL, void* progargs = NULL, float progmin = 0., float progmax = 0., int* pStop = NULL) = 0;
 
-	virtual bool SetNumChildren(GridWorkspace &workspace, int numChildren) = 0;
+	virtual bool SetNumChildren(GridWorkspace& workspace, int numChildren) = 0;
 
-	virtual bool AddRotations(GridWorkspace &workspace, std::vector<float4> &rotations) = 0;
+	virtual bool AddRotations(GridWorkspace& workspace, std::vector<float4>& rotations) = 0;
 
-	virtual bool AddTranslations(GridWorkspace &workspace, int rotationIndex, std::vector<float4> &translations) = 0;
+	virtual bool AddTranslations(GridWorkspace& workspace, int rotationIndex, std::vector<float4>& translations) = 0;
 
 	// NEW: Used to pass parameters for models that are too large for grids (Direct Path)
 	virtual bool AddDirectModel(GridWorkspace& workspace, int modelType,
@@ -244,7 +246,7 @@ public:
 		double* outData,
 		int* pStop) = 0;
 
-	
+
 	virtual bool FreeWorkspace(GridWorkspace& workspace) = 0;
 };
 

@@ -12,13 +12,13 @@ public:
 		
 	virtual bool Initialize(int gpuID, const std::vector<float>& qPoints,
 		long long totalSize, int thetaDivisions, int phiDivisions, int qLayers,
-		double qMax, double stepSize, GridWorkspace& res);
+		double qMax, double stepSize, GridWorkspace& res) override;
 
-	virtual bool FreeWorkspace(GridWorkspace& workspace);
+	virtual bool FreeWorkspace(GridWorkspace& workspace) override;
 
 	virtual bool ComputeIntensity(std::vector<GridWorkspace>& workspaces,
 		double *outData, double epsi, long long iterations,
-		progressFunc progfunc = NULL, void *progargs = NULL, float progmin = 0., float progmax = 0., int *pStop = NULL);
+		progressFunc progfunc = NULL, void *progargs = NULL, float progmin = 0., float progmax = 0., int *pStop = NULL) override;
 
 	void reallocateMemoryOA(cudaError_t &err, double2 * &d_resA, double * &d_resI, int * &d_resKeys, double * &d_integrationResults, int baseLen, const cudaStream_t &masterMemStream, double * &h_IntenConv, int &maxIters);
 
@@ -57,11 +57,11 @@ public:
 
 	void cleanUp(double * &d_rndNumbers1, cudaError_t &err, double * &d_rndNumbers2, double2 * &d_resA, double * &d_resI, double ** &d_amps, double2 ** &d_ints, float4 ** &d_RotationAddresses, int * &d_NumberOfRotationAddresses, float4 ** &d_TranslationAddresses, int ** &d_NumberOfTranslationAddresses, double * &d_thetaPhiDivs, double * &d_thetaPhiBinResults, double * &h_IntenConv, double * &h_pinned_thetaPhiDivs);
 
-	virtual bool SetNumChildren(GridWorkspace &workspace, int numChildren);
+	virtual bool SetNumChildren(GridWorkspace &workspace, int numChildren) override;
 
-	virtual bool AddRotations(GridWorkspace &workspace, std::vector<float4>& rotations);
+	virtual bool AddRotations(GridWorkspace &workspace, std::vector<float4>& rotations) override;
 
-	virtual bool AddTranslations(GridWorkspace &workspace, int rotationIndex, std::vector<float4>& translations);
+	virtual bool AddTranslations(GridWorkspace &workspace, int rotationIndex, std::vector<float4>& translations) override;
 
 	int AssembleAmplitudeGrid(GridWorkspace& workspace, double **subAmp,
 		double **subInt, double **transRot, int numSubAmps);
@@ -74,11 +74,11 @@ public:
 	// NEW: Implementation of the "Switch" for large models
     virtual bool AddDirectModel(GridWorkspace &workspace, int modelType, 
                                 const std::vector<double>& params, 
-                                float4 translation, float4 rotation, int nLayers);
+                                float4 translation, float4 rotation, int nLayers) override;
 
     // NEW: Implementation of the static pose calculation
     virtual bool ComputeSingleOrientationIntensity(std::vector<GridWorkspace>& workspaces,
-                                                    double *outData, int *pStop = NULL);
+                                                    double *outData, int *pStop = NULL) override;
 
 													
     virtual bool InitializeSingleOrientation(GridWorkspace& workspace) override;
