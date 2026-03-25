@@ -74,21 +74,21 @@ public:
 	// NEW: Implementation of the "Switch" for large models
     virtual bool AddDirectModel(GridWorkspace &workspace, int modelType, 
                                 const std::vector<double>& params, 
-                                float4 translation, float4 rotation, int nLayers) override;
+                                float4 translation, float4 rotation, int nLayers);
 
     // NEW: Implementation of the static pose calculation
     virtual bool ComputeSingleOrientationIntensity(std::vector<GridWorkspace>& workspaces,
                                                     double *outData, int *pStop = NULL) override;
 
 													
-    virtual bool InitializeSingleOrientation(GridWorkspace& workspace) override;
+    virtual bool InitializeSingleOrientation(GridWorkspace& workspace, int numQ) override;
     
     void PerformGPUSingleOrientation2D(const std::vector<int>& indices, void* stream);
 
 	PDB_READER_ERRS PerformGPUSingleOrientation2D(
         int gridBegin, double Q, int aveBeg, double& res, 
         double epsi, long long iterations, int aveEnd
-    ) override;
+    );
 
 private:
 		// NEW: Storage for the Direct Models passed from Amplitude.cpp

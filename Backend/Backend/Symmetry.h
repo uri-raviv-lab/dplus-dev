@@ -5,7 +5,7 @@
 #include "Amplitude.h"
 #include "PDBAmplitude.h"
 
-class matrix3d_less : public std::binary_function<Eigen::Matrix3d, Eigen::Matrix3d, bool>
+class matrix3d_less : public std::binary_function <Eigen::Matrix3d, Eigen::Matrix3d, bool> 
 {
 public:
 	matrix3d_less(double arg_ = 0.0001) : threshhold(arg_) {}

@@ -242,9 +242,9 @@ public:
 		float4 translation, float4 rotation) = 0;
 
 	// NEW: The core "Single Orientation" execution call
-	virtual bool ComputeSingleOrientationIntensity(GridWorkspace& workspaces,
+	virtual bool ComputeSingleOrientationIntensity(std::vector<GridWorkspace>& workspaces,
 		double* outData,
-		int* pStop) = 0;
+		int* pStop = NULL) = 0;
 
 
 	virtual bool FreeWorkspace(GridWorkspace& workspace) = 0;

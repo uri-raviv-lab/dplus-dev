@@ -137,7 +137,7 @@ copy "$(CudaToolkitBinDir)\curand64_*.dll" "$(TargetDir)"</Command>
       <DisableSpecificWarnings>4305</DisableSpecificWarnings>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpp14</LanguageStandard>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
