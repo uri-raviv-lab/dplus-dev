@@ -13,7 +13,7 @@ namespace PythonBackend
 {
     static class PythonInstaller
     {
-        const string PYTHON_VERSION = "3.9.9"; // Make sure this is the same python version as the embedded python zip file
+        const string PYTHON_VERSION = "3.13.13"; // Make sure this is the same python version as the embedded python zip file
 
         private static bool IsPythonInstalled() => File.Exists(PythonPath);
 

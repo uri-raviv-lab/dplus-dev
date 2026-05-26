@@ -81,10 +81,9 @@ COPY --from=cplusplus /output /src/PythonInterface/lib
 COPY ./PythonInterface/requirements.txt /src/PythonInterface/requirements.txt
 
 # Install Python dependencies for multiple versions
-RUN /opt/python/cp39-cp39/bin/pip install -r requirements.txt
-RUN /opt/python/cp310-cp310/bin/pip install -r requirements.txt
 RUN /opt/python/cp311-cp311/bin/pip install -r requirements.txt
 RUN /opt/python/cp312-cp312/bin/pip install -r requirements.txt
+RUN /opt/python/cp313-cp313/bin/pip install -r requirements.txt
 
 # Copy Python and shared source files
 COPY ./Backend /src/Backend
@@ -92,12 +91,11 @@ COPY ./Common /src/Common
 COPY ./Conversions /src/Conversions
 COPY ./PythonInterface /src/PythonInterface
 
-# Build wheels for each Python version
-RUN /opt/python/cp39-cp39/bin/python setup.py prepare
-RUN /opt/python/cp39-cp39/bin/pip wheel . --no-build-isolation
-RUN /opt/python/cp310-cp310/bin/pip wheel . --no-build-isolation
+# Build wheels for each Python version (3.11+)
+RUN /opt/python/cp311-cp311/bin/python setup.py prepare
 RUN /opt/python/cp311-cp311/bin/pip wheel . --no-build-isolation
 RUN /opt/python/cp312-cp312/bin/pip wheel . --no-build-isolation
+RUN /opt/python/cp313-cp313/bin/pip wheel . --no-build-isolation
 
 # Repair wheels using auditwheel
 RUN mkdir /wheels

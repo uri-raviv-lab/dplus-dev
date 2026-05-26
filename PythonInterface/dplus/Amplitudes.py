@@ -249,7 +249,7 @@ class Amplitude():
         :return: complex array
         '''
         values = self._values
-        complex_arr = np.zeros((int(values.__len__() / 2), 1), dtype=np.complex)
+        complex_arr = np.zeros((int(values.__len__() / 2), 1), dtype=np.complex128)
         for index in range(0, complex_arr.__len__()):
             complex_arr[index] = values[2 * index] + 1j * values[2 * index + 1]
         return complex_arr

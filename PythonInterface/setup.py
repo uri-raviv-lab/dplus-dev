@@ -2,8 +2,7 @@ import os
 import numpy
 import shutil
 import sys
-from setuptools import setup
-from distutils.extension import Extension
+from setuptools import setup, Extension
 import setuptools
 
 with open(os.path.join(os.path.dirname(__file__), 'README.md')) as readme:
@@ -98,7 +97,7 @@ class PrepareCommand(setuptools.Command):
     def cython(self, pyx):
         from Cython.Compiler.CmdLine import parse_command_line
         from Cython.Compiler.Main import compile
-        options, sources = parse_command_line(['-2', '-v', '--cplus', pyx])
+        options, sources = parse_command_line(['-3', '-v', '--cplus', pyx])
         result = compile(sources, options)
         if result.num_errors > 0:
             print('Errors converting %s to C++' % pyx, file=sys.stderr)
@@ -129,7 +128,8 @@ setup(
     version=VERSION_STR if VERSION_STR else '4.7.1',
     packages=['dplus'],
     package_data={'dplus': ['*.dll', 'helper_files/*'] if sys.platform == 'win32' else ['lib*.so*', 'helper_files/*'] },
-	install_requires=['numpy<2', 'psutil>=5.6.3', 'requests>=2.10.0', 'dplus-ceres>=0.6.0'],
+    install_requires=['numpy>=2.0.0', 'psutil>=5.6.3', 'requests>=2.10.0', 'dplus-ceres>=0.6.0'],
+    python_requires='>=3.11',
     # include_package_data=True, # If True - ignores the package_data property.
     license=LICENSE,  # example license
     description='Call the DPlus Calculation Backend',
@@ -143,10 +143,9 @@ setup(
         'License :: Other/Proprietary License',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 3.9',
-        'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: 3.11',
         'Programming Language :: Python :: 3.12',
+        'Programming Language :: Python :: 3.13',
         'Topic :: Scientific/Engineering :: Chemistry',
     ],
     cmdclass={
