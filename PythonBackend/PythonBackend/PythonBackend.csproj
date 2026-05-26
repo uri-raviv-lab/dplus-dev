@@ -157,13 +157,13 @@
     <EmbeddedResource Include="Resources\Wheels\certifi-2021.10.8-py2.py3-none-any.whl" />
     <EmbeddedResource Include="Resources\Wheels\charset_normalizer-2.0.8-py3-none-any.whl" />
     <EmbeddedResource Include="Resources\Wheels\idna-3.3-py3-none-any.whl" />
-    <EmbeddedResource Include="Resources\Wheels\psutil-5.8.0-cp39-cp39-win_amd64.whl" />
+    <EmbeddedResource Include="Resources\Wheels\psutil-7.2.2-cp313-cp313t-win_amd64.whl" />
     <EmbeddedResource Include="Resources\Wheels\requests-2.26.0-py2.py3-none-any.whl" />
     <EmbeddedResource Include="Resources\Wheels\urllib3-1.26.7-py2.py3-none-any.whl" />
     <EmbeddedResource Include="Resources\Wheels\dplus_api-debug-cp39-cp39-win_amd64.whl" />
     <EmbeddedResource Include="Resources\Wheels\dplus_api-release-cp39-cp39-win_amd64.whl" />
     <EmbeddedResource Include="Resources\Wheels\dplus_ceres-0.4.0-cp39-cp39-win_amd64.whl" />
-    <EmbeddedResource Include="Resources\Wheels\numpy-1.23.0-cp39-cp39-win_amd64.whl" />
+    <EmbeddedResource Include="Resources\Wheels\numpy-2.4.6-cp313-cp313-win_amd64.whl" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
