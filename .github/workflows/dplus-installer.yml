@@ -8,9 +8,11 @@ jobs:
   windows-build:
     runs-on: windows-latest
     name: Build the DPlus Installer
+    permissions:
+      contents: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           lfs: true
 
@@ -30,17 +32,17 @@ jobs:
           move boost\lib64-msvc-14.3 boost\lib64
 
       - name: Set up CUDA
-        uses: Jimver/cuda-toolkit@v0.2.24
+        uses: Jimver/cuda-toolkit@v0.2.35
         id: cuda-toolkit
         with:
           cuda: '12.4.0'
           method: 'network'
 
       - name: Add msbuild to PATH
-        uses: microsoft/setup-msbuild@v2
+        uses: microsoft/setup-msbuild@v3
 
       - name: Setup nuget
-        uses: nuget/setup-nuget@v2
+        uses: nuget/setup-nuget@v4.0
 
       - name: Restore nuget packages
         run: nuget restore Dplus.sln
@@ -58,9 +60,9 @@ jobs:
           msbuild Dplus.sln /p:Configuration=ReleaseWithDebugInfo /p:Platform=x64 /t:Backend\Backend:Rebuild
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
-          python-version: '3.11'
+          python-version: '3.12'
           architecture: x64
 
       - name: Build Python wheels

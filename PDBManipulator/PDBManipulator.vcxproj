@@ -131,6 +131,11 @@
   <ItemGroup>
     <ClCompile Include="PDBManipulator.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\PDBReaderLib\PDBReaderLib.vcxproj">
+      <Project>{68DC42F9-1D43-4198-BC14-67F422DFD62B}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

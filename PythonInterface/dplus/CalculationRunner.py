@@ -376,7 +376,7 @@ class LocalRunner(Runner):
         if d_plus == "":
             raise Exception("D+ does not exists")
 
-        dplus_key = os.path.join("SOFTWARE\HUJI", d_plus)
+        dplus_key = os.path.join(r"SOFTWARE\HUJI", d_plus)
         if other_view_flag:
             with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, dplus_key, access=winreg.KEY_READ | other_view_flag) as key:
                 exe_dir = winreg.QueryValueEx(key, "binDir")[0]

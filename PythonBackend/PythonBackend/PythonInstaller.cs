@@ -13,7 +13,7 @@ namespace PythonBackend
 {
     static class PythonInstaller
     {
-        const string PYTHON_VERSION = "3.13.13"; // Make sure this is the same python version as the embedded python zip file
+        const string PYTHON_VERSION = "3.12.10"; // Make sure this is the same python version as the embedded python zip file
 
         private static bool IsPythonInstalled() => File.Exists(PythonPath);
 
@@ -125,6 +125,7 @@ namespace PythonBackend
         public static void InitializeEngine()
         {
             Environment.SetEnvironmentVariable("PATH", ActualInstallationFolder + ";" + Environment.GetEnvironmentVariable("PATH"));
+            Runtime.PythonDLL = Path.Combine(ActualInstallationFolder, $"python{PYTHON_VERSION.Replace(".", "").Substring(0, 3)}.dll");
             PythonEngine.Initialize();
             AddToSysPath(LibFolder);
             AddToSysPath(SrcFolder);
@@ -178,6 +179,9 @@ if not r'{folder}' in sys.path:
             var archive = new ZipArchive(stream);
             foreach (var entry in archive.Entries)
             {
+                if (entry.FullName.EndsWith("/") || entry.FullName.EndsWith("\\"))
+                    continue;
+
                 var filename = Path.Combine(dest, entry.FullName);
                 var dirname = Path.GetDirectoryName(filename);
 

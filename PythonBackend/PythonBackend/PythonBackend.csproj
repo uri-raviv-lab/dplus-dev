@@ -122,8 +122,8 @@
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Newtonsoft.Json.13.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="Python.Runtime, Version=2.5.2.0, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\..\packages\pythonnet_py39_win.2.5.2\lib\net40\Python.Runtime.dll</HintPath>
+    <Reference Include="Python.Runtime, Version=3.1.0.0, Culture=neutral, PublicKeyToken=5000fea6cba702dd, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\pythonnet.3.1.0\lib\netstandard2.0\Python.Runtime.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -153,17 +153,17 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <EmbeddedResource Include="Resources\EmbeddedPython\python-3.13.13-embed-amd64.zip" />
+    <EmbeddedResource Include="Resources\EmbeddedPython\python-3.12.10-embed-amd64.zip" />
     <EmbeddedResource Include="Resources\Wheels\certifi-2021.10.8-py2.py3-none-any.whl" />
     <EmbeddedResource Include="Resources\Wheels\charset_normalizer-2.0.8-py3-none-any.whl" />
     <EmbeddedResource Include="Resources\Wheels\idna-3.3-py3-none-any.whl" />
-    <EmbeddedResource Include="Resources\Wheels\psutil-7.2.2-cp313-cp313t-win_amd64.whl" />
+    <EmbeddedResource Include="Resources\Wheels\psutil-7.2.2-cp37-abi3-win_amd64.whl" />
     <EmbeddedResource Include="Resources\Wheels\requests-2.26.0-py2.py3-none-any.whl" />
     <EmbeddedResource Include="Resources\Wheels\urllib3-1.26.7-py2.py3-none-any.whl" />
-    <EmbeddedResource Include="Resources\Wheels\dplus_api-debug-cp39-cp39-win_amd64.whl" />
-    <EmbeddedResource Include="Resources\Wheels\dplus_api-release-cp39-cp39-win_amd64.whl" />
-    <EmbeddedResource Include="Resources\Wheels\dplus_ceres-0.4.0-cp39-cp39-win_amd64.whl" />
-    <EmbeddedResource Include="Resources\Wheels\numpy-2.4.6-cp313-cp313-win_amd64.whl" />
+    <EmbeddedResource Include="Resources\Wheels\dplus_api-4.7.1+debug-cp312-cp312-win_amd64.whl" />
+    <EmbeddedResource Include="Resources\Wheels\dplus_api-4.7.1+release-cp312-cp312-win_amd64.whl" />
+    <EmbeddedResource Include="Resources\Wheels\dplus_ceres-1.0.0-cp312-cp312-win_amd64.whl" />
+    <EmbeddedResource Include="Resources\Wheels\numpy-2.4.6-cp312-cp312-win_amd64.whl" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

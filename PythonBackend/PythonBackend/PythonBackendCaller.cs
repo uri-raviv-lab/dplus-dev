@@ -78,7 +78,6 @@ namespace PythonBackend
          * Add all wheels as embedded resources.
          * 
          */
-        IntPtr lockPythonPtr;
         string session, exeDir;
         dynamic cSharpPythonEntry;
 
@@ -120,10 +119,11 @@ namespace PythonBackend
 
         public void RunCall(CSharpManagedBackendCall call)
         {
-            lockPythonPtr = PythonEngine.AcquireLock();
-            dynamic result = cSharpPythonEntry.perform_call(call.CallString);
-            call.Result = result;
-            PythonEngine.ReleaseLock(lockPythonPtr);
+            using (Py.GIL())
+            {
+                dynamic result = cSharpPythonEntry.perform_call(call.CallString);
+                call.Result = result;
+            }
         }
     }
 }

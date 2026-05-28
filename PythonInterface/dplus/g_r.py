@@ -583,13 +583,15 @@ def S_Q_from_model_slow(filename: str, q_min: dc.float64 = 0, q_max: dc.float64 
 
 def S_Q_from_model(filename: str, q_min: dc.float64 = 0, q_max: dc.float64 = 100, dq: dc.float64 = 0.01
                    , thermal: np.bool_ = False, Number_for_average_conf: dc.int64 = 1,
-                   u: dc.float64[3] = np.array([0.,0.,0.]), use_GPU: np.bool_ = True):
+                   u: dc.float64[3] = np.array([0.,0.,0.]), conv_eps: dc.float64 = 1e-6,
+                   min_iter: dc.int64 = 10, check_step: dc.int64 = 5): #, use_GPU: np.bool_ = True,
     """Given a .dol or .pdb filename and a q-range, returns the orientation averaged structure factor."""
 
     r_mat, n = read_from_file(filename)
     r_mat = np.copy(r_mat[:, :3])
     if thermal:
         r_mat_old = r_mat
+        check_matrix = np.zeros([4, len(q)])
     q = np.arange(q_min, q_max + dq/2, dq)
     q_len = q.shape[0]
     # if thermal:
@@ -604,12 +606,32 @@ def S_Q_from_model(filename: str, q_min: dc.float64 = 0, q_max: dc.float64 = 100
             r_mat[:] = thermalize(np.copy(r_mat_old), u)
         S_Q_pretemp = np.copy(S_Q[it])
         R[it], S_Q[it, :] = compute_sq(q, S_Q_pretemp, r_mat, Q=q_len, L=n)
+
         # if Number_for_average_conf > 1:
         # if use_GPU:
         #     R[it], S_Q[it, :] = compute_sq_GPU(q, S_Q_pretemp, r_mat, Q=q_len, L=n)
         # else:
         #     R[it], S_Q[it, :] = compute_sq_CPU(q, S_Q_pretemp, r_mat, Q=q_len, L=n)
         it += 1
+
+        if it >= min_iter:
+            if it % check_step == 0:
+                print("checking convergence at iteration", it)
+                ind = ((it - min_iter) // check_step) % 4
+                S_Q_temp = np.sum(S_Q[:it+1], axis=0) / (it + 1)
+                if it <= min_iter + 3 * check_step:
+                    check_matrix[ind, :] = S_Q_temp
+                    it += 1
+                    continue
+
+                conv_test = np.max(np.abs(1 - S_Q_temp / check_matrix), axis=-1)
+                if np.any(conv_test<conv_eps):
+                    print('Convergence reached at iteration', it + 1)
+                    S_Q[:] = np.sum(S_Q[:it+1], axis=0) / (it + 1)
+                    rho /= (it + 1)
+                    return q, S_Q[0], rho
+                else:
+                    check_matrix[ind, :] = S_Q_temp
     R_fin = np.max(R) / 2
     S_Q /= n
     S_Q[:] = np.sum(S_Q, axis=0) / Number_for_average_conf
