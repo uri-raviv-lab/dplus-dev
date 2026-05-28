@@ -38,20 +38,15 @@ jobs:
               https://${GEMFURY_AUTH}@push.fury.io/theresearchsoftwarecompany/
           done
 
-  windows-wheels:
-    runs-on: windows-latest  # Required for Visual Studio 2019
-    permissions:
-      contents: write
-    strategy:
-      matrix:
-        python-version: [ '3.11', '3.12', '3.13' ]
-    name: Create the Windows Wheel for Python ${{ matrix.python-version }}
+  build-backend-windows:
+    runs-on: windows-2022
+    name: Compile Windows Backend
     steps:
       - name: Checkout
         uses: actions/checkout@v6
       - name: Install boost
         run: |
-          Invoke-WebRequest https://boost.teeks99.com/bin/1.79.0/boost_1_79_0-msvc-14.3-64.exe -OutFile boost-setup.exe
+          Invoke-WebRequest https://boost.teeks99.com/bin/1.77.0/boost_1_77_0-msvc-14.3-64.exe -OutFile boost-setup.exe
           .\boost-setup.exe /DIR=boost /SILENT | Out-Null
           move boost\lib64-msvc-14.3 boost\lib64
       - name: Set up CUDA
@@ -66,7 +61,31 @@ jobs:
         env:
           BOOST_ROOT: ${{ github.workspace }}/boost
         run: |
-          msbuild Dplus.sln /p:Configuration=Release /p:Platform=x64 /t:Backend\Backend:Rebuild
+          msbuild Dplus.sln /p:Configuration=Release /p:Platform=x64 /t:Backend\Backend:Rebuild /m
+      - name: Upload backend artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: backend-release-windows
+          path: x64/Release/
+          retention-days: 1
+
+  windows-wheels:
+    runs-on: windows-2022
+    needs: build-backend-windows
+    permissions:
+      contents: write
+    strategy:
+      matrix:
+        python-version: [ '3.11', '3.12', '3.13' ]
+    name: Create the Windows Wheel for Python ${{ matrix.python-version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Download backend artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: backend-release-windows
+          path: x64/Release/
       - name: Setup Python
         uses: actions/setup-python@v6
         with:
@@ -103,5 +122,3 @@ jobs:
           Get-ChildItem -Path "PythonInterface/dplus_api*.whl" | ForEach-Object {
               curl -f -F "package=@$($_.FullName)" "https://$env:GEMFURY_AUTH@push.fury.io/theresearchsoftwarecompany/"
           }
-
-  

@@ -6,7 +6,7 @@ on:
 
 jobs:
   windows-build:
-    runs-on: windows-latest
+    runs-on: windows-2022
     name: Build the DPlus Installer
     permissions:
       contents: write
@@ -27,7 +27,7 @@ jobs:
 
       - name: Install boost
         run: |
-          Invoke-WebRequest https://boost.teeks99.com/bin/1.79.0/boost_1_79_0-msvc-14.3-64.exe -OutFile boost-setup.exe
+          Invoke-WebRequest https://boost.teeks99.com/bin/1.77.0/boost_1_77_0-msvc-14.3-64.exe -OutFile boost-setup.exe
           .\boost-setup.exe /DIR=boost /SILENT | Out-Null
           move boost\lib64-msvc-14.3 boost\lib64
 
