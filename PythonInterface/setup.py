@@ -127,7 +127,11 @@ setup(
     name='dplus-api',
     version=VERSION_STR if VERSION_STR else '4.7.1',
     packages=['dplus'],
-    package_data={'dplus': ['*.dll', 'helper_files/*'] if sys.platform == 'win32' else ['lib*.so*', 'helper_files/*'] },
+    # On Linux, native libs are vendored by `auditwheel repair` into dplus_api.libs/
+    # with proper RPATH. Including them via package_data here causes them to be
+    # shipped twice (once in dplus/, once in dplus_api.libs/) and breaks the
+    # RPATH so users have to set LD_LIBRARY_PATH at runtime.
+    package_data={'dplus': ['*.dll', 'helper_files/*'] if sys.platform == 'win32' else ['helper_files/*'] },
     install_requires=['numpy>=2.0.0', 'psutil>=5.6.3', 'requests>=2.10.0', 'dplus-ceres>=0.6.0'],
     python_requires='>=3.11',
     # include_package_data=True, # If True - ignores the package_data property.

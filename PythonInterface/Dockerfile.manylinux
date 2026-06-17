@@ -58,6 +58,10 @@ RUN cmake .. && make
 # Collect compiled output and required libs
 RUN mkdir -p /output
 RUN cp /src/build/Backend/lib* /output
+# Strip debug info and unneeded symbols from our own libs.
+# Removes DWARF tables that bloat libbackend.so by ~40 MB while keeping the
+# .dynsym entries needed for dlopen and runtime symbol resolution.
+RUN strip --strip-unneeded /output/lib*.so* || true
 RUN cp /usr/lib/x86_64-linux-gnu/libboost_system.so /output
 RUN cp /usr/lib/x86_64-linux-gnu/libboost_filesystem.so /output
 RUN cp /usr/local/cuda-12.4/targets/x86_64-linux/lib/libcurand.so.10 /output

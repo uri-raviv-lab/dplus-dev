@@ -29,12 +29,13 @@ which should work on Python 3.9-11 for windows and 3.9-12 for Linux users. No Ma
 
 A short tutorial with examples can be found [here](https://github.com/uri-raviv-lab/dplus-dev/tree/development/PythonInterface).
 
-If using the API on a Linux machine, codes must be run by defining first:
+On Linux clusters where you want to use a system-provided CUDA runtime (for example after
+`module load cuda`), prepend the toolkit lib directory to `LD_LIBRARY_PATH`, e.g.
 
-`LD_LIBRARY_PATH=/home/<your_username>/.local/lib/python3.*/site-packages/dplus:$LD_LIBRARY_PATH python3 <your_code>.py`
+`LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH python3 <your_code>.py`
 
-or by adding the path to the LD_LIBRARY_PATH variable in your .bashrc file. Make sure to replace `<your_username>` 
-with your actual username, * with the correct Python version (e.g., python3.8, python3.9, etc.), and `<your_code>` with the name of your Python script.
+In normal installations this is not required — the wheel ships its own bundled CUDA runtime
+with the correct loader path set by `auditwheel`.
 
 Hardware architecture.
 ----------------------
