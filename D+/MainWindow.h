@@ -889,14 +889,15 @@ private: System::ComponentModel::IContainer^  components;
 			void Stop();
 			bool InSelectionChange;
 			IDockContent ^GetContentFromPersistString(String ^persistString);
-		private: 
+		public:
 			bool UseGPU;
+			void changeUseGPUDisplayValue(bool newVal);
+		private:
 			bool InFitMessage;
 			bool checkFitCPU;
 			unsigned long long FitJobStartTime;
 private: System::Void configureServerToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e);
 private: System::Void useGPUToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e);
-private: void changeUseGPUDisplayValue(bool newVal);
 private: System::Void openServerWindow();
 private: System::Void defaultLayoutToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e);
 private: System::Void saveLayoutToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e);

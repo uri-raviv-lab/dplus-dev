@@ -1,4 +1,4 @@
-#include <windows.h> // For COLORREF
+﻿#include <windows.h> // For COLORREF
 
 #include "GraphPane2D.h"
 #include "clrfunctionality.h"
@@ -28,6 +28,57 @@ System::Void DPlus::GraphPane2D::logIcheckBox_CheckedChanged(System::Object^ sen
 	this->graph1D1->LogScaleY = logIcheckBox->Checked;
 }
 
+System::Void DPlus::GraphPane2D::nmCheckBox_CheckedChanged(System::Object^ sender, System::EventArgs^ e) {
+	if (suppressUnitEvents) return;
+	if (!nmCheckBox->Checked) {
+		if (!angCheckBox->Checked) {
+			suppressUnitEvents = true;
+			nmCheckBox->Checked = true;
+			suppressUnitEvents = false;
+		}
+		return;
+	}
+	suppressUnitEvents = true;
+	angCheckBox->Checked = false;
+	suppressUnitEvents = false;
+	useAngstrom = false;
+	ApplyUnits();
+}
+
+System::Void DPlus::GraphPane2D::angCheckBox_CheckedChanged(System::Object^ sender, System::EventArgs^ e) {
+	if (suppressUnitEvents) return;
+	if (!angCheckBox->Checked) {
+		if (!nmCheckBox->Checked) {
+			suppressUnitEvents = true;
+			angCheckBox->Checked = true;
+			suppressUnitEvents = false;
+		}
+		return;
+	}
+	suppressUnitEvents = true;
+	nmCheckBox->Checked = false;
+	suppressUnitEvents = false;
+	useAngstrom = true;
+	ApplyUnits();
+}
+
+void DPlus::GraphPane2D::ApplyUnits() {
+	double scale = useAngstrom ? 0.1 : 1.0;
+	if (sigx != nullptr && sigy != nullptr) {
+		array<double>^ dx = gcnew array<double>(sigx->Length);
+		for (int i = 0; i < sigx->Length; ++i) dx[i] = sigx[i] * scale;
+		graph1D1->Modify(0, dx, sigy);
+	}
+	if (modx != nullptr && mody != nullptr) {
+		array<double>^ dx = gcnew array<double>(modx->Length);
+		for (int i = 0; i < modx->Length; ++i) dx[i] = modx[i] * scale;
+		graph1D1->Modify(1, dx, mody);
+	}
+	graph1D1->XLabel = useAngstrom ? L"Reciprocal Space [Å⁻¹]" : L"Reciprocal Space [nm⁻¹]";
+	graph1D1->FitToAllGraphs();
+	graph1D1->Refresh();
+}
+
 DPlus::GraphPane2D::GraphPane2D( MainWindow ^pform )
 {
 	InitializeComponent();
@@ -36,7 +87,11 @@ DPlus::GraphPane2D::GraphPane2D( MainWindow ^pform )
 	bModelSet = false;
 	sigy = nullptr;
 	mody = nullptr;
-	
+	sigx = nullptr;
+	modx = nullptr;
+	useAngstrom = false;
+	suppressUnitEvents = false;
+
 	parentForm = pform;
 
 	// Create two graphs: One for the signal, one for the model
@@ -48,7 +103,12 @@ DPlus::GraphPane2D::GraphPane2D( MainWindow ^pform )
 
 void DPlus::GraphPane2D::SetSignalGraph( array<double> ^x, array<double> ^y )
 {
-	graph1D1->Modify(0, x, y);
+	sigx = x;
+	sigy = y;
+	double scale = useAngstrom ? 0.1 : 1.0;
+	array<double> ^dx = gcnew array<double>(x->Length);
+	for (int i = 0; i < x->Length; ++i) dx[i] = x[i] * scale;
+	graph1D1->Modify(0, dx, y);
 
 	if(!bSignalSet)
 		graph1D1->FitToAllGraphs();
@@ -56,12 +116,11 @@ void DPlus::GraphPane2D::SetSignalGraph( array<double> ^x, array<double> ^y )
 	graph1D1->Refresh();
 
 	bSignalSet = true;
-	sigy = y;
 
 	if(bModelSet) {
 		std::vector<double> vsigy = arraytovector(sigy), vmody = arraytovector(mody);
-		chiSqrLabel->Text = "chi^2 = " + WSSR(vsigy, vmody).ToString("0.######");
-		rSqrLabel->Text = "R^2 = " + RSquared(vsigy, vmody).ToString("0.######");
+		chiSqrLabel->Text = L"χ² = " + WSSR(vsigy, vmody).ToString("0.######");
+		rSqrLabel->Text = L"R² = " + RSquared(vsigy, vmody).ToString("0.######");
 	}
 }
 
@@ -69,7 +128,7 @@ void DPlus::GraphPane2D::ClearSignalGraph()
 {
 	array<double> ^empty = gcnew array<double>(0);
 	graph1D1->Modify(0, empty, empty);
-	
+
 	if(bSignalSet)
 		graph1D1->FitToAllGraphs();
 
@@ -77,9 +136,10 @@ void DPlus::GraphPane2D::ClearSignalGraph()
 
 	bSignalSet = false;
 	sigy = nullptr;
+	sigx = nullptr;
 
-	chiSqrLabel->Text = "chi^2 = N/A";
-	rSqrLabel->Text = "R^2 = N/A";
+	chiSqrLabel->Text = L"χ² = N/A";
+	rSqrLabel->Text = L"R² = N/A";
 }
 
 void DPlus::GraphPane2D::GetModelGraph(array<double> ^%x, array<double> ^%y)
@@ -89,7 +149,12 @@ void DPlus::GraphPane2D::GetModelGraph(array<double> ^%x, array<double> ^%y)
 
 void DPlus::GraphPane2D::SetModelGraph(array<double> ^x, array<double> ^y)
 {
-	graph1D1->Modify(1, x, y);
+	modx = x;
+	mody = y;
+	double scale = useAngstrom ? 0.1 : 1.0;
+	array<double> ^dx = gcnew array<double>(x->Length);
+	for (int i = 0; i < x->Length; ++i) dx[i] = x[i] * scale;
+	graph1D1->Modify(1, dx, y);
 
 	if(!bModelSet)
 		graph1D1->FitToAllGraphs();
@@ -98,12 +163,11 @@ void DPlus::GraphPane2D::SetModelGraph(array<double> ^x, array<double> ^y)
 	graph1D1->Refresh();
 
 	bModelSet = true;
-	mody = y;
 
 	if(bSignalSet) {
 		std::vector<double> vsigy = arraytovector(sigy), vmody = arraytovector(mody);
-		chiSqrLabel->Text = "chi^2 = " + WSSR(vsigy, vmody).ToString("0.######");
-		rSqrLabel->Text = "R^2 = " + RSquared(vsigy, vmody).ToString("0.######");
+		chiSqrLabel->Text = L"χ² = " + WSSR(vsigy, vmody).ToString("0.######");
+		rSqrLabel->Text = L"R² = " + RSquared(vsigy, vmody).ToString("0.######");
 	}
 }
 
@@ -119,9 +183,10 @@ void DPlus::GraphPane2D::ClearModelGraph()
 
 	bModelSet = false;
 	mody = nullptr;
+	modx = nullptr;
 
-	chiSqrLabel->Text = "chi^2 = N/A";
-	rSqrLabel->Text = "R^2 = N/A";
+	chiSqrLabel->Text = L"χ² = N/A";
+	rSqrLabel->Text = L"R² = N/A";
 }
 
 System::Void DPlus::GraphPane2D::graph1D1_MouseMove(System::Object^ sender, System::Windows::Forms::MouseEventArgs^ e) {

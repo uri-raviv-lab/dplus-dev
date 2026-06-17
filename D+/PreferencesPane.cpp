@@ -307,6 +307,6 @@ System::Void DPlus::PreferencesPane::SetDefaultParams()
 	this->qMinTextBox->Text = L"0";
 	this->genResTextBox->Text = L"800";
 	this->convTextBox->Text = L"0.001";
-	this->updateIntervalMSTextBox->Text = L"100";
+	this->updateIntervalMSTextBox->Text = L"1000";
 	this->integrationMethodComboBox->SelectedIndex = 0;
 }

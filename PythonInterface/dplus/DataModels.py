@@ -1057,9 +1057,6 @@ class Population(ModelWithChildren):
         '''
         self.models.append(model)
 
-    def add_population(self):
-        self.append(Population())
-
     def serialize(self):
         """
           saves the contents of a class Population to a dictionary.
@@ -1132,6 +1129,9 @@ class Domain(ModelWithChildren):
         :return: The populations of the domain
         '''
         return self.children
+
+    def add_population(self):
+        self.populations.append(Population())
 
     def serialize(self):
         """

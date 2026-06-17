@@ -34,6 +34,16 @@ class CalculationInput(State):
                 print("When using GPU, use_grid must be enabled. Enabling automatically.")
                 self.DomainPreferences.use_grid = True
 
+    def serialize(self):
+        d = super().serialize()
+        d["UseGPU"] = self._use_gpu
+        return d
+
+    def load_from_dictionary(self, json, is2D=False):
+        super().load_from_dictionary(json, is2D)
+        if "UseGPU" in json:
+            self._use_gpu = bool(json["UseGPU"])
+
     @property
     def x(self):
         return self.DomainPreferences.x

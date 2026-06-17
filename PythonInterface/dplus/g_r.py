@@ -1033,7 +1033,7 @@ Number_for_average_atoms = dc.symbol('Number_for_average_atoms')
 Number_for_average_conf = dc.symbol('Number_for_average_conf')
 
 
-@dc.program(auto_optimize=True, regenerate_code=True, device=dtypes.DeviceType.GPU, )
+@dc.program(auto_optimize=True, regenerate_code=True, device= dtypes.ScheduleType.GPU_Device)
 def compute_sq(q: dc.float64[Q], S_Q: dc.float64[Q], r_mat: dc.float64[L, 3]):
     qr: dc.float64[Q]
 

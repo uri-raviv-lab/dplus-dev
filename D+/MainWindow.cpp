@@ -2583,7 +2583,7 @@ namespace DPlus {
 		}
 
 
-		String ^ jsonstring = json->Substring(0, json->LastIndexOf(",")) + "}";
+		String ^ jsonstring = json->Substring(0, json->LastIndexOf(",")) + ",\"UseGPU\":" + (this->UseGPU ? "true" : "false") + "}";
 		System::IO::File::WriteAllText(filename, jsonstring, System::Text::Encoding::ASCII);
 	}
 
@@ -2621,6 +2621,14 @@ namespace DPlus {
 						loadState["raw_json_text"] = value->ToString();//json_items[table]->ToString();
 						loadState->DoString(table + "= JSON:decode(raw_json_text)");
 					}
+				}
+
+				JToken ^ useGpuTok;
+				if (json_items->TryGetValue("UseGPU", useGpuTok))
+				{
+					bool ugpu;
+					if (Boolean::TryParse(useGpuTok->ToString(), ugpu))
+						changeUseGPUDisplayValue(ugpu);
 				}
 			}
 			catch (Exception ^)

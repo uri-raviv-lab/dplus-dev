@@ -234,7 +234,7 @@ namespace DPlus {
 			this->updateIntervalMSTextBox->Name = L"updateIntervalMSTextBox";
 			this->updateIntervalMSTextBox->Size = System::Drawing::Size(74, 20);
 			this->updateIntervalMSTextBox->TabIndex = 8;
-			this->updateIntervalMSTextBox->Text = L"100";
+			this->updateIntervalMSTextBox->Text = L"1000";
 			// 
 			// label1
 			// 

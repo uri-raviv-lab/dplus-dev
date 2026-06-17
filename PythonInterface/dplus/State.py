@@ -946,6 +946,13 @@ class State:
         :param model: instance of 'Model' type
         :param population_index: int value
         """
+        if population_index > len(self.Domain.populations):
+            warnings.warn(
+                f"population_index {population_index} is non-contiguous: "
+                f"{population_index - len(self.Domain.populations)} empty population(s) will be created."
+            )
+        while len(self.Domain.populations) <= population_index:
+            self.Domain.add_population()
         self.Domain.populations[population_index].children.append(model)
 
     def add_amplitude(self, amplitude, population_index=0):
